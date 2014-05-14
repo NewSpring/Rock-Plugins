@@ -2,16 +2,15 @@
 using System.Data.Entity.ModelConfiguration.Conventions;
 using System.Web;
 
-using org.RockSolidChurch.SampleProject.Model;
+using cc.newspring.give.Model;
 
-namespace org.RockSolidChurch.SampleProject.Data
+namespace cc.newspring.give.Data
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
-    public partial class SampleProjectContext : Rock.Data.DbContext
+    public partial class GiveContext : Rock.Data.DbContext
     {
-
         #region Models
 
         public DbSet<Book> Books { get; set; }
@@ -19,12 +18,12 @@ namespace org.RockSolidChurch.SampleProject.Data
         #endregion
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SampleProjectContext"/> class.
+        /// Initializes a new instance of the <see cref="GiveContext"/> class.
         /// </summary>
-        public SampleProjectContext()
+        public GiveContext()
             : base( "RockContext" )
         {
-             //intentionally left blank
+            //intentionally left blank
         }
 
         /// <summary>
@@ -47,6 +46,5 @@ namespace org.RockSolidChurch.SampleProject.Data
             Rock.Data.ContextHelper.AddConfigurations( modelBuilder );
             modelBuilder.Configurations.AddFromAssembly( System.Reflection.Assembly.GetExecutingAssembly() );
         }
-
     }
 }

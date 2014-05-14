@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 using Rock.Plugin;
 
-namespace org.RockSolidChurch.SampleProject.Migrations
+namespace cc.newspring.give.Migrations
 {
     [MigrationNumber( 1, "1.0.8" )]
     public class CreateDb : Migration

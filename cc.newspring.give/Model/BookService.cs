@@ -1,10 +1,10 @@
-﻿using org.RockSolidChurch.SampleProject.Data;
+﻿using cc.newspring.give.Data;
 using Rock.Model;
 
-namespace org.RockSolidChurch.SampleProject.Model
+namespace cc.newspring.give.Model
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public class BookService : SampleProjectService<Book>
     {
@@ -12,7 +12,6 @@ namespace org.RockSolidChurch.SampleProject.Model
         /// Initializes a new instance of the <see cref="BookService"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
-        public BookService( SampleProjectContext context ) : base( context ) { }
-
+        public BookService( GiveContext context ) : base( context ) { }
     }
 }

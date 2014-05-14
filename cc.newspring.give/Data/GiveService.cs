@@ -1,9 +1,9 @@
 ﻿using Rock.Data;
 
-namespace org.RockSolidChurch.SampleProject.Data
+namespace cc.newspring.give.Data
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public class SampleProjectService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()
@@ -11,7 +11,7 @@ namespace org.RockSolidChurch.SampleProject.Data
         /// <summary>
         /// Initializes a new instance of the <see cref="DocumentationService{T}"/> class.
         /// </summary>
-        public SampleProjectService( SampleProjectContext context )
+        public SampleProjectService( GiveContext context )
             : base( context )
         {
         }

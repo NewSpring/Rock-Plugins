@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{83775A9E-0455-4801-B1EF-DC70D786D09B}</ProjectGuid>
+    <ProjectGuid>{496EC024-71ED-4AD1-B677-2A3FA60CCD05}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>org.RockSolidChurch</RootNamespace>

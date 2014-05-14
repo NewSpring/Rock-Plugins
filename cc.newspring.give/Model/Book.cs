@@ -6,26 +6,26 @@ using System.Data.Entity.ModelConfiguration;
 using System.Linq;
 using System.Runtime.Serialization;
 
-using org.RockSolidChurch.Data;
+using cc.newspring;
 
 using Rock.Data;
 using Rock.Model;
 
-namespace org.RockSolidChurch.SampleProject.Model
+namespace cc.newspring.give.Model
 {
     /// <summary>
     /// An book
     /// </summary>
-    [Table( "_org_RockSolidChurch_SampleProject_Book" )]
+    [Table( "_cc_newspring_give_Book" )]
     [DataContract]
-    public class Book : org.RockSolidChurch.Data.Model<Book>
+    public class Book : cc.newspring.Model<Book>
     {
     }
 
     #region Entity Configuration
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public partial class BookConfiguration : EntityTypeConfiguration<Book>
     {
@@ -38,5 +38,4 @@ namespace org.RockSolidChurch.SampleProject.Model
     }
 
     #endregion
-
 }
