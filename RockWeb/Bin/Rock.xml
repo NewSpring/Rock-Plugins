@@ -455,9 +455,9 @@
             Latitude,Longitude
             </summary>
         </member>
-        <member name="T:Rock.Attribute.AccountsFieldAttribute">
+        <member name="T:Rock.Attribute.ComparisonFieldAttribute">
             <summary>
-            
+            Field Attribute to select a DefinedType.
             </summary>
         </member>
         <member name="T:Rock.Attribute.FieldAttribute">
@@ -561,6 +561,40 @@
             <value>
             The field configuration values.
             </value>
+        </member>
+        <member name="M:Rock.Attribute.ComparisonFieldAttribute.#ctor(System.String,System.String,System.Boolean,System.String,System.String,System.Int32,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Rock.Attribute.DefinedValueFieldAttribute"/> class.
+            </summary>
+            <param name="name">The name.</param>
+            <param name="description">The description.</param>
+            <param name="required">if set to <c>true</c> [required].</param>
+            <param name="defaultValue">The default value.</param>
+            <param name="category">The category.</param>
+            <param name="order">The order.</param>
+            <param name="key">The key.</param>
+        </member>
+        <member name="T:Rock.Attribute.MetricEntityFieldAttribute">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Rock.Attribute.MetricEntityFieldAttribute.#ctor(System.String,System.String,System.Boolean,System.String,System.String,System.Int32,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Rock.Attribute.MetricEntityFieldAttribute"/> class.
+            </summary>
+            <param name="name">The name.</param>
+            <param name="description">The description.</param>
+            <param name="required">if set to <c>true</c> [required].</param>
+            <param name="defaultValue">The default value.</param>
+            <param name="category">The category.</param>
+            <param name="order">The order.</param>
+            <param name="key">The key.</param>
+        </member>
+        <member name="T:Rock.Attribute.AccountsFieldAttribute">
+            <summary>
+            
+            </summary>
         </member>
         <member name="M:Rock.Attribute.AccountsFieldAttribute.#ctor(System.String,System.String,System.Boolean,System.String,System.String,System.Int32,System.String)">
             <summary>
@@ -879,6 +913,7 @@
             Initializes a new instance of the <see cref="T:Rock.Attribute.InheritedAttribute"/> class.
             </summary>
             <param name="name">The name.</param>
+            <param name="key">The key.</param>
             <param name="description">The description.</param>
             <param name="url">The URL.</param>
             <param name="groupType">Type of the group.</param>
@@ -1097,6 +1132,24 @@
             <param name="category">The category.</param>
             <param name="order">The order.</param>
             <param name="key">The key.</param>
+        </member>
+        <member name="T:Rock.Attribute.WorkflowAttributeAttribute">
+            <summary>
+            Field Attribute to select a workflow attribute from a workflow type.
+            </summary>
+        </member>
+        <member name="M:Rock.Attribute.WorkflowAttributeAttribute.#ctor(System.String,System.String,System.Boolean,System.String,System.String,System.Int32,System.String,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Rock.Attribute.WorkflowAttributeAttribute"/> class.
+            </summary>
+            <param name="name">The name.</param>
+            <param name="description">The description.</param>
+            <param name="required">if set to <c>true</c> [required].</param>
+            <param name="defaultValue">The default value.</param>
+            <param name="category">The category.</param>
+            <param name="order">The order.</param>
+            <param name="key">The key.</param>
+            <param name="workflowTypeGuid">The workflow type unique identifier.</param>
         </member>
         <member name="T:Rock.Attribute.WorkflowTypeFieldAttribute">
             <summary>
@@ -1363,6 +1416,15 @@
             <param name="appRoot">The application root.</param>
             <param name="themeRoot">The theme root.</param>
         </member>
+        <member name="M:Rock.Communication.TransportComponent.Send(System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.List{System.String},System.String,System.String)">
+            <summary>
+            Sends the specified channel data to the specified list of recipients.
+            </summary>
+            <param name="channelData">The channel data.</param>
+            <param name="recipients">The recipients.</param>
+            <param name="appRoot">The application root.</param>
+            <param name="themeRoot">The theme root.</param>
+        </member>
         <member name="P:Rock.Communication.TransportComponent.CanTrackOpens">
             <summary>
             Gets a value indicating whether transport has ability to track recipients opening the communication.
@@ -1386,6 +1448,15 @@
             <param name="recipients">The recipients.</param>
             <param name="appRoot"></param>
             <param name="themeRoot"></param>
+        </member>
+        <member name="M:Rock.Communication.Transport.MandrillSmtp.Send(System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.List{System.String},System.String,System.String)">
+            <summary>
+            Sends the specified channel data to the specified list of recipients.
+            </summary>
+            <param name="channelData">The channel data.</param>
+            <param name="recipients">The recipients.</param>
+            <param name="appRoot">The application root.</param>
+            <param name="themeRoot">The theme root.</param>
         </member>
         <member name="P:Rock.Communication.Transport.MandrillSmtp.CanTrackOpens">
             <summary>
@@ -1417,6 +1488,16 @@
             <param name="themeRoot"></param>
             <exception cref="T:System.NotImplementedException"></exception>
         </member>
+        <member name="M:Rock.Communication.Transport.Twilio.Send(System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.List{System.String},System.String,System.String)">
+            <summary>
+            Sends the specified channel data to the specified list of recipients.
+            </summary>
+            <param name="channelData">The channel data.</param>
+            <param name="recipients">The recipients.</param>
+            <param name="appRoot">The application root.</param>
+            <param name="themeRoot">The theme root.</param>
+            <exception cref="T:System.NotImplementedException"></exception>
+        </member>
         <member name="T:Rock.Constants.SystemSettingKeys">
             <summary>
             This class holds Rock's well known System Setting keys.
@@ -1442,6 +1523,35 @@
             <summary>
             Holds the System Setting key for the sample data load date/time.
             </summary>
+        </member>
+        <member name="T:Rock.Data.IChartData">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Rock.Data.IChartData.DateTimeStamp">
+            <summary>
+            Gets the date time stamp.
+            </summary>
+            <value>
+            The date time stamp.
+            </value>
+        </member>
+        <member name="P:Rock.Data.IChartData.YValue">
+            <summary>
+            Gets the y value.
+            </summary>
+            <value>
+            The y value.
+            </value>
+        </member>
+        <member name="P:Rock.Data.IChartData.SeriesId">
+            <summary>
+            Gets the series identifier.
+            </summary>
+            <value>
+            The series identifier.
+            </value>
         </member>
         <member name="T:Rock.Field.IFieldType">
             <summary>
@@ -1544,6 +1654,231 @@
             <param name="control">The control.</param>
             <param name="configurationValues">The configuration values.</param>
             <param name="id">The identifier.</param>
+        </member>
+        <member name="T:Rock.Field.Types.ComparisonFieldType">
+            <summary>
+            Field Type used to display a dropdown list of Defined Types
+            </summary>
+        </member>
+        <member name="T:Rock.Field.FieldType">
+            <summary>
+            Abstract class that all custom field types should inherit from
+            </summary>
+        </member>
+        <member name="M:Rock.Field.FieldType.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="N:Rock.Field"/> class.
+            </summary>
+        </member>
+        <member name="M:Rock.Field.FieldType.FormatValue(System.Web.UI.Control,System.String,System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue},System.Boolean)">
+            <summary>
+            Returns the field's current value(s)
+            </summary>
+            <param name="parentControl">The parent control.</param>
+            <param name="value">Information about the value</param>
+            <param name="configurationValues">The configuration values.</param>
+            <param name="condensed">Flag indicating if the value should be condensed (i.e. for use in a grid column)</param>
+            <returns></returns>
+        </member>
+        <member name="M:Rock.Field.FieldType.IsValid(System.String,System.Boolean,System.String@)">
+            <summary>
+            Tests the value to ensure that it is a valid value.  If not, message will indicate why
+            </summary>
+            <param name="value">The value.</param>
+            <param name="required">if set to <c>true</c> [required].</param>
+            <param name="message">The message.</param>
+            <returns>
+              <c>true</c> if the specified value is valid; otherwise, <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:Rock.Field.FieldType.ConfigurationKeys">
+            <summary>
+            Returns a list of the configuration keys
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Rock.Field.FieldType.ConfigurationControls">
+            <summary>
+            Creates the HTML controls required to configure this type of field
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Rock.Field.FieldType.ConfigurationValues(System.Collections.Generic.List{System.Web.UI.Control})">
+            <summary>
+            Gets the configuration value.
+            </summary>
+            <param name="controls">The controls.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Rock.Field.FieldType.SetConfigurationValues(System.Collections.Generic.List{System.Web.UI.Control},System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue})">
+            <summary>
+            Sets the configuration value.
+            </summary>
+            <param name="controls">The controls.</param>
+            <param name="configurationValues">The configuration values.</param>
+        </member>
+        <member name="M:Rock.Field.FieldType.EditControl(System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue},System.String)">
+            <summary>
+            Creates the control(s) neccessary for prompting user for a new value
+            </summary>
+            <param name="configurationValues">The configuration values.</param>
+            <param name="id"></param>
+            <returns>
+            The control
+            </returns>
+        </member>
+        <member name="M:Rock.Field.FieldType.GetEditValue(System.Web.UI.Control,System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue})">
+            <summary>
+            Reads new values entered by the user for the field
+            </summary>
+            <param name="control">Parent control that controls were added to in the CreateEditControl() method</param>
+            <param name="configurationValues">The configuration values.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Rock.Field.FieldType.SetEditValue(System.Web.UI.Control,System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue},System.String)">
+            <summary>
+            Sets the value.
+            </summary>
+            <param name="control">The control.</param>
+            <param name="configurationValues">The configuration values.</param>
+            <param name="value">The value.</param>
+        </member>
+        <member name="M:Rock.Field.FieldType.OnQualifierUpdated(System.Object,System.EventArgs)">
+            <summary>
+            Called when [qualifier updated].
+            </summary>
+            <param name="sender">The sender.</param>
+            <param name="e">The <see cref="T:System.EventArgs"/> instance containing the event data.</param>
+        </member>
+        <member name="P:Rock.Field.FieldType.AlignValue">
+            <summary>
+            Gets the align value that should be used when displaying value
+            </summary>
+        </member>
+        <member name="E:Rock.Field.FieldType.QualifierUpdated">
+            <summary>
+            Occurs when [qualifier updated].
+            </summary>
+        </member>
+        <member name="M:Rock.Field.Types.ComparisonFieldType.FormatValue(System.Web.UI.Control,System.String,System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue},System.Boolean)">
+            <summary>
+            Returns the field's current value(s)
+            </summary>
+            <param name="parentControl">The parent control.</param>
+            <param name="value">Information about the value</param>
+            <param name="configurationValues">The configuration values.</param>
+            <param name="condensed">Flag indicating if the value should be condensed (i.e. for use in a grid column)</param>
+            <returns></returns>
+        </member>
+        <member name="M:Rock.Field.Types.ComparisonFieldType.EditControl(System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue},System.String)">
+            <summary>
+            Creates the control(s) neccessary for prompting user for a new value
+            </summary>
+            <param name="configurationValues">The configuration values.</param>
+            <param name="id"></param>
+            <returns>
+            The control
+            </returns>
+        </member>
+        <member name="M:Rock.Field.Types.ComparisonFieldType.GetEditValue(System.Web.UI.Control,System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue})">
+            <summary>
+            Reads new values entered by the user for the field
+            </summary>
+            <param name="control">Parent control that controls were added to in the CreateEditControl() method</param>
+            <param name="configurationValues"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rock.Field.Types.ComparisonFieldType.SetEditValue(System.Web.UI.Control,System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue},System.String)">
+            <summary>
+            Sets the value.
+            </summary>
+            <param name="control">The control.</param>
+            <param name="configurationValues"></param>
+            <param name="value">The value.</param>
+        </member>
+        <member name="T:Rock.Field.Types.MetricEntityFieldType">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Rock.Field.Types.MetricEntityFieldType.FormatValue(System.Web.UI.Control,System.String,System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue},System.Boolean)">
+            <summary>
+            Returns the field's current value(s)
+            </summary>
+            <param name="parentControl">The parent control.</param>
+            <param name="value">Information about the value</param>
+            <param name="configurationValues">The configuration values.</param>
+            <param name="condensed">Flag indicating if the value should be condensed (i.e. for use in a grid column)</param>
+            <returns></returns>
+        </member>
+        <member name="M:Rock.Field.Types.MetricEntityFieldType.EditControl(System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue},System.String)">
+            <summary>
+            Creates the control(s) neccessary for prompting user for a new value
+            </summary>
+            <param name="configurationValues">The configuration values.</param>
+            <param name="id"></param>
+            <returns>
+            The control
+            </returns>
+        </member>
+        <member name="M:Rock.Field.Types.MetricEntityFieldType.GetEditValue(System.Web.UI.Control,System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue})">
+            <summary>
+            Reads new values entered by the user for the field
+            returns pipe delimited: Metric (as Guid) | EntityId | GetEntityFromContext | CombineValues
+            </summary>
+            <param name="control">Parent control that controls were added to in the CreateEditControl() method</param>
+            <param name="configurationValues">The configuration values.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Rock.Field.Types.MetricEntityFieldType.SetEditValue(System.Web.UI.Control,System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue},System.String)">
+            <summary>
+            Sets the value.
+            value is pipe delimited: Metric (as Guid) | EntityId | GetEntityFromContext | CombineValues
+            </summary>
+            <param name="control">The control.</param>
+            <param name="configurationValues">The configuration values.</param>
+            <param name="value">The value.</param>
+        </member>
+        <member name="T:Rock.Field.Types.WorkflowAttributeFieldType">
+            <summary>
+            Field Type used to display a dropdown list of Defined Values for a specific Defined Type
+            </summary>
+        </member>
+        <member name="M:Rock.Field.Types.WorkflowAttributeFieldType.FormatValue(System.Web.UI.Control,System.String,System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue},System.Boolean)">
+            <summary>
+            Returns the field's current value(s)
+            </summary>
+            <param name="parentControl">The parent control.</param>
+            <param name="value">Information about the value</param>
+            <param name="configurationValues">The configuration values.</param>
+            <param name="condensed">Flag indicating if the value should be condensed (i.e. for use in a grid column)</param>
+            <returns></returns>
+        </member>
+        <member name="M:Rock.Field.Types.WorkflowAttributeFieldType.EditControl(System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue},System.String)">
+            <summary>
+            Creates the control(s) neccessary for prompting user for a new value
+            </summary>
+            <param name="configurationValues">The configuration values.</param>
+            <param name="id"></param>
+            <returns>
+            The control
+            </returns>
+        </member>
+        <member name="M:Rock.Field.Types.WorkflowAttributeFieldType.GetEditValue(System.Web.UI.Control,System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue})">
+            <summary>
+            Reads new values entered by the user for the field
+            </summary>
+            <param name="control">Parent control that controls were added to in the CreateEditControl() method</param>
+            <param name="configurationValues"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rock.Field.Types.WorkflowAttributeFieldType.SetEditValue(System.Web.UI.Control,System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue},System.String)">
+            <summary>
+            Sets the value.
+            </summary>
+            <param name="control">The control.</param>
+            <param name="configurationValues"></param>
+            <param name="value">The value.</param>
         </member>
         <member name="T:Rock.Model.PluginMigrationService">
             <summary>
@@ -2172,6 +2507,14 @@
             DotLiquid compatible dictionary.
             </returns>
         </member>
+        <member name="M:Rock.Data.Model`1.ToLiquid(System.Boolean,System.Boolean)">
+            <summary>
+            To the liquid.
+            </summary>
+            <param name="debug">if set to <c>true</c> [debug].</param>
+            <param name="reloadAttributes">if set to <c>true</c> [reload attributes].</param>
+            <returns></returns>
+        </member>
         <member name="M:Rock.Data.Model`1.GetAttributeValue(System.String)">
             <summary>
             Gets the first value of an attribute key.
@@ -2338,6 +2681,1099 @@
             Initializes a new instance of the <see cref="T:Rock.Model.PluginMigrationConfiguration"/> class.
             </summary>
         </member>
+        <member name="T:Rock.Reporting.Dashboard.ChartStyle">
+            <summary>
+            Chart Style class.  All values are optional.  The chart will decide the style if a value is not specified
+            Color values can be any html color specification
+            Gradients can be 2 or more html colors that will result in a vertical gradient (limited to vertical because that's what works in IE)
+            </summary>
+        </member>
+        <member name="M:Rock.Reporting.Dashboard.ChartStyle.CreateFromJson(System.String)">
+            <summary>
+            Creates from json.
+            </summary>
+            <param name="json">The json.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Rock.Reporting.Dashboard.ChartStyle.ToString">
+            <summary>
+            Returns a <see cref="T:System.String"/> that represents this instance.
+            </summary>
+            <returns>
+            A <see cref="T:System.String"/> that represents this instance.
+            </returns>
+        </member>
+        <member name="M:Rock.Reporting.Dashboard.ChartStyle.ToJson(System.Boolean)">
+            <summary>
+            To the json.
+            </summary>
+            <param name="ignoreNulls">if set to <c>true</c> [ignore nulls].</param>
+            <returns></returns>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.ChartStyle.SeriesColors">
+            <summary>
+            Gets or sets the series colors. SeriesColors[0] will be used for the first series, SeriesColors[1] for the second, etc
+            </summary>
+            <value>
+            The series colors.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.ChartStyle.GoalSeriesColor">
+            <summary>
+            Gets or sets the color of the goal series.
+            </summary>
+            <value>
+            The color of the goal series.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.ChartStyle.Grid">
+            <summary>
+            Gets or sets the grid.
+            </summary>
+            <value>
+            The grid.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.ChartStyle.XAxis">
+            <summary>
+            Gets or sets the x axis color and font 
+            </summary>
+            <value>
+            The x axis.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.ChartStyle.YAxis">
+            <summary>
+            Gets or sets the y axis color and font
+            </summary>
+            <value>
+            The y axis.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.ChartStyle.FillOpacity">
+            <summary>
+            Gets or sets the fill opacity.
+            If FillColor is NULL, this will determine the FillOpacity of the a fillcolor determined by the chart
+            </summary>
+            <value>
+            The fill opacity.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.ChartStyle.FillColor">
+            <summary>
+            Gets or sets the color of the fill.
+            Leave null and set FillOpacity to have the chart automatically choose the color
+            </summary>
+            <value>
+            The color of the fill.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.ChartStyle.Legend">
+            <summary>
+            Gets or sets the legend style
+            </summary>
+            <value>
+            The legend.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.ChartStyle.Title">
+            <summary>
+            Gets or sets the title.
+            </summary>
+            <value>
+            The title.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.ChartStyle.Subtitle">
+            <summary>
+            Gets or sets the subtitle.
+            </summary>
+            <value>
+            The subtitle.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.ChartStyle.PieLabels">
+            <summary>
+            Gets or sets the pie labels.
+            </summary>
+            <value>
+            The pie labels.
+            </value>
+        </member>
+        <member name="T:Rock.Reporting.Dashboard.PieLabelsStyle">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.PieLabelsStyle.BackgroundOpacity">
+            <summary>
+            Gets or sets the fill opacity.
+            If BackgroundColor is NULL, this will determine the opacity of the label backgroundcolor determined by the chart
+            </summary>
+            <value>
+            The fill opacity.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.PieLabelsStyle.BackgroundColor">
+            <summary>
+            Gets or sets the color of the fill.
+            Leave null and set BackgroundOpacity to have the chart automatically choose the color of the label
+            </summary>
+            <value>
+            The color of the fill.
+            </value>
+        </member>
+        <member name="T:Rock.Reporting.Dashboard.GridStyle">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.GridStyle.ColorGradient">
+            <summary>
+            Gets or sets the grid color gradient.
+            </summary>
+            <value>
+            The grid color gradient.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.GridStyle.Color">
+            <summary>
+            Gets or sets the color of the grid.
+            </summary>
+            <value>
+            The color of the grid.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.GridStyle.BackgroundColorGradient">
+            <summary>
+            Gets or sets the grid background color gradient.
+            </summary>
+            <value>
+            The grid background color gradient.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.GridStyle.BackgroundColor">
+            <summary>
+            Gets or sets the color of the grid background.
+            </summary>
+            <value>
+            The color of the grid background.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.GridStyle.BorderWidth">
+            <summary>
+            Gets or sets the width of the border.
+            Can be set to Null, a number, or a { top, right, bottom, left } object;
+            </summary>
+            <value>
+            The width of the border.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.GridStyle.BorderColor">
+            <summary>
+            Gets or sets the color of the border.
+            Can be set to Null, a htmlColor string, or a { top, right, bottom, left } object;
+            </summary>
+            <value>
+            The color of the border.
+            </value>
+        </member>
+        <member name="T:Rock.Reporting.Dashboard.LegendStyle">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.LegendStyle.BackgroundColor">
+            <summary>
+            Gets or sets the color of the background.
+            </summary>
+            <value>
+            The color of the background.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.LegendStyle.BackgroundOpacity">
+            <summary>
+            Gets or sets the background opacity.
+            </summary>
+            <value>
+            The background opacity.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.LegendStyle.LabelBoxBorderColor">
+            <summary>
+            Gets or sets the color of the label box border.
+            </summary>
+            <value>
+            The color of the label box border.
+            </value>
+        </member>
+        <member name="T:Rock.Reporting.Dashboard.AxisStyle">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.AxisStyle.Color">
+            <summary>
+            Gets or sets the color.
+            </summary>
+            <value>
+            The color.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.AxisStyle.Font">
+            <summary>
+            Gets or sets the font.
+            </summary>
+            <value>
+            The font.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.AxisStyle.DateTimeFormat">
+            <summary>
+            Gets or sets the date time format on axis that have date/time data
+            To specify a Flot timeFormat, see https://github.com/flot/flot/blob/master/API.md#time-series-data
+            </summary>
+            <value>
+            The date time format.
+            </value>
+        </member>
+        <member name="T:Rock.Reporting.Dashboard.FontStyle">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.FontStyle.Size">
+            <summary>
+            Gets or sets the size.
+            </summary>
+            <value>
+            The size.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.FontStyle.Family">
+            <summary>
+            Gets or sets the family.
+            </summary>
+            <value>
+            The family.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.FontStyle.Color">
+            <summary>
+            Gets or sets the color.
+            </summary>
+            <value>
+            The color.
+            </value>
+        </member>
+        <member name="T:Rock.Reporting.Dashboard.TitleStyle">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.TitleStyle.Font">
+            <summary>
+            Gets or sets the font.
+            </summary>
+            <value>
+            The font.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.TitleStyle.Align">
+            <summary>
+            Gets or sets the align.
+            </summary>
+            <value>
+            The align.
+            </value>
+        </member>
+        <member name="T:Rock.Reporting.Dashboard.Flot.ChartOptions">
+            <summary>
+            Class that can be JSON'd and used for Flot Charts (properties are case sensitive)
+            </summary>
+        </member>
+        <member name="M:Rock.Reporting.Dashboard.Flot.ChartOptions.SetChartStyle(Rock.Reporting.Dashboard.ChartStyle)">
+            <summary>
+            Sets the chart style.
+            </summary>
+            <param name="chartStyle">The chart style.</param>
+        </member>
+        <member name="M:Rock.Reporting.Dashboard.Flot.ChartOptions.SetFlotLinesPointsBarsStyle(Rock.Reporting.Dashboard.ChartStyle,Rock.Reporting.Dashboard.Flot.LinesPointsBars)">
+            <summary>
+            Sets the flot lines points bars style.
+            </summary>
+            <param name="chartStyle">The chart style.</param>
+            <param name="linesPointsBars">The lines points bars.</param>
+        </member>
+        <member name="M:Rock.Reporting.Dashboard.Flot.ChartOptions.SetFlotAxisStyle(Rock.Reporting.Dashboard.AxisStyle,Rock.Reporting.Dashboard.Flot.AxisOptions)">
+            <summary>
+            Sets the flot axis style.
+            </summary>
+            <param name="styleAxis">The style axis.</param>
+            <param name="flotAxis">The flot axis.</param>
+        </member>
+        <member name="M:Rock.Reporting.Dashboard.Flot.ChartOptions.ToFlotColorGradient(System.String[])">
+            <summary>
+            convert a style color gradient to flot color specification for a gradient
+            </summary>
+            <param name="source">The source.</param>
+            <returns></returns>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.ChartOptions.xaxis">
+            <summary>
+            Gets or sets the xaxis.
+            </summary>
+            <value>
+            The xaxis.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.ChartOptions.yaxis">
+            <summary>
+            Gets or sets the yaxis.
+            </summary>
+            <value>
+            The yaxis.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.ChartOptions.series">
+            <summary>
+            Gets or sets the series.
+            </summary>
+            <value>
+            The series.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.ChartOptions.grid">
+            <summary>
+            Gets or sets the grid.
+            </summary>
+            <value>
+            The grid.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.ChartOptions.colors">
+            <summary>
+            Gets or sets the array of colors to use for each series 
+            Series 1 will use colors[0], Series 2 will use colors[1], etc
+            Leave null to autogenerate
+            </summary>
+            <value>
+            The colors.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.ChartOptions.legend">
+            <summary>
+            Gets or sets the legend.
+            </summary>
+            <value>
+            The legend.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.ChartOptions.customSettings">
+            <summary>
+            Gets or sets the custom settings.
+            </summary>
+            <value>
+            The custom settings.
+            </value>
+        </member>
+        <member name="T:Rock.Reporting.Dashboard.Flot.AxisOptions">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Rock.Reporting.Dashboard.Flot.AxisOptions.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Rock.Reporting.Dashboard.Flot.AxisOptions"/> class.
+            </summary>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.AxisOptions.show">
+            <summary>
+            Gets or sets the show.
+            </summary>
+            <value>
+            The show.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.AxisOptions.position">
+            <summary>
+            Gets or sets the position.
+            </summary>
+            <value>
+            The position.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.AxisOptions.mode">
+            <summary>
+            Gets or sets the mode.
+            </summary>
+            <value>
+            The mode.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.AxisOptions.timeformat">
+            <summary>
+            Gets or sets the timeformat.
+            </summary>
+            <value>
+            The timeformat.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.AxisOptions.color">
+            <summary>
+            Gets or sets the color.
+            </summary>
+            <value>
+            The color.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.AxisOptions.tickColor">
+            <summary>
+            Gets or sets the color of the tick.
+            </summary>
+            <value>
+            The color of the tick.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.AxisOptions.tickFormatter">
+            <summary>
+            Gets or sets the tick formatter which can be null or a custom javascipt function.
+            Example: tickFormatter = function (val, axis) {
+               if (val > 1000000)
+                   return (val / 1000000).toFixed(axis.tickDecimals) + " MB";
+               else if (val > 1000)
+                   return (val / 1000).toFixed(axis.tickDecimals) + " kB";
+               else
+                   return val.toFixed(axis.tickDecimals) + " B";
+            }
+            </summary>
+            <value>
+            The tick formatter.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.AxisOptions.tickDecimals">
+            <summary>
+            Gets or sets the tick decimals.
+            </summary>
+            <value>
+            The tick decimals.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.AxisOptions.font">
+            <summary>
+            Gets or sets the font.
+            </summary>
+            <value>
+            The font.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.AxisOptions.min">
+            <summary>
+            Gets or sets the minimum.
+            </summary>
+            <value>
+            The minimum.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.AxisOptions.max">
+            <summary>
+            Gets or sets the maximum.
+            </summary>
+            <value>
+            The maximum.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.AxisOptions.ticks">
+            <summary>
+            Gets or sets the ticks.
+            null or double (number of ticks) or double[] (specific ticks)
+            </summary>
+            <value>
+            The ticks.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.AxisOptions.tickSize">
+            <summary>
+            Gets or sets the size of the tick.
+            null or double (number of ticks) or double[] (specific tickSize per tick)
+            for time mode, "tickSize" and "minTickSize" are in the form "[value, unit]" where unit is one of "second", "minute", "hour", "day", "month" and "year". ex: [3, "month"]
+            </summary>
+            <value>
+            The size of the tick.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.AxisOptions.minTickSize">
+            <summary>
+            Gets or sets the minimum size of the tick.
+            null or double (number of ticks) or double[] (specific minTickSize per tick).
+            for time mode, "tickSize" and "minTickSize" are in the form "[value, unit]" where unit is one of "second", "minute", "hour", "day", "month" and "year". ex: [3, "month"]
+            </summary>
+            <value>
+            The minimum size of the tick.
+            </value>
+        </member>
+        <member name="T:Rock.Reporting.Dashboard.Flot.AxisPosition">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:Rock.Reporting.Dashboard.Flot.AxisMode">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:Rock.Reporting.Dashboard.Flot.ChartFont">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.ChartFont.size">
+            <summary>
+            Gets or sets the size.
+            </summary>
+            <value>
+            The size.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.ChartFont.lineHeight">
+            <summary>
+            Gets or sets the height of the line.
+            </summary>
+            <value>
+            The height of the line.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.ChartFont.style">
+            <summary>
+            Gets or sets the style.
+            </summary>
+            <value>
+            The style.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.ChartFont.weight">
+            <summary>
+            Gets or sets the weight.
+            </summary>
+            <value>
+            The weight.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.ChartFont.family">
+            <summary>
+            Gets or sets the family.
+            </summary>
+            <value>
+            The family.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.ChartFont.variant">
+            <summary>
+            Gets or sets the variant.
+            </summary>
+            <value>
+            The variant.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.ChartFont.color">
+            <summary>
+            Gets or sets the color.
+            </summary>
+            <value>
+            The color.
+            </value>
+        </member>
+        <member name="T:Rock.Reporting.Dashboard.Flot.Legend">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.Legend.show">
+            <summary>
+            Gets or sets a value indicating whether [show].
+            </summary>
+            <value>
+              <c>true</c> if [show]; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.Legend.labelBoxBorderColor">
+            <summary>
+            Gets or sets the color of the label box border.
+            </summary>
+            <value>
+            The color of the label box border.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.Legend.noColumns">
+            <summary>
+            Gets or sets the no columns.
+            </summary>
+            <value>
+            The no columns.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.Legend.position">
+            <summary>
+            Gets or sets the position.
+            "ne" or "nw" or "se" or "sw"
+            </summary>
+            <value>
+            The position.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.Legend.margin">
+            <summary>
+            Gets or sets the margin.
+            </summary>
+            <value>
+            The margin.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.Legend.backgroundColor">
+            <summary>
+            Gets or sets the color of the background.
+            </summary>
+            <value>
+            The color of the background.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.Legend.backgroundOpacity">
+            <summary>
+            Gets or sets the background opacity.
+            </summary>
+            <value>
+            The background opacity.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.Legend.container">
+            <summary>
+            Gets or sets the container.
+            </summary>
+            <value>
+            The container.
+            </value>
+        </member>
+        <member name="T:Rock.Reporting.Dashboard.Flot.LinesPointsBars">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.LinesPointsBars.show">
+            <summary>
+            Gets or sets a value indicating whether [show].
+            </summary>
+            <value>
+              <c>true</c> if [show]; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.LinesPointsBars.lineWidth">
+            <summary>
+            Gets or sets the width of the line.
+            </summary>
+            <value>
+            The width of the line.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.LinesPointsBars.fill">
+            <summary>
+            Gets or sets the fill opacity
+            </summary>
+            <value>
+            The fill.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.LinesPointsBars.fillColor">
+            <summary>
+            Gets or sets the color of the fill.
+            </summary>
+            <value>
+            The color of the fill.
+            </value>
+        </member>
+        <member name="T:Rock.Reporting.Dashboard.Flot.Lines">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.Lines.zero">
+            <summary>
+            Gets or sets the zero.
+            </summary>
+            <value>
+            The zero.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.Lines.steps">
+            <summary>
+            Gets or sets the steps.
+            </summary>
+            <value>
+            The steps.
+            </value>
+        </member>
+        <member name="T:Rock.Reporting.Dashboard.Flot.Bars">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.Bars.zero">
+            <summary>
+            Gets or sets the zero.
+            </summary>
+            <value>
+            The zero.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.Bars.barWidth">
+            <summary>
+            Gets or sets the width of the bar.
+            </summary>
+            <value>
+            The width of the bar.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.Bars.align">
+            <summary>
+            Gets or sets the align.
+            </summary>
+            <value>
+            The align.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.Bars.horizontal">
+            <summary>
+            Gets or sets the horizontal.
+            </summary>
+            <value>
+            The horizontal.
+            </value>
+        </member>
+        <member name="T:Rock.Reporting.Dashboard.Flot.Points">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.Points.radius">
+            <summary>
+            Gets or sets the radius.
+            </summary>
+            <value>
+            The radius.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.Points.symbol">
+            <summary>
+            Gets or sets the symbol.
+            </summary>
+            <value>
+            The symbol.
+            </value>
+        </member>
+        <member name="T:Rock.Reporting.Dashboard.Flot.Pie">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.Pie.show">
+            <summary>
+            Gets or sets the show.
+            </summary>
+            <value>
+            The show.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.Pie.label">
+            <summary>
+            Gets or sets the label.
+            </summary>
+            <value>
+            The label.
+            </value>
+        </member>
+        <member name="T:Rock.Reporting.Dashboard.Flot.PieLabel">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.PieLabel.show">
+            <summary>
+            Gets or sets the show.
+            </summary>
+            <value>
+            The show.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.PieLabel.radius">
+            <summary>
+            Sets the radius at which to place the labels. If value is between 0 and 1 (inclusive) then it will use that as a percentage of the available space (size of the container), otherwise it will use the value as a direct pixel length
+            </summary>
+            <value>
+            The radius.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.PieLabel.threshold">
+            <summary>
+            Gets or sets the threshold.
+            Hides the labels of any pie slice that is smaller than the specified percentage (ranging from 0 to 1) i.e. a value of '0.03' will hide all slices 3% or less of the total.
+            </summary>
+            <value>
+            The threshold.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.PieLabel.background">
+            <summary>
+            Gets or sets the background.
+            color is color of the positioned labels. If null, the plugin will automatically use the color of the slice.
+            specify background as object 
+            {
+                color: "#515151",
+                opacity: .5
+            }
+            </summary>
+            <value>
+            The background.
+            </value>
+        </member>
+        <member name="T:Rock.Reporting.Dashboard.Flot.SeriesOptions">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Rock.Reporting.Dashboard.Flot.SeriesOptions.#ctor(System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Rock.Reporting.Dashboard.Flot.SeriesOptions"/> class.
+            </summary>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.SeriesOptions.bars">
+            <summary>
+            Gets or sets the bars.
+            </summary>
+            <value>
+            The bars.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.SeriesOptions.lines">
+            <summary>
+            Gets or sets the lines.
+            </summary>
+            <value>
+            The lines.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.SeriesOptions.points">
+            <summary>
+            Gets or sets the points.
+            </summary>
+            <value>
+            The points.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.SeriesOptions.pie">
+            <summary>
+            Gets or sets the pie.
+            </summary>
+            <value>
+            The pie.
+            </value>
+        </member>
+        <member name="T:Rock.Reporting.Dashboard.Flot.GridOptions">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.GridOptions.show">
+            <summary>
+            Gets or sets the show.
+            </summary>
+            <value>
+            The show.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.GridOptions.aboveData">
+            <summary>
+            Gets or sets the above data.
+            </summary>
+            <value>
+            The above data.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.GridOptions.color">
+            <summary>
+            Gets or sets the color.
+            </summary>
+            <value>
+            The color.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.GridOptions.backgroundColor">
+            <summary>
+            Gets or sets the color of the background.
+            </summary>
+            <value>
+            The color of the background.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.GridOptions.margin">
+            <summary>
+            Gets or sets the margin.
+            Can be set to Null, a number, or a { top, right, bottom, left } object;
+            </summary>
+            <value>
+            The margin.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.GridOptions.labelMargin">
+            <summary>
+            Gets or sets the label margin.
+            </summary>
+            <value>
+            The label margin.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.GridOptions.axisMargin">
+            <summary>
+            Gets or sets the axis margin.
+            </summary>
+            <value>
+            The axis margin.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.GridOptions.borderWidth">
+            <summary>
+            Gets or sets the width of the border.
+            Can be set to Null, a number, or a { top, right, bottom, left } object;
+            </summary>
+            <value>
+            The width of the border.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.GridOptions.borderColor">
+            <summary>
+            Gets or sets the color of the border.
+            Can be set to Null, a htmlColor string, or a { top, right, bottom, left } object;
+            </summary>
+            <value>
+            The color of the border.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.GridOptions.minBorderMargin">
+            <summary>
+            Gets or sets the minimum border margin.
+            </summary>
+            <value>
+            The minimum border margin.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.GridOptions.clickable">
+            <summary>
+            Gets or sets the clickable.
+            </summary>
+            <value>
+            The clickable.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.GridOptions.hoverable">
+            <summary>
+            Gets or sets the hoverable.
+            </summary>
+            <value>
+            The hoverable.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.GridOptions.autoHighlight">
+            <summary>
+            Gets or sets the automatic highlight.
+            </summary>
+            <value>
+            The automatic highlight.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.GridOptions.mouseActiveRadius">
+            <summary>
+            Gets or sets the mouse active radius.
+            </summary>
+            <value>
+            The mouse active radius.
+            </value>
+        </member>
+        <member name="T:Rock.Reporting.Dashboard.Flot.CustomSettings">
+            <summary>
+            Settings that aren't part of the Font spec
+            </summary>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.CustomSettings.titleFont">
+            <summary>
+            Gets or sets the title font.
+            </summary>
+            <value>
+            The title font.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.CustomSettings.titleAlign">
+            <summary>
+            Gets or sets the title align.
+            </summary>
+            <value>
+            The title align.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.CustomSettings.subtitleFont">
+            <summary>
+            Gets or sets the subtitle font.
+            </summary>
+            <value>
+            The subtitle font.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.Flot.CustomSettings.subtitleAlign">
+            <summary>
+            Gets or sets the subtitle align.
+            </summary>
+            <value>
+            The subtitle align.
+            </value>
+        </member>
+        <member name="T:Rock.Field.Types.WorkflowActivityFieldType">
+            <summary>
+            Field Type used to display a dropdown list of Defined Values for a specific Defined Type
+            </summary>
+        </member>
+        <member name="M:Rock.Field.Types.WorkflowActivityFieldType.FormatValue(System.Web.UI.Control,System.String,System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue},System.Boolean)">
+            <summary>
+            Returns the field's current value(s)
+            </summary>
+            <param name="parentControl">The parent control.</param>
+            <param name="value">Information about the value</param>
+            <param name="configurationValues">The configuration values.</param>
+            <param name="condensed">Flag indicating if the value should be condensed (i.e. for use in a grid column)</param>
+            <returns></returns>
+        </member>
+        <member name="M:Rock.Field.Types.WorkflowActivityFieldType.EditControl(System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue},System.String)">
+            <summary>
+            Creates the control(s) neccessary for prompting user for a new value
+            </summary>
+            <param name="configurationValues">The configuration values.</param>
+            <param name="id"></param>
+            <returns>
+            The control
+            </returns>
+        </member>
+        <member name="M:Rock.Field.Types.WorkflowActivityFieldType.GetEditValue(System.Web.UI.Control,System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue})">
+            <summary>
+            Reads new values entered by the user for the field
+            </summary>
+            <param name="control">Parent control that controls were added to in the CreateEditControl() method</param>
+            <param name="configurationValues"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rock.Field.Types.WorkflowActivityFieldType.SetEditValue(System.Web.UI.Control,System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue},System.String)">
+            <summary>
+            Sets the value.
+            </summary>
+            <param name="control">The control.</param>
+            <param name="configurationValues"></param>
+            <param name="value">The value.</param>
+        </member>
         <member name="T:Rock.Plugin.Migration">
             <summary>
             Class for defining a plugin migration
@@ -2499,6 +3935,8 @@
             <param name="zone">The zone.</param>
             <param name="preHtml">The pre HTML.</param>
             <param name="postHtml">The post HTML.</param>
+            <param name="order">The order.</param>
+            <param name="guid">The unique identifier.</param>
         </member>
         <member name="M:Rock.Plugin.Migration.DeleteBlock(System.String)">
             <summary>
@@ -2671,12 +4109,20 @@
             <param name="groupGuid">The group GUID.</param>
             <param name="authGuid">The auth GUID.</param>
         </member>
+        <member name="M:Rock.Plugin.Migration.DeleteSecurityAuthForPage(System.String)">
+            <summary>
+            Deletes the security authentication for page.
+            </summary>
+            <param name="pageGuid">The page unique identifier.</param>
+        </member>
         <member name="M:Rock.Plugin.Migration.AddSecurityAuthForPage(System.String,System.Int32,System.String,System.Boolean,System.String,System.Int32,System.String)">
             <summary>
             Adds the page security authentication. Set GroupGuid to null when setting to a special role
             </summary>
             <param name="pageGuid">The page unique identifier.</param>
+            <param name="order">The order.</param>
             <param name="action">The action.</param>
+            <param name="allow">if set to <c>true</c> [allow].</param>
             <param name="groupGuid">The group unique identifier.</param>
             <param name="specialRole">The special role.</param>
             <param name="authGuid">The authentication unique identifier.</param>
@@ -2685,8 +4131,10 @@
             <summary>
             Adds the page security authentication. Set GroupGuid to null when setting to a special role
             </summary>
-            <param name="pageGuid">The page unique identifier.</param>
+            <param name="blockGuid">The block unique identifier.</param>
+            <param name="order">The order.</param>
             <param name="action">The action.</param>
+            <param name="allow">if set to <c>true</c> [allow].</param>
             <param name="groupGuid">The group unique identifier.</param>
             <param name="specialRole">The special role.</param>
             <param name="authGuid">The authentication unique identifier.</param>
@@ -2748,220 +4196,6 @@
             <value>
             The minimum rock version.
             </value>
-        </member>
-        <member name="T:Rock.Reporting.Dashboard.ChartDateTimeJsonConverter">
-            <summary>
-            Converts DateTime values to 'new Date(..)' instead of a string representation
-            Handy when creating JSON data for Google Chart DataTables
-            </summary>
-        </member>
-        <member name="M:Rock.Reporting.Dashboard.ChartDateTimeJsonConverter.WriteJson(Newtonsoft.Json.JsonWriter,System.Object,Newtonsoft.Json.JsonSerializer)">
-            <summary>
-            Writes the JSON representation of the object
-            However, since it contains date constructors, it technically is a Javascript Literal object, and not JSON
-            </summary>
-            <param name="writer">The <see cref="T:Newtonsoft.Json.JsonWriter" /> to write to.</param>
-            <param name="value">The value.</param>
-            <param name="serializer">The calling serializer.</param>
-        </member>
-        <member name="M:Rock.Reporting.Dashboard.ChartDateTimeJsonConverter.CanConvert(System.Type)">
-            <summary>
-            Determines whether this instance can convert the specified object type.
-            </summary>
-            <param name="objectType">Type of the object.</param>
-            <returns>
-              <c>true</c> if this instance can convert the specified object type; otherwise, <c>false</c>.
-            </returns>
-        </member>
-        <member name="M:Rock.Reporting.Dashboard.ChartDateTimeJsonConverter.ReadJson(Newtonsoft.Json.JsonReader,System.Type,System.Object,Newtonsoft.Json.JsonSerializer)">
-            <summary>
-            Reads the JSON representation of the object.
-            </summary>
-            <param name="reader">The <see cref="T:Newtonsoft.Json.JsonReader"/> to read from.</param>
-            <param name="objectType">Type of the object.</param>
-            <param name="existingValue">The existing value of object being read.</param>
-            <param name="serializer">The calling serializer.</param>
-            <returns>
-            The object value.
-            </returns>
-            <exception cref="T:System.NotImplementedException"></exception>
-        </member>
-        <member name="P:Rock.Reporting.Dashboard.ChartDateTimeJsonConverter.CanRead">
-            <summary>
-            Gets a value indicating whether this <see cref="T:Newtonsoft.Json.JsonConverter" /> can read JSON.
-            </summary>
-            <value>
-            <c>true</c> if this <see cref="T:Newtonsoft.Json.JsonConverter" /> can read JSON; otherwise, <c>false</c>.
-            </value>
-        </member>
-        <member name="T:Rock.Reporting.Dashboard.ChartOptions">
-            <summary>
-            Class that can be JSON'd and used for Google Charts (properties are case sensitive)
-            </summary>
-        </member>
-        <member name="M:Rock.Reporting.Dashboard.ChartOptions.#ctor">
-            <summary>
-            Initializes a new instance of the <see cref="T:Rock.Reporting.Dashboard.ChartOptions"/> class.
-            </summary>
-        </member>
-        <member name="P:Rock.Reporting.Dashboard.ChartOptions.title">
-            <summary>
-            Gets or sets the title.
-            </summary>
-            <value>
-            The title.
-            </value>
-        </member>
-        <member name="P:Rock.Reporting.Dashboard.ChartOptions.curveType">
-            <summary>
-            Gets or sets the type of the curve for Line Charts
-            </summary>
-            <value>
-            The type of the curve.
-            </value>
-        </member>
-        <member name="P:Rock.Reporting.Dashboard.ChartOptions.titleTextStyle">
-            <summary>
-            Gets or sets the title text style.
-            </summary>
-            <value>
-            The title text style.
-            </value>
-        </member>
-        <member name="P:Rock.Reporting.Dashboard.ChartOptions.backgroundColor">
-            <summary>
-            Gets or sets the color of the background.
-            </summary>
-            <value>
-            The color of the background.
-            </value>
-        </member>
-        <member name="P:Rock.Reporting.Dashboard.ChartOptions.colors">
-            <summary>
-            Gets or sets the colors.
-            </summary>
-            <value>
-            The colors.
-            </value>
-        </member>
-        <member name="P:Rock.Reporting.Dashboard.ChartOptions.vAxis">
-            <summary>
-            Gets or sets the v axis.
-            </summary>
-            <value>
-            The v axis.
-            </value>
-        </member>
-        <member name="P:Rock.Reporting.Dashboard.ChartOptions.hAxis">
-            <summary>
-            Gets or sets the h axis.
-            </summary>
-            <value>
-            The h axis.
-            </value>
-        </member>
-        <member name="P:Rock.Reporting.Dashboard.ChartOptions.legend">
-            <summary>
-            Gets or sets the legend.
-            </summary>
-            <value>
-            The legend.
-            </value>
-        </member>
-        <member name="P:Rock.Reporting.Dashboard.ChartOptions.width">
-            <summary>
-            Gets or sets the width.
-            </summary>
-            <value>
-            The width.
-            </value>
-        </member>
-        <member name="P:Rock.Reporting.Dashboard.ChartOptions.height">
-            <summary>
-            Gets or sets the height.
-            </summary>
-            <value>
-            The height.
-            </value>
-        </member>
-        <member name="T:Rock.Reporting.Dashboard.ChartTooltip">
-            <summary>
-            Class that can be JSON'd and used for Google Charts (properties are case sensitive)
-            </summary>
-        </member>
-        <member name="T:Rock.Reporting.Dashboard.ColumnDefinition">
-            <summary>
-            Class that can be JSON'd and used for Google Charts (properties are case sensitive)
-            </summary>
-        </member>
-        <member name="M:Rock.Reporting.Dashboard.ColumnDefinition.#ctor(System.String,Rock.Reporting.Dashboard.ColumnDataType)">
-            <summary>
-            Initializes a new instance of the <see cref="T:Rock.Reporting.Dashboard.ColumnDefinition"/> class.
-            </summary>
-            <param name="Label">The label.</param>
-            <param name="type">The type.</param>
-        </member>
-        <member name="P:Rock.Reporting.Dashboard.ColumnDefinition.id">
-            <summary>
-            Gets or sets the identifier.
-            </summary>
-            <value>
-            The identifier.
-            </value>
-        </member>
-        <member name="P:Rock.Reporting.Dashboard.ColumnDefinition.label">
-            <summary>
-            Gets or sets the label.
-            </summary>
-            <value>
-            The label.
-            </value>
-        </member>
-        <member name="P:Rock.Reporting.Dashboard.ColumnDefinition.type">
-            <summary>
-            Gets or sets the type.
-            </summary>
-            <value>
-            The type.
-            </value>
-        </member>
-        <member name="M:Rock.Reporting.Dashboard.ChartTooltip.#ctor">
-            <summary>
-            Initializes a new instance of the <see cref="T:Rock.Reporting.Dashboard.ChartTooltip"/> class.
-            </summary>
-        </member>
-        <member name="P:Rock.Reporting.Dashboard.ChartTooltip.role">
-            <summary>
-            Gets or sets the role.
-            </summary>
-            <value>
-            The role.
-            </value>
-        </member>
-        <member name="T:Rock.Reporting.Dashboard.ColumnDataType">
-            <summary>
-            
-            </summary>
-        </member>
-        <member name="F:Rock.Reporting.Dashboard.ColumnDataType.date">
-            <summary>
-            The date
-            </summary>
-        </member>
-        <member name="F:Rock.Reporting.Dashboard.ColumnDataType.number">
-            <summary>
-            The number
-            </summary>
-        </member>
-        <member name="F:Rock.Reporting.Dashboard.ColumnDataType.string">
-            <summary>
-            The string
-            </summary>
-        </member>
-        <member name="T:Rock.Reporting.Dashboard.LineChartCurveType">
-            <summary>
-            Controls the curve of the lines when the line width is not zero
-            </summary>
         </member>
         <member name="T:Rock.Reporting.Dashboard.DashboardWidget">
             <summary>
@@ -3405,6 +4639,30 @@
             Occurs when the block properties are updated.
             </summary>
         </member>
+        <member name="M:Rock.Reporting.Dashboard.DashboardWidget.OnInit(System.EventArgs)">
+            <summary>
+            Raises the <see cref="E:System.Web.UI.Control.Init" /> event.
+            </summary>
+            <param name="e">An <see cref="T:System.EventArgs" /> object that contains the event data.</param>
+        </member>
+        <member name="M:Rock.Reporting.Dashboard.DashboardWidget.OnLoad(System.EventArgs)">
+            <summary>
+            Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
+            </summary>
+            <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
+        </member>
+        <member name="M:Rock.Reporting.Dashboard.DashboardWidget.Block_BlockUpdated(System.Object,System.EventArgs)">
+            <summary>
+            Handles the BlockUpdated event of the Block control.
+            </summary>
+            <param name="sender">The source of the event.</param>
+            <param name="e">The <see cref="T:System.EventArgs"/> instance containing the event data.</param>
+        </member>
+        <member name="M:Rock.Reporting.Dashboard.DashboardWidget.LoadChart">
+            <summary>
+            Loads the chart.
+            </summary>
+        </member>
         <member name="M:Rock.Reporting.Dashboard.DashboardWidget.RenderControl(System.Web.UI.HtmlTextWriter)">
             <summary>
             Outputs server control content to a provided <see cref="T:System.Web.UI.HtmlTextWriter" /> object and stores tracing information about the control if tracing is enabled.
@@ -3440,6 +4698,46 @@
             </summary>
             <value>
             The width of the column.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.DashboardWidget.MetricId">
+            <summary>
+            Gets the metric identifier.
+            </summary>
+            <value>
+            The metric identifier.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.DashboardWidget.GetEntityFromContext">
+            <summary>
+            Gets a value indicating whether to get the Entity from the Page context vs. the configured EntityId
+            </summary>
+            <value>
+            <c>true</c> if [get entity from context]; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.DashboardWidget.CombineValues">
+            <summary>
+            Gets a value indicating whether to combine values with different EntityId values into one series vs. showing each in it's own series
+            </summary>
+            <value>
+              <c>true</c> if [combine values]; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.DashboardWidget.MetricValueType">
+            <summary>
+            Gets the type of the metric value.
+            </summary>
+            <value>
+            The type of the metric value.
+            </value>
+        </member>
+        <member name="P:Rock.Reporting.Dashboard.DashboardWidget.ChartStyle">
+            <summary>
+            Gets the chart style.
+            </summary>
+            <value>
+            The chart style.
             </value>
         </member>
         <member name="T:Rock.Data.DbService">
@@ -3660,106 +4958,6 @@
         <member name="T:Rock.Field.Types.CommunicationTemplateFieldType">
             <summary>
             Field Type to select 0 or more communication templates 
-            </summary>
-        </member>
-        <member name="T:Rock.Field.FieldType">
-            <summary>
-            Abstract class that all custom field types should inherit from
-            </summary>
-        </member>
-        <member name="M:Rock.Field.FieldType.#ctor">
-            <summary>
-            Initializes a new instance of the <see cref="N:Rock.Field"/> class.
-            </summary>
-        </member>
-        <member name="M:Rock.Field.FieldType.FormatValue(System.Web.UI.Control,System.String,System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue},System.Boolean)">
-            <summary>
-            Returns the field's current value(s)
-            </summary>
-            <param name="parentControl">The parent control.</param>
-            <param name="value">Information about the value</param>
-            <param name="configurationValues">The configuration values.</param>
-            <param name="condensed">Flag indicating if the value should be condensed (i.e. for use in a grid column)</param>
-            <returns></returns>
-        </member>
-        <member name="M:Rock.Field.FieldType.IsValid(System.String,System.Boolean,System.String@)">
-            <summary>
-            Tests the value to ensure that it is a valid value.  If not, message will indicate why
-            </summary>
-            <param name="value">The value.</param>
-            <param name="required">if set to <c>true</c> [required].</param>
-            <param name="message">The message.</param>
-            <returns>
-              <c>true</c> if the specified value is valid; otherwise, <c>false</c>.
-            </returns>
-        </member>
-        <member name="M:Rock.Field.FieldType.ConfigurationKeys">
-            <summary>
-            Returns a list of the configuration keys
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Rock.Field.FieldType.ConfigurationControls">
-            <summary>
-            Creates the HTML controls required to configure this type of field
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Rock.Field.FieldType.ConfigurationValues(System.Collections.Generic.List{System.Web.UI.Control})">
-            <summary>
-            Gets the configuration value.
-            </summary>
-            <param name="controls">The controls.</param>
-            <returns></returns>
-        </member>
-        <member name="M:Rock.Field.FieldType.SetConfigurationValues(System.Collections.Generic.List{System.Web.UI.Control},System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue})">
-            <summary>
-            Sets the configuration value.
-            </summary>
-            <param name="controls">The controls.</param>
-            <param name="configurationValues">The configuration values.</param>
-        </member>
-        <member name="M:Rock.Field.FieldType.EditControl(System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue},System.String)">
-            <summary>
-            Creates the control(s) neccessary for prompting user for a new value
-            </summary>
-            <param name="configurationValues">The configuration values.</param>
-            <param name="id"></param>
-            <returns>
-            The control
-            </returns>
-        </member>
-        <member name="M:Rock.Field.FieldType.GetEditValue(System.Web.UI.Control,System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue})">
-            <summary>
-            Reads new values entered by the user for the field
-            </summary>
-            <param name="control">Parent control that controls were added to in the CreateEditControl() method</param>
-            <param name="configurationValues">The configuration values.</param>
-            <returns></returns>
-        </member>
-        <member name="M:Rock.Field.FieldType.SetEditValue(System.Web.UI.Control,System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue},System.String)">
-            <summary>
-            Sets the value.
-            </summary>
-            <param name="control">The control.</param>
-            <param name="configurationValues">The configuration values.</param>
-            <param name="value">The value.</param>
-        </member>
-        <member name="M:Rock.Field.FieldType.OnQualifierUpdated(System.Object,System.EventArgs)">
-            <summary>
-            Called when [qualifier updated].
-            </summary>
-            <param name="sender">The sender.</param>
-            <param name="e">The <see cref="T:System.EventArgs"/> instance containing the event data.</param>
-        </member>
-        <member name="P:Rock.Field.FieldType.AlignValue">
-            <summary>
-            Gets the align value that should be used when displaying value
-            </summary>
-        </member>
-        <member name="E:Rock.Field.FieldType.QualifierUpdated">
-            <summary>
-            Occurs when [qualifier updated].
             </summary>
         </member>
         <member name="M:Rock.Field.Types.CommunicationTemplateFieldType.EditControl(System.Collections.Generic.Dictionary{System.String,Rock.Field.ConfigurationValue},System.String)">
@@ -6180,12 +7378,20 @@
             The metric.
             </value>
         </member>
-        <member name="P:Rock.Model.MetricValue.MetricValueJavascriptTimeStamp">
+        <member name="P:Rock.Model.MetricValue.DateTimeStamp">
             <summary>
             Gets the metric value datetime as a javascript time stamp (handy for chart apis)
             </summary>
             <value>
             The metric value javascript time stamp.
+            </value>
+        </member>
+        <member name="P:Rock.Model.MetricValue.SeriesId">
+            <summary>
+            Gets the series identifier.
+            </summary>
+            <value>
+            The series identifier.
             </value>
         </member>
         <member name="P:Rock.Model.MetricValue.ParentAuthority">
@@ -7569,12 +8775,28 @@
             The footer.
             </value>
         </member>
+        <member name="P:Rock.Model.WorkflowActionForm.InactiveMessage">
+            <summary>
+            Gets or sets the inactive message.
+            </summary>
+            <value>
+            The inactive message.
+            </value>
+        </member>
         <member name="P:Rock.Model.WorkflowActionForm.Actions">
             <summary>
             Gets or sets the delimited list of action buttons and actions.
             </summary>
             <value>
             The actions.
+            </value>
+        </member>
+        <member name="P:Rock.Model.WorkflowActionForm.FormAttributes">
+            <summary>
+            Gets or sets the form attributes.
+            </summary>
+            <value>
+            The form attributes.
             </value>
         </member>
         <member name="T:Rock.Model.WorkflowActionFormConfiguration">
@@ -8237,6 +9459,13 @@
             <param name="selection">The selection.</param>
             <returns></returns>
         </member>
+        <member name="M:Rock.Reporting.DataFilter.Group.CampusFilter.GetCampusIdFromSelection(System.String[])">
+            <summary>
+            Gets the campus identifier from selection.
+            </summary>
+            <param name="selectionValues">The selection values.</param>
+            <returns></returns>
+        </member>
         <member name="P:Rock.Reporting.DataFilter.Group.CampusFilter.AppliesToEntityType">
             <summary>
             Gets the entity type that filter applies to.
@@ -8431,6 +9660,13 @@
             </summary>
             <param name="entityType"></param>
             <param name="selection">The selection.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Rock.Reporting.DataFilter.Group.GroupAttributesFilter.GetGroupTypeIdFromSelection(System.Collections.Generic.List{System.String})">
+            <summary>
+            Gets the group type identifier from selection.
+            </summary>
+            <param name="selectionValues">The selection values.</param>
             <returns></returns>
         </member>
         <member name="M:Rock.Reporting.DataFilter.Group.GroupAttributesFilter.CreateChildControls(System.Type,Rock.Web.UI.Controls.FilterField)">
@@ -10937,7 +12173,7 @@
                 
             </summary>
         </member>
-        <member name="M:Rock.Reporting.EntityField.#ctor(System.String,Rock.Reporting.FieldKind,System.Type,System.Int32,System.Nullable{System.Int32})">
+        <member name="M:Rock.Reporting.EntityField.#ctor(System.String,Rock.Reporting.FieldKind,System.Type,System.Int32,System.Nullable{System.Guid})">
             <summary>
             Initializes a new instance of the <see cref="T:Rock.Reporting.EntityField"/> class.
             </summary>
@@ -10945,7 +12181,7 @@
             <param name="fieldKind">Kind of the field.</param>
             <param name="propertyType">Type of the property.</param>
             <param name="controlCount">The control count.</param>
-            <param name="attributeId">The attribute identifier.</param>
+            <param name="attributeGuid">The attribute unique identifier.</param>
         </member>
         <member name="M:Rock.Reporting.EntityField.ToString">
             <summary>
@@ -11003,7 +12239,7 @@
             The control count.
             </value>
         </member>
-        <member name="P:Rock.Reporting.EntityField.AttributeId">
+        <member name="P:Rock.Reporting.EntityField.AttributeGuid">
             <summary>
             Gets or sets the attribute identifier.
             </summary>
@@ -11019,7 +12255,7 @@
             The type of the filter field.
             </value>
         </member>
-        <member name="P:Rock.Reporting.EntityField.DefinedTypeId">
+        <member name="P:Rock.Reporting.EntityField.DefinedTypeGuid">
             <summary>
             Gets or sets the defined type identifier.
             </summary>
@@ -11278,6 +12514,41 @@
         </member>
         <member name="P:Rock.Utility.DoubleMetaphone.Word">
             <summary>Original word for which the keys were computed</summary>
+        </member>
+        <member name="T:Rock.Utility.StringAsLiteralJavascriptJsonConverter">
+            <summary>
+            Serializes a string as literal javascript, instead of a string value
+            </summary>
+        </member>
+        <member name="M:Rock.Utility.StringAsLiteralJavascriptJsonConverter.CanConvert(System.Type)">
+            <summary>
+            Determines whether this instance can convert the specified object type.
+            </summary>
+            <param name="objectType">Type of the object.</param>
+            <returns>
+            <c>true</c> if this instance can convert the specified object type; otherwise, 
+            <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:Rock.Utility.StringAsLiteralJavascriptJsonConverter.ReadJson(Newtonsoft.Json.JsonReader,System.Type,System.Object,Newtonsoft.Json.JsonSerializer)">
+            <summary>
+            Reads the JSON representation of the object.
+            </summary>
+            <param name="reader">The <see cref="T:Newtonsoft.Json.JsonReader" /> to read from.</param>
+            <param name="objectType">Type of the object.</param>
+            <param name="existingValue">The existing value of object being read.</param>
+            <param name="serializer">The calling serializer.</param>
+            <returns>
+            The object value.
+            </returns>
+        </member>
+        <member name="M:Rock.Utility.StringAsLiteralJavascriptJsonConverter.WriteJson(Newtonsoft.Json.JsonWriter,System.Object,Newtonsoft.Json.JsonSerializer)">
+            <summary>
+            Writes the JSON representation of the object.
+            </summary>
+            <param name="writer">The <see cref="T:Newtonsoft.Json.JsonWriter" /> to write to.</param>
+            <param name="value">The value.</param>
+            <param name="serializer">The calling serializer.</param>
         </member>
         <member name="T:Rock.Utility.EnumAsStringJsonConverter">
             <summary>
@@ -12460,6 +13731,11 @@
         <member name="F:Rock.SystemGuid.Category.SCHEDULE_METRICS">
             <summary>
             Gets the Metrics schedule category guid
+            </summary>
+        </member>
+        <member name="F:Rock.SystemGuid.Category.PERSON_ATTRIBUTES_SOCIAL">
+            <summary>
+            The person attributes Social guid
             </summary>
         </member>
         <member name="T:Rock.SystemGuid.EntityType">
@@ -15569,6 +16845,15 @@
             <param name="recipients">The recipients.</param>
             <param name="appRoot"></param>
             <param name="themeRoot"></param>
+        </member>
+        <member name="M:Rock.Communication.Transport.SMTP.Send(System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.List{System.String},System.String,System.String)">
+            <summary>
+            Sends the specified channel data to the specified list of recipients.
+            </summary>
+            <param name="channelData">The channel data.</param>
+            <param name="recipients">The recipients.</param>
+            <param name="appRoot">The application root.</param>
+            <param name="themeRoot">The theme root.</param>
         </member>
         <member name="T:Rock.Field.Types.ComponentFieldType">
             <summary>
@@ -23471,50 +24756,56 @@
             </summary>
             <value><c>true</c> if enabled; otherwise, <c>false</c>.</value>
         </member>
-        <member name="T:Rock.Web.UI.Controls.ColumnChart">
+        <member name="T:Rock.Web.UI.Controls.BarChart">
             <summary>
             
             </summary>
         </member>
-        <member name="T:Rock.Web.UI.Controls.GoogleChart">
+        <member name="T:Rock.Web.UI.Controls.FlotChart">
             <summary>
-            Abstract class for much of the Google Charts Logic
+            Abstract class for much of the Flot Charts Logic
+            Subset of the spec at https://github.com/flot/flot/blob/master/API.md
             </summary>
         </member>
-        <member name="M:Rock.Web.UI.Controls.GoogleChart.#ctor">
+        <member name="M:Rock.Web.UI.Controls.FlotChart.#ctor">
             <summary>
-            Initializes a new instance of the <see cref="T:Rock.Web.UI.Controls.GoogleChart"/> class.
+            Initializes a new instance of the <see cref="T:Rock.Web.UI.Controls.FlotChart"/> class.
             </summary>
         </member>
-        <member name="M:Rock.Web.UI.Controls.GoogleChart.OnInit(System.EventArgs)">
+        <member name="M:Rock.Web.UI.Controls.FlotChart.OnInit(System.EventArgs)">
             <summary>
             Raises the <see cref="E:System.Web.UI.Control.Init" /> event.
             </summary>
             <param name="e">An <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         </member>
-        <member name="M:Rock.Web.UI.Controls.GoogleChart.OnLoad(System.EventArgs)">
+        <member name="M:Rock.Web.UI.Controls.FlotChart.OnLoad(System.EventArgs)">
             <summary>
             Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
             </summary>
             <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         </member>
-        <member name="M:Rock.Web.UI.Controls.GoogleChart.RegisterJavaScript">
+        <member name="M:Rock.Web.UI.Controls.FlotChart.HandleChartClick">
+            <summary>
+            Handles the chart click.
+            </summary>
+        </member>
+        <member name="M:Rock.Web.UI.Controls.FlotChart.RegisterJavaScript">
             <summary>
             Registers the java script.
             </summary>
         </member>
-        <member name="M:Rock.Web.UI.Controls.GoogleChart.CreateChildControls">
+        <member name="M:Rock.Web.UI.Controls.FlotChart.CreateChildControls">
             <summary>
             Called by the ASP.NET page framework to notify server controls that use composition-based implementation to create any child controls they contain in preparation for posting back or rendering.
             </summary>
         </member>
-        <member name="M:Rock.Web.UI.Controls.GoogleChart.RenderControl(System.Web.UI.HtmlTextWriter)">
+        <member name="M:Rock.Web.UI.Controls.FlotChart.RenderControl(System.Web.UI.HtmlTextWriter)">
             <summary>
             Outputs server control content to a provided <see cref="T:System.Web.UI.HtmlTextWriter" /> object and stores tracing information about the control if tracing is enabled.
             </summary>
             <param name="writer">The <see cref="T:System.Web.UI.HtmlTextWriter" /> object that receives the control content.</param>
         </member>
-        <member name="P:Rock.Web.UI.Controls.GoogleChart.MetricId">
+        <member name="P:Rock.Web.UI.Controls.FlotChart.MetricId">
             <summary>
             Gets or sets the metric identifier.
             </summary>
@@ -23522,15 +24813,16 @@
             The metric identifier.
             </value>
         </member>
-        <member name="P:Rock.Web.UI.Controls.GoogleChart.MetricValueType">
+        <member name="P:Rock.Web.UI.Controls.FlotChart.MetricValueType">
             <summary>
-            Gets or sets the type of the metric value.
+            Gets or sets the MetricValueType (Goal or Measure)
+            Leave null for both
             </summary>
             <value>
             The type of the metric value.
             </value>
         </member>
-        <member name="P:Rock.Web.UI.Controls.GoogleChart.StartDate">
+        <member name="P:Rock.Web.UI.Controls.FlotChart.StartDate">
             <summary>
             Gets or sets the start date.
             </summary>
@@ -23538,7 +24830,7 @@
             The start date.
             </value>
         </member>
-        <member name="P:Rock.Web.UI.Controls.GoogleChart.EndDate">
+        <member name="P:Rock.Web.UI.Controls.FlotChart.EndDate">
             <summary>
             Gets or sets the end date.
             </summary>
@@ -23546,7 +24838,7 @@
             The end date.
             </value>
         </member>
-        <member name="P:Rock.Web.UI.Controls.GoogleChart.EntityId">
+        <member name="P:Rock.Web.UI.Controls.FlotChart.EntityId">
             <summary>
             Gets or sets the entity identifier.
             </summary>
@@ -23554,15 +24846,55 @@
             The entity identifier.
             </value>
         </member>
-        <member name="P:Rock.Web.UI.Controls.GoogleChart.ChartType">
+        <member name="P:Rock.Web.UI.Controls.FlotChart.Title">
             <summary>
-            Gets or sets the type of the chart.
+            Gets or sets the title.
             </summary>
             <value>
-            The type of the chart.
+            The title.
             </value>
         </member>
-        <member name="P:Rock.Web.UI.Controls.GoogleChart.Options">
+        <member name="P:Rock.Web.UI.Controls.FlotChart.Subtitle">
+            <summary>
+            Gets or sets the subtitle.
+            </summary>
+            <value>
+            The subtitle.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.FlotChart.XAxisLabel">
+            <summary>
+            Gets or sets the x axis label.
+            </summary>
+            <value>
+            The x axis label.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.FlotChart.YAxisLabel">
+            <summary>
+            Gets or sets the y axis label.
+            </summary>
+            <value>
+            The y axis label.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.FlotChart.ChartHeight">
+            <summary>
+            Gets or sets the height of the chart.
+            </summary>
+            <value>
+            The height of the chart.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.FlotChart.ChartWidth">
+            <summary>
+            Gets or sets the width of the chart.
+            </summary>
+            <value>
+            The width of the chart.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.FlotChart.Options">
             <summary>
             Gets or sets the options.
             Defaults to a default set of options
@@ -23571,46 +24903,93 @@
             The options.
             </value>
         </member>
-        <member name="P:Rock.Web.UI.Controls.GoogleChart.ColumnDefinitions">
-            <summary>
-            Gets or sets the column definitions.
-            Defaults to 3 columns: X (date), Y (decimal) and Tooltip
-            </summary>
-            <value>
-            The column definitions.
-            </value>
-        </member>
-        <member name="P:Rock.Web.UI.Controls.GoogleChart.DataSourceUrl">
+        <member name="P:Rock.Web.UI.Controls.FlotChart.DataSourceUrl">
             <summary>
             Gets or sets the data source URL.
-            Defaults to "~/api/MetricValues/GetChartData/"
+            Defaults to "~/api/MetricValues/GetByMetricId/"
             </summary>
             <value>
             The data source URL.
             </value>
         </member>
-        <member name="P:Rock.Web.UI.Controls.ColumnChart.ChartType">
+        <member name="P:Rock.Web.UI.Controls.FlotChart.SeriesNameUrl">
             <summary>
-            Gets or sets the type of the chart.
+            Gets or sets the series name URL.
             </summary>
             <value>
-            The type of the chart.
+            The series name URL.
             </value>
         </member>
-        <member name="T:Rock.Web.UI.Controls.LineChart">
+        <member name="P:Rock.Web.UI.Controls.FlotChart.ShowTooltip">
+            <summary>
+            Gets or sets a value indicating whether [show tooltip].
+            </summary>
+            <value>
+              <c>true</c> if [show tooltip]; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.FlotChart.ShowDebug">
+            <summary>
+            Gets or sets a value indicating whether [show debug].
+            </summary>
+            <value>
+              <c>true</c> if [show debug]; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="E:Rock.Web.UI.Controls.FlotChart.ChartClick">
+            <summary>
+            Occurs when [chart click].
+            </summary>
+        </member>
+        <member name="T:Rock.Web.UI.Controls.FlotChart.ChartClickArgs">
             <summary>
             
             </summary>
         </member>
-        <member name="P:Rock.Web.UI.Controls.LineChart.ChartType">
+        <member name="P:Rock.Web.UI.Controls.FlotChart.ChartClickArgs.DateTimeValue">
             <summary>
-            Gets or sets the type of the chart.
+            Gets or sets the date time value.
             </summary>
             <value>
-            The type of the chart.
+            The date time value.
             </value>
         </member>
-        <member name="T:Rock.Web.UI.Controls.GoogleChartType">
+        <member name="P:Rock.Web.UI.Controls.FlotChart.ChartClickArgs.YValue">
+            <summary>
+            Gets or sets the y value.
+            </summary>
+            <value>
+            The y value.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.FlotChart.ChartClickArgs.SeriesId">
+            <summary>
+            Gets or sets the series identifier.
+            </summary>
+            <value>
+            The series identifier.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.BarChart.BarWidth">
+            <summary>
+            Gets or sets the width of the bar
+            Note that if the xaxis is time, BarWidth should be in milliseconds
+            </summary>
+            <value>
+            The width of the bar.
+            </value>
+        </member>
+        <member name="T:Rock.Web.UI.Controls.PieChart">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Rock.Web.UI.Controls.PieChart.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Rock.Web.UI.Controls.PieChart"/> class.
+            </summary>
+        </member>
+        <member name="T:Rock.Web.UI.Controls.LineChart">
             <summary>
             
             </summary>
@@ -25027,6 +26406,153 @@
             The selected days of the week
             </value>
         </member>
+        <member name="T:Rock.Web.UI.Controls.MetricEntityPicker">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Rock.Web.UI.Controls.MetricEntityPicker.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Rock.Web.UI.Controls.MetricEntityPicker"/> class.
+            </summary>
+        </member>
+        <member name="M:Rock.Web.UI.Controls.MetricEntityPicker.CreateChildControls">
+            <summary>
+            Called by the ASP.NET page framework to notify server controls that use composition-based implementation to create any child controls they contain in preparation for posting back or rendering.
+            </summary>
+        </member>
+        <member name="M:Rock.Web.UI.Controls.MetricEntityPicker.UpdateEntityTypeControls">
+            <summary>
+            Updates the entity type controls.
+            </summary>
+        </member>
+        <member name="M:Rock.Web.UI.Controls.MetricEntityPicker.LoadMetrics">
+            <summary>
+            Loads the metrics.
+            </summary>
+        </member>
+        <member name="M:Rock.Web.UI.Controls.MetricEntityPicker._ddlMetric_SelectedIndexChanged(System.Object,System.EventArgs)">
+            <summary>
+            Handles the SelectedIndexChanged event of the _ddlMetric control.
+            </summary>
+            <param name="sender">The source of the event.</param>
+            <param name="e">The <see cref="T:System.EventArgs"/> instance containing the event data.</param>
+        </member>
+        <member name="M:Rock.Web.UI.Controls.MetricEntityPicker.RenderControl(System.Web.UI.HtmlTextWriter)">
+            <summary>
+            Outputs server control content to a provided <see cref="T:System.Web.UI.HtmlTextWriter" /> object and stores tracing information about the control if tracing is enabled.
+            </summary>
+            <param name="writer">The <see cref="T:System.Web.UI.HtmlTextWriter" /> object that receives the control content.</param>
+        </member>
+        <member name="M:Rock.Web.UI.Controls.MetricEntityPicker.RenderBaseControl(System.Web.UI.HtmlTextWriter)">
+            <summary>
+            Renders the base control.
+            </summary>
+            <param name="writer">The writer.</param>
+        </member>
+        <member name="M:Rock.Web.UI.Controls.MetricEntityPicker.rblSelectOrContext_SelectedIndexChanged(System.Object,System.EventArgs)">
+            <summary>
+            Handles the SelectedIndexChanged event of the rblSelectOrContext control.
+            </summary>
+            <param name="sender">The source of the event.</param>
+            <param name="e">The <see cref="T:System.EventArgs"/> instance containing the event data.</param>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.MetricEntityPicker.Label">
+            <summary>
+            Gets or sets the label text.
+            </summary>
+            <value>
+            The label text.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.MetricEntityPicker.Help">
+            <summary>
+            Gets or sets the help text.
+            </summary>
+            <value>
+            The help text.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.MetricEntityPicker.Required">
+            <summary>
+            Gets or sets a value indicating whether this <see cref="T:Rock.Web.UI.Controls.RockTextBox"/> is required.
+            </summary>
+            <value>
+              <c>true</c> if required; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.MetricEntityPicker.RequiredErrorMessage">
+            <summary>
+            Gets or sets the required error message.  If blank, the LabelName name will be used
+            </summary>
+            <value>
+            The required error message.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.MetricEntityPicker.ValidationGroup">
+            <summary>
+            Gets or sets an optional validation group to use.
+            </summary>
+            <value>
+            The validation group.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.MetricEntityPicker.IsValid">
+            <summary>
+            Gets a value indicating whether this instance is valid.
+            </summary>
+            <value>
+              <c>true</c> if this instance is valid; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.MetricEntityPicker.HelpBlock">
+            <summary>
+            Gets or sets the help block.
+            </summary>
+            <value>
+            The help block.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.MetricEntityPicker.RequiredFieldValidator">
+            <summary>
+            Gets or sets the required field validator.
+            </summary>
+            <value>
+            The required field validator.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.MetricEntityPicker.MetricId">
+            <summary>
+            Gets or sets the metric identifier.
+            </summary>
+            <value>
+            The metric identifier.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.MetricEntityPicker.EntityId">
+            <summary>
+            Gets or sets the entity identifier.
+            </summary>
+            <value>
+            The entity identifier.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.MetricEntityPicker.GetEntityFromContext">
+            <summary>
+            Gets or sets a value indicating whether [get entity from context].
+            </summary>
+            <value>
+            <c>true</c> if [get entity from context]; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.MetricEntityPicker.CombineValues">
+            <summary>
+            Gets or sets a value indicating whether [combine values].
+            </summary>
+            <value>
+              <c>true</c> if [combine values]; otherwise, <c>false</c>.
+            </value>
+        </member>
         <member name="T:Rock.Web.UI.Controls.RemoteAuthsPicker">
             <summary>
             
@@ -26313,6 +27839,14 @@
             </summary>
             <value>
             The theme of the editor.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.CodeEditor.MergeFields">
+            <summary>
+            Gets or sets the mergfields.
+            </summary>
+            <value>
+            The mergfields.
             </value>
         </member>
         <member name="P:Rock.Web.UI.Controls.CodeEditor.OnChangeScript">
@@ -29063,6 +30597,12 @@
             <param name="selectedValue">The selected value.</param>
             <returns></returns>
         </member>
+        <member name="M:Rock.Web.UI.Controls.MergeFieldPicker.RenderControl(System.Web.UI.HtmlTextWriter)">
+            <summary>
+            Outputs server control content to a provided <see cref="T:System.Web.UI.HtmlTextWriter" /> object and stores tracing information about the control if tracing is enabled.
+            </summary>
+            <param name="writer">The <see cref="T:System.Web.UI.HtmlTextWriter" /> object that receives the control content.</param>
+        </member>
         <member name="P:Rock.Web.UI.Controls.MergeFieldPicker.MergeFields">
             <summary>
             Gets or sets the merge fields.
@@ -29936,7 +31476,6 @@
             <summary>
             Raises the <see cref="E:System.Web.UI.Control.Init" /> event.
             </summary>
-            <param name="values">The values.</param>
         </member>
         <member name="P:Rock.Web.UI.Controls.KeyValueList.KeyPrompt">
             <summary>
@@ -30672,6 +32211,14 @@
             The key.
             </value>
         </member>
+        <member name="P:Rock.Web.UI.Controls.AttributeEditor.IconCssClass">
+            <summary>
+            Gets or sets the icon CSS class.
+            </summary>
+            <value>
+            The icon CSS class.
+            </value>
+        </member>
         <member name="P:Rock.Web.UI.Controls.AttributeEditor.CategoryIds">
             <summary>
             Gets or sets the category ids.
@@ -31067,6 +32614,18 @@
             </summary>
             <param name="e">An <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         </member>
+        <member name="M:Rock.Web.UI.Controls.WorkflowActionEditor.GetWorkflowActionType(System.Boolean)">
+            <summary>
+            Gets the type of the workflow action.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Rock.Web.UI.Controls.WorkflowActionEditor.SetWorkflowActionType(Rock.Model.WorkflowActionType)">
+            <summary>
+            Sets the type of the workflow action.
+            </summary>
+            <param name="value">The value.</param>
+        </member>
         <member name="M:Rock.Web.UI.Controls.WorkflowActionEditor.CreateChildControls">
             <summary>
             Called by the ASP.NET page framework to notify server controls that use composition-based implementation to create any child controls they contain in preparation for posting back or rendering.
@@ -31092,20 +32651,36 @@
             <param name="sender">The source of the event.</param>
             <param name="e">The <see cref="T:System.EventArgs"/> instance containing the event data.</param>
         </member>
-        <member name="P:Rock.Web.UI.Controls.WorkflowActionEditor.ForceContentVisible">
+        <member name="P:Rock.Web.UI.Controls.WorkflowActionEditor.Expanded">
             <summary>
-            Gets or sets a value indicating whether to force content visible.
+            Gets or sets a value indicating whether this <see cref="T:Rock.Web.UI.Controls.WorkflowActionEditor"/> is expanded.
             </summary>
             <value>
-              <c>true</c> if [force content visible]; otherwise, <c>false</c>.
+              <c>true</c> if expanded; otherwise, <c>false</c>.
             </value>
         </member>
-        <member name="P:Rock.Web.UI.Controls.WorkflowActionEditor.WorkflowAttributes">
+        <member name="P:Rock.Web.UI.Controls.WorkflowActionEditor.ValidationGroup">
             <summary>
-            Sets the workflow attributes.
+            Gets or sets the validation group.
             </summary>
             <value>
-            The workflow attributes.
+            The validation group.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.WorkflowActionEditor.ActionTypeGuid">
+            <summary>
+            Gets or sets the activity type unique identifier.
+            </summary>
+            <value>
+            The activity type unique identifier.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.WorkflowActionEditor.FormEditor">
+            <summary>
+            Gets the form editor.
+            </summary>
+            <value>
+            The form editor.
             </value>
         </member>
         <member name="P:Rock.Web.UI.Controls.WorkflowActionEditor.WorkflowActivities">
@@ -31124,17 +32699,14 @@
             <c>true</c> if this instance is delete enabled; otherwise, <c>false</c>.
             </value>
         </member>
-        <member name="P:Rock.Web.UI.Controls.WorkflowActionEditor.WorkflowActionType">
-            <summary>
-            Gets or sets the type of the workflow activity.
-            </summary>
-            <value>
-            The type of the workflow activity.
-            </value>
-        </member>
         <member name="E:Rock.Web.UI.Controls.WorkflowActionEditor.DeleteActionTypeClick">
             <summary>
             Occurs when [delete action type click].
+            </summary>
+        </member>
+        <member name="E:Rock.Web.UI.Controls.WorkflowActionEditor.ChangeActionTypeClick">
+            <summary>
+            Occurs when [change action type click].
             </summary>
         </member>
         <member name="T:Rock.Web.UI.Controls.WorkflowFormAttributeRow">
@@ -31230,11 +32802,13 @@
             Clears the rows.
             </summary>
         </member>
-        <member name="M:Rock.Web.UI.Controls.WorkflowFormEditor.UpdateRows(System.Collections.Generic.IEnumerable{Rock.Model.WorkflowActionFormAttribute})">
+        <member name="P:Rock.Web.UI.Controls.WorkflowFormEditor.ValidationGroup">
             <summary>
-            Updates the rows.
+            Gets or sets the validation group.
             </summary>
-            <param name="formAttributes">The form attributes.</param>
+            <value>
+            The validation group.
+            </value>
         </member>
         <member name="P:Rock.Web.UI.Controls.WorkflowFormEditor.Form">
             <summary>
@@ -31242,14 +32816,6 @@
             </summary>
             <value>
             The form.
-            </value>
-        </member>
-        <member name="P:Rock.Web.UI.Controls.WorkflowFormEditor.WorkflowAttributes">
-            <summary>
-            Gets or sets the workflow attributes.
-            </summary>
-            <value>
-            The workflow attributes.
             </value>
         </member>
         <member name="P:Rock.Web.UI.Controls.WorkflowFormEditor.WorkflowActivities">
@@ -31279,7 +32845,7 @@
             </summary>
             <param name="e">An <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         </member>
-        <member name="M:Rock.Web.UI.Controls.WorkflowActivityEditor.GetWorkflowActivityType">
+        <member name="M:Rock.Web.UI.Controls.WorkflowActivityEditor.GetWorkflowActivityType(System.Boolean)">
             <summary>
             Gets or sets the type of the workflow activity.
             </summary>
@@ -31292,6 +32858,12 @@
             Sets the type of the workflow activity.
             </summary>
             <param name="value">The value.</param>
+        </member>
+        <member name="M:Rock.Web.UI.Controls.WorkflowActivityEditor.BindAttributesGrid(System.Collections.Generic.List{Rock.Model.Attribute})">
+            <summary>
+            Binds the attributes grid.
+            </summary>
+            <param name="attributes">The attributes.</param>
         </member>
         <member name="M:Rock.Web.UI.Controls.WorkflowActivityEditor.CreateChildControls">
             <summary>
@@ -31318,12 +32890,63 @@
             <param name="sender">The source of the event.</param>
             <param name="e">The <see cref="T:System.EventArgs"/> instance containing the event data.</param>
         </member>
-        <member name="P:Rock.Web.UI.Controls.WorkflowActivityEditor.ForceContentVisible">
+        <member name="M:Rock.Web.UI.Controls.WorkflowActivityEditor.gAttributes_Rebind(System.Object,System.EventArgs)">
             <summary>
-            Gets or sets a value indicating whether to force content visible.
+            Handles the Rebind event of the gAttributes control.
+            </summary>
+            <param name="sender">The source of the event.</param>
+            <param name="e">The <see cref="T:System.EventArgs"/> instance containing the event data.</param>
+        </member>
+        <member name="M:Rock.Web.UI.Controls.WorkflowActivityEditor.gAttributes_Add(System.Object,System.EventArgs)">
+            <summary>
+            Handles the Add event of the gAttributes control.
+            </summary>
+            <param name="sender">The source of the event.</param>
+            <param name="e">The <see cref="T:System.EventArgs"/> instance containing the event data.</param>
+        </member>
+        <member name="M:Rock.Web.UI.Controls.WorkflowActivityEditor.gAttributes_Edit(System.Object,Rock.Web.UI.Controls.RowEventArgs)">
+            <summary>
+            Handles the Edit event of the gAttributes control.
+            </summary>
+            <param name="sender">The source of the event.</param>
+            <param name="e">The <see cref="T:Rock.Web.UI.Controls.RowEventArgs"/> instance containing the event data.</param>
+        </member>
+        <member name="M:Rock.Web.UI.Controls.WorkflowActivityEditor.gAttributes_Reorder(System.Object,Rock.Web.UI.Controls.GridReorderEventArgs)">
+            <summary>
+            Handles the Reorder event of the gAttributes control.
+            </summary>
+            <param name="sender">The source of the event.</param>
+            <param name="e">The <see cref="T:Rock.Web.UI.Controls.GridReorderEventArgs"/> instance containing the event data.</param>
+        </member>
+        <member name="M:Rock.Web.UI.Controls.WorkflowActivityEditor.gAttributes_Delete(System.Object,Rock.Web.UI.Controls.RowEventArgs)">
+            <summary>
+            Handles the Delete event of the gAttributes control.
+            </summary>
+            <param name="sender">The source of the event.</param>
+            <param name="e">The <see cref="T:Rock.Web.UI.Controls.RowEventArgs"/> instance containing the event data.</param>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.WorkflowActivityEditor.Expanded">
+            <summary>
+            Gets or sets a value indicating whether this <see cref="T:Rock.Web.UI.Controls.WorkflowActivityEditor"/> is expanded.
             </summary>
             <value>
-              <c>true</c> if [force content visible]; otherwise, <c>false</c>.
+              <c>true</c> if expanded; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.WorkflowActivityEditor.AttributesExpanded">
+            <summary>
+            Gets or sets a value indicating whether [attributes expanded].
+            </summary>
+            <value>
+              <c>true</c> if [attributes expanded]; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.WorkflowActivityEditor.ValidationGroup">
+            <summary>
+            Gets or sets the validation group.
+            </summary>
+            <value>
+            The validation group.
             </value>
         </member>
         <member name="P:Rock.Web.UI.Controls.WorkflowActivityEditor.ActivityTypeGuid">
@@ -31350,6 +32973,14 @@
             <c>true</c> if this instance is delete enabled; otherwise, <c>false</c>.
             </value>
         </member>
+        <member name="P:Rock.Web.UI.Controls.WorkflowActivityEditor.ExpandedActions">
+            <summary>
+            Gets the expanded actions.
+            </summary>
+            <value>
+            The expanded actions.
+            </value>
+        </member>
         <member name="E:Rock.Web.UI.Controls.WorkflowActivityEditor.DeleteActivityTypeClick">
             <summary>
             Occurs when [delete activity type click].
@@ -31359,6 +32990,89 @@
             <summary>
             Occurs when [add action type click].
             </summary>
+        </member>
+        <member name="E:Rock.Web.UI.Controls.WorkflowActivityEditor.RebindAttributeClick">
+            <summary>
+            Occurs when [add attribute click].
+            </summary>
+        </member>
+        <member name="E:Rock.Web.UI.Controls.WorkflowActivityEditor.AddAttributeClick">
+            <summary>
+            Occurs when [add attribute click].
+            </summary>
+        </member>
+        <member name="E:Rock.Web.UI.Controls.WorkflowActivityEditor.EditAttributeClick">
+            <summary>
+            Occurs when [edit attribute click].
+            </summary>
+        </member>
+        <member name="E:Rock.Web.UI.Controls.WorkflowActivityEditor.ReorderAttributeClick">
+            <summary>
+            Occurs when [edit attribute click].
+            </summary>
+        </member>
+        <member name="E:Rock.Web.UI.Controls.WorkflowActivityEditor.DeleteAttributeClick">
+            <summary>
+            Occurs when [delete attribute click].
+            </summary>
+        </member>
+        <member name="T:Rock.Web.UI.Controls.WorkflowActivityTypeAttributeEventArg">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Rock.Web.UI.Controls.WorkflowActivityTypeAttributeEventArg.#ctor(System.Guid)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Rock.Web.UI.Controls.WorkflowActivityTypeAttributeEventArg"/> class.
+            </summary>
+            <param name="activityTypeGuid">The activity type unique identifier.</param>
+        </member>
+        <member name="M:Rock.Web.UI.Controls.WorkflowActivityTypeAttributeEventArg.#ctor(System.Guid,System.Guid)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Rock.Web.UI.Controls.WorkflowActivityTypeAttributeEventArg"/> class.
+            </summary>
+            <param name="activityTypeGuid">The activity type unique identifier.</param>
+            <param name="attributeGuid">The attribute unique identifier.</param>
+        </member>
+        <member name="M:Rock.Web.UI.Controls.WorkflowActivityTypeAttributeEventArg.#ctor(System.Guid,System.Int32,System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Rock.Web.UI.Controls.WorkflowActivityTypeAttributeEventArg"/> class.
+            </summary>
+            <param name="activityTypeGuid">The activity type unique identifier.</param>
+            <param name="oldIndex">The old index.</param>
+            <param name="newIndex">The new index.</param>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.WorkflowActivityTypeAttributeEventArg.ActivityTypeGuid">
+            <summary>
+            Gets or sets the activity type unique identifier.
+            </summary>
+            <value>
+            The activity type unique identifier.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.WorkflowActivityTypeAttributeEventArg.AttributeGuid">
+            <summary>
+            Gets or sets the attribute unique identifier.
+            </summary>
+            <value>
+            The attribute unique identifier.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.WorkflowActivityTypeAttributeEventArg.OldIndex">
+            <summary>
+            Gets or sets the old index.
+            </summary>
+            <value>
+            The old index.
+            </value>
+        </member>
+        <member name="P:Rock.Web.UI.Controls.WorkflowActivityTypeAttributeEventArg.NewIndex">
+            <summary>
+            Gets or sets the new index.
+            </summary>
+            <value>
+            The new index.
+            </value>
         </member>
         <member name="T:Rock.Web.UI.Controls.BadgeField">
             <summary>
@@ -32319,6 +34033,14 @@
             <param name="key">The key.</param>
             <returns></returns>
         </member>
+        <member name="M:Rock.Workflow.ActionComponent.GetWorklowAttributeValue(Rock.Model.WorkflowAction,System.Guid)">
+            <summary>
+            Gets a worklow attribute value.  Will check both the workflow and the activity for the selected attribute guid
+            </summary>
+            <param name="action">The action.</param>
+            <param name="guid">The attribute guid.</param>
+            <returns></returns>
+        </member>
         <member name="P:Rock.Workflow.ActionComponent.AttributeValueDefaults">
             <summary>
             Gets the attribute value defaults.
@@ -32352,6 +34074,60 @@
             <param name="errorMessages">The error messages.</param>
             <returns></returns>
         </member>
+        <member name="T:Rock.Workflow.Action.CompareAction">
+            <summary>
+            Activates a new activity for a given activity type
+            </summary>
+        </member>
+        <member name="M:Rock.Workflow.Action.CompareAction.TestCompare(Rock.Model.WorkflowAction)">
+            <summary>
+            Compares test value to compare values and returns true if they match comparison
+            </summary>
+            <param name="action">The action.</param>
+            <returns></returns>
+        </member>
+        <member name="T:Rock.Workflow.Action.SendEmail">
+            <summary>
+            Sends email
+            </summary>
+        </member>
+        <member name="M:Rock.Workflow.Action.SendEmail.Execute(Rock.Model.WorkflowAction,System.Object,System.Collections.Generic.List{System.String}@)">
+            <summary>
+            Executes the specified workflow.
+            </summary>
+            <param name="action">The action.</param>
+            <param name="entity">The entity.</param>
+            <param name="errorMessages">The error messages.</param>
+            <returns></returns>
+        </member>
+        <member name="T:Rock.Workflow.Action.SetAttributeValue">
+            <summary>
+            Sets an attribute's value to the selected value
+            </summary>
+        </member>
+        <member name="M:Rock.Workflow.Action.SetAttributeValue.Execute(Rock.Model.WorkflowAction,System.Object,System.Collections.Generic.List{System.String}@)">
+            <summary>
+            Executes the specified workflow.
+            </summary>
+            <param name="action">The action.</param>
+            <param name="entity">The entity.</param>
+            <param name="errorMessages">The error messages.</param>
+            <returns></returns>
+        </member>
+        <member name="T:Rock.Workflow.Action.PersistWorkflow">
+            <summary>
+            Changes an unpersisted workflow be persisted
+            </summary>
+        </member>
+        <member name="M:Rock.Workflow.Action.PersistWorkflow.Execute(Rock.Model.WorkflowAction,System.Object,System.Collections.Generic.List{System.String}@)">
+            <summary>
+            Executes the specified workflow.
+            </summary>
+            <param name="action">The action.</param>
+            <param name="entity">The entity.</param>
+            <param name="errorMessages">The error messages.</param>
+            <returns></returns>
+        </member>
         <member name="T:Rock.Workflow.Action.WriteToLog">
             <summary>
             Writes a message to Workflow log.
@@ -32370,6 +34146,15 @@
             <summary>
             Prompts user for attribute values
             </summary>
+        </member>
+        <member name="M:Rock.Workflow.Action.UserEntryForm.Execute(Rock.Model.WorkflowAction,System.Object,System.Collections.Generic.List{System.String}@)">
+            <summary>
+            Executes the specified workflow.
+            </summary>
+            <param name="action">The workflow action.</param>
+            <param name="entity">The entity.</param>
+            <param name="errorMessages">The error messages.</param>
+            <returns></returns>
         </member>
         <member name="T:Rock.Workflow.Action.CheckIn.CheckInActionComponent">
             <summary>
@@ -32804,6 +34589,24 @@
             <param name="entity">The entity.</param>
             <param name="errorMessages">The error messages.</param>
             <returns></returns>
+        </member>
+        <member name="T:Rock.Attribute.WorkflowActivityTypeAttribute">
+            <summary>
+            Field Attribute to select an activity type from a workflow type.
+            </summary>
+        </member>
+        <member name="M:Rock.Attribute.WorkflowActivityTypeAttribute.#ctor(System.String,System.String,System.Boolean,System.String,System.String,System.Int32,System.String,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Rock.Attribute.WorkflowActivityTypeAttribute"/> class.
+            </summary>
+            <param name="name">The name.</param>
+            <param name="description">The description.</param>
+            <param name="required">if set to <c>true</c> [required].</param>
+            <param name="defaultValue">The default value.</param>
+            <param name="category">The category.</param>
+            <param name="order">The order.</param>
+            <param name="key">The key.</param>
+            <param name="workflowTypeGuid">The workflow type unique identifier.</param>
         </member>
         <member name="T:Rock.Workflow.TriggerCache">
             <summary>
@@ -36891,6 +38694,14 @@
             A <see cref="T:System.Boolean"/> value that is <c>true</c> if a value is required, otherwise <c>false</c>.
             </value>
         </member>
+        <member name="P:Rock.Model.Attribute.IconCssClass">
+            <summary>
+            Gets or sets the name of the icon CSS class. This property is only used for CSS based icons.
+            </summary>
+            <value>
+            A <see cref="T:System.String"/> representing the name of the icon CSS class. This property will be null if a file based icon is being used.
+            </value>
+        </member>
         <member name="P:Rock.Model.Attribute.EntityType">
             <summary>
             Gets or sets the <see cref="T:Rock.Model.EntityType"/> that this Attribute is used to configure. This property will not be populated if the Attribute is a Global (system) Attribute.
@@ -37859,6 +39670,16 @@
             </returns>
         </member>
         <member name="M:Rock.Model.Person.GetPhotoUrl(System.Nullable{System.Int32},Rock.Model.Gender,System.Nullable{System.Int32},System.Nullable{System.Int32})">
+            <summary>
+            Returns a URL for the person's photo.
+            </summary>
+            <param name="photoId">The photo identifier.</param>
+            <param name="gender">The gender.</param>
+            <param name="maxWidth">The maximum width.</param>
+            <param name="maxHeight">The maximum height.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Rock.Model.Person.GetPhotoUrl(System.Nullable{System.Int32},Rock.Model.Gender,System.Nullable{System.Guid},System.Nullable{System.Int32},System.Nullable{System.Int32})">
             <summary>
             Returns a URL for the person's photo.
             </summary>
@@ -42345,11 +44166,6 @@
             A role to identify the business a person owns.
             </summary>
         </member>
-        <member name="F:Rock.SystemGuid.GroupRole.GROUPROLE_KNOWN_RELATIONSHIPS_PRINCIPLE">
-            <summary>
-            A role to identify the owner of a business.
-            </summary>
-        </member>
         <member name="F:Rock.SystemGuid.GroupRole.GROUPROLE_IMPLIED_RELATIONSHIPS_OWNER">
             <summary>
             Gets the Implied Relationships owner role.
@@ -43094,6 +44910,11 @@
             Guid for the types of map styles
             </summary>
         </member>
+        <member name="F:Rock.SystemGuid.DefinedType.CHART_STYLES">
+            <summary>
+            Guid for the types of chart styles
+            </summary>
+        </member>
         <member name="T:Rock.SystemGuid.Page">
             <summary>
             System Pages.  NOTE: Some of these are referenced in Migrations to avoid string-typos.
@@ -43545,6 +45366,14 @@
             A <see cref="T:System.Boolean"/> that is <c>true</c> if this instance is activity completed on success; otherwise, <c>false</c>.
             </value>
         </member>
+        <member name="P:Rock.Model.WorkflowActionType.WorkflowFormId">
+            <summary>
+            Gets or sets the workflow form identifier.
+            </summary>
+            <value>
+            The workflow form identifier.
+            </value>
+        </member>
         <member name="P:Rock.Model.WorkflowActionType.ActivityType">
             <summary>
             Gets or sets the <see cref="T:Rock.Model.WorkflowActivityType"/> that performs this ActionType.
@@ -43926,12 +45755,12 @@
             <param name="errorMessages">The error messages.</param>
             <returns></returns>
         </member>
-        <member name="T:Rock.Workflow.Action.SendEmail">
+        <member name="T:Rock.Workflow.Action.SendEmailTemplate">
             <summary>
             Sends email
             </summary>
         </member>
-        <member name="M:Rock.Workflow.Action.SendEmail.Execute(Rock.Model.WorkflowAction,System.Object,System.Collections.Generic.List{System.String}@)">
+        <member name="M:Rock.Workflow.Action.SendEmailTemplate.Execute(Rock.Model.WorkflowAction,System.Object,System.Collections.Generic.List{System.String}@)">
             <summary>
             Executes the specified workflow.
             </summary>
@@ -44358,6 +46187,14 @@
             The parent authority for this Workflow instance.
             </value>
         </member>
+        <member name="P:Rock.Model.Workflow.IsPersisted">
+            <summary>
+            Gets or sets a value indicating whether this instance is persisted.
+            </summary>
+            <value>
+            <c>true</c> if this instance is persisted; otherwise, <c>false</c>.
+            </value>
+        </member>
         <member name="T:Rock.Model.WorkflowConfiguration">
             <summary>
             Workflow Configuration class.
@@ -44733,7 +46570,7 @@
             <param name="attribute">The attribute.</param>
             <param name="qualifiers">The qualifiers.</param>
         </member>
-        <member name="M:Rock.Web.Cache.AttributeCache.AddControl(System.Web.UI.ControlCollection,System.String,System.String,System.Boolean,System.Boolean)">
+        <member name="M:Rock.Web.Cache.AttributeCache.AddControl(System.Web.UI.ControlCollection,System.String,System.String,System.Boolean,System.Boolean,System.Nullable{System.Boolean})">
             <summary>
             Adds the control.
             </summary>
@@ -44742,6 +46579,7 @@
             <param name="validationGroup">The validation group.</param>
             <param name="setValue">if set to <c>true</c> [set value].</param>
             <param name="setId">if set to <c>true</c> [set id].</param>
+            <param name="required">The required.</param>
         </member>
         <member name="M:Rock.Web.Cache.AttributeCache.GetControl(System.Web.UI.Control)">
             <summary>
@@ -44924,6 +46762,14 @@
             The order.
             </value>
         </member>
+        <member name="P:Rock.Web.Cache.AttributeCache.IconCssClass">
+            <summary>
+            Gets or sets the icon CSS class.
+            </summary>
+            <value>
+            The icon CSS class.
+            </value>
+        </member>
         <member name="P:Rock.Web.Cache.AttributeCache.IsGridColumn">
             <summary>
             Gets or sets a value indicating whether this instance is grid column.
@@ -44975,6 +46821,14 @@
             </summary>
             <value>
             The categories.
+            </value>
+        </member>
+        <member name="P:Rock.Web.Cache.AttributeCache.CategoryIds">
+            <summary>
+            Gets or sets the category ids.
+            </summary>
+            <value>
+            The category ids.
             </value>
         </member>
         <member name="P:Rock.Web.Cache.AttributeCache.TypeId">
@@ -45454,11 +47308,12 @@
             <param name="name">The name.</param>
             <returns></returns>
         </member>
-        <member name="M:Rock.Web.Cache.EntityTypeCache.Read(System.Type)">
+        <member name="M:Rock.Web.Cache.EntityTypeCache.Read(System.Type,System.Boolean)">
             <summary>
             Reads the specified type.
             </summary>
             <param name="type">The type.</param>
+            <param name="createIfNotFound">if set to <c>true</c> [create if not found].</param>
             <returns></returns>
         </member>
         <member name="M:Rock.Web.Cache.EntityTypeCache.Read(System.String)">
@@ -49616,6 +51471,13 @@
             <param name="str">The STR.</param>
             <returns></returns>
         </member>
+        <member name="M:Rock.ExtensionMethods.AsGuidOrNull(System.String)">
+            <summary>
+            Attempts to convert string to Guid.  Returns null if unsuccessful.
+            </summary>
+            <param name="str">The string.</param>
+            <returns></returns>
+        </member>
         <member name="M:Rock.ExtensionMethods.IsEmpty(System.Guid)">
             <summary>
             Determines whether the specified unique identifier is Guid.Empty.
@@ -49740,6 +51602,15 @@
             </summary>
             <param name="value">The value.</param>
             <param name="nullValue">The null value.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Rock.ExtensionMethods.CompareTo(System.String,System.String,Rock.Model.ComparisonType)">
+            <summary>
+            Compares to.
+            </summary>
+            <param name="value">The value.</param>
+            <param name="compareValue">The compare value.</param>
+            <param name="compareType">Type of the compare.</param>
             <returns></returns>
         </member>
         <member name="M:Rock.ExtensionMethods.DefinedValue(System.Nullable{System.Int32})">

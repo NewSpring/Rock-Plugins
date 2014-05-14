@@ -15,48 +15,51 @@
 // </copyright>
 //
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
-using System.Web;
 using System.Web.UI;
-using Newtonsoft.Json;
+using System.Web.UI.WebControls;
 
 using Rock;
 using Rock.Data;
 using Rock.Model;
+using Rock.Web.Cache;
+using Rock.Web.UI.Controls;
+using Rock.Attribute;
 using Rock.Reporting.Dashboard;
+using System.Drawing;
 
 namespace RockWeb.Blocks.Reporting.Dashboard
 {
     /// <summary>
     /// Template block for developers to use to start a new block.
     /// </summary>
-    [DisplayName( "Column Chart DashboardWidget" )]
+    [DisplayName( "Bar Chart" )]
     [Category( "Dashboard" )]
-    [Description( "Column Chart dashboard widget example" )]
-    public partial class ColumnChartDashboardWidget : DashboardWidget
+    [Description( "DashboardWidget using flotcharts" )]
+    public partial class BarChartDashboardWidget : DashboardWidget
     {
-        #region Base Control Methods
-
         /// <summary>
-        /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
+        /// Loads the chart.
         /// </summary>
-        /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
-        protected override void OnLoad( EventArgs e )
+        public override void LoadChart()
         {
-            base.OnLoad( e );
+            bcExample.StartDate = new DateTime( 2013, 1, 1 );
+            bcExample.EndDate = new DateTime( 2014, 1, 1 );
+            bcExample.MetricValueType = this.MetricValueType;
+            bcExample.MetricId = this.MetricId;
+            bcExample.EntityId = this.EntityId;
 
-            if ( !Page.IsPostBack )
-            {
-                Guid attendanceMetricGuid = new Guid( "D4752628-DFC9-4681-ADB3-01936B8F38CA" );
-                colchrtExample.MetricId = new MetricService( new RockContext()).Get(attendanceMetricGuid).Id;
-                colchrtExample.StartDate = new DateTime( 2013, 1, 1 );
-                colchrtExample.EndDate = new DateTime( 2014, 1, 1 );
-                
-            }
+            bcExample.Title = this.Title;
+            bcExample.Subtitle = this.Subtitle;
+            bcExample.CombineValues = this.CombineValues;
+
+            bcExample.ShowTooltip = false;
+
+            bcExample.Options.SetChartStyle( this.ChartStyle );
+
+            nbMetricWarning.Visible = !this.MetricId.HasValue;
         }
-
-        #endregion
     }
 }
