@@ -33,12 +33,15 @@
   <ItemGroup>
     <Reference Include="DotLiquid">
       <HintPath>..\RockWeb\Bin\DotLiquid.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Rock">
       <HintPath>..\RockWeb\Bin\Rock.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Rock.Version">
       <HintPath>..\RockWeb\Bin\Rock.Version.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
@@ -66,6 +69,8 @@
     <Compile Include="Reporting\Api.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
