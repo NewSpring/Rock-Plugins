@@ -768,39 +768,42 @@ namespace Rock.CyberSource
             card.cvNumber = cc.Code.AsNumeric();
             card.cvIndicator = "1";
 
-            switch ( cc.CreditCardTypeValue.Name )
+            if ( cc.CreditCardTypeValue != null )
             {
-                case "Visa":
-                    card.cardType = "001";
-                    break;
+                switch ( cc.CreditCardTypeValue.Name )
+                {
+                    case "Visa":
+                        card.cardType = "001";
+                        break;
 
-                case "MasterCard":
-                    card.cardType = "002";
-                    break;
+                    case "MasterCard":
+                        card.cardType = "002";
+                        break;
 
-                case "American Express":
-                    card.cardType = "003";
-                    break;
+                    case "American Express":
+                        card.cardType = "003";
+                        break;
 
-                case "Discover":
-                    card.cardType = "004";
-                    break;
+                    case "Discover":
+                        card.cardType = "004";
+                        break;
 
-                case "Diners":
-                    card.cardType = "005";
-                    break;
+                    case "Diners":
+                        card.cardType = "005";
+                        break;
 
-                case "Carte Blanche":
-                    card.cardType = "006";
-                    break;
+                    case "Carte Blanche":
+                        card.cardType = "006";
+                        break;
 
-                case "JCB":
-                    card.cardType = "007";
-                    break;
+                    case "JCB":
+                        card.cardType = "007";
+                        break;
 
-                default:
-                    card.cardType = string.Empty;
-                    break;
+                    default:
+                        card.cardType = string.Empty;
+                        break;
+                }
             }
 
             return card;
