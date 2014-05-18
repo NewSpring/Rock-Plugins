@@ -9,7 +9,7 @@ namespace cc.newspring.give.Data
     /// <summary>
     ///
     /// </summary>
-    public partial class GiveContext : Rock.Data.DbContext
+    public partial class SampleProjectContext : Rock.Data.DbContext
     {
         #region Models
 
@@ -18,9 +18,9 @@ namespace cc.newspring.give.Data
         #endregion
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GiveContext"/> class.
+        /// Initializes a new instance of the <see cref="SampleProjectContext"/> class.
         /// </summary>
-        public GiveContext()
+        public SampleProjectContext()
             : base( "RockContext" )
         {
             //intentionally left blank

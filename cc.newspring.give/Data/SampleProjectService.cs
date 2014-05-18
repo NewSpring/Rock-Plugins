@@ -11,7 +11,7 @@ namespace cc.newspring.give.Data
         /// <summary>
         /// Initializes a new instance of the <see cref="DocumentationService{T}"/> class.
         /// </summary>
-        public SampleProjectService( GiveContext context )
+        public SampleProjectService( SampleProjectContext context )
             : base( context )
         {
         }

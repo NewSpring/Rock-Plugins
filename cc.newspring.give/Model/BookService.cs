@@ -12,6 +12,6 @@ namespace cc.newspring.give.Model
         /// Initializes a new instance of the <see cref="BookService"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
-        public BookService( GiveContext context ) : base( context ) { }
+        public BookService( SampleProjectContext context ) : base( context ) { }
     }
 }

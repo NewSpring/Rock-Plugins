@@ -14,6 +14,6 @@ namespace cc.newspring.give.Rest
     /// </summary>
     public class BooksController : ApiController<Book>
     {
-        public BooksController() : base( new BookService( new Data.GiveContext() ) ) { }
+        public BooksController() : base( new BookService( new Data.SampleProjectContext() ) ) { }
     }
 }
