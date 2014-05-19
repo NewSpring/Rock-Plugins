@@ -6,7 +6,7 @@ using System.Data.Entity.ModelConfiguration;
 using System.Linq;
 using System.Runtime.Serialization;
 
-using cc.newspring;
+using cc.newspring.Data;
 
 using Rock.Data;
 using Rock.Model;
@@ -18,7 +18,7 @@ namespace cc.newspring.give.Model
     /// </summary>
     [Table( "_cc_newspring_give_ReferralAgency" )]
     [DataContract]
-    public class ReferralAgency : cc.newspring.NamedModel<ReferralAgency>
+    public class ReferralAgency : cc.newspring.Data.NamedModel<ReferralAgency>
     {
         #region Entity Properties
 

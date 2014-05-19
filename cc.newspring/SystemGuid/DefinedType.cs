@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace org.RockSolidChurch.SystemGuid
+namespace cc.newspring.SystemGuid
 {
     /// <summary>
     /// System Defined Types
@@ -8,7 +8,7 @@ namespace org.RockSolidChurch.SystemGuid
     public static class DefinedType
     {
         /// <summary>
-        /// Type's of Referral Agencies
+        /// Types of Referral Agencies
         /// </summary>
         public const string REFERRAL_AGENCY_TYPE = "150478D4-3709-4543-906F-1F9496B4E7D0";
     }
