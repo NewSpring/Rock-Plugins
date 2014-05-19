@@ -13,7 +13,7 @@ namespace cc.newspring.give.Data
     {
         #region Models
 
-        public DbSet<Book> Books { get; set; }
+        public DbSet<ReferralAgency> ReferralAgencies { get; set; }
 
         #endregion
 
