@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="ReferralAgencyDetail.ascx.cs" Inherits="RockWeb.Plugins.cc.newspring.give.ReferralAgencyDetail" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="ReferralAgencyDetail.ascx.cs" Inherits="RockWeb.Plugins.cc_newspring.give.ReferralAgencyDetail" %>
 <asp:UpdatePanel ID="upnlContent" runat="server">
     <ContentTemplate>
 

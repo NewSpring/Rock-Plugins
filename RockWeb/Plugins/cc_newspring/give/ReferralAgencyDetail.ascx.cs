@@ -5,9 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-
+using cc.newspring.give.Data;
 using cc.newspring.give.Model;
-using cc.newspring.SystemGuid;
+
 using Rock;
 using Rock.Attribute;
 using Rock.Constants;
@@ -17,7 +17,7 @@ using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
-namespace RockWeb.Plugins.cc.newspring.give
+namespace RockWeb.Plugins.cc_newspring.give
 {
     /// <summary>
     /// Displays the details of a Referral Agency.

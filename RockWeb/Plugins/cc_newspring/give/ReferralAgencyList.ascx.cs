@@ -14,7 +14,7 @@ using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 
-namespace RockWeb.Plugins.cc.newspring.give
+namespace RockWeb.Plugins.cc_newspring.give
 {
     /// <summary>
     /// Lists all the Referral Agencies.
@@ -22,11 +22,9 @@ namespace RockWeb.Plugins.cc.newspring.give
     [DisplayName( "Referral Agency List" )]
     [Category( "RockSolidChurch > Sample Project" )]
     [Description( "Lists all the Referral Agencies." )]
-
     [LinkedPage( "Detail Page" )]
     public partial class ReferralAgencyList : Rock.Web.UI.RockBlock
     {
-
         #region Base Control Methods
 
         /// <summary>
@@ -84,7 +82,6 @@ namespace RockWeb.Plugins.cc.newspring.give
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void Block_BlockUpdated( object sender, EventArgs e )
         {
-
         }
 
         /// <summary>
@@ -138,7 +135,6 @@ namespace RockWeb.Plugins.cc.newspring.give
                         break;
                     }
             }
-
         }
 
         /// <summary>
@@ -210,7 +206,7 @@ namespace RockWeb.Plugins.cc.newspring.give
             cpCampus.Campuses = campusi;
             cpCampus.Visible = campusi.Any();
 
-            var definedType = DefinedTypeCache.Read( org.RockSolidChurch.SystemGuid.DefinedType.REFERRAL_AGENCY_TYPE.AsGuid() );
+            var definedType = DefinedTypeCache.Read( cc.newspring.SystemGuid.DefinedType.REFERRAL_AGENCY_TYPE.AsGuid() );
             if ( definedType != null )
             {
                 ddlAgencyType.BindToDefinedType( definedType, true );
