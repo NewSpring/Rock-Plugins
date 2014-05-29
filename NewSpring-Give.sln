@@ -7,7 +7,7 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "RockWeb(1)", "http://localh
 	ProjectSection(WebsiteProperties) = preProject
 		UseIISExpress = "true"
 		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.5"
-		ProjectReferences = "{496ec024-71ed-4ad1-b677-2a3fa60ccd05}|org.RockSolidChurch.dll;"
+		ProjectReferences = ""
 		Debug.AspNetCompiler.VirtualPath = "/localhost_50345"
 		Debug.AspNetCompiler.PhysicalPath = "RockWeb\"
 		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_50345\"
@@ -25,8 +25,6 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "RockWeb(1)", "http://localh
 		SlnRelativePath = "RockWeb\"
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cc.newspring", "cc.newspring\cc.newspring.csproj", "{496EC024-71ED-4AD1-B677-2A3FA60CCD05}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cc.newspring.give", "cc.newspring.give\cc.newspring.give.csproj", "{BA60AFE4-4A42-4F30-AD68-7FBE93657C8B}"
 EndProject
 Global
@@ -39,10 +37,6 @@ Global
 		{22348267-9BDF-4B5E-BB6E-37B5FA770224}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{22348267-9BDF-4B5E-BB6E-37B5FA770224}.Release|Any CPU.ActiveCfg = Debug|Any CPU
 		{22348267-9BDF-4B5E-BB6E-37B5FA770224}.Release|Any CPU.Build.0 = Debug|Any CPU
-		{496EC024-71ED-4AD1-B677-2A3FA60CCD05}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{496EC024-71ED-4AD1-B677-2A3FA60CCD05}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{496EC024-71ED-4AD1-B677-2A3FA60CCD05}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{496EC024-71ED-4AD1-B677-2A3FA60CCD05}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BA60AFE4-4A42-4F30-AD68-7FBE93657C8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BA60AFE4-4A42-4F30-AD68-7FBE93657C8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BA60AFE4-4A42-4F30-AD68-7FBE93657C8B}.Release|Any CPU.ActiveCfg = Release|Any CPU

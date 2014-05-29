@@ -4,9 +4,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Web.UI;
 
-using cc.newspring.give.Data;
-using cc.newspring.give.Model;
-
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -206,7 +203,7 @@ namespace RockWeb.Plugins.cc_newspring.give
             cpCampus.Campuses = campusi;
             cpCampus.Visible = campusi.Any();
 
-            var definedType = DefinedTypeCache.Read( cc.newspring.SystemGuid.DefinedType.REFERRAL_AGENCY_TYPE.AsGuid() );
+            var definedType = DefinedTypeCache.Read( cc.newspring.give.SystemGuid.DefinedType.REFERRAL_AGENCY_TYPE.AsGuid() );
             if ( definedType != null )
             {
                 ddlAgencyType.BindToDefinedType( definedType, true );

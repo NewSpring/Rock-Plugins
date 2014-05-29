@@ -95,25 +95,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Data\SampleProjectContext.cs" />
-    <Compile Include="Data\SampleProjectService.cs" />
     <Compile Include="Migrations\001_CreateDb.cs" />
     <Compile Include="Migrations\002_AddSystemData.cs" />
-    <Compile Include="Model\ReferralAgency.cs" />
-    <Compile Include="Model\ReferralAgencyService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Rest\ReferralAgenciesController.cs" />
+    <Compile Include="SystemGuid\DefinedType.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\cc.newspring\cc.newspring.csproj">
-      <Project>{496ec024-71ed-4ad1-b677-2a3fa60ccd05}</Project>
-      <Name>cc.newspring</Name>
-    </ProjectReference>
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy /Y "$(TargetDir)$(TargetName).dll" "$(SolutionDir)RockWeb\Bin\$(TargetName).dll"</PostBuildEvent>
