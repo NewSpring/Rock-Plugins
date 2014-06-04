@@ -26,6 +26,8 @@
                         <Rock:ButtonDropDownList ID="btnAddAccount" runat="server" CssClass="btn btn-primary" Visible="false" Label=" "
                             DataTextField="Name" DataValueField="Id" OnSelectionChanged="btnAddAccount_SelectionChanged" />
 
+                        <Rock:CampusPicker ID="cpCampuses" runat="server" Label="Select your Campus" />
+
                         <div class="form-group total-gift">
                             
                             <label>Total</label>
@@ -54,7 +56,7 @@
                                 </div>
                                 <div id="divPersonDetail" runat="server" class="toggle-content" style="display:none">
                                     <Rock:RockTextBox ID="txtExistingEmail" runat="server" Label="Email" Text='<%# Eval("Email") %>' />
-                                    <%--<Rock:CampusPicker ID="cpCampuses" runat="server" Label="Your Campus" />--%>
+                                    
                                 </div>                          
                             </ItemTemplate>
                             <FooterTemplate>
@@ -90,19 +92,14 @@
                         <Rock:RockTextBox ID="txtLastName" runat="server" Label="Last" />
                         <Rock:RockTextBox ID="txtEmail" runat="server" Label="Email" />
                         <Rock:RockTextBox ID="txtStreet" runat="server" Label="Street" />
-                                
-                        <div class="row">
-                            <div class="col-md-7">
-                                <Rock:RockTextBox ID="txtCity" runat="server" Label="City" />
-                            </div>
-                            <div class="col-md-2">
-                                <Rock:StateDropDownList ID="ddlState" runat="server" UseAbbreviation="true" Label="State" />
-                            </div>
-                            <div class="col-md-3">
-                                <Rock:RockTextBox ID="txtZip" runat="server" Label="Zip" />
-                            </div>
-                        </div>
+                        <Rock:RockTextBox ID="txtCity" runat="server" Label="City" />
+                        <Rock:StateDropDownList ID="ddlState" runat="server" UseAbbreviation="true" Label="State" />
+                        <Rock:RockTextBox ID="txtZip" runat="server" Label="Zip" />
+                        <Rock:RockTextBox ID="txtCountry" runat="server" Label="Country" Enabled="false" Text="United States" />
                     </fieldset>
+                </div>
+
+                <div class="panel-heading"><h3 class="panel-title">Payment Information</h3></div>
 
                     <asp:PlaceHolder ID="phPills" runat="server" Visible="false">
                         <ul class="nav nav-pills">

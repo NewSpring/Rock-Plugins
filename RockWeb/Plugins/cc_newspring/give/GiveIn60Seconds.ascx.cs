@@ -68,6 +68,28 @@ achieve our mission.  We are so grateful for your commitment.
         /// <summary>
         /// Gets or sets the accounts that are available for user to add to the list.
         /// </summary>
+        protected Dictionary<int, string> Campuses
+        {
+            get
+            {
+                var campuses = ViewState["Campuses"] as Dictionary<int, string>;
+                if ( campuses == null )
+                {
+                    campuses = new Dictionary<int, string>();
+                }
+
+                return campuses;
+            }
+
+            set
+            {
+                ViewState["Campuses"] = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the accounts that are available for user to add to the list.
+        /// </summary>
         protected List<AccountItem> Accounts
         {
             get
@@ -163,18 +185,6 @@ achieve our mission.  We are so grateful for your commitment.
                 if ( ccEnabled && achEnabled )
                 {
                     phPills.Visible = true;
-
-                    // If CC and ACH gateways are different, only allow frequencies supported by both payment gateways (if different)
-                    if ( _ccGateway.TypeId != _achGateway.TypeId )
-                    {
-                        supportedFrequencies = _ccGateway.SupportedPaymentSchedules
-                            .Where( c =>
-                                _achGateway.SupportedPaymentSchedules
-                                    .Select( a => a.Id )
-                                    .Contains( c.Id ) )
-                            .ToList();
-                    }
-
                     divCCPaymentInfo.AddCssClass( "tab-pane" );
                     divACHPaymentInfo.AddCssClass( "tab-pane" );
                 }
@@ -184,8 +194,6 @@ achieve our mission.  We are so grateful for your commitment.
 
                 // Display Options
                 btnAddAccount.Title = GetAttributeValue( "AddAccountText" );
-
-                BindSavedAccounts();
 
                 if ( rblSavedCC.Items.Count > 0 )
                 {
@@ -296,6 +304,7 @@ achieve our mission.  We are so grateful for your commitment.
                 if ( !Page.IsPostBack )
                 {
                     // Get the list of accounts that can be used
+                    GetCampuses();
                     GetAccounts();
                     BindAccounts();
 
@@ -391,7 +400,7 @@ achieve our mission.  We are so grateful for your commitment.
         /// <param name="e">The <see cref="HistoryEventArgs"/> instance containing the event data.</param>
         protected void page_PageNavigate( object sender, HistoryEventArgs e )
         {
-            int pageId = e.State["GivingDetail"].AsIntegerOrNull() ?? 0;
+            int pageId = e.State["GivingDetail"].AsInteger() ?? 0;
             if ( pageId > 0 )
             {
                 SetPage( pageId );
@@ -406,7 +415,7 @@ achieve our mission.  We are so grateful for your commitment.
         protected void btnPrev_Click( object sender, EventArgs e )
         {
             // Previous should only be enabled on page two or three
-            int pageId = hfCurrentPage.Value.AsIntegerOrNull() ?? 0;
+            int pageId = hfCurrentPage.Value.AsInteger() ?? 0;
             if ( pageId > 1 )
             {
                 SetPage( pageId - 1 );
@@ -422,7 +431,7 @@ achieve our mission.  We are so grateful for your commitment.
         {
             string errorMessage = string.Empty;
 
-            switch ( hfCurrentPage.Value.AsIntegerOrNull() ?? 0 )
+            switch ( hfCurrentPage.Value.AsInteger() ?? 0 )
             {
                 case 1:
 
@@ -437,7 +446,6 @@ achieve our mission.  We are so grateful for your commitment.
                     break;
 
                 case 3:
-
                     if ( VerifyPaymentInfo( out errorMessage ) )
                     {
                         if ( ProcessConfirmation( out errorMessage ) )
@@ -456,26 +464,6 @@ achieve our mission.  We are so grateful for your commitment.
                     }
 
                     break;
-            }
-        }
-
-        /// <summary>
-        /// Handles the Click event of the btnConfirm control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void btnConfirm_Click( object sender, EventArgs e )
-        {
-            TransactionCode = string.Empty;
-
-            string errorMessage = string.Empty;
-            if ( ProcessConfirmation( out errorMessage ) )
-            {
-                SetPage( 4 );
-            }
-            else
-            {
-                ShowMessage( NotificationBoxType.Danger, "Payment Error", errorMessage );
             }
         }
 
@@ -629,6 +617,26 @@ achieve our mission.  We are so grateful for your commitment.
         #region Init methods
 
         /// <summary>
+        /// Gets the campuses.
+        /// </summary>
+        private void GetCampuses()
+        {
+            var rockContext = new RockContext();
+            Campuses = new CampusService( new RockContext() ).Queryable()
+                .OrderBy( a => a.Name ).ToDictionary( t => t.Id, t => t.Name );
+
+            if ( Campuses.Count > 1 )
+            {
+                cpCampuses.DataSource = Campuses;
+                cpCampuses.DataBind();
+            }
+            else
+            {
+                // set default campus
+            }
+        }
+
+        /// <summary>
         /// Gets the accounts.
         /// </summary>
         private void GetAccounts()
@@ -675,6 +683,11 @@ achieve our mission.  We are so grateful for your commitment.
             btnAddAccount.Visible = Accounts.Where( a => !a.Selected ).Any();
             btnAddAccount.DataSource = Accounts.Where( a => !a.Selected ).ToList();
             btnAddAccount.DataBind();
+
+            if ( Accounts.GroupBy( a => a.CampusId ).Count() > 0 )
+            {
+                //cpCampuses.DataSource = Accounts.Select( )
+            }
         }
 
         /// <summary>
@@ -682,7 +695,7 @@ achieve our mission.  We are so grateful for your commitment.
         /// </summary>
         /// <param name="create">if set to <c>true</c> [create].</param>
         /// <returns></returns>
-        private Person GetPerson( bool lookup )
+        private Person GetPerson( bool create )
         {
             Person person = null;
             var rockContext = new RockContext();
@@ -695,7 +708,7 @@ achieve our mission.  We are so grateful for your commitment.
                 person = personService.Get( personId );
             }
 
-            if ( person == null && lookup )
+            if ( person == null && create )
             {
                 // Check to see if there's only one person with same phone number
                 if ( !string.IsNullOrWhiteSpace( pnbPhone.Text ) )
@@ -742,65 +755,6 @@ achieve our mission.  We are so grateful for your commitment.
             }
 
             return person;
-        }
-
-        /// <summary>
-        /// Binds the saved accounts.
-        /// </summary>
-        private void BindSavedAccounts()
-        {
-            rblSavedCC.Items.Clear();
-
-            int personId = ViewState["PersonId"] as int? ?? 0;
-
-            if ( personId != 0 )
-            {
-                // Get the saved accounts for the currently logged in user
-                var savedAccounts = new FinancialPersonSavedAccountService( new RockContext() )
-                    .GetByPersonId( personId );
-
-                if ( _ccGateway != null )
-                {
-                    var ccCurrencyType = DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.CURRENCY_TYPE_CREDIT_CARD ) );
-
-                    rblSavedCC.DataSource = savedAccounts
-                        .Where( a =>
-                            a.GatewayEntityTypeId == _ccGateway.TypeId &&
-                            a.CurrencyTypeValueId == ccCurrencyType.Id )
-                        .OrderBy( a => a.Name )
-                        .Select( a => new
-                        {
-                            Id = a.Id,
-                            Name = "Use " + a.Name + " (" + a.MaskedAccountNumber + ")"
-                        } ).ToList();
-                    rblSavedCC.DataBind();
-                    if ( rblSavedCC.Items.Count > 0 )
-                    {
-                        rblSavedCC.Items.Add( new ListItem( "Use a different card", "0" ) );
-                    }
-                }
-
-                if ( _achGateway != null )
-                {
-                    var achCurrencyType = DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.CURRENCY_TYPE_ACH ) );
-
-                    rblSavedAch.DataSource = savedAccounts
-                        .Where( a =>
-                            a.GatewayEntityTypeId == _achGateway.TypeId &&
-                            a.CurrencyTypeValueId == achCurrencyType.Id )
-                        .OrderBy( a => a.Name )
-                        .Select( a => new
-                        {
-                            Id = a.Id,
-                            Name = "Use " + a.Name + " (" + a.MaskedAccountNumber + ")"
-                        } ).ToList();
-                    rblSavedAch.DataBind();
-                    if ( rblSavedAch.Items.Count > 0 )
-                    {
-                        rblSavedAch.Items.Add( new ListItem( "Use a different bank account", "0" ) );
-                    }
-                }
-            }
         }
 
         #endregion
@@ -1051,19 +1005,19 @@ achieve our mission.  We are so grateful for your commitment.
 
                 // If there was a transaction code returned and this was not already created from a previous saved account,
                 // show the option to save the account.
-                if ( !( paymentInfo is ReferencePaymentInfo ) && !string.IsNullOrWhiteSpace( TransactionCode ) )
-                {
-                    cbSaveAccount.Visible = true;
-                    pnlSaveAccount.Visible = true;
-                    txtSaveAccount.Visible = true;
+                //if ( !( paymentInfo is ReferencePaymentInfo ) && !string.IsNullOrWhiteSpace( TransactionCode ) )
+                //{
+                //    cbSaveAccount.Visible = true;
+                //    pnlSaveAccount.Visible = true;
+                //    txtSaveAccount.Visible = true;
 
-                    // If current person does not have a login, have them create a username and password
-                    phCreateLogin.Visible = !new UserLoginService( rockContext ).GetByPersonId( person.Id ).Any();
-                }
-                else
-                {
-                    pnlSaveAccount.Visible = false;
-                }
+                //    // If current person does not have a login, have them create a username and password
+                //    phCreateLogin.Visible = !new UserLoginService( rockContext ).GetByPersonId( person.Id ).Any();
+                //}
+                //else
+                //{
+                //    pnlSaveAccount.Visible = false;
+                //}
 
                 return true;
             }
@@ -1164,18 +1118,6 @@ achieve our mission.  We are so grateful for your commitment.
 
                 // Detect credit card type
                 $('.credit-card').creditCardTypeDetector({{ 'credit_card_logos': '.card-logos' }});
-
-                // Toggle credit card display if saved card option is available
-                $('div.radio-content').prev('.form-group').find('input:radio').unbind('click').on('click', function () {{
-                    var $content = $(this).parents('div.form-group:first').next('.radio-content')
-                    var radioDisplay = $content.css('display');
-                    if ($(this).val() == 0 && radioDisplay == 'none') {{
-                        $content.slideToggle();
-                    }}
-                    else if ($(this).val() != 0 && radioDisplay != 'none') {{
-                        $content.slideToggle();
-                    }}
-                }});
 
                 // Hide or show a div based on selection of checkbox
                 $('input:checkbox.toggle-input').unbind('click').on('click', function () {{
