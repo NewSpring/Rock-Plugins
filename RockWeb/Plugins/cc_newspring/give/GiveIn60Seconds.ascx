@@ -1,27 +1,36 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="GiveIn60Seconds.ascx.cs" Inherits="RockWeb.Plugins.cc_newspring.give.GiveIn60Seconds" %>
 
-<asp:UpdatePanel ID="upPayment" runat="server" UpdateMode="Conditional">
+<asp:UpdatePanel ID="pnlGiveIn60Seconds" runat="server" UpdateMode="Conditional">
     <ContentTemplate>
+
+        <!-- validation summary here? -->
+
+        <asp:PlaceHolder ID="phPageHeader" runat="server" />
 
         <!-- Step One -->
         <asp:Panel ID="pnlStepOne" runat="server">
 
             <div class="panel panel-default contribution-info">
-                <div class="panel-heading"><h3 class="panel-title">Contribution Information</h3></div>
+                <div class="panel-heading"><h3 class="panel-title">Enter an Amount</h3></div>
                 <div class="panel-body">
                     <fieldset>
 
                         <asp:Repeater ID="rptAccountList" runat="server">
                             <ItemTemplate>
-                                <Rock:CurrencyBox ID="txtAccountAmount" runat="server" Label=" " PrependText='<%# Eval("Name") %>' Text='<%# Eval("AmountFormatted") %>' Placeholder="0.00" CssClass="account-amount" />
+                                <div data-toggle="tooltip" data-placement="top" title="<%# Eval("Description") %>">                                    
+                                    <Rock:CurrencyBox ID="txtAccountAmount" runat="server" Label='<%# Eval("Name") %>' Text='<%# Eval("AmountFormatted") %>' Placeholder="0.00" CssClass="account-amount" />
+                                </div>
                             </ItemTemplate>
                         </asp:Repeater>
+
                         <Rock:ButtonDropDownList ID="btnAddAccount" runat="server" CssClass="btn btn-primary" Visible="false" Label=" "
                             DataTextField="Name" DataValueField="Id" OnSelectionChanged="btnAddAccount_SelectionChanged" />
 
-                        <div class="form-group">
+                        <div class="form-group total-gift">
+                            
                             <label>Total</label>
                             <asp:Label ID="lblTotalAmount" runat="server" CssClass="form-control-static total-amount" />
+                            
                         </div>                       
 
                     </fieldset>
@@ -36,36 +45,65 @@
                 <div class="panel-heading"><h3 class="panel-title">Personal Information</h3></div>
                 <div class="panel-body">
                     <fieldset>
-                        <Rock:RockLiteral ID="txtCurrentName" runat="server" Label="Name" Visible="true" />
-                        <Rock:RockTextBox ID="txtFirstName" runat="server" Label="First Name" />
-                        <Rock:RockTextBox ID="txtLastName" runat="server" Label="Last Name" />
-                        <Rock:PhoneNumberBox ID="pnbPhone" runat="server" Label="Phone" />
-                        <Rock:RockTextBox ID="txtEmail" runat="server" Label="Email" />
-                        <Rock:RockTextBox ID="txtStreet" runat="server" Label="Address" />
-                                
-                        <div class="row">
-                            <div class="col-md-7">
-                                <Rock:RockTextBox Label="City" ID="txtCity" runat="server" />
-                            </div>
-                            <div class="col-md-2">
-                                <Rock:StateDropDownList Label="State" ID="ddlState" runat="server" UseAbbreviation="true" />
-                            </div>
-                            <div class="col-md-3">
-                                <Rock:RockTextBox  ID="txtZip" runat="server" Label="Zip" />
-                            </div>
-                        </div>
-                                
+                        <Rock:PhoneNumberBox ID="pnbPhone" runat="server" Label="Phone" AutoPostBack="true" OnTextChanged="pnbPhone_TextChanged" />
+
+                        <asp:Repeater ID="rptPersonPicker" runat="server">
+                            <ItemTemplate>                                
+                                <div class="checkbox">
+                                    <Rock:RockCheckBox ID="cbPerson" runat="server" Label='<%# Eval("FullName") %>' data-id='<%# Eval("ID") %>' CssClass="toggle-input" />
+                                </div>
+                                <div id="divPersonDetail" runat="server" class="toggle-content" style="display:none">
+                                    <Rock:RockTextBox ID="txtExistingEmail" runat="server" Label="Email" Text='<%# Eval("Email") %>' />
+                                    <%--<Rock:CampusPicker ID="cpCampuses" runat="server" Label="Your Campus" />--%>
+                                </div>                          
+                            </ItemTemplate>
+                            <FooterTemplate>
+                                <div class="checkbox">
+                                    <Rock:RockCheckBox ID="cbNewPerson" runat="server" Label="... or enter a different name" CssClass="toggle-input" />
+                                </div>
+                                <div id="divPersonDetail" runat="server" class="toggle-content" style="display:none">
+                                    <Rock:RockTextBox ID="txtFirst" runat="server" Label="First" />
+                                    <Rock:RockTextBox ID="txtLast" runat="server" Label="Last" />                                 
+                                    <Rock:RockTextBox ID="txtEmail" runat="server" Label="Email" />
+                                    <%--<Rock:CampusPicker ID="cpCampuses" runat="server" Label="Your Campus" />--%>
+                                </div>
+                            </FooterTemplate>
+                        </asp:Repeater>
+                                     
                     </fieldset>
                 </div>
-            </div>          
+            </div>
+        </asp:Panel>
+
+        <!-- Step Three -->
+        <asp:Panel ID="pnlStepThree" runat="server" Visible="false">
 
             <div class="panel panel-default contribution-payment">
 
                 <asp:HiddenField ID="hfPaymentTab" runat="server" />
 
-                <div class="panel-heading"><h3 class="panel-title">Payment Information</h3></div>
+                <div class="panel-heading"><h3 class="panel-title">Billing Address</h3></div>
                 
                 <div class="panel-body">   
+                    <fieldset>
+                        <Rock:RockTextBox ID="txtFirstName" runat="server" Label="First" />
+                        <Rock:RockTextBox ID="txtLastName" runat="server" Label="Last" />
+                        <Rock:RockTextBox ID="txtEmail" runat="server" Label="Email" />
+                        <Rock:RockTextBox ID="txtStreet" runat="server" Label="Street" />
+                                
+                        <div class="row">
+                            <div class="col-md-7">
+                                <Rock:RockTextBox ID="txtCity" runat="server" Label="City" />
+                            </div>
+                            <div class="col-md-2">
+                                <Rock:StateDropDownList ID="ddlState" runat="server" UseAbbreviation="true" Label="State" />
+                            </div>
+                            <div class="col-md-3">
+                                <Rock:RockTextBox ID="txtZip" runat="server" Label="Zip" />
+                            </div>
+                        </div>
+                    </fieldset>
+
                     <asp:PlaceHolder ID="phPills" runat="server" Visible="false">
                         <ul class="nav nav-pills">
                             <li id="liCreditCard" runat="server"><a href='#<%=divCCPaymentInfo.ClientID%>' data-toggle="pill">Credit Card</a></li>
@@ -78,10 +116,7 @@
                         <div id="divCCPaymentInfo" runat="server" visible="false">
                             <fieldset>
                                 <Rock:RockRadioButtonList ID="rblSavedCC" runat="server" Label=" " CssClass="radio-list" RepeatDirection="Vertical" DataValueField="Id" DataTextField="Name" />
-                                <div id="divNewCard" runat="server" class="radio-content">
-                                    <Rock:RockTextBox ID="txtCardFirstName" runat="server" Label="First Name on Card" Visible="false" />
-                                    <Rock:RockTextBox ID="txtCardLastName" runat="server" Label="Last Name on Card" Visible="false" />
-                                    <Rock:RockTextBox ID="txtCardName" runat="server" Label="Name on Card" Visible="false" />
+                                <div id="divNewCard" runat="server" class="radio-content">                                    
                                     <Rock:RockTextBox ID="txtCreditCard" runat="server" Label="Credit Card #" MaxLength="19" CssClass="credit-card" />
                                     <ul class="card-logos">
                                         <li class="card-visa"></li>
@@ -89,23 +124,8 @@
                                         <li class="card-amex"></li>
                                         <li class="card-discover"></li>
                                     </ul>
-                                    <Rock:MonthYearPicker ID="mypExpiration" runat="server" Label="Expiration Date" />
                                     <Rock:NumberBox ID="txtCVV" Label="Card Security Code" runat="server" MaxLength="4" />
-                                    <Rock:RockCheckBox ID="cbBillingAddress" runat="server" Text="Enter a different billing address" CssClass="toggle-input" />
-                                    <div id="divBillingAddress" runat="server" class="toggle-content">
-                                        <Rock:RockTextBox ID="txtBillingStreet" runat="server" Label="Billing Address" />
-                                        <div class="row">
-                                            <div class="col-md-7">
-                                                <Rock:RockTextBox ID="txtBillingCity" runat="server" Label="City" />
-                                            </div>
-                                            <div class="col-md-2">
-                                                <Rock:StateDropDownList ID="ddlBillingState" runat="server" Label="State" UseAbbreviation="true" />
-                                            </div>
-                                            <div class="col-md-3">                                                
-                                                <Rock:RockTextBox ID="txtBillingZip" runat="server" Label="Zip" />
-                                            </div>
-                                        </div>
-                                    </div>                                    
+                                    <Rock:MonthYearPicker ID="mypExpiration" runat="server" Label="Expiration Date" />
                                 </div>
                             </fieldset>
                         </div>
@@ -121,60 +141,33 @@
                                         <asp:ListItem Text="Checking" Selected="true" />
                                         <asp:ListItem Text="Savings" />
                                     </Rock:RockRadioButtonList>
-                                    <asp:Image ID="imgCheck" runat="server" ImageUrl="<%$ Fingerprint:~/Assets/Images/check-image.png %>" />                                    
+                                    <%--<asp:Image ID="imgCheck" runat="server" ImageUrl="<%$ Fingerprint:~/Assets/Images/check-image.png %>" />--%>         
                                 </div>
                             </fieldset>
                         </div>
 
+                        <Rock:TermDescription ID="tdTotal" runat="server" Term="Total" />
 
                     </div>
                 </div> 
             </div>
-
-        </asp:Panel>
-
-        <!-- Step Three -->
-        <asp:Panel ID="pnlStepThree" runat="server" Visible="false">
-
-            <div class="well">
-                <legend>Confirm Information</legend>
-                <asp:PlaceHolder ID="phConfirmationHeader" runat="server" />
-                <dl class="dl-horizontal gift-confirmation">
-                    <Rock:TermDescription ID="tdName" runat="server" Term="Name" />
-                    <Rock:TermDescription ID="tdPhone" runat="server" Term="Phone" />
-                    <Rock:TermDescription ID="tdEmail" runat="server" Term="Email" />
-                    <Rock:TermDescription ID="tdAddress" runat="server" Term="Address" />
-                    <Rock:TermDescription runat="server" />
-                    <asp:Repeater ID="rptAccountListConfirmation" runat="server">
-                        <ItemTemplate>
-                            <Rock:TermDescription ID="tdAddress" runat="server" Term='<%# Eval("Name") %>' Description='<%# Eval("AmountFormatted") %>' />
-                        </ItemTemplate>
-                    </asp:Repeater>
-                    <Rock:TermDescription ID="tdTotal" runat="server" Term="Total" />
-                    <Rock:TermDescription runat="server" />
-                    <Rock:TermDescription ID="tdPaymentMethod" runat="server" Term="Payment Method" />
-                    <Rock:TermDescription ID="tdAccountNumber" runat="server" Term="Account Number" />
-                    <Rock:TermDescription ID="tdWhen" runat="server" Term="When" />
-                </dl>
-            </div>
-            <asp:PlaceHolder ID="phConfirmationFooter" runat="server" />
-            <asp:Panel ID="pnlDupWarning" runat="server" CssClass="alert alert-block">
+                        
+            <%--<asp:Panel ID="pnlDupWarning" runat="server" CssClass="alert alert-block">
                 <h4>Warning!</h4>
                 <p>
                     You have already submitted a transaction that has been processed.  Are you sure you want
                 to submit another possible duplicate transaction?
                 </p>
                 <asp:LinkButton ID="btnConfirm" runat="server" Text="Yes, submit another transaction" CssClass="btn btn-primary" OnClick="btnConfirm_Click" />
-            </asp:Panel>
+            </asp:Panel>--%>
         </asp:Panel>
 
         <!-- Step Four -->
         <asp:Panel ID="pnlStepFour" runat="server" Visible="false">
             <div class="well">
                 <legend>Gift Information</legend>
-                <asp:PlaceHolder ID="phSuccessHeader" runat="server" />
+                
                 <dl class="dl-horizontal gift-success">
-                    <Rock:TermDescription ID="tdScheduleId" runat="server" Term="Payment Schedule ID" />
                     <Rock:TermDescription ID="tdTransactionCode" runat="server" Term="Confirmation Code" />
                 </dl>
             </div>
@@ -215,7 +208,7 @@
                 </div>
             </asp:Panel>
 
-            <asp:PlaceHolder ID="phSuccessFooter" runat="server" />
+            
 
         </asp:Panel>
 
@@ -225,6 +218,8 @@
             <asp:LinkButton ID="btnPrev" runat="server" Text="Previous" CssClass="btn btn-link" OnClick="btnPrev_Click" Visible="false" />
             <asp:LinkButton ID="btnNext" runat="server" Text="Next" CssClass="btn btn-primary" OnClick="btnNext_Click" />
         </div>
+
+        <asp:PlaceHolder ID="phPageFooter" runat="server" />
 
         <asp:HiddenField ID="hfCurrentPage" runat="server" />
 
