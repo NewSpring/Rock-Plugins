@@ -118,8 +118,8 @@ namespace RockWeb.Blocks.Cms
 
                 if ( upperLowerValues.Length == 2 )
                 {
-                    pPriorityRange.LowerValue = upperLowerValues[0].AsIntegerOrNull();
-                    pPriorityRange.UpperValue = upperLowerValues[1].AsIntegerOrNull();
+                    pPriorityRange.LowerValue = upperLowerValues[0].AsInteger( false );
+                    pPriorityRange.UpperValue = upperLowerValues[1].AsInteger( false );
                 }
             }
 
@@ -168,7 +168,7 @@ namespace RockWeb.Blocks.Cms
             {
                 case "Approval Status":
 
-                    int approvalStatusValue = e.Value.AsIntegerOrNull() ?? Rock.Constants.All.Id;
+                    int approvalStatusValue = e.Value.AsInteger( false ) ?? Rock.Constants.All.Id;
                     if ( approvalStatusValue != Rock.Constants.All.Id )
                     {
                         e.Value = e.Value.ConvertToEnum<MarketingCampaignAdStatus>().ConvertToString();
@@ -208,7 +208,7 @@ namespace RockWeb.Blocks.Cms
 
                 case "Ad Type":
 
-                    var adType = new MarketingCampaignAdTypeService( new RockContext() ).Get( e.Value.AsInteger() );
+                    var adType = new MarketingCampaignAdTypeService( new RockContext() ).Get( e.Value.AsInteger() ?? 0 );
                     if ( adType != null )
                     {
                         e.Value = adType.Name;
@@ -273,7 +273,7 @@ namespace RockWeb.Blocks.Cms
         {
             if ( marketingCampaignAdId == 0 )
             {
-                NavigateToLinkedPage( "DetailPage", "marketingCampaignAdId", 0, "marketingCampaignId", hfMarketingCampaignId.Value.AsInteger() );
+                NavigateToLinkedPage( "DetailPage", "marketingCampaignAdId", 0, "marketingCampaignId", hfMarketingCampaignId.Value.AsInteger().Value );
             }
             else
             {
@@ -327,7 +327,7 @@ namespace RockWeb.Blocks.Cms
             var qry = marketingCampaignAdService.Queryable( "MarketingCampaign, MarketingCampaignAdType" );
 
             // limit to current marketingCampaign context (if there is one)
-            int? marketingCampaignId = hfMarketingCampaignId.Value.AsIntegerOrNull();
+            int? marketingCampaignId = hfMarketingCampaignId.Value.AsInteger( false );
             if ( marketingCampaignId.HasValue )
             {
                 qry = qry.Where( a => a.MarketingCampaignId == marketingCampaignId );

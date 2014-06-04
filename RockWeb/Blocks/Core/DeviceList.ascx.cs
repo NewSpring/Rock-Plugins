@@ -270,7 +270,7 @@ namespace RockWeb.Blocks.Core
                 queryable = queryable.Where( d => d.Name.Contains( name ) );
             }
 
-            int? deviceTypeId = fDevice.GetUserPreference( "Device Type" ).AsIntegerOrNull();
+            int? deviceTypeId = fDevice.GetUserPreference( "Device Type" ).AsInteger();
             if ( deviceTypeId.HasValue )
             {
                 queryable = queryable.Where( d => d.DeviceTypeValueId == deviceTypeId.Value );
@@ -288,7 +288,7 @@ namespace RockWeb.Blocks.Core
                 queryable = queryable.Where( d => d.PrintToOverride == printTo );
             }
 
-            int? printerId = fDevice.GetUserPreference( "Printer" ).AsIntegerOrNull();
+            int? printerId = fDevice.GetUserPreference( "Printer" ).AsInteger();
             if ( printerId.HasValue )
             {
                 queryable = queryable.Where( d => d.PrinterDeviceId == printerId );

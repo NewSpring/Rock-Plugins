@@ -344,7 +344,7 @@ namespace RockWeb.Blocks.Prayer
         /// </summary>
         private void SaveNote()
         {
-            int noteId = hfNoteId.Value.AsInteger();
+            int noteId = hfNoteId.Value.AsInteger() ?? 0;
             if ( noteId == 0 )
             {
                 return;

@@ -50,9 +50,8 @@ namespace RockWeb.Blocks.Groups
     [LinkedPage( "Group Detail Page", "Page to use as a link to the group details (optional).", false, "", "", 3 )]
     [LinkedPage( "Person Profile Page", "Page to use as a link to the person profile page (optional).", false, "", "", 4 )]
     [BooleanField( "Show Map Info Window", "Control whether a info window should be displayed when clicking on a map point.", true, "", 5 )]
-    [BooleanField( "Include Inactive Groups", "Determines if inactive groups should be included on the map.", false, "", 6 )]
-    [TextField( "Attributes", "Comma delimited list of attribute keys to include values for in the map info window (e.g. 'StudyTopic,MeetingTime').", false, "", "", 7 )]
-    [DefinedValueField( Rock.SystemGuid.DefinedType.MAP_STYLES, "Map Style", "The map theme that should be used for styling the map.", true, false, Rock.SystemGuid.DefinedValue.MAP_STYLE_GOOGLE, "", 8 )]
+    [TextField( "Attributes", "Comma delimited list of attribute keys to include values for in the map info window (e.g. 'StudyTopic,MeetingTime').", false, "", "", 6 )]
+    [DefinedValueField( Rock.SystemGuid.DefinedType.MAP_STYLES, "Map Style", "The map theme that should be used for styling the map.", true, false, Rock.SystemGuid.DefinedValue.MAP_STYLE_GOOGLE, "", 7 )]
     [CodeEditorField( "Info Window Contents", "Liquid template for the info window. To suppress the window provide a blank template.", CodeEditorMode.Liquid, CodeEditorTheme.Rock, 600, false, @"
 <div class='clearfix'>
     <h4 class='pull-left' style='margin-top: 0;'>{{GroupName}}</h4> 
@@ -91,8 +90,8 @@ namespace RockWeb.Blocks.Groups
     <a class='btn btn-xs btn-action' href='{{GroupDetailPage}}'>View Group</a>
 {% endif %}
 
-", "", 9 )]
-    [BooleanField( "Enable Debug", "Enabling debug will display the fields of the first 5 groups to help show you wants available for your liquid.", false, "", 10 )]
+", "", 8 )]
+    [BooleanField( "Enable Debug", "Enabling debug will display the fields of the first 5 groups to help show you wants available for your liquid.", false, "", 9 )]
     public partial class GroupMapper : Rock.Web.UI.RockBlock
     {
         #region Fields
@@ -231,7 +230,6 @@ namespace RockWeb.Blocks.Groups
                         GroupGuid = g.Guid,
                         GroupMemberTerm = g.GroupType.GroupMemberTerm,
                         GroupCampus = g.Campus.Name,
-                        IsActive = g.IsActive,
                         GroupLocation = g.GroupLocations
                                             .Where( l => l.GroupLocationTypeValue.Guid == locationType )
                                             .Select( l => new
@@ -249,12 +247,6 @@ namespace RockWeb.Blocks.Groups
                         AttributeValues = attributeValues
                                             .Where( v => v.EntityId == g.Id )
                     } );
-
-
-                if ( GetAttributeValue( "IncludeInactiveGroups" ).AsBoolean() == false )
-                {
-                    groups = groups.Where( g => g.IsActive == true );
-                }
 
                 // Create dynamic object to include attribute values
                 foreach ( var group in groups )

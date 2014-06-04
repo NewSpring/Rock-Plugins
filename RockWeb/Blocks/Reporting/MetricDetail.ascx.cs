@@ -75,10 +75,10 @@ namespace RockWeb.Blocks.Reporting
             if ( !Page.IsPostBack )
             {
                 // in case called normally
-                int? metricId = PageParameter( "MetricId" ).AsIntegerOrNull();
+                int? metricId = PageParameter( "MetricId" ).AsInteger( false );
 
                 // in case called from CategoryTreeView
-                int? metricCategoryId = PageParameter( "MetricCategoryId" ).AsIntegerOrNull();
+                int? metricCategoryId = PageParameter( "MetricCategoryId" ).AsInteger( false );
                 MetricCategory metricCategory = null;
                 if ( metricCategoryId.HasValue )
                 {
@@ -102,7 +102,7 @@ namespace RockWeb.Blocks.Reporting
                     }
                 }
 
-                int? parentCategoryId = PageParameter( "ParentCategoryId" ).AsIntegerOrNull();
+                int? parentCategoryId = PageParameter( "ParentCategoryId" ).AsInteger( false );
 
                 if ( metricId.HasValue )
                 {
@@ -151,7 +151,7 @@ namespace RockWeb.Blocks.Reporting
             MetricService metricService = new MetricService( rockContext );
             MetricCategoryService metricCategoryService = new MetricCategoryService( rockContext );
 
-            int metricId = hfMetricId.Value.AsInteger();
+            int metricId = hfMetricId.Value.AsInteger( false ) ?? 0;
 
             if ( metricId == 0 )
             {
@@ -284,7 +284,7 @@ namespace RockWeb.Blocks.Reporting
             qryParams["MetricId"] = metric.Id.ToString();
             if ( hfMetricCategoryId.ValueAsInt() == 0 )
             {
-                int? parentCategoryId = PageParameter( "ParentCategoryId" ).AsIntegerOrNull();
+                int? parentCategoryId = PageParameter( "ParentCategoryId" ).AsInteger();
                 int? metricCategoryId = new MetricCategoryService( new RockContext() ).Queryable().Where( a => a.MetricId == metric.Id && a.CategoryId == parentCategoryId ).Select( a => a.Id ).FirstOrDefault();
                 hfMetricCategoryId.Value = metricCategoryId.ToString();
             }
@@ -303,7 +303,7 @@ namespace RockWeb.Blocks.Reporting
         {
             if ( hfMetricId.Value.Equals( "0" ) )
             {
-                int? parentCategoryId = PageParameter( "ParentCategoryId" ).AsIntegerOrNull();
+                int? parentCategoryId = PageParameter( "ParentCategoryId" ).AsInteger( false );
                 if ( parentCategoryId.HasValue )
                 {
                     // Cancelling on Add, and we know the parentCategoryId, so we are probably in treeview mode, so navigate to the current page
@@ -321,7 +321,7 @@ namespace RockWeb.Blocks.Reporting
             {
                 // Cancelling on Edit.  Return to Details
                 MetricService metricService = new MetricService( new RockContext() );
-                Metric metric = metricService.Get( hfMetricId.Value.AsInteger() );
+                Metric metric = metricService.Get( hfMetricId.Value.AsInteger() ?? 0 );
                 ShowReadonlyDetails( metric );
             }
         }
@@ -334,7 +334,7 @@ namespace RockWeb.Blocks.Reporting
         protected void btnEdit_Click( object sender, EventArgs e )
         {
             MetricService metricService = new MetricService( new RockContext() );
-            Metric metric = metricService.Get( hfMetricId.Value.AsInteger() );
+            Metric metric = metricService.Get( hfMetricId.Value.AsInteger() ?? 0 );
             ShowEditDetails( metric );
         }
 
@@ -347,7 +347,7 @@ namespace RockWeb.Blocks.Reporting
         {
             var rockContext = new RockContext();
             MetricService metricService = new MetricService( rockContext );
-            Metric metric = metricService.Get( hfMetricId.Value.AsInteger() );
+            Metric metric = metricService.Get( hfMetricId.Value.AsInteger() ?? 0 );
 
             // intentionally get metricCategory with new RockContext() so we don't confuse SaveChanges()
             int? parentCategoryId = null;
@@ -394,9 +394,6 @@ namespace RockWeb.Blocks.Reporting
             {
                 ceSourceSql.Visible = sourceValueType.Guid == Rock.SystemGuid.DefinedValue.METRIC_SOURCE_VALUE_TYPE_SQL.AsGuid();
                 ddlDataView.Visible = sourceValueType.Guid == Rock.SystemGuid.DefinedValue.METRIC_SOURCE_VALUE_TYPE_DATAVIEW.AsGuid();
-
-                // only show LastRun label if SourceValueType is not Manual
-                ltLastRunDateTime.Visible = sourceValueType.Guid != Rock.SystemGuid.DefinedValue.METRIC_SOURCE_VALUE_TYPE_MANUAL.AsGuid();
             }
         }
 
@@ -450,7 +447,6 @@ namespace RockWeb.Blocks.Reporting
             else
             {
                 metric = new Metric { Id = 0, IsSystem = false };
-                metric.SourceValueTypeId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.METRIC_SOURCE_VALUE_TYPE_MANUAL.AsGuid() ).Id;
                 metric.MetricCategories = new List<MetricCategory>();
                 if ( parentCategoryId.HasValue )
                 {
@@ -563,13 +559,11 @@ namespace RockWeb.Blocks.Reporting
 
             if ( metric.LastRunDateTime != null )
             {
-                ltLastRunDateTime.LabelType = LabelType.Success;
-                ltLastRunDateTime.Text = "Last Run: " + metric.LastRunDateTime.ToString();
+                ltLastRunDateTime.Text = "<span class='label label-success'>" + metric.LastRunDateTime.ToString() + "</span>";
             }
             else
             {
-                ltLastRunDateTime.LabelType = LabelType.Warning;
-                ltLastRunDateTime.Text = "Never Run";
+                ltLastRunDateTime.Text = "<span class='label label-warning'>Never Run</span>";
             }
 
             ddlDataView.SetValue( metric.DataViewId );
@@ -599,20 +593,6 @@ namespace RockWeb.Blocks.Reporting
             if ( metric.MetricCategories != null && metric.MetricCategories.Any() )
             {
                 descriptionListMain.Add( "Categories", metric.MetricCategories.Select( s => s.Category.ToString() ).OrderBy( o => o ).ToList().AsDelimited( "," ) );
-            }
-
-            // only show LastRun label if SourceValueType is not Manual
-            ltLastRunDateTime.Visible = metric.SourceValueTypeId != DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.METRIC_SOURCE_VALUE_TYPE_MANUAL.AsGuid() ).Id;
-
-            if ( metric.LastRunDateTime != null )
-            {
-                ltLastRunDateTime.LabelType = LabelType.Success;
-                ltLastRunDateTime.Text = "Last Run: " + metric.LastRunDateTime.ToString();
-            }
-            else
-            {
-                ltLastRunDateTime.LabelType = LabelType.Warning;
-                ltLastRunDateTime.Text = "Never Run";
             }
 
             lblMainDetails.Text = descriptionListMain.Html;
@@ -670,8 +650,7 @@ namespace RockWeb.Blocks.Reporting
                 ddlSchedule.Items.Add( new ListItem( item.Name, item.Id.ToString() ) );
             }
 
-            // limit to EntityTypes that support picking a Value with a picker
-            etpEntityType.EntityTypes = new EntityTypeService( new RockContext() ).GetEntities().OrderBy( t => t.FriendlyName ).Where(a => a.SingleValueFieldTypeId.HasValue).ToList();
+            etpEntityType.EntityTypes = new EntityTypeService( new RockContext() ).GetEntities().OrderBy( t => t.FriendlyName ).ToList();
         }
 
         #endregion

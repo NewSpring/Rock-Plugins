@@ -253,7 +253,7 @@ namespace RockWeb.Blocks.Groups
         {
             var breadCrumbs = new List<BreadCrumb>();
 
-            int? groupId = PageParameter( pageReference, "GroupId" ).AsIntegerOrNull();
+            int? groupId = PageParameter( pageReference, "GroupId" ).AsInteger();
             if ( groupId != null )
             {
                 Group group = new GroupService( new RockContext() ).Get( groupId.Value );
@@ -285,7 +285,7 @@ namespace RockWeb.Blocks.Groups
         /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
         protected void btnEdit_Click( object sender, EventArgs e )
         {
-            ShowEditDetails( GetGroup( hfGroupId.Value.AsInteger() ) );
+            ShowEditDetails( GetGroup( hfGroupId.Value.AsInteger() ?? 0 ) );
         }
 
         /// <summary>
@@ -509,15 +509,12 @@ namespace RockWeb.Blocks.Groups
         {
             if ( hfGroupId.Value.Equals( "0" ) )
             {
-                int? parentGroupId = PageParameter( "ParentGroupId" ).AsIntegerOrNull();
+                int? parentGroupId = PageParameter( "ParentGroupId" ).AsInteger( false );
                 if ( parentGroupId.HasValue )
                 {
                     // Cancelling on Add, and we know the parentGroupID, so we are probably in treeview mode, so navigate to the current page
                     var qryParams = new Dictionary<string, string>();
-                    if ( parentGroupId != 0 )
-                    {
-                        qryParams["GroupId"] = parentGroupId.ToString();
-                    }
+                    qryParams["GroupId"] = parentGroupId.ToString();
                     NavigateToPage( RockPage.Guid, qryParams );
                 }
                 else
@@ -529,7 +526,7 @@ namespace RockWeb.Blocks.Groups
             else
             {
                 // Cancelling on Edit.  Return to Details
-                ShowReadonlyDetails( GetGroup( hfGroupId.Value.AsInteger() ) );
+                ShowReadonlyDetails( GetGroup( hfGroupId.Value.AsInteger() ?? 0 ) );
             }
         }
 
@@ -641,7 +638,7 @@ namespace RockWeb.Blocks.Groups
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void Block_BlockUpdated( object sender, EventArgs e )
         {
-            ShowReadonlyDetails( GetGroup( hfGroupId.Value.AsInteger() ) );
+            ShowReadonlyDetails( GetGroup( hfGroupId.Value.AsInteger() ?? 0 ) );
         }
 
         #endregion
@@ -965,7 +962,7 @@ namespace RockWeb.Blocks.Groups
 
             // display attribute values
             var attributeCategories = Helper.GetAttributeCategories( attributes );
-            Rock.Attribute.Helper.AddDisplayControls( group, attributeCategories, phAttributes, null, false );
+            Rock.Attribute.Helper.AddDisplayControls( group, attributeCategories, phAttributes );
 
             // Get Map Style
             phMaps.Controls.Clear();

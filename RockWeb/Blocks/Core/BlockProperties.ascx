@@ -2,7 +2,7 @@
 
 <div class="admin-dialog">
 
-    <Rock:NotificationBox ID="nbMessage" runat="server" NotificationBoxType="Danger" Dismissable="true" />
+    <asp:Panel ID="pnlMessage" runat="server" Visible="false" CssClass="alert alert-danger block-message error" />
 
     <asp:UpdatePanel ID="upBlockProperties" runat="server">
         <ContentTemplate>

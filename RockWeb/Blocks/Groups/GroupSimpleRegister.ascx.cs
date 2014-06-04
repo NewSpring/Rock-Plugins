@@ -85,7 +85,7 @@ namespace RockWeb.Blocks.Groups
                 var person = GetPerson( rockContext );
                 if ( person != null )
                 {
-                    int groupId = GetAttributeValue( "Group" ).AsInteger();
+                    int groupId = GetAttributeValue( "Group" ).AsInteger() ?? 0;
 
                     if ( groupId > 0 )
                     {

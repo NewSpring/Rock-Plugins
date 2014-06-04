@@ -88,7 +88,7 @@ namespace RockWeb.Blocks.Groups
         {
             var breadCrumbs = new List<BreadCrumb>();
 
-            int? groupMemberId = PageParameter( pageReference, "GroupMemberId" ).AsIntegerOrNull();
+            int? groupMemberId = PageParameter( pageReference, "GroupMemberId" ).AsInteger();
             if ( groupMemberId != null )
             {
                 GroupMember groupMember = new GroupMemberService( new RockContext() ).Get( groupMemberId.Value );

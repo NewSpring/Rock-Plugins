@@ -73,7 +73,7 @@ namespace RockWeb.Blocks.Finance
 
             var accountService = new Rock.Model.FinancialAccountService( rockContext );
 
-            int accountId = hfAccountId.Value.AsInteger();
+            int accountId = hfAccountId.Value.AsInteger() ?? 0;
 
             if ( accountId == 0 )
             {

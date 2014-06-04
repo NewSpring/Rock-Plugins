@@ -15,8 +15,6 @@
 // </copyright>
 //
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Web.UI;
@@ -27,15 +25,16 @@ using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
+using System.ComponentModel;
 
 namespace RockWeb.Blocks.CheckIn
 {
     /// <summary>
     /// 
     /// </summary>
-    [DisplayName( "Scedule Builder" )]
-    [Category( "Check-in" )]
-    [Description( "Helps to build schedules to be used for checkin." )]
+    [DisplayName("Scedule Builder")]
+    [Category("Check-in")]
+    [Description("Helps to build schedules to be used for checkin.")]
     public partial class CheckinScheduleBuilder : RockBlock
     {
         #region Control Methods
@@ -85,7 +84,7 @@ namespace RockWeb.Blocks.CheckIn
             var scheduleQry = scheduleService.Queryable().Where( a => a.CheckInStartOffsetMinutes != null );
 
             // limit Schedules to the Category from the Filter
-            int scheduleCategoryId = rFilter.GetUserPreference( "Category" ).AsIntegerOrNull() ?? Rock.Constants.All.Id;
+            int scheduleCategoryId = rFilter.GetUserPreference( "Category" ).AsInteger() ?? Rock.Constants.All.Id;
             if ( scheduleCategoryId != Rock.Constants.All.Id )
             {
                 scheduleQry = scheduleQry.Where( a => a.CategoryId == scheduleCategoryId );
@@ -154,16 +153,16 @@ namespace RockWeb.Blocks.CheckIn
             ddlGroupType.SetValue( rFilter.GetUserPreference( "Group Type" ) );
 
             // hide the GroupType filter if this page has a groupTypeId parameter
-            int? groupTypeIdPageParam = this.PageParameter( "groupTypeId" ).AsIntegerOrNull();
+            int? groupTypeIdPageParam = this.PageParameter( "groupTypeId" ).AsInteger( false );
             if ( groupTypeIdPageParam.HasValue )
             {
                 ddlGroupType.Visible = false;
             }
 
-            var filterCategory = new CategoryService( rockContext ).Get( rFilter.GetUserPreference( "Category" ).AsInteger() );
+            var filterCategory = new CategoryService( rockContext ).Get( rFilter.GetUserPreference( "Category" ).AsInteger() ?? 0 );
             pCategory.SetValue( filterCategory );
 
-            pkrParentLocation.SetValue( rFilter.GetUserPreference( "Parent Location" ).AsIntegerOrNull() );
+            pkrParentLocation.SetValue( rFilter.GetUserPreference( "Parent Location" ).AsInteger( false ) );
         }
 
         #endregion
@@ -191,12 +190,12 @@ namespace RockWeb.Blocks.CheckIn
         /// <param name="e">The e.</param>
         private void rFilter_DisplayFilterValue( object sender, Rock.Web.UI.Controls.GridFilter.DisplayFilterValueArgs e )
         {
-            int itemId = e.Value.AsInteger();
+            int itemId = e.Value.AsInteger() ?? 0;
             switch ( e.Key )
             {
                 case "Group Type":
 
-                    int? groupTypeIdPageParam = this.PageParameter( "groupTypeId" ).AsIntegerOrNull();
+                    int? groupTypeIdPageParam = this.PageParameter( "groupTypeId" ).AsInteger( false );
 
                     //// we only use the GroupType from the filter in cases where there isn't a PageParam of groupTypeId
                     // but just in case the filter wants to display the GroupName, override the itemId with the groupTypeId PageParam
@@ -260,13 +259,12 @@ namespace RockWeb.Blocks.CheckIn
             var rockContext = new RockContext();
 
             var groupLocationService = new GroupLocationService( rockContext );
-            var groupTypeService = new GroupTypeService( rockContext );
 
             var groupLocationQry = groupLocationService.Queryable();
             int groupTypeId;
 
             // if this page has a PageParam for groupTypeId use that to limit which groupTypeId to see. Otherwise, use the groupTypeId specified in the filter
-            int? groupTypeIdPageParam = this.PageParameter( "groupTypeId" ).AsIntegerOrNull();
+            int? groupTypeIdPageParam = this.PageParameter( "groupTypeId" ).AsInteger( false );
             if ( groupTypeIdPageParam.HasValue )
             {
                 groupTypeId = groupTypeIdPageParam ?? Rock.Constants.All.Id;
@@ -278,26 +276,10 @@ namespace RockWeb.Blocks.CheckIn
 
             if ( groupTypeId != Rock.Constants.All.Id )
             {
-                var descendantGroupTypeIds = groupTypeService.GetAllAssociatedDescendents( groupTypeId ).Select( a => a.Id );
+                var descendantGroupTypeIds = new GroupTypeService( rockContext ).GetAllAssociatedDescendents( groupTypeId ).Select( a => a.Id );
 
                 // filter to groups that either are of the GroupType or are of a GroupType that has the selected GroupType as a parent (ancestor)
                 groupLocationQry = groupLocationQry.Where( a => a.Group.GroupType.Id == groupTypeId || descendantGroupTypeIds.Contains( a.Group.GroupTypeId ) );
-            }
-            else
-            {
-                // if no specific GroupType is specified, show all GroupTypes with GroupTypePurpose of Checkin Template and their descendents (since this blocktype is specifically for Checkin)
-                int groupTypePurposeCheckInTemplateId = DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.GROUPTYPE_PURPOSE_CHECKIN_TEMPLATE ) ).Id;
-                List<int> descendantGroupTypeIds = new List<int>();
-                foreach ( var templateGroupType in groupTypeService.Queryable().Where( a => a.GroupTypePurposeValueId == groupTypePurposeCheckInTemplateId ) )
-                {
-                    foreach ( var childGroupType in groupTypeService.GetChildGroupTypes( templateGroupType.Id ) )
-                    {
-                        descendantGroupTypeIds.Add( childGroupType.Id );
-                        descendantGroupTypeIds.AddRange( groupTypeService.GetAllAssociatedDescendents( childGroupType.Id ).Select( a => a.Id ).ToList() );
-                    }
-                }
-
-                groupLocationQry = groupLocationQry.Where( a => descendantGroupTypeIds.Contains( a.Group.GroupTypeId ) );
             }
 
             if ( gGroupLocationSchedule.SortProperty != null )

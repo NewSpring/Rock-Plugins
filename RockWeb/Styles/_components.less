@@ -121,7 +121,7 @@
 
         .person-image {
             float: left;
-            border:1px solid @accent-semibold-color;
+            border:3px solid @accent-bold-color;
             float:left;
             margin-right: 7.5px;
             display: inline-block;
@@ -161,10 +161,6 @@
         .picker-label {
             width: 100%;
         }
-    }
-
-    &.picker-mergefield {
-        width: 370px;
     }
 }
 
@@ -298,7 +294,9 @@ ul.rocktree ul {
     }
 
     .treeview-scroll {
-        
+        background-color: @body-bg;
+        border-radius: @border-radius-base;
+        border: 1px solid @accent-color;
     }
 }
 
@@ -495,11 +493,8 @@ div.tagsinput
 }
 
 .taglist {
-    text-align: center;
-
     .tag {
-        --float: left;
-        display: inline-block;
+        float: left;
         height: 22px;
         line-height: 18px;
         position: relative;
@@ -600,9 +595,6 @@ div.tagsinput input
     margin: -2px 0 0 10px;
     border-radius: @border-radius-base;
     padding: 2px;
-    display: block;
-    clear: both;
-    margin: 0 auto;
 
     &:hover,
     &:focus {
@@ -683,22 +675,6 @@ div.tagsinput
 
     a {
         font-weight: @font-weight-semibold;
-    }
-}
-
-/* Medium devices (desktops, 992px and up) */
-@media (min-width: @screen-sm-min) {
- 
-    .taglist {
-        text-align: left;
-
-        .tag {
-            float: left;
-        }
-    }
-    
-    div.tagsinput input {
-        margin: 0;
     }
 }
  
@@ -1462,7 +1438,7 @@ ul.groupmembers {
         min-width: 130px;
 
         .person-image {
-            border: 1px solid @accent-semibold-color;
+            border: 3px solid @accent-bold-color;
             float: left;
             margin-right: 7.5px;
             display: inline-block;
@@ -1672,17 +1648,15 @@ ul.rocklist {
 // 25. Active Users
 // -------------------------
 
-.activeusers {
-    .recent {
-        i {
-            color: @brand-success;
-        }
+.recent {
+    i {
+        color: @brand-success;
     }
+}
 
-    .not-recent {
-        i {
-            color: @brand-warning;
-        }
+.not-recent {
+    i {
+        color: @brand-warning;
     }
 }
 

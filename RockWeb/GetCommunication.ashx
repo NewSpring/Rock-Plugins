@@ -38,7 +38,7 @@ namespace RockWeb
         public void ProcessRequest( HttpContext context )
         {
 
-            int? communicationId = context.Request.QueryString["c"].AsIntegerOrNull();
+            int? communicationId = context.Request.QueryString["c"].AsInteger();
             if ( communicationId.HasValue )
             {
                 var rockContext = new RockContext();

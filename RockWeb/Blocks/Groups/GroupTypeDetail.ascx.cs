@@ -380,7 +380,7 @@ namespace RockWeb.Blocks.Groups
         {
             var breadCrumbs = new List<BreadCrumb>();
 
-            int? groupTypeId = PageParameter( pageReference, "groupTypeId" ).AsIntegerOrNull();
+            int? groupTypeId = PageParameter( pageReference, "groupTypeId" ).AsInteger();
             if ( groupTypeId != null )
             {
                 GroupType groupType = new GroupTypeService( new RockContext() ).Get( groupTypeId.Value );
@@ -464,7 +464,7 @@ namespace RockWeb.Blocks.Groups
             {
                 if ( li.Selected )
                 {
-                    locationSelectionMode = locationSelectionMode | (GroupLocationPickerMode)li.Value.AsInteger();
+                    locationSelectionMode = locationSelectionMode | (GroupLocationPickerMode)li.Value.AsInteger().Value;
                 }
             }
 
@@ -721,7 +721,7 @@ namespace RockWeb.Blocks.Groups
             cblLocationSelectionModes.Enabled = true;
             foreach ( ListItem li in cblLocationSelectionModes.Items )
             {
-                GroupLocationPickerMode mode = (GroupLocationPickerMode)li.Value.AsInteger();
+                GroupLocationPickerMode mode = (GroupLocationPickerMode)li.Value.AsInteger().Value;
                 li.Selected = ( groupType.LocationSelectionMode & mode ) == mode;
             }
 

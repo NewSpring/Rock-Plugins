@@ -121,7 +121,7 @@ namespace RockWeb.Blocks.Communication
 
             if ( !Page.IsPostBack )
             {
-                CommunicationId = PageParameter( "CommunicationId" ).AsIntegerOrNull();
+                CommunicationId = PageParameter( "CommunicationId" ).AsInteger( false );
                 ShowDetail();
             }
         }
@@ -150,7 +150,7 @@ namespace RockWeb.Blocks.Communication
 
             string pageTitle = "New Communication";
 
-            int? commId = PageParameter( "CommunicationId" ).AsIntegerOrNull();
+            int? commId = PageParameter( "CommunicationId" ).AsInteger( false );
             if ( commId.HasValue )
             {
                 var communication = new CommunicationService( new RockContext() ).Get( commId.Value );

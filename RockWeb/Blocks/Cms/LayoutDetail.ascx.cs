@@ -96,7 +96,7 @@ namespace RockWeb.Blocks.Crm
         {
             var breadCrumbs = new List<BreadCrumb>();
 
-            int? layoutId = PageParameter(pageReference, "layoutId" ).AsIntegerOrNull();
+            int? layoutId = PageParameter(pageReference, "layoutId" ).AsInteger();
             if ( layoutId != null )
             {
                 Layout layout = new LayoutService( new RockContext() ).Get( layoutId.Value );

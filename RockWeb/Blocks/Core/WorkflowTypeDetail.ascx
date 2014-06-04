@@ -16,6 +16,7 @@
                 <h1>
                     <asp:Literal ID="lReadOnlyTitle" runat="server" />
                 </h1>
+
                 <Rock:HighlightLabel ID="hlInactive" runat="server" LabelType="Danger" Text="Inactive" />
                 <Rock:HighlightLabel ID="hlType" runat="server" LabelType="Type" />
             </div>
@@ -33,7 +34,7 @@
                             <Rock:RockCheckBox ID="cbIsActive" runat="server" Text="Active" />
                         </div>
                         <div class="col-md-3">
-                            <Rock:RockCheckBox ID="cbIsPersisted" runat="server" Text="Automatically Persisted" />
+                            <Rock:RockCheckBox ID="cbIsPersisted" runat="server" Text="Persisted" />
                         </div>
                     </div>
                     <div class="row">
@@ -109,9 +110,6 @@
 
                 <div class="actions">
                     <asp:LinkButton ID="btnEdit" runat="server" Text="Edit" CssClass="btn btn-primary" OnClick="btnEdit_Click" />
-                    <Rock:ModalAlert ID="mdDeleteWarning" runat="server" />
-                    <asp:LinkButton ID="btnDelete" runat="server" Text="Delete" CssClass="btn btn-link" OnClick="btnDelete_Click" CausesValidation="false" />
-                    <Rock:SecurityButton ID="btnSecurity" runat="server" class="btn btn-sm btn-action pull-right" />
                 </div>
                 
             </fieldset>
@@ -120,16 +118,9 @@
 
         <asp:HiddenField ID="hfActiveDialog" runat="server" />
 
-        <Rock:ModalDialog ID="dlgAttribute" runat="server" Title="Workflow Attributes" OnSaveClick="dlgAttribute_SaveClick" OnCancelScript="clearActiveDialog();" ValidationGroup="Attributes">
+        <Rock:ModalDialog ID="dlgAttribute" runat="server" Title="Attributes" OnSaveClick="dlgAttribute_SaveClick" OnCancelScript="clearActiveDialog();" ValidationGroup="Attributes">
             <Content>
                 <Rock:AttributeEditor ID="edtAttributes" runat="server" ShowActions="false" ValidationGroup="Attributes" />
-            </Content>
-        </Rock:ModalDialog>
-
-        <Rock:ModalDialog ID="dlgActivityAttribute" runat="server" Title="Activity Attributes" OnSaveClick="dlgActivityAttribute_SaveClick" OnCancelScript="clearActiveDialog();" ValidationGroup="ActivityAttributes">
-            <Content>
-                <asp:HiddenField ID="hfActivityTypeGuid" runat="server" />
-                <Rock:AttributeEditor ID="edtActivityAttributes" runat="server" ShowActions="false" ValidationGroup="ActivityAttributes" />
             </Content>
         </Rock:ModalDialog>
 

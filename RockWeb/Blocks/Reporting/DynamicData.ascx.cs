@@ -21,8 +21,8 @@ using System.Data;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web.UI;
-using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
+
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -53,13 +53,9 @@ namespace RockWeb.Blocks.Reporting
     [TextField( "Merge Fields", "Any fields to make available as merge fields for any new communications", false, "", "", 9 )]
     public partial class DynamicData : RockBlock
     {
-        #region Fields
+        #region Control Methods
 
         bool updatePage = true;
-
-        #endregion
-
-        #region Base Control Methods
 
         /// <summary>
         /// Raises the <see cref="E:System.Web.UI.Control.Init" /> event.
@@ -69,13 +65,17 @@ namespace RockWeb.Blocks.Reporting
         {
             base.OnInit( e );
 
-            this.BlockUpdated += DynamicData_BlockUpdated;
-            this.AddConfigurationUpdateTrigger( upnlContent );
-
-            gReport.GridRebind += gReport_GridRebind;
-            gReport.RowSelected += gReport_RowSelected;
-
             updatePage = GetAttributeValue( "UpdatePage" ).AsBoolean( true );
+
+            string scriptKey = "edit-report";
+            if ( !this.Page.ClientScript.IsClientScriptBlockRegistered( scriptKey ) )
+            {
+                string script = @"
+    function toggleDetails() {
+        $('.dynamic-report-details').slideToggle();
+    }";
+                this.Page.ClientScript.RegisterStartupScript( this.Page.GetType(), scriptKey, script, true );
+            }
         }
 
         /// <summary>
@@ -86,74 +86,75 @@ namespace RockWeb.Blocks.Reporting
         {
             base.OnLoad( e );
 
+            gReport.GridRebind += gReport_GridRebind;
+            gReport.RowSelected += gReport_RowSelected;
+
+            bool allowEdit = IsUserAuthorized( Authorization.EDIT );
+            phEdit.Visible = allowEdit;
+            phDetails.Visible = allowEdit;
+
             if ( !Page.IsPostBack )
             {
-                ShowView();
+                if ( allowEdit )
+                {
+                    if ( updatePage )
+                    {
+                        var pageCache = PageCache.Read( RockPage.PageId );
+                        tbName.Text = pageCache != null ? pageCache.PageTitle : string.Empty;
+                        tbDesc.Text = pageCache != null ? pageCache.Description : string.Empty;
+                    }
+
+                    tbName.Visible = updatePage;
+                    tbDesc.Visible = updatePage;
+
+                    ceQuery.Text = GetAttributeValue( "Query" );
+                    tbParams.Text = GetAttributeValue( "QueryParams" );
+                    tbUrlMask.Text = GetAttributeValue( "UrlMask" );
+                    ddlHideShow.SelectedValue = GetAttributeValue( "ShowColumns" );
+                    tbColumns.Text = GetAttributeValue( "Columns" );
+                    ceFormattedOutput.Text = GetAttributeValue( "FormattedOutput" );
+                    cbPersonReport.Checked = GetAttributeValue( "PersonReport" ).AsBoolean();
+                    tbMergeFields.Text = GetAttributeValue( "MergeFields" );
+                }
+
+                BindGrid();
             }
         }
 
-        public override List<Control> GetAdministrateControls( bool canConfig, bool canEdit )
+        /// <summary>
+        /// Handles the RowSelected event of the gReport control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="RowEventArgs"/> instance containing the event data.</param>
+        protected void gReport_RowSelected( object sender, RowEventArgs e )
         {
-            List<Control> configControls = new List<Control>();
-
-            if ( IsUserAuthorized( Authorization.EDIT ) )
+            string url = GetAttributeValue( "UrlMask" );
+            if ( !string.IsNullOrWhiteSpace( url ) )
             {
-                LinkButton lbEdit = new LinkButton();
-                lbEdit.CssClass = "edit";
-                lbEdit.ToolTip = "Edit Criteria";
-                lbEdit.Click += lbEdit_Click;
-                configControls.Add( lbEdit );
-                HtmlGenericControl iEdit = new HtmlGenericControl( "i" );
-                lbEdit.Controls.Add( iEdit );
-                lbEdit.CausesValidation = false;
-                iEdit.Attributes.Add( "class", "fa fa-pencil-square-o" );
+                foreach ( string key in gReport.DataKeyNames )
+                {
+                    url = url.Replace( "{" + key + "}", gReport.DataKeys[e.RowIndex][key].ToString() );
+                }
 
-                // will toggle the block config so they are no longer showing
-                lbEdit.Attributes["onclick"] = "Rock.admin.pageAdmin.showBlockConfig()";
-
-                ScriptManager.GetCurrent( this.Page ).RegisterAsyncPostBackControl( lbEdit );
+                Response.Redirect( url, false );
             }
-
-            configControls.AddRange( base.GetAdministrateControls( canConfig, canEdit ) );
-
-            return configControls;
         }
 
-        #endregion
-
-        #region Events
-
-        protected void lbEdit_Click( object sender, EventArgs e )
+        /// <summary>
+        /// Handles the GridRebind event of the gReport control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void gReport_GridRebind( object sender, EventArgs e )
         {
-            pnlEditModel.Visible = true;
-            upnlContent.Update();
-            mdEdit.Show();
-
-            if ( updatePage )
-            {
-                var pageCache = PageCache.Read( RockPage.PageId );
-                tbName.Text = pageCache != null ? pageCache.PageTitle : string.Empty;
-                tbDesc.Text = pageCache != null ? pageCache.Description : string.Empty;
-            }
-
-            tbName.Visible = updatePage;
-            tbDesc.Visible = updatePage;
-
-            ceQuery.Text = GetAttributeValue( "Query" );
-            tbParams.Text = GetAttributeValue( "QueryParams" );
-            tbUrlMask.Text = GetAttributeValue( "UrlMask" );
-            ddlHideShow.SelectedValue = GetAttributeValue( "ShowColumns" );
-            tbColumns.Text = GetAttributeValue( "Columns" );
-            ceFormattedOutput.Text = GetAttributeValue( "FormattedOutput" );
-            cbPersonReport.Checked = GetAttributeValue( "PersonReport" ).AsBoolean();
-            tbMergeFields.Text = GetAttributeValue( "MergeFields" );
+            BindGrid();
         }
 
-        void DynamicData_BlockUpdated( object sender, EventArgs e )
-        {
-            ShowView();
-        }
-
+        /// <summary>
+        /// Handles the Click event of the lbSave control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void lbSave_Click( object sender, EventArgs e )
         {
             if ( updatePage )
@@ -192,36 +193,7 @@ namespace RockWeb.Blocks.Reporting
             SetAttributeValue( "MergeFields", tbMergeFields.Text );
             SaveAttributeValues();
 
-            ShowView();
-        }
-
-        /// <summary>
-        /// Handles the RowSelected event of the gReport control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="RowEventArgs"/> instance containing the event data.</param>
-        protected void gReport_RowSelected( object sender, RowEventArgs e )
-        {
-            string url = GetAttributeValue( "UrlMask" );
-            if ( !string.IsNullOrWhiteSpace( url ) )
-            {
-                foreach ( string key in gReport.DataKeyNames )
-                {
-                    url = url.Replace( "{" + key + "}", gReport.DataKeys[e.RowIndex][key].ToString() );
-                }
-
-                Response.Redirect( url, false );
-            }
-        }
-
-        /// <summary>
-        /// Handles the GridRebind event of the gReport control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void gReport_GridRebind( object sender, EventArgs e )
-        {
-            ShowView();
+            BindGrid();
         }
 
         #endregion
@@ -231,12 +203,8 @@ namespace RockWeb.Blocks.Reporting
         /// <summary>
         /// Binds the grid.
         /// </summary>
-        private void ShowView()
+        private void BindGrid()
         {
-            mdEdit.Hide();
-            pnlEditModel.Visible = false;
-            upnlContent.Update();
-
             bool personReport = GetAttributeValue( "PersonReport" ).AsBoolean();
 
             if ( personReport )

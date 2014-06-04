@@ -66,7 +66,7 @@
 
     </asp:Panel>
 
-    <Rock:NotificationBox ID="nbMessage" runat="server" Title="Error" NotificationBoxType="Danger" Visible="false" Dismissable="true" />
+    <Rock:NotificationBox ID="nbMessage" runat="server" Title="Error" NotificationBoxType="Danger" Visible="false" />
 
 </ContentTemplate>
 </asp:UpdatePanel>

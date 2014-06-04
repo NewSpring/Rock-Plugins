@@ -42,7 +42,7 @@ namespace RockWeb.Blocks.Finance
 
             if ( !IsPostBack )
             {
-                int? itemId = PageParameter( "pledgeId" ).AsIntegerOrNull();
+                int? itemId = PageParameter( "pledgeId" ).AsInteger( false );
 
                 if ( itemId.HasValue )
                 {

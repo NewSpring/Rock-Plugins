@@ -159,11 +159,14 @@ namespace RockWeb.Blocks.Core
                 return;
             }
 
-            // if there are no records, and this isn't a persisted workflow type, hide the panel
-            if ( qry.Count() == 0 && !workflowType.IsPersisted )
+            // if this isn't currently a persisted workflow type, and there are no records, hide the panel
+            if ( !workflowType.IsPersisted )
             {
-                pnlWorkflowList.Visible = false;
-                return;
+                if ( qry.Count() == 0 )
+                {
+                    pnlWorkflowList.Visible = false;
+                    return;
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(workflowType.WorkTerm))

@@ -45,7 +45,7 @@ namespace RockWeb.Blocks.Administration
         /// <param name="e">An <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         protected override void OnInit( EventArgs e )
         {
-            int pageId = PageParameter( "EditPage" ).AsInteger();
+            int pageId = PageParameter( "EditPage" ).AsInteger() ?? 0;
             Rock.Web.Cache.PageCache page = Rock.Web.Cache.PageCache.Read( pageId );
 
             string zoneName = this.PageParameter( "ZoneName" );
@@ -56,7 +56,6 @@ namespace RockWeb.Blocks.Administration
             {
                 gLayoutBlocks.DataKeyNames = new string[] { "id" };
                 gLayoutBlocks.Actions.ShowAdd = true;
-                gLayoutBlocks.Actions.ShowExcelExport = false;
                 gLayoutBlocks.Actions.AddClick += LayoutBlocks_Add;
                 gLayoutBlocks.GridReorder += gLayoutBlocks_GridReorder;
                 gLayoutBlocks.GridRebind += gLayoutBlocks_GridRebind;
@@ -66,7 +65,6 @@ namespace RockWeb.Blocks.Administration
             {
                 gPageBlocks.DataKeyNames = new string[] { "id" };
                 gPageBlocks.Actions.ShowAdd = true;
-                gPageBlocks.Actions.ShowExcelExport = false;
                 gPageBlocks.Actions.AddClick += gPageBlocks_GridAdd;
                 gPageBlocks.GridReorder += gPageBlocks_GridReorder;
                 gPageBlocks.GridRebind += gPageBlocks_GridRebind;
@@ -94,7 +92,7 @@ namespace RockWeb.Blocks.Administration
         /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         protected override void OnLoad( EventArgs e )
         {
-            int pageId = PageParameter( "EditPage" ).AsInteger();
+            int pageId = PageParameter( "EditPage" ).AsInteger() ?? 0;
             Rock.Web.Cache.PageCache page = Rock.Web.Cache.PageCache.Read( pageId );
 
             nbMessage.Visible = false;
@@ -154,7 +152,7 @@ namespace RockWeb.Blocks.Administration
         protected void gLayoutBlocks_GridReorder( object sender, GridReorderEventArgs e )
         {
 
-            int pageId = PageParameter( "EditPage" ).AsInteger();
+            int pageId = PageParameter( "EditPage" ).AsInteger() ?? 0;
             Rock.Web.Cache.PageCache page = Rock.Web.Cache.PageCache.Read( pageId );
             string zoneName = this.PageParameter( "ZoneName" );
 
@@ -184,7 +182,7 @@ namespace RockWeb.Blocks.Administration
         /// <param name="e">The <see cref="RowEventArgs"/> instance containing the event data.</param>
         protected void gLayoutBlocks_Delete( object sender, RowEventArgs e )
         {
-            int pageId = PageParameter( "EditPage" ).AsInteger();
+            int pageId = PageParameter( "EditPage" ).AsInteger() ?? 0;
             Rock.Web.Cache.PageCache page = Rock.Web.Cache.PageCache.Read( pageId );
 
             var rockContext = new RockContext();
@@ -227,7 +225,7 @@ namespace RockWeb.Blocks.Administration
         /// <param name="e">The <see cref="GridReorderEventArgs"/> instance containing the event data.</param>
         protected void gPageBlocks_GridReorder( object sender, GridReorderEventArgs e )
         {
-            int pageId = PageParameter( "EditPage" ).AsInteger();
+            int pageId = PageParameter( "EditPage" ).AsInteger() ?? 0;
             Rock.Web.Cache.PageCache page = Rock.Web.Cache.PageCache.Read( pageId );
             string zoneName = this.PageParameter( "ZoneName" );
 
@@ -257,7 +255,7 @@ namespace RockWeb.Blocks.Administration
         /// <param name="e">The <see cref="RowEventArgs"/> instance containing the event data.</param>
         protected void gPageBlocks_Delete( object sender, RowEventArgs e )
         {
-            int pageId = PageParameter( "EditPage" ).AsInteger();
+            int pageId = PageParameter( "EditPage" ).AsInteger() ?? 0;
             Rock.Web.Cache.PageCache page = Rock.Web.Cache.PageCache.Read( pageId );
             string zoneName = this.PageParameter( "ZoneName" );
 
@@ -316,7 +314,7 @@ namespace RockWeb.Blocks.Administration
         /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
         protected void btnSave_Click( object sender, EventArgs e )
         {
-            int pageId = PageParameter( "EditPage" ).AsInteger();
+            int pageId = PageParameter( "EditPage" ).AsInteger() ?? 0;
             Rock.Web.Cache.PageCache page = Rock.Web.Cache.PageCache.Read( pageId );
             string zoneName = this.PageParameter( "ZoneName" );
 
@@ -426,7 +424,7 @@ namespace RockWeb.Blocks.Administration
         private void BindLayoutGrid()
         {
             BlockService blockService = new BlockService( new RockContext() );
-            int pageId = PageParameter( "EditPage" ).AsInteger();
+            int pageId = PageParameter( "EditPage" ).AsInteger() ?? 0;
             Rock.Web.Cache.PageCache page = Rock.Web.Cache.PageCache.Read( pageId );
             string zoneName = this.PageParameter( "ZoneName" );
 
@@ -440,7 +438,7 @@ namespace RockWeb.Blocks.Administration
         private void BindPageGrid()
         {
             BlockService blockService = new BlockService( new RockContext() );
-            int pageId = PageParameter( "EditPage" ).AsInteger();
+            int pageId = PageParameter( "EditPage" ).AsInteger() ?? 0;
             Rock.Web.Cache.PageCache page = Rock.Web.Cache.PageCache.Read( pageId );
             string zoneName = this.PageParameter( "ZoneName" );
 
@@ -454,16 +452,7 @@ namespace RockWeb.Blocks.Administration
         private void LoadBlockTypes()
         {
             // Add any unregistered blocks
-            try
-            {
-                BlockTypeService.RegisterBlockTypes( Request.MapPath( "~" ), Page );
-            }
-            catch (Exception ex)
-            {
-                nbMessage.Text = "Error registering one or more block types";
-                nbMessage.Details = ex.Message + "<code>" + ex.StackTrace + "</code>";
-                nbMessage.Visible = true;
-            }
+            BlockTypeService.RegisterBlockTypes( Request.MapPath( "~" ), Page );
 
             // Load the block types
             Rock.Model.BlockTypeService blockTypeService = new Rock.Model.BlockTypeService( new RockContext() );

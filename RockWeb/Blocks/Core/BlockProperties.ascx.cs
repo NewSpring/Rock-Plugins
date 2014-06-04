@@ -110,12 +110,12 @@ namespace RockWeb.Blocks.Core
                 }
                 else
                 {
-                    DisplayError( "You are not authorized to edit this block", null );
+                    DisplayError( "You are not authorized to edit this block" );
                 }
             }
             catch ( SystemException ex )
             {
-                DisplayError( ex.Message, "<pre>" + ex.StackTrace + "</pre>" );
+                DisplayError( ex.Message );
             }
 
             base.OnInit( e );
@@ -207,11 +207,11 @@ namespace RockWeb.Blocks.Core
         /// Displays the error.
         /// </summary>
         /// <param name="message">The message.</param>
-        /// <param name="details">The details.</param>
-        private void DisplayError( string message, string details )
+        private void DisplayError( string message )
         {
-            nbMessage.Text = message;
-            nbMessage.Details = details;
+            pnlMessage.Controls.Clear();
+            pnlMessage.Controls.Add( new LiteralControl( message ) );
+            pnlMessage.Visible = true;
 
             phContent.Visible = false;
         }

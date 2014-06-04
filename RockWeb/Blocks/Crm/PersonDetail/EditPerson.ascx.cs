@@ -28,11 +28,6 @@ using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 using Rock.Data;
 
-/*******************************************************************************************************************************
- * NOTE: The Security/EditMyAccount.ascx block has very similiar functionality.  If updating this block, make sure to check
- * that block also.  It may need the same updates.
- *******************************************************************************************************************************/
-
 namespace RockWeb.Blocks.Crm.PersonDetail
 {
     /// <summary>
@@ -375,6 +370,7 @@ namespace RockWeb.Blocks.Crm.PersonDetail
                             HistoryService.SaveChanges( rockContext, typeof( Person ), Rock.SystemGuid.Category.HISTORY_PERSON_DEMOGRAPHIC_CHANGES.AsGuid(),
                                 Person.Id, changes );
                         }
+
                         if ( orphanedPhotoId.HasValue )
                         {
                             BinaryFileService binaryFileService = new BinaryFileService( rockContext );
@@ -387,10 +383,8 @@ namespace RockWeb.Blocks.Crm.PersonDetail
                             }
                         }
 
+                        Response.Redirect( string.Format( "~/Person/{0}", Person.Id ), false );
                     }
-
-                    Response.Redirect( string.Format( "~/Person/{0}", Person.Id ), false );
-
                 }
             } );
         }

@@ -141,7 +141,7 @@ namespace RockWeb.Blocks.Cms
             {
                 var rockContext = new RockContext();
                 var htmlContentService = new HtmlContentService( rockContext );
-                var htmlContent = htmlContentService.Get( e.RowKeyId );
+                var htmlContent = htmlContentService.Get( (int)e.RowKeyValue );
 
                 if ( htmlContent != null )
                 {
@@ -161,7 +161,6 @@ namespace RockWeb.Blocks.Cms
                     }
 
                     rockContext.SaveChanges();
-                    FlushSharedBlock( htmlContent.BlockId );
                 }
 
                 BindGrid();

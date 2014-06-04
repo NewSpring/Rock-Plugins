@@ -177,7 +177,7 @@ namespace RockWeb.Blocks.Finance
             {
                 case "Campus":
 
-                    int? campusId = e.Value.AsIntegerOrNull();
+                    int? campusId = e.Value.AsInteger(false);
                     if ( campusId.HasValue )
                     {
                         var service = new CampusService( new RockContext() );

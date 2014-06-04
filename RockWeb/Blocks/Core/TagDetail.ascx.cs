@@ -100,7 +100,7 @@ namespace RockWeb.Blocks.Core
             
             string pageTitle = "New Tag";
             
-            int? tagId = PageParameter( "tagId" ).AsIntegerOrNull();
+            int? tagId = PageParameter( "tagId" ).AsInteger( false );
             if (tagId.HasValue)
             {
                 Tag tag = new TagService( new RockContext() ).Get( tagId.Value );

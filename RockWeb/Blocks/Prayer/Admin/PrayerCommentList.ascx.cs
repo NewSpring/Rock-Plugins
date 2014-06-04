@@ -84,7 +84,7 @@ namespace RockWeb.Blocks.Prayer
         {
             base.OnInit( e );
 
-            _blockInstanceGroupCategoryId = GetAttributeValue( "GroupCategoryId" ).AsInteger();
+            _blockInstanceGroupCategoryId = GetAttributeValue( "GroupCategoryId" ).AsInteger() ?? 0;
             PrayerRequest prayerRequest = new PrayerRequest();
             Type type = prayerRequest.GetType();
             _prayerRequestEntityTypeId = Rock.Web.Cache.EntityTypeCache.GetId( type.FullName );

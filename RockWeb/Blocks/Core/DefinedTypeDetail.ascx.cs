@@ -136,7 +136,7 @@ namespace RockWeb.Blocks.Core
                 gDefinedTypeAttributes.Columns[3].Visible = true;
                 gDefinedTypeAttributes.Actions.ShowAdd = true;
 
-                itemId = PageParameter( "definedTypeId" ).AsIntegerOrNull();
+                itemId = PageParameter( "definedTypeId" ).AsInteger() ?? null;
             }
             return itemId;
         }

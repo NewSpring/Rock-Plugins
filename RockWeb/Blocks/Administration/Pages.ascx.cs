@@ -67,7 +67,6 @@ namespace RockWeb.Blocks.Administration
                     rGrid.DataKeyNames = new string[] { "id" };
                     rGrid.Actions.ShowAdd = true;
                     rGrid.Actions.AddClick += rGrid_GridAdd;
-                    rGrid.Actions.ShowExcelExport = false;
                     rGrid.GridReorder += new GridReorderEventHandler( rGrid_GridReorder );
                     rGrid.GridRebind += new GridRebindEventHandler( rGrid_GridRebind );
                 }
@@ -133,6 +132,7 @@ namespace RockWeb.Blocks.Administration
                 string errorMessage = string.Empty;
                 if ( !pageService.CanDelete( page, out errorMessage ) )
                 {
+                    //errorMessage = "The page is the parent page of another page.";
                     mdDeleteWarning.Show( errorMessage, ModalAlertType.Alert );
                     return;
                 }
@@ -156,12 +156,11 @@ namespace RockWeb.Blocks.Administration
                     }
                 }
 
+                // TODO: Could be thousands of page views.  Can we set this up as cascade?
                 foreach( var pageView in pageViewService.GetByPageId(page.Id))
                 {
-                    pageView.Page = null;
-                    pageView.PageId = null;
+                    pageViewService.Delete( pageView );
                 }
-
                 pageService.Delete( page );
 
                 rockContext.SaveChanges();
@@ -206,7 +205,7 @@ namespace RockWeb.Blocks.Administration
                 var rockContext = new RockContext();
                 var pageService = new PageService( rockContext );
 
-                int pageId = hfPageId.Value.AsInteger();
+                int pageId = hfPageId.Value.AsInteger() ?? 0;
                 if ( pageId == 0 )
                 {
                     page = new Rock.Model.Page();

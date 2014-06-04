@@ -19,7 +19,6 @@ using System.ComponentModel;
 using System.Web.UI;
 
 using Rock;
-using Rock.Attribute;
 using Rock.Constants;
 using Rock.Data;
 using Rock.Model;
@@ -53,26 +52,6 @@ namespace RockWeb.Blocks.Core
                 else
                 {
                     pnlDetails.Visible = false;
-                }
-            }
-            else
-            {
-                if ( pnlDetails.Visible )
-                {
-                    var rockContext = new RockContext();
-                    Campus campus;
-                    string itemId = PageParameter( "campusId" );
-                    if ( !string.IsNullOrWhiteSpace( itemId ) && int.Parse( itemId ) > 0 )
-                    {
-                        campus = new CampusService( rockContext ).Get( int.Parse( PageParameter( "campusId" ) ) );
-                    }
-                    else
-                    {
-                        campus = new Campus { Id = 0 };
-                    }
-                    campus.LoadAttributes();
-                    phAttributes.Controls.Clear();
-                    Rock.Attribute.Helper.AddEditControls( campus, phAttributes, false );
                 }
             }
         }
@@ -115,26 +94,12 @@ namespace RockWeb.Blocks.Core
             }
 
             campus.Name = tbCampusName.Text;
-            campus.PhoneNumber = tbPhoneNumber.Text;
-            if ( lpAddress.Location != null )
-            {
-                campus.LocationId = lpAddress.Location.Id;
-            }
-            else
-            {
-                campus.LocationId = null;
-            }
-
             campus.ShortCode = tbCampusCode.Text;
+            campus.PhoneNumber = tbPhoneNumber.Text;
 
             var personService = new PersonService( rockContext );
             var leaderPerson = personService.Get( ppCampusLeader.SelectedValue ?? 0 );
             campus.LeaderPersonAliasId = leaderPerson != null ? leaderPerson.PrimaryAliasId : null;
-
-            campus.ServiceTimes = kvlServiceTimes.Value;
-
-            campus.LoadAttributes( rockContext );
-            Rock.Attribute.Helper.GetEditValues( phAttributes, campus );
 
             if ( !campus.IsValid )
             {
@@ -142,11 +107,7 @@ namespace RockWeb.Blocks.Core
                 return;
             }
 
-            RockTransactionScope.WrapTransaction( () =>
-            {
-                rockContext.SaveChanges();
-                campus.SaveAttributeValues( rockContext );
-            } );
+            rockContext.SaveChanges();
 
             Rock.Web.Cache.CampusCache.Flush( campus.Id );
 
@@ -183,16 +144,9 @@ namespace RockWeb.Blocks.Core
 
             hfCampusId.Value = campus.Id.ToString();
             tbCampusName.Text = campus.Name;
-            tbPhoneNumber.Text = campus.PhoneNumber;
-            lpAddress.Location = campus.Location;
-
             tbCampusCode.Text = campus.ShortCode;
+            tbPhoneNumber.Text = campus.PhoneNumber;
             ppCampusLeader.SetValue( campus.LeaderPersonAlias != null ? campus.LeaderPersonAlias.Person : null );
-            kvlServiceTimes.Value = campus.ServiceTimes;
-
-            campus.LoadAttributes();
-            phAttributes.Controls.Clear();
-            Rock.Attribute.Helper.AddEditControls( campus, phAttributes, true );
 
             // render UI based on Authorized and IsSystem
             bool readOnly = false;

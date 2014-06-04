@@ -110,7 +110,7 @@ namespace RockWeb.Blocks.Groups
             {
                 case "Purpose":
 
-                    int? id = e.Value.AsIntegerOrNull();
+                    int? id = e.Value.AsInteger(false);
                     if ( id.HasValue )
                     {
                         var purpose = DefinedValueCache.Read( id.Value );
@@ -252,7 +252,7 @@ namespace RockWeb.Blocks.Groups
         {
             var qry = new GroupTypeService( new RockContext() ).Queryable();
 
-            int? purposeId = rFilter.GetUserPreference( "Purpose" ).AsIntegerOrNull();
+            int? purposeId = rFilter.GetUserPreference( "Purpose" ).AsInteger(false);
             if ( purposeId.HasValue )
             {
                 qry = qry.Where( t => t.GroupTypePurposeValueId == purposeId.Value );

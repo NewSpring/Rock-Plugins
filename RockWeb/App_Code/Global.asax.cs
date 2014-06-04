@@ -97,17 +97,13 @@ namespace RockWeb
                     System.Diagnostics.Debug.WriteLine( string.Format( "Application_Start: {0}", RockDateTime.Now.ToString( "hh:mm:ss.FFF" ) ) );
                 }
 
+                // Run any needed Rock and/or plugin migrations
+                MigrateDatabase();
+
                 // Get a db context
                 var rockContext = new RockContext();
 
                 RegisterRoutes( rockContext, RouteTable.Routes );
-
-                // Run any needed Rock and/or plugin migrations
-                if (MigrateDatabase())
-                {
-                    // If one or more migrations were run, re-register the routes in case a migration added any new routes
-                    RegisterRoutes( rockContext, RouteTable.Routes );
-                }
 
                 if ( System.Web.Hosting.HostingEnvironment.IsDevelopmentEnvironment )
                 {
@@ -455,17 +451,13 @@ namespace RockWeb
         /// <summary>
         /// Migrates the database.
         /// </summary>
-        /// <returns>True if at least one migration was run</returns>
-        public bool MigrateDatabase()
+        public void MigrateDatabase()
         {
-            bool result = false;
-
             // Check if database should be auto-migrated for the core and plugins
             if ( ConfigurationManager.AppSettings["AutoMigrateDatabase"].AsBoolean( true ) )
             {
                 try
                 {
-
                     Database.SetInitializer( new MigrateDatabaseToLatestVersion<Rock.Data.RockContext, Rock.Migrations.Configuration>() );
 
                     var rockContext = new RockContext();
@@ -475,17 +467,12 @@ namespace RockWeb
                     {
                         // If database did not exist, initialize a database (which runs existing Rock migrations)
                         rockContext.Database.Initialize( true );
-                        result = true;
                     }
                     else
                     {
                         // If database does exist, run any pending Rock migrations
                         var migrator = new System.Data.Entity.Migrations.DbMigrator( new Rock.Migrations.Configuration() );
-                        if ( migrator.GetPendingMigrations().Any() )
-                        {
-                            migrator.Update();
-                            result = true;
-                        }
+                        migrator.Update();
                     }
 
                     // Migrate any plugins that have pending migrations
@@ -556,8 +543,6 @@ namespace RockWeb
                                                 pluginMigration.MigrationName = migrationType.Value.Name;
                                                 pluginMigrationService.Add( pluginMigration );
                                                 rockContext.SaveChanges();
-
-                                                result = true;
                                             }
                                             catch ( Exception ex )
                                             {
@@ -588,8 +573,6 @@ namespace RockWeb
                 // default Initializer is CreateDatabaseIfNotExists, but we don't want that to happen if automigrate is false, so set it to NULL so that nothing happens
                 Database.SetInitializer<Rock.Data.RockContext>( null );
             }
-
-            return result;
         }
 
         /// Formats the exception.
@@ -647,8 +630,6 @@ namespace RockWeb
         /// <param name="routes">The routes.</param>
         private void RegisterRoutes( RockContext rockContext, RouteCollection routes )
         {
-            routes.Clear();
-
             PageRouteService pageRouteService = new PageRouteService( rockContext );
 
             // find each page that has defined a custom routes.
@@ -752,19 +733,9 @@ namespace RockWeb
             var qualifiers = new Dictionary<int, Dictionary<string, string>>();
             foreach ( var attributeQualifier in new Rock.Model.AttributeQualifierService( rockContext ).Queryable() )
             {
-                try
-                {
-                    if ( !qualifiers.ContainsKey( attributeQualifier.AttributeId ) )
-                    {
-                        qualifiers.Add( attributeQualifier.AttributeId, new Dictionary<string, string>() );
-                    }
-
-                    qualifiers[attributeQualifier.AttributeId].Add( attributeQualifier.Key, attributeQualifier.Value );
-                }
-                catch (Exception ex)
-                {
-                    LogError( ex, null );
-                }
+                if ( !qualifiers.ContainsKey( attributeQualifier.AttributeId ) )
+                    qualifiers.Add( attributeQualifier.AttributeId, new Dictionary<string, string>() );
+                qualifiers[attributeQualifier.AttributeId].Add( attributeQualifier.Key, attributeQualifier.Value );
             }
 
             // Cache all the attributes.
