@@ -14,11 +14,7 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
 using System.ComponentModel;
-using System.Web.UI;
-
-using Rock;
 using Rock.Model;
 using Rock.Reporting.Dashboard;
 
@@ -30,29 +26,16 @@ namespace RockWeb.Blocks.Reporting.Dashboard
     [DisplayName( "Line Chart" )]
     [Category( "Dashboard" )]
     [Description( "DashboardWidget using flotcharts" )]
-    public partial class LineChartDashboardWidget : DashboardWidget
+    public partial class LineChartDashboardWidget : LineBarPointsChartDashboardWidget
     {
-        /// <summary>
-        /// Loads the chart.
-        /// </summary>
-        public override void LoadChart()
+        public override Rock.Web.UI.Controls.FlotChart FlotChartControl
         {
-            lcExample.StartDate = new DateTime( 2013, 1, 1 );
-            lcExample.EndDate = new DateTime( 2014, 1, 1 );
-            lcExample.MetricValueType = this.MetricValueType;
-            lcExample.MetricId = this.MetricId;
-            lcExample.EntityId = this.EntityId;
-            lcExample.Title = this.Title;
-            lcExample.Subtitle = this.Subtitle;
-            lcExample.CombineValues = this.CombineValues;
+            get { return lcChart; }
+        }
 
-            lcExample.ShowTooltip = true;
-            
-            lcExample.Options.SetChartStyle( this.ChartStyle );
-
-            string debug = this.ChartStyle.ToJson( false );
-            
-            nbMetricWarning.Visible = !this.MetricId.HasValue;
+        public override Rock.Web.UI.Controls.NotificationBox MetricWarningControl
+        {
+            get { return nbMetricWarning; }
         }
     }
 }

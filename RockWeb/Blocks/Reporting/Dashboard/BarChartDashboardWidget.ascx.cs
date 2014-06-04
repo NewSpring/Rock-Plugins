@@ -14,21 +14,9 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
 using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Web.UI;
-using System.Web.UI.WebControls;
-
-using Rock;
-using Rock.Data;
 using Rock.Model;
-using Rock.Web.Cache;
-using Rock.Web.UI.Controls;
-using Rock.Attribute;
 using Rock.Reporting.Dashboard;
-using System.Drawing;
 
 namespace RockWeb.Blocks.Reporting.Dashboard
 {
@@ -37,29 +25,17 @@ namespace RockWeb.Blocks.Reporting.Dashboard
     /// </summary>
     [DisplayName( "Bar Chart" )]
     [Category( "Dashboard" )]
-    [Description( "DashboardWidget using flotcharts" )]
-    public partial class BarChartDashboardWidget : DashboardWidget
+    [Description( "Bar Chart DashboardWidget" )]
+    public partial class BarChartDashboardWidget : LineBarPointsChartDashboardWidget
     {
-        /// <summary>
-        /// Loads the chart.
-        /// </summary>
-        public override void LoadChart()
+        public override Rock.Web.UI.Controls.FlotChart FlotChartControl
         {
-            bcExample.StartDate = new DateTime( 2013, 1, 1 );
-            bcExample.EndDate = new DateTime( 2014, 1, 1 );
-            bcExample.MetricValueType = this.MetricValueType;
-            bcExample.MetricId = this.MetricId;
-            bcExample.EntityId = this.EntityId;
+            get { return bcChart; }
+        }
 
-            bcExample.Title = this.Title;
-            bcExample.Subtitle = this.Subtitle;
-            bcExample.CombineValues = this.CombineValues;
-
-            bcExample.ShowTooltip = false;
-
-            bcExample.Options.SetChartStyle( this.ChartStyle );
-
-            nbMetricWarning.Visible = !this.MetricId.HasValue;
+        public override Rock.Web.UI.Controls.NotificationBox MetricWarningControl
+        {
+            get { return nbMetricWarning; }
         }
     }
 }
