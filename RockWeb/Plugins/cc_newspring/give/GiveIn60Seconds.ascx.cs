@@ -30,10 +30,16 @@ namespace RockWeb.Plugins.cc_newspring.give
     [DefinedValueField( Rock.SystemGuid.DefinedType.FINANCIAL_SOURCE_TYPE, "Source", "The Financial Source Type to use when creating transactions", false, false, "", "", 3 )]
     [GroupLocationTypeField( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY, "Address Type", "The location type to use for the person's address", false,
         Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME, "", 4 )]
+
+    // 5
+
     [AccountsField( "Accounts", "The accounts to display.  By default all active accounts with a Public Name will be displayed", false, "", "", 6 )]
     [BooleanField( "Additional Accounts", "Display option for selecting additional accounts", "Don't display option",
         "Should users be allowed to select additional accounts?  If so, any active account with a Public Name value will be available", true, "", 7 )]
     [TextField( "Add Account Text", "The button text to display for adding an additional account", false, "Add Another Account", "", 8 )]
+
+    // 9 - 12
+
     [CodeEditorField( "Page Header", "The text (HTML) to display at the top of the page.", CodeEditorMode.Html, CodeEditorTheme.Rock, 400, true, @"
 <p>
 Please confirm the information below. Once you have confirmed that the information is accurate click the 'Finish' button to complete your transaction.
@@ -139,101 +145,10 @@ achieve our mission.  We are so grateful for your commitment.
         {
             base.OnInit( e );
 
-            // Enable payment options based on the configured gateways
-            bool ccEnabled = false;
-            bool achEnabled = false;
-            var supportedFrequencies = new List<DefinedValueCache>();
-
-            string ccGatewayGuid = GetAttributeValue( "CCGateway" );
-            if ( !string.IsNullOrWhiteSpace( ccGatewayGuid ) )
-            {
-                _ccGateway = GatewayContainer.GetComponent( ccGatewayGuid );
-                if ( _ccGateway != null )
-                {
-                    ccEnabled = true;
-                    mypExpiration.MinimumYear = RockDateTime.Now.Year;
-                }
-            }
-
-            string achGatewayGuid = GetAttributeValue( "ACHGateway" );
-            if ( !string.IsNullOrWhiteSpace( achGatewayGuid ) )
-            {
-                _achGateway = GatewayContainer.GetComponent( achGatewayGuid );
-                achEnabled = _achGateway != null;
-            }
-
-            hfCurrentPage.Value = "1";
             RockPage page = Page as RockPage;
             if ( page != null )
             {
                 page.PageNavigate += page_PageNavigate;
-            }
-
-            if ( ccEnabled || achEnabled )
-            {
-                if ( ccEnabled )
-                {
-                    supportedFrequencies = _ccGateway.SupportedPaymentSchedules;
-                    hfPaymentTab.Value = "CreditCard";
-                }
-                else
-                {
-                    supportedFrequencies = _achGateway.SupportedPaymentSchedules;
-                    hfPaymentTab.Value = "ACH";
-                }
-
-                if ( ccEnabled && achEnabled )
-                {
-                    phPills.Visible = true;
-                    divCCPaymentInfo.AddCssClass( "tab-pane" );
-                    divACHPaymentInfo.AddCssClass( "tab-pane" );
-                }
-
-                divCCPaymentInfo.Visible = ccEnabled;
-                divACHPaymentInfo.Visible = achEnabled;
-
-                // Display Options
-                btnAddAccount.Title = GetAttributeValue( "AddAccountText" );
-
-                if ( rblSavedCC.Items.Count > 0 )
-                {
-                    rblSavedCC.Items[0].Selected = true;
-                    rblSavedCC.Visible = true;
-                    divNewCard.Style[HtmlTextWriterStyle.Display] = "none";
-                }
-                else
-                {
-                    rblSavedCC.Visible = false;
-                    divNewCard.Style[HtmlTextWriterStyle.Display] = "block";
-                }
-
-                if ( rblSavedAch.Items.Count > 0 )
-                {
-                    rblSavedAch.Items[0].Selected = true;
-                    rblSavedAch.Visible = true;
-                    divNewBank.Style[HtmlTextWriterStyle.Display] = "none";
-                }
-                else
-                {
-                    rblSavedAch.Visible = false;
-                    divNewCard.Style[HtmlTextWriterStyle.Display] = "block";
-                }
-
-                RegisterScript();
-
-                // Resolve the text field merge fields
-                var configValues = new Dictionary<string, object>();
-                Rock.Web.Cache.GlobalAttributesCache.Read().AttributeValues
-                    .Where( v => v.Key.StartsWith( "Organization", StringComparison.CurrentCultureIgnoreCase ) )
-                    .ToList()
-                    .ForEach( v => configValues.Add( v.Key, v.Value.Value ) );
-                configValues.Add( "PageNumber", hfCurrentPage.Value.AsType<int?>() ?? 0 );
-                phPageHeader.Controls.Add( new LiteralControl( GetAttributeValue( "PageHeader" ).ResolveMergeFields( configValues ) ) );
-                phPageFooter.Controls.Add( new LiteralControl( GetAttributeValue( "PageFooter" ).ResolveMergeFields( configValues ) ) );
-
-                // set success headers after successful contribution
-                //phPageHeader.Controls.Add( new LiteralControl( GetAttributeValue( "SuccessHeader" ).ResolveMergeFields( configValues ) ) );
-                //phPageFooter.Controls.Add( new LiteralControl( GetAttributeValue( "SuccessFooter" ).ResolveMergeFields( configValues ) ) );
             }
         }
 
@@ -308,6 +223,98 @@ achieve our mission.  We are so grateful for your commitment.
                     GetAccounts();
                     BindAccounts();
 
+                    // Enable payment options based on the configured gateways
+                    bool ccEnabled = false;
+                    bool achEnabled = false;
+                    var supportedFrequencies = new List<DefinedValueCache>();
+
+                    string ccGatewayGuid = GetAttributeValue( "CCGateway" );
+                    if ( !string.IsNullOrWhiteSpace( ccGatewayGuid ) )
+                    {
+                        _ccGateway = GatewayContainer.GetComponent( ccGatewayGuid );
+                        if ( _ccGateway != null )
+                        {
+                            ccEnabled = true;
+                            mypExpiration.MinimumYear = RockDateTime.Now.Year;
+                        }
+                    }
+
+                    string achGatewayGuid = GetAttributeValue( "ACHGateway" );
+                    if ( !string.IsNullOrWhiteSpace( achGatewayGuid ) )
+                    {
+                        _achGateway = GatewayContainer.GetComponent( achGatewayGuid );
+                        achEnabled = _achGateway != null;
+                    }
+
+                    //hfCurrentPage.Value = "1";
+
+                    if ( ccEnabled || achEnabled )
+                    {
+                        if ( ccEnabled )
+                        {
+                            supportedFrequencies = _ccGateway.SupportedPaymentSchedules;
+                            hfPaymentTab.Value = "CreditCard";
+                        }
+                        else
+                        {
+                            supportedFrequencies = _achGateway.SupportedPaymentSchedules;
+                            hfPaymentTab.Value = "ACH";
+                        }
+
+                        if ( ccEnabled && achEnabled )
+                        {
+                            phPills.Visible = true;
+                            divCCPaymentInfo.AddCssClass( "tab-pane" );
+                            divACHPaymentInfo.AddCssClass( "tab-pane" );
+                        }
+
+                        divCCPaymentInfo.Visible = ccEnabled;
+                        divACHPaymentInfo.Visible = achEnabled;
+
+                        // Display Options
+                        btnAddAccount.Title = GetAttributeValue( "AddAccountText" );
+
+                        if ( rblSavedCC.Items.Count > 0 )
+                        {
+                            rblSavedCC.Items[0].Selected = true;
+                            rblSavedCC.Visible = true;
+                            divNewCard.Style[HtmlTextWriterStyle.Display] = "none";
+                        }
+                        else
+                        {
+                            rblSavedCC.Visible = false;
+                            divNewCard.Style[HtmlTextWriterStyle.Display] = "block";
+                        }
+
+                        if ( rblSavedAch.Items.Count > 0 )
+                        {
+                            rblSavedAch.Items[0].Selected = true;
+                            rblSavedAch.Visible = true;
+                            divNewBank.Style[HtmlTextWriterStyle.Display] = "none";
+                        }
+                        else
+                        {
+                            rblSavedAch.Visible = false;
+                            divNewCard.Style[HtmlTextWriterStyle.Display] = "block";
+                        }
+
+                        RegisterScript();
+
+                        // Resolve the text field merge fields
+                        var configValues = new Dictionary<string, object>();
+                        Rock.Web.Cache.GlobalAttributesCache.Read().AttributeValues
+                            .Where( v => v.Key.StartsWith( "Organization", StringComparison.CurrentCultureIgnoreCase ) )
+                            .ToList()
+                            .ForEach( v => configValues.Add( v.Key, v.Value.Value ) );
+                        configValues.Add( "PageNumber", hfCurrentPage.Value.AsType<int?>() ?? 0 );
+                        phPageHeader.Controls.Add( new LiteralControl( GetAttributeValue( "PageHeader" ).ResolveMergeFields( configValues ) ) );
+                        phPageFooter.Controls.Add( new LiteralControl( GetAttributeValue( "PageFooter" ).ResolveMergeFields( configValues ) ) );
+
+                        // set success headers after successful contribution
+                        //phPageHeader.Controls.Add( new LiteralControl( GetAttributeValue( "SuccessHeader" ).ResolveMergeFields( configValues ) ) );
+                        //phPageFooter.Controls.Add( new LiteralControl( GetAttributeValue( "SuccessFooter" ).ResolveMergeFields( configValues ) ) );
+                    }
+
                     // Set personal information if there is a currently logged in person
                     var person = GetPerson( false );
                     if ( person != null )
@@ -381,26 +388,13 @@ achieve our mission.  We are so grateful for your commitment.
         }
 
         /// <summary>
-        /// Handles the TextChanged event of the pnbPhone control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void pnbPhone_TextChanged( object sender, EventArgs e )
-        {
-            var rockContext = new RockContext();
-            var personService = new PersonService( rockContext );
-            rptPersonPicker.DataSource = personService.GetByPhonePartial( pnbPhone.Text ).ToList();
-            rptPersonPicker.DataBind();
-        }
-
-        /// <summary>
         /// Handles the PageNavigate event of the page control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="HistoryEventArgs"/> instance containing the event data.</param>
         protected void page_PageNavigate( object sender, HistoryEventArgs e )
         {
-            int pageId = e.State["GivingDetail"].AsInteger() ?? 0;
+            int pageId = e.State["GivingDetail"].AsIntegerOrNull() ?? 0;
             if ( pageId > 0 )
             {
                 SetPage( pageId );
@@ -415,7 +409,7 @@ achieve our mission.  We are so grateful for your commitment.
         protected void btnPrev_Click( object sender, EventArgs e )
         {
             // Previous should only be enabled on page two or three
-            int pageId = hfCurrentPage.Value.AsInteger() ?? 0;
+            int pageId = hfCurrentPage.Value.AsIntegerOrNull() ?? 0;
             if ( pageId > 1 )
             {
                 SetPage( pageId - 1 );
@@ -431,7 +425,7 @@ achieve our mission.  We are so grateful for your commitment.
         {
             string errorMessage = string.Empty;
 
-            switch ( hfCurrentPage.Value.AsInteger() ?? 0 )
+            switch ( hfCurrentPage.Value.AsIntegerOrNull() ?? 0 )
             {
                 case 1:
 
@@ -695,11 +689,15 @@ achieve our mission.  We are so grateful for your commitment.
         /// </summary>
         /// <param name="create">if set to <c>true</c> [create].</param>
         /// <returns></returns>
-        private Person GetPerson( bool create )
+        [System.Web.Services.WebMethod]
+        protected Person GetPerson( bool create )
         {
             Person person = null;
             var rockContext = new RockContext();
             var personService = new PersonService( rockContext );
+
+            rptPersonPicker.DataSource = personService.GetByPhonePartial( pnbPhone.Text ).ToList();
+            rptPersonPicker.DataBind();
 
             int personId = ViewState["PersonId"] as int? ?? 0;
 
@@ -1104,6 +1102,21 @@ achieve our mission.  We are so grateful for your commitment.
                     $('.total-amount').html('$ ' + totalAmt.toFixed(2));
                     return false;
                 }});
+
+                // Lookup person after keyup event with 10 chars
+                $('.number-lookup').on('input', function() {
+                    alert($(this).val());
+                    var number = $(this).val().replace(/\D/g, '');
+                    if (number.length == 10) {
+                        $.ajax({
+                            type: 'post',
+                            url: 'GiveIn60Seconds.ascx/GetPerson',
+                            contentType: 'application/json; charset=utf-8',
+                            dataType: 'json',
+                            data: '{'format':'' + number + ''}',
+                        });
+                    }
+                });
 
                 // Save the state of the selected payment type pill to a hidden field so that state can
                 // be preserved through postback
