@@ -51,7 +51,7 @@ By clicking the 'finish' button below I agree to allow {{ OrganizationName }} to
 update the transaction information at any time by returning to this website. Please call the Finance Office if you have any additional questions.
 </div>
 ", "Text Options", 14 )]
-    [CodeEditorField( "Success Header", "The text (HTML) to display at the top of the page when the contribution is successful.", CodeEditorMode.Html, CodeEditorTheme.Rock, 400, true, @"
+    [CodeEditorField( "Receipt Message", "The text (HTML) to display when the contribution is successful.", CodeEditorMode.Html, CodeEditorTheme.Rock, 400, true, @"
 <p>
 Thank you for your generous contribution.  Your support is helping {{ OrganizationName }} actively
 achieve our mission.  We are so grateful for your commitment.
@@ -152,9 +152,9 @@ achieve our mission.  We are so grateful for your commitment.
         {
             base.OnLoad( e );
 
-            // Hide the error box on every postback
+            // Hide errors on every postback
             nbMessage.Visible = false;
-            //pnlDupWarning.Visible = false;
+            pnlDupWarning.Visible = false;
             nbSaveAccount.Visible = false;
 
             if ( _ccGateway != null || _achGateway != null )
@@ -179,6 +179,7 @@ achieve our mission.  We are so grateful for your commitment.
                 // Update the total amount
                 lblTotalAmount.Text = Accounts.Sum( f => f.Amount ).ToString( "F2" );
 
+                // ==============================================================
                 if ( !Page.IsPostBack )
                 {
                     // Get the list of accounts that can be used
@@ -191,63 +192,76 @@ achieve our mission.  We are so grateful for your commitment.
                         BindAccounts();
                     }
 
-                    // Enable payment options based on the configured gateways
+                    // Display Options
+                    btnAddAccount.Title = GetAttributeValue( "AddAccountText" );
+
                     bool ccEnabled = _ccGateway != null;
                     bool achEnabled = _achGateway != null;
-
-                    if ( ccEnabled || achEnabled )
+                    if ( ccEnabled )
                     {
-                        if ( ccEnabled )
-                        {
-                            hfPaymentTab.Value = "CreditCard";
-                        }
-                        else
-                        {
-                            hfPaymentTab.Value = "ACH";
-                        }
-
-                        if ( ccEnabled && achEnabled )
-                        {
-                            phPills.Visible = true;
-                            divCCPaymentInfo.AddCssClass( "tab-pane" );
-                            divACHPaymentInfo.AddCssClass( "tab-pane" );
-                        }
-
-                        divCCPaymentInfo.Visible = ccEnabled;
-                        divACHPaymentInfo.Visible = achEnabled;
-
-                        // Display Options
-                        btnAddAccount.Title = GetAttributeValue( "AddAccountText" );
-
-                        if ( rblSavedCC.Items.Count > 0 )
-                        {
-                            rblSavedCC.Items[0].Selected = true;
-                            rblSavedCC.Visible = true;
-                            divNewCard.Style[HtmlTextWriterStyle.Display] = "none";
-                        }
-                        else
-                        {
-                            rblSavedCC.Visible = false;
-                            divNewCard.Style[HtmlTextWriterStyle.Display] = "block";
-                        }
-
-                        if ( rblSavedAch.Items.Count > 0 )
-                        {
-                            rblSavedAch.Items[0].Selected = true;
-                            rblSavedAch.Visible = true;
-                            divNewBank.Style[HtmlTextWriterStyle.Display] = "none";
-                        }
-                        else
-                        {
-                            rblSavedAch.Visible = false;
-                            divNewCard.Style[HtmlTextWriterStyle.Display] = "block";
-                        }
-
-                        RegisterScript();
+                        hfPaymentTab.Value = "CreditCard";                        
+                    }
+                    else
+                    {
+                        hfPaymentTab.Value = "ACH";                        
                     }
 
+                    if ( ccEnabled && achEnabled )
+                    {
+                        phPills.Visible = true;
+                        divCCPaymentInfo.AddCssClass( "tab-pane" );
+                        divACHPaymentInfo.AddCssClass( "tab-pane" );
+                    }
+
+                    divCCPaymentInfo.Visible = ccEnabled;
+                    divACHPaymentInfo.Visible = achEnabled;
+
+                    if ( rblSavedCC.Items.Count > 0 )
+                    {
+                        rblSavedCC.Items[0].Selected = true;
+                        rblSavedCC.Visible = true;
+                        divNewCard.Style[HtmlTextWriterStyle.Display] = "none";
+                    }
+                    else
+                    {
+                        rblSavedCC.Visible = false;
+                        divNewCard.Style[HtmlTextWriterStyle.Display] = "block";
+                    }
+
+                    if ( rblSavedAch.Items.Count > 0 )
+                    {
+                        rblSavedAch.Items[0].Selected = true;
+                        rblSavedAch.Visible = true;
+                        divNewBank.Style[HtmlTextWriterStyle.Display] = "none";
+                    }
+                    else
+                    {
+                        rblSavedAch.Visible = false;
+                        divNewCard.Style[HtmlTextWriterStyle.Display] = "block";
+                    }
+
+                    RegisterScript();
                     SetPage( 1 );
                 }
+
+                // Set active tab on postback based on which tab was last selected
+                if ( hfPaymentTab.Value == "ACH" )
+                {
+                    liCreditCard.RemoveCssClass( "active" );
+                    divCCPaymentInfo.RemoveCssClass( "active" );
+                    divACHPaymentInfo.AddCssClass( "active" );
+                    liACH.AddCssClass( "active" );
+                }
+                else
+                {
+                    liCreditCard.AddCssClass( "active" );
+                    divCCPaymentInfo.AddCssClass( "active" );
+                    divACHPaymentInfo.RemoveCssClass( "active" );
+                    liACH.RemoveCssClass( "active" );
+                }
+                
+
+                ScriptManager.GetCurrent( this.Page ).EnableSecureHistoryState = false;
             }
             else
             {
@@ -269,13 +283,14 @@ achieve our mission.  We are so grateful for your commitment.
         {
             var selectedCampusId = cpCampuses.SelectedCampusId;
             var matchingAccounts = new List<int>();
-            if ( selectedCampusId != null)
+            if ( selectedCampusId != null )
             {
                 matchingAccounts = Accounts.Where( a => a.CampusId == selectedCampusId || a.CampusId == null )
-                    .Select( c => c.Id ).ToList();                
+                    .Select( c => c.Id ).ToList();
             }
 
             Accounts.ForEach( a => a.Selected = matchingAccounts.Contains( a.Id ) );
+            this.AddHistory( "step", "1", null );
             BindAccounts();
         }
 
@@ -304,11 +319,11 @@ achieve our mission.  We are so grateful for your commitment.
         {
             var rockContext = new RockContext();
             var personService = new PersonService( rockContext );
-            rptPersonPicker.DataSource = personService.GetByPhonePartial( pnbPhone.Text )
-                .ToList();
+            rptPersonPicker.DataSource = personService.GetByPhonePartial( pnbPhone.Text ).ToList();
             rptPersonPicker.DataBind();
+            divPersonPicker.Visible = true;            
         }
-        
+
         /// <summary>
         /// Handles the Click event of the lbSaveAccount control.
         /// </summary>
@@ -481,12 +496,12 @@ achieve our mission.  We are so grateful for your commitment.
             switch ( hfCurrentPage.Value.AsIntegerOrNull() ?? 0 )
             {
                 case 1:
-                    this.AddHistory( "GivingDetail", "1", null );
+                    this.AddHistory( "step", "2", null );
                     SetPage( 2 );
                     break;
 
                 case 2:
-                    this.AddHistory( "GivingDetail", "2", null );
+                    this.AddHistory( "step", "3", null );
                     BindSelectedPerson();
                     SetPage( 3 );
                     break;
@@ -494,9 +509,14 @@ achieve our mission.  We are so grateful for your commitment.
                 case 3:
                     if ( VerifyPaymentInfo( out errorMessage ) )
                     {
+                        if ( btnNext.Text != "Give Now" )
+                        {
+                            TransactionCode = string.Empty;
+                        }
+
                         if ( ProcessConfirmation( out errorMessage ) )
                         {
-                            this.AddHistory( "GivingDetail", "3", null );
+                            this.AddHistory( "step", "4", null );
                             SetPage( 4 );
                         }
                         else
@@ -516,6 +536,23 @@ achieve our mission.  We are so grateful for your commitment.
         #endregion
 
         #region Init methods
+
+        /// <summary>
+        /// Adds the headers.
+        /// </summary>
+        private void GetHeaders()
+        {
+            // Resolve the text field merge fields
+            var configValues = new Dictionary<string, object>();
+            Rock.Web.Cache.GlobalAttributesCache.Read().AttributeValues
+                .Where( v => v.Key.StartsWith( "Organization", StringComparison.CurrentCultureIgnoreCase ) )
+                .ToList()
+                .ForEach( v => configValues.Add( v.Key, v.Value.Value ) );
+            configValues.Add( "PageNumber", hfCurrentPage.Value.AsType<int?>() ?? 0 );
+            phPageHeader.Controls.Add( new LiteralControl( GetAttributeValue( "PageHeader" ).ResolveMergeFields( configValues ) ) );
+            phPageFooter.Controls.Add( new LiteralControl( GetAttributeValue( "PageFooter" ).ResolveMergeFields( configValues ) ) );
+            phReceipt.Controls.Add( new LiteralControl( GetAttributeValue( "ReceiptMessage" ).ResolveMergeFields( configValues ) ) );
+        }
 
         /// <summary>
         /// Gets the campuses.
@@ -592,7 +629,7 @@ achieve our mission.  We are so grateful for your commitment.
                 if ( cbPerson.Checked )
                 {
                     var hfPersonId = (HiddenField)personDisplay.FindControl( "hfPersonId" );
-                    ViewState["PersonId"] = hfPersonId.ValueAsInt();                    
+                    ViewState["PersonId"] = hfPersonId.ValueAsInt();
                 }
             }
 
@@ -600,7 +637,7 @@ achieve our mission.  We are so grateful for your commitment.
 
             // Set personal information if there is a currently logged in person
             if ( selectedPerson != null )
-            {                
+            {
                 var personService = new PersonService( new RockContext() );
 
                 // Bind their default address if it exists
@@ -621,12 +658,16 @@ achieve our mission.  We are so grateful for your commitment.
 
                 txtBillingFirstName.Text = selectedPerson.FirstName;
                 txtBillingLastName.Text = selectedPerson.LastName;
-            }   
+                txtEmail.Text = selectedPerson.Email;
+            }
             else
             {
                 txtBillingFirstName.Text = txtFirstName.Text;
                 txtBillingLastName.Text = txtLastName.Text;
-            }            
+                txtEmail.Text = txtNewEmail.Text;
+            }
+
+            tdTotal.Description = Accounts.Sum( a => a.Amount ).ToString( "C" );
         }
 
         #endregion
@@ -714,16 +755,16 @@ achieve our mission.  We are so grateful for your commitment.
                         errorMessages.Add( "Make sure to enter a valid credit card number" );
                     }
 
+                    if ( string.IsNullOrWhiteSpace( txtCVV.Text ) )
+                    {
+                        errorMessages.Add( "Make sure to enter a valid credit card security code" );
+                    }
+
                     var currentMonth = RockDateTime.Today;
                     currentMonth = new DateTime( currentMonth.Year, currentMonth.Month, 1 );
                     if ( !mypExpiration.SelectedDate.HasValue || mypExpiration.SelectedDate.Value.CompareTo( currentMonth ) < 0 )
                     {
                         errorMessages.Add( "Make sure to enter a valid credit card expiration date" );
-                    }
-
-                    if ( string.IsNullOrWhiteSpace( txtCVV.Text ) )
-                    {
-                        errorMessages.Add( "Make sure to enter a valid credit card security code" );
                     }
                 }
             }
@@ -733,8 +774,6 @@ achieve our mission.  We are so grateful for your commitment.
                 errorMessage = errorMessages.AsDelimited( "<br/>" );
                 return false;
             }
-
-            tdTotal.Description = Accounts.Sum( a => a.Amount ).ToString( "C" );
 
             return true;
         }
@@ -883,8 +922,8 @@ achieve our mission.  We are so grateful for your commitment.
             }
             else
             {
-                // say something about duplicate payment?
-                //pnlDupWarning.Visible = true;
+                pnlDupWarning.Visible = true;
+                btnNext.Text = "Yes, Give Again";
                 errorMessage = string.Empty;
                 return false;
             }
@@ -901,7 +940,7 @@ achieve our mission.  We are so grateful for your commitment.
         /// <param name="e">The <see cref="HistoryEventArgs"/> instance containing the event data.</param>
         protected void page_PageNavigate( object sender, HistoryEventArgs e )
         {
-            int pageId = e.State["GivingDetail"].AsIntegerOrNull() ?? 0;
+            int pageId = e.State["step"].AsIntegerOrNull() ?? 0;
             if ( pageId > 0 )
             {
                 SetPage( pageId );
@@ -925,6 +964,8 @@ achieve our mission.  We are so grateful for your commitment.
             btnNext.Text = page > 2 ? "Give Now" : "Next";
 
             hfCurrentPage.Value = page.ToString();
+            GetHeaders();
+
             pnlGiveIn60Seconds.Update();
         }
 
@@ -971,12 +1012,12 @@ achieve our mission.  We are so grateful for your commitment.
             }
 
             if ( person == null && create )
-            {   
+            {
                 // Create Person
                 person = new Person();
                 person.FirstName = txtFirstName.Text;
                 person.LastName = txtLastName.Text;
-                person.Email = txtEmail.Text;
+                person.Email = txtNewEmail.Text;
                 person.EmailPreference = EmailPreference.EmailAllowed;
 
                 var phone = new PhoneNumber();
@@ -998,7 +1039,7 @@ achieve our mission.  We are so grateful for your commitment.
                         txtCity.Text,
                         ddlState.SelectedValue,
                         txtZip.Text );
-                }                
+                }
 
                 ViewState["PersonId"] = person != null ? person.Id : 0;
             }
@@ -1190,7 +1231,8 @@ achieve our mission.  We are so grateful for your commitment.
                     var number = $(this).val().replace(/\D/g, '');
                     if (number.length == 10) {{
                         __doPostBack($(this).attr('id'), '');
-                    }}
+                        $('.person-picker').slideToggle();
+                    }} 
                 }});
 
                 // Save the state of the selected payment type pill to a hidden field so that state can
@@ -1210,7 +1252,7 @@ achieve our mission.  We are so grateful for your commitment.
                 // Hide or show a div based on selection of checkbox
                 $('input:checkbox.toggle-input').unbind('click').on('click', function () {{
                     $('input:checkbox.toggle-input').not(this).prop('checked', false);
-                    $('.toggle-content').not(this).slideUp();
+                    $('.toggle-content').not($(this).parents('.checkbox').next('.toggle-content')).slideUp();
                     $(this).parents('.checkbox').next('.toggle-content').slideToggle();
                 }});
 

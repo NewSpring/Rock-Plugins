@@ -53,29 +53,30 @@
                     <fieldset>
                         <Rock:PhoneNumberBox ID="pnbPhone" runat="server" Label="Phone" CssClass=" number-lookup" OnTextChanged="pnbPhone_TextChanged" />
 
-                        <asp:Repeater ID="rptPersonPicker" runat="server">
-                            <ItemTemplate>
+                        <div id="divPersonPicker" runat="server" class="person-picker" visible="false">
+                            <asp:Repeater ID="rptPersonPicker" runat="server">
+                                <ItemTemplate>
+                                    <div class="checkbox">
+                                        <Rock:RockCheckBox ID="cbPerson" runat="server" Label='<%# Eval("FullName") %>' CssClass="toggle-input" />
+                                        <asp:HiddenField ID="hfPersonId" runat="server" Value='<%# Eval("Id") %>' />
+                                    </div>
+                                    <div id="divPersonDetail" runat="server" class="toggle-content" style="display: none">
+                                        <Rock:RockTextBox ID="txtExistingEmail" runat="server" Label="Email" Text='<%# Eval("Email") %>' />
+                                    </div>
+                                </ItemTemplate>                            
+                            </asp:Repeater>
+
+                            <div class="new-person">
                                 <div class="checkbox">
-                                    <Rock:RockCheckBox ID="cbPerson" runat="server" Label='<%# Eval("FullName") %>' CssClass="toggle-input" />
-                                    <asp:HiddenField ID="hfPersonId" runat="server" Value='<%# Eval("Id") %>' />
+                                    <Rock:RockCheckBox ID="cbNewPerson" runat="server" Label="... or enter a different name" CssClass="toggle-input" />
                                 </div>
                                 <div id="divPersonDetail" runat="server" class="toggle-content" style="display: none">
-                                    <Rock:RockTextBox ID="txtExistingEmail" runat="server" Label="Email" Text='<%# Eval("Email") %>' />
+                                    <Rock:RockTextBox ID="txtFirstName" runat="server" Label="First" />
+                                    <Rock:RockTextBox ID="txtLastName" runat="server" Label="Last" />
+                                    <Rock:RockTextBox ID="txtNewEmail" runat="server" Label="Email" />
                                 </div>
-                            </ItemTemplate>        
-                        </asp:Repeater>
-
-                        <div class="new-person">
-                            <div class="checkbox">
-                                <Rock:RockCheckBox ID="cbNewPerson" runat="server" Label="... or enter a different name" CssClass="toggle-input" />
-                            </div>
-                            <div id="divPersonDetail" runat="server" class="toggle-content" style="display: none">
-                                <Rock:RockTextBox ID="txtFirstName" runat="server" Label="First" />
-                                <Rock:RockTextBox ID="txtLastName" runat="server" Label="Last" />
-                                <Rock:RockTextBox ID="txtEmail" runat="server" Label="Email" />
                             </div>
                         </div>
-
                     </fieldset>
                 </div>
             </div>
@@ -96,6 +97,7 @@
                     <fieldset>
                         <Rock:RockTextBox ID="txtBillingFirstName" runat="server" Label="First" />
                         <Rock:RockTextBox ID="txtBillingLastName" runat="server" Label="Last" />
+                        <Rock:RockTextBox ID="txtEmail" runat="server" Label="Email" />
                         <Rock:RockTextBox ID="txtStreet" runat="server" Label="Street" />
                         <Rock:RockTextBox ID="txtCity" runat="server" Label="City" />
                         <Rock:StateDropDownList ID="ddlState" runat="server" UseAbbreviation="true" Label="State" />
@@ -145,24 +147,24 @@
                                     <asp:ListItem Text="Checking" Selected="true" />
                                     <asp:ListItem Text="Savings" />
                                 </Rock:RockRadioButtonList>
-                                <%--<asp:Image ID="imgCheck" runat="server" ImageUrl="<%$ Fingerprint:~/Assets/Images/check-image.png %>" />--%>
+                                <asp:Image ID="imgCheck" runat="server" ImageUrl="<%$ Fingerprint:~/Assets/Images/check-image.png %>" />
                             </div>
                         </fieldset>
                     </div>
 
                     <Rock:TermDescription ID="tdTotal" runat="server" Term="Total" />
+
                 </div>
             
             </div>
 
-            <%--<asp:Panel ID="pnlDupWarning" runat="server" CssClass="alert alert-block">
-                <h4>Warning!</h4>
-                <p>
-                    You have already submitted a transaction that has been processed.  Are you sure you want
-                to submit another possible duplicate transaction?
-                </p>
-                <asp:LinkButton ID="btnConfirm" runat="server" Text="Yes, submit another transaction" CssClass="btn btn-primary" OnClick="btnConfirm_Click" />
-            </asp:Panel>--%>
+            <asp:Panel ID="pnlDupWarning" runat="server" CssClass="alert alert-block" Visible="false">
+                <h4>Warning!</h4>                
+                <div>
+                    <label>You have already submitted a transaction that has been processed.  Are you sure you want
+                    to submit another possible duplicate transaction?</label>
+                </div>
+            </asp:Panel>
         </asp:Panel>
 
         <!-- Step Four -->
@@ -214,7 +216,6 @@
                         </fieldset>
                     </div>
                 </asp:Panel>
-
             </div>
         </asp:Panel>
 
