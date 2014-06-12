@@ -17,23 +17,25 @@
                 <div class="panel-body">
                     <fieldset>
 
-                        <Rock:CampusPicker ID="cpCampuses" runat="server" Label="Select your Campus" />
+                        <Rock:CampusPicker ID="cpCampuses" runat="server" Label="Choose a Campus" AutoPostBack="true" OnSelectedIndexChanged="cpCampuses_SelectedIndexChanged" Required="true" />
 
-                        <asp:Repeater ID="rptAccountList" runat="server">
-                            <ItemTemplate>
-                                <div data-toggle="tooltip" data-placement="top" title="<%# Eval("Description") %>">
-                                    <Rock:CurrencyBox ID="txtAccountAmount" runat="server" Label='<%# Eval("Name") %>' Text='<%# Eval("AmountFormatted") %>' Placeholder="0.00" CssClass="account-amount" />
-                                </div>
-                            </ItemTemplate>
-                        </asp:Repeater>
+                        <div id="divContributions" runat="server">
+                            <asp:Repeater ID="rptAccountList" runat="server">
+                                <ItemTemplate>
+                                    <div data-toggle="tooltip" data-placement="top" title="<%# Eval("Description") %>">
+                                        <Rock:CurrencyBox ID="txtAccountAmount" runat="server" Label='<%# Eval("Name") %>' Text='<%# Eval("AmountFormatted") %>' Placeholder="0.00" CssClass="account-amount" />
+                                    </div>
+                                </ItemTemplate>
+                            </asp:Repeater>
 
-                        <Rock:ButtonDropDownList ID="btnAddAccount" runat="server" CssClass="btn btn-primary" Visible="false" Label=" "
-                            DataTextField="Name" DataValueField="Id" OnSelectionChanged="btnAddAccount_SelectionChanged" />
+                            <Rock:ButtonDropDownList ID="btnAddAccount" runat="server" CssClass="btn btn-primary" Visible="false" Label=" "
+                                DataTextField="Name" DataValueField="Id" OnSelectionChanged="btnAddAccount_SelectionChanged" />
 
-                        <div class="form-group total-gift">
+                            <div class="form-group total-gift">
 
-                            <label>Total</label>
-                            <asp:Label ID="lblTotalAmount" runat="server" CssClass="form-control-static total-amount" />
+                                <label>Total</label>
+                                <asp:Label ID="lblTotalAmount" runat="server" CssClass="form-control-static total-amount" />
+                            </div>
                         </div>
                     </fieldset>
                 </div>
@@ -49,29 +51,31 @@
                 </div>
                 <div class="panel-body">
                     <fieldset>
-                        <Rock:PhoneNumberBox ID="pnbPhone" runat="server" CssClass="number-lookup" Label="Phone" />
+                        <Rock:PhoneNumberBox ID="pnbPhone" runat="server" Label="Phone" CssClass=" number-lookup" OnTextChanged="pnbPhone_TextChanged" />
 
                         <asp:Repeater ID="rptPersonPicker" runat="server">
                             <ItemTemplate>
                                 <div class="checkbox">
-                                    <Rock:RockCheckBox ID="cbPerson" runat="server" Label='<%# Eval("FullName") %>' data-id='<%# Eval("ID") %>' CssClass="toggle-input" />
+                                    <Rock:RockCheckBox ID="cbPerson" runat="server" Label='<%# Eval("FullName") %>' CssClass="toggle-input" />
+                                    <asp:HiddenField ID="hfPersonId" runat="server" Value='<%# Eval("Id") %>' />
                                 </div>
                                 <div id="divPersonDetail" runat="server" class="toggle-content" style="display: none">
                                     <Rock:RockTextBox ID="txtExistingEmail" runat="server" Label="Email" Text='<%# Eval("Email") %>' />
                                 </div>
-                            </ItemTemplate>
-                            <FooterTemplate>
-                                <div class="checkbox">
-                                    <Rock:RockCheckBox ID="cbNewPerson" runat="server" Label="... or enter a different name" CssClass="toggle-input" />
-                                </div>
-                                <div id="divPersonDetail" runat="server" class="toggle-content" style="display: none">
-                                    <Rock:RockTextBox ID="txtFirst" runat="server" Label="First" />
-                                    <Rock:RockTextBox ID="txtLast" runat="server" Label="Last" />
-                                    <Rock:RockTextBox ID="txtEmail" runat="server" Label="Email" />
-                                    <%--<Rock:CampusPicker ID="cpCampuses" runat="server" Label="Your Campus" />--%>
-                                </div>
-                            </FooterTemplate>
+                            </ItemTemplate>        
                         </asp:Repeater>
+
+                        <div class="new-person">
+                            <div class="checkbox">
+                                <Rock:RockCheckBox ID="cbNewPerson" runat="server" Label="... or enter a different name" CssClass="toggle-input" />
+                            </div>
+                            <div id="divPersonDetail" runat="server" class="toggle-content" style="display: none">
+                                <Rock:RockTextBox ID="txtFirstName" runat="server" Label="First" />
+                                <Rock:RockTextBox ID="txtLastName" runat="server" Label="Last" />
+                                <Rock:RockTextBox ID="txtEmail" runat="server" Label="Email" />
+                            </div>
+                        </div>
+
                     </fieldset>
                 </div>
             </div>
@@ -90,14 +94,13 @@
 
                 <div class="panel-body">
                     <fieldset>
-                        <Rock:RockTextBox ID="txtFirstName" runat="server" Label="First" />
-                        <Rock:RockTextBox ID="txtLastName" runat="server" Label="Last" />
-                        <Rock:RockTextBox ID="txtEmail" runat="server" Label="Email" />
+                        <Rock:RockTextBox ID="txtBillingFirstName" runat="server" Label="First" />
+                        <Rock:RockTextBox ID="txtBillingLastName" runat="server" Label="Last" />
                         <Rock:RockTextBox ID="txtStreet" runat="server" Label="Street" />
                         <Rock:RockTextBox ID="txtCity" runat="server" Label="City" />
                         <Rock:StateDropDownList ID="ddlState" runat="server" UseAbbreviation="true" Label="State" />
                         <Rock:RockTextBox ID="txtZip" runat="server" Label="Zip" />
-                        <Rock:RockTextBox ID="txtCountry" runat="server" Label="Country" Enabled="false" Text="United States" />
+                        <Rock:RockTextBox ID="txtCountry" runat="server" Label="Country" ReadOnly="true" Text="United States" />
                     </fieldset>
                 </div>
 
@@ -149,7 +152,7 @@
 
                     <Rock:TermDescription ID="tdTotal" runat="server" Term="Total" />
                 </div>
-            </div>
+            
             </div>
 
             <%--<asp:Panel ID="pnlDupWarning" runat="server" CssClass="alert alert-block">
@@ -164,48 +167,55 @@
 
         <!-- Step Four -->
         <asp:Panel ID="pnlStepFour" runat="server" Visible="false">
-            <div class="well">
-                <legend>Gift Information</legend>
 
-                <dl class="dl-horizontal gift-success">
-                    <Rock:TermDescription ID="tdTransactionCode" runat="server" Term="Confirmation Code" />
-                </dl>
-            </div>
+            <div class="panel panel-default contribution-receipt">
 
-            <asp:Panel ID="pnlSaveAccount" runat="server" Visible="false">
-                <div class="well">
-                    <legend>Make Giving Even Easier</legend>
-                    <fieldset>
-                        <Rock:RockCheckBox ID="cbSaveAccount" runat="server" Text="Save account information for future gifts" CssClass="toggle-input" />
-                        <div id="divSaveAccount" runat="server" class="toggle-content">
-                            <Rock:RockTextBox ID="txtSaveAccount" runat="server" Label="Name for this account" CssClass="input-large" />
+                <div class="panel-heading">
+                    <h3 class="panel-title">Contribution Receipt</h3>
+                </div>
+                <div class="panel-body">
+                    <dl class="dl-horizontal gift-success">
+                        <asp:PlaceHolder ID="phReceipt" runat="server" />
+                        <Rock:TermDescription ID="tdTransactionCode" runat="server" Term="Confirmation Code" />
+                    </dl>
+                </div>
 
-                            <asp:PlaceHolder ID="phCreateLogin" runat="server" Visible="false">
+                <asp:Panel ID="pnlSaveAccount" runat="server" Visible="false">
+                    <div class="well">
+                        <legend>Make Giving Even Easier</legend>
+                        <fieldset>
+                            <Rock:RockCheckBox ID="cbSaveAccount" runat="server" Text="Save account information for future gifts" CssClass="toggle-input" />
+                            <div id="divSaveAccount" runat="server" class="toggle-content">
+                                <Rock:RockTextBox ID="txtSaveAccount" runat="server" Label="Name for this account" CssClass="input-large" />
 
-                                <div class="control-group">
-                                    <div class="controls">
-                                        <div class="alert alert-info">
-                                            <b>Note:</b> For security purposes you will need to login to use your saved account information.  To create
-	    			                    a login account please provide a user name and password below. You will be sent an email with the account
-	    			                    information above as a reminder.
+                                <asp:PlaceHolder ID="phCreateLogin" runat="server" Visible="false">
+
+                                    <div class="control-group">
+                                        <div class="controls">
+                                            <div class="alert alert-info">
+                                                <b>Note:</b> For security purposes you will need to login to use your saved account information.  To create
+	    			                        a login account please provide a user name and password below. You will be sent an email with the account
+	    			                        information above as a reminder.
+                                            </div>
                                         </div>
                                     </div>
+
+                                    <Rock:RockTextBox ID="txtUserName" runat="server" Label="Username" CssClass="input-medium" />
+                                    <Rock:RockTextBox ID="txtPassword" runat="server" Label="Password" CssClass="input-medium" TextMode="Password" />
+                                    <Rock:RockTextBox ID="txtPasswordConfirm" runat="server" Label="Confirm Password" CssClass="input-medium" TextMode="Password" />
+                                </asp:PlaceHolder>
+
+                                <Rock:NotificationBox ID="nbSaveAccount" runat="server" Visible="false" NotificationBoxType="Danger" />
+
+                                <div id="divSaveActions" runat="server" class="actions">
+                                    <asp:LinkButton ID="lbSaveAccount" runat="server" Text="Save Account" CssClass="btn btn-primary" OnClick="lbSaveAccount_Click" />
                                 </div>
-
-                                <Rock:RockTextBox ID="txtUserName" runat="server" Label="Username" CssClass="input-medium" />
-                                <Rock:RockTextBox ID="txtPassword" runat="server" Label="Password" CssClass="input-medium" TextMode="Password" />
-                                <Rock:RockTextBox ID="txtPasswordConfirm" runat="server" Label="Confirm Password" CssClass="input-medium" TextMode="Password" />
-                            </asp:PlaceHolder>
-
-                            <Rock:NotificationBox ID="nbSaveAccount" runat="server" Visible="false" NotificationBoxType="Danger" />
-
-                            <div id="divSaveActions" runat="server" class="actions">
-                                <asp:LinkButton ID="lbSaveAccount" runat="server" Text="Save Account" CssClass="btn btn-primary" OnClick="lbSaveAccount_Click" />
                             </div>
-                        </div>
-                    </fieldset>
-                </div>
-            </asp:Panel>
+                        </fieldset>
+                    </div>
+                </asp:Panel>
+
+            </div>
         </asp:Panel>
 
         <Rock:NotificationBox ID="nbMessage" runat="server" Visible="false" />

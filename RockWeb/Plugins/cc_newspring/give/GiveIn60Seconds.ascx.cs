@@ -57,8 +57,6 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
 achieve our mission.  We are so grateful for your commitment.
 </p>
 ", "Text Options", 15 )]
-    [CodeEditorField( "Success Footer", "The text (HTML) to display at the bottom of the contribution is successful.", CodeEditorMode.Html, CodeEditorTheme.Rock, 400, true, @"
-", "Text Options", 16 )]
     [EmailTemplateField( "Confirm Account", "Confirm Account Email Template", false, Rock.SystemGuid.SystemEmail.SECURITY_CONFIRM_ACCOUNT, "Email Templates", 17, "ConfirmAccountTemplate" )]
 
     #endregion
@@ -70,28 +68,6 @@ achieve our mission.  We are so grateful for your commitment.
         private GatewayComponent _ccGateway;
 
         private GatewayComponent _achGateway;
-
-        /// <summary>
-        /// Gets or sets the accounts that are available for user to add to the list.
-        /// </summary>
-        protected Dictionary<int, string> Campuses
-        {
-            get
-            {
-                var campuses = ViewState["Campuses"] as Dictionary<int, string>;
-                if ( campuses == null )
-                {
-                    campuses = new Dictionary<int, string>();
-                }
-
-                return campuses;
-            }
-
-            set
-            {
-                ViewState["Campuses"] = value;
-            }
-        }
 
         /// <summary>
         /// Gets or sets the accounts that are available for user to add to the list.
@@ -150,6 +126,22 @@ achieve our mission.  We are so grateful for your commitment.
             {
                 page.PageNavigate += page_PageNavigate;
             }
+
+            string ccGatewayGuid = GetAttributeValue( "CCGateway" );
+            if ( !string.IsNullOrWhiteSpace( ccGatewayGuid ) )
+            {
+                _ccGateway = GatewayContainer.GetComponent( ccGatewayGuid );
+                if ( _ccGateway != null )
+                {
+                    mypExpiration.MinimumYear = RockDateTime.Now.Year;
+                }
+            }
+
+            string achGatewayGuid = GetAttributeValue( "ACHGateway" );
+            if ( !string.IsNullOrWhiteSpace( achGatewayGuid ) )
+            {
+                _achGateway = GatewayContainer.GetComponent( achGatewayGuid );
+            }
         }
 
         /// <summary>
@@ -187,77 +179,30 @@ achieve our mission.  We are so grateful for your commitment.
                 // Update the total amount
                 lblTotalAmount.Text = Accounts.Sum( f => f.Amount ).ToString( "F2" );
 
-                // If there are both CC and ACH options, set the active tab based on the hidden field value that tracks the active tag
-                if ( phPills.Visible )
-                {
-                    if ( hfPaymentTab.Value == "ACH" )
-                    {
-                        liCreditCard.RemoveCssClass( "active" );
-                        liACH.AddCssClass( "active" );
-                        divCCPaymentInfo.RemoveCssClass( "active" );
-                        divACHPaymentInfo.AddCssClass( "active" );
-                    }
-                    else
-                    {
-                        liCreditCard.AddCssClass( "active" );
-                        liACH.RemoveCssClass( "active" );
-                        divCCPaymentInfo.AddCssClass( "active" );
-                        divACHPaymentInfo.RemoveCssClass( "active" );
-                    }
-                }
-
-                // Show or Hide the Credit card entry panel based on if a saved account exists and it's selected or not.
-                divNewCard.Style[HtmlTextWriterStyle.Display] = ( rblSavedCC.Items.Count == 0 || rblSavedCC.Items[rblSavedCC.Items.Count - 1].Selected ) ? "block" : "none";
-
-                // Show or Hide the person details if someone is selected
-                //bool isPersonSelected = ViewState["PersonId"] as int? > 0;
-                //divPersonDetail.Style[HtmlTextWriterStyle.Display] = isPersonSelected ? "block" : "none";
-
-                // Show save account info based on if checkbox is checked
-                divSaveAccount.Style[HtmlTextWriterStyle.Display] = cbSaveAccount.Checked ? "block" : "none";
-
                 if ( !Page.IsPostBack )
                 {
                     // Get the list of accounts that can be used
-                    GetCampuses();
+                    bool isMultiSite = GetCampuses();
                     GetAccounts();
-                    BindAccounts();
+
+                    if ( !isMultiSite )
+                    {
+                        cpCampuses.Visible = false;
+                        BindAccounts();
+                    }
 
                     // Enable payment options based on the configured gateways
-                    bool ccEnabled = false;
-                    bool achEnabled = false;
-                    var supportedFrequencies = new List<DefinedValueCache>();
-
-                    string ccGatewayGuid = GetAttributeValue( "CCGateway" );
-                    if ( !string.IsNullOrWhiteSpace( ccGatewayGuid ) )
-                    {
-                        _ccGateway = GatewayContainer.GetComponent( ccGatewayGuid );
-                        if ( _ccGateway != null )
-                        {
-                            ccEnabled = true;
-                            mypExpiration.MinimumYear = RockDateTime.Now.Year;
-                        }
-                    }
-
-                    string achGatewayGuid = GetAttributeValue( "ACHGateway" );
-                    if ( !string.IsNullOrWhiteSpace( achGatewayGuid ) )
-                    {
-                        _achGateway = GatewayContainer.GetComponent( achGatewayGuid );
-                        achEnabled = _achGateway != null;
-                    }
-
-                    //hfCurrentPage.Value = "1";
+                    bool ccEnabled = _ccGateway != null;
+                    bool achEnabled = _achGateway != null;
 
                     if ( ccEnabled || achEnabled )
                     {
                         if ( ccEnabled )
                         {
-                            supportedFrequencies = _ccGateway.SupportedPaymentSchedules;
                             hfPaymentTab.Value = "CreditCard";
                         }
                         else
                         {
-                            supportedFrequencies = _achGateway.SupportedPaymentSchedules;
                             hfPaymentTab.Value = "ACH";
                         }
 
@@ -299,62 +244,6 @@ achieve our mission.  We are so grateful for your commitment.
                         }
 
                         RegisterScript();
-
-                        // Resolve the text field merge fields
-                        var configValues = new Dictionary<string, object>();
-                        Rock.Web.Cache.GlobalAttributesCache.Read().AttributeValues
-                            .Where( v => v.Key.StartsWith( "Organization", StringComparison.CurrentCultureIgnoreCase ) )
-                            .ToList()
-                            .ForEach( v => configValues.Add( v.Key, v.Value.Value ) );
-                        configValues.Add( "PageNumber", hfCurrentPage.Value.AsType<int?>() ?? 0 );
-                        phPageHeader.Controls.Add( new LiteralControl( GetAttributeValue( "PageHeader" ).ResolveMergeFields( configValues ) ) );
-                        phPageFooter.Controls.Add( new LiteralControl( GetAttributeValue( "PageFooter" ).ResolveMergeFields( configValues ) ) );
-
-                        // set success headers after successful contribution
-                        //phPageHeader.Controls.Add( new LiteralControl( GetAttributeValue( "SuccessHeader" ).ResolveMergeFields( configValues ) ) );
-                        //phPageFooter.Controls.Add( new LiteralControl( GetAttributeValue( "SuccessFooter" ).ResolveMergeFields( configValues ) ) );
-                    }
-
-                    // Set personal information if there is a currently logged in person
-                    var person = GetPerson( false );
-                    if ( person != null )
-                    {
-                        var personService = new PersonService( new RockContext() );
-                        var phoneNumber = personService.GetPhoneNumber( person, DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME ) ) );
-                        if ( phoneNumber != null )
-                        {
-                            pnbPhone.CountryCode = phoneNumber.CountryCode;
-                            pnbPhone.Number = phoneNumber.ToString();
-                        }
-                        else
-                        {
-                            pnbPhone.CountryCode = PhoneNumber.DefaultCountryCode();
-                            pnbPhone.Number = string.Empty;
-                        }
-
-                        Guid addressTypeGuid = Guid.Empty;
-                        if ( !Guid.TryParse( GetAttributeValue( "AddressType" ), out addressTypeGuid ) )
-                        {
-                            addressTypeGuid = new Guid( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME );
-                        }
-
-                        var address = personService.GetFirstLocation( person.Id, DefinedValueCache.Read( addressTypeGuid ).Id );
-                        if ( address != null )
-                        {
-                            txtStreet.Text = address.Street1;
-                            txtCity.Text = address.City;
-                            ddlState.SelectedValue = address.State;
-                            txtZip.Text = address.Zip;
-                        }
-
-                        rptPersonPicker.DataSource = person;
-                        rptPersonPicker.DataBind();
-                    }
-                    else
-                    {
-                        //txtCurrentName.Visible = false;
-                        txtFirstName.Visible = true;
-                        txtLastName.Visible = true;
                     }
 
                     SetPage( 1 );
@@ -370,6 +259,25 @@ achieve our mission.  We are so grateful for your commitment.
         #endregion
 
         #region Event methods
+
+        /// <summary>
+        /// Handles the SelectedIndexChanged event of the cpCampuses control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void cpCampuses_SelectedIndexChanged( object sender, EventArgs e )
+        {
+            var selectedCampusId = cpCampuses.SelectedCampusId;
+            var matchingAccounts = new List<int>();
+            if ( selectedCampusId != null)
+            {
+                matchingAccounts = Accounts.Where( a => a.CampusId == selectedCampusId || a.CampusId == null )
+                    .Select( c => c.Id ).ToList();                
+            }
+
+            Accounts.ForEach( a => a.Selected = matchingAccounts.Contains( a.Id ) );
+            BindAccounts();
+        }
 
         /// <summary>
         /// Handles the SelectionChanged event of the btnAddAccount control.
@@ -388,79 +296,19 @@ achieve our mission.  We are so grateful for your commitment.
         }
 
         /// <summary>
-        /// Handles the PageNavigate event of the page control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="HistoryEventArgs"/> instance containing the event data.</param>
-        protected void page_PageNavigate( object sender, HistoryEventArgs e )
-        {
-            int pageId = e.State["GivingDetail"].AsIntegerOrNull() ?? 0;
-            if ( pageId > 0 )
-            {
-                SetPage( pageId );
-            }
-        }
-
-        /// <summary>
-        /// Handles the Click event of the btnPrev control.
+        /// Handles the TextChanged event of the pnbPhone control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void btnPrev_Click( object sender, EventArgs e )
+        protected void pnbPhone_TextChanged( object sender, EventArgs e )
         {
-            // Previous should only be enabled on page two or three
-            int pageId = hfCurrentPage.Value.AsIntegerOrNull() ?? 0;
-            if ( pageId > 1 )
-            {
-                SetPage( pageId - 1 );
-            }
+            var rockContext = new RockContext();
+            var personService = new PersonService( rockContext );
+            rptPersonPicker.DataSource = personService.GetByPhonePartial( pnbPhone.Text )
+                .ToList();
+            rptPersonPicker.DataBind();
         }
-
-        /// <summary>
-        /// Handles the Click event of the btnNext control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void btnNext_Click( object sender, EventArgs e )
-        {
-            string errorMessage = string.Empty;
-
-            switch ( hfCurrentPage.Value.AsIntegerOrNull() ?? 0 )
-            {
-                case 1:
-
-                    this.AddHistory( "GivingDetail", "1", null );
-                    SetPage( 2 );
-                    break;
-
-                case 2:
-                    this.AddHistory( "GivingDetail", "2", null );
-                    SetPage( 3 );
-
-                    break;
-
-                case 3:
-                    if ( VerifyPaymentInfo( out errorMessage ) )
-                    {
-                        if ( ProcessConfirmation( out errorMessage ) )
-                        {
-                            this.AddHistory( "GivingDetail", "3", null );
-                            SetPage( 4 );
-                        }
-                        else
-                        {
-                            ShowMessage( NotificationBoxType.Danger, "Payment Error", errorMessage );
-                        }
-                    }
-                    else
-                    {
-                        ShowMessage( NotificationBoxType.Danger, "Oops!", errorMessage );
-                    }
-
-                    break;
-            }
-        }
-
+        
         /// <summary>
         /// Handles the Click event of the lbSaveAccount control.
         /// </summary>
@@ -606,6 +454,65 @@ achieve our mission.  We are so grateful for your commitment.
             }
         }
 
+        /// <summary>
+        /// Handles the Click event of the btnPrev control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void btnPrev_Click( object sender, EventArgs e )
+        {
+            // Previous should only be enabled on page two or three
+            int pageId = hfCurrentPage.Value.AsIntegerOrNull() ?? 0;
+            if ( pageId > 1 )
+            {
+                SetPage( pageId - 1 );
+            }
+        }
+
+        /// <summary>
+        /// Handles the Click event of the btnNext control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void btnNext_Click( object sender, EventArgs e )
+        {
+            string errorMessage = string.Empty;
+
+            switch ( hfCurrentPage.Value.AsIntegerOrNull() ?? 0 )
+            {
+                case 1:
+                    this.AddHistory( "GivingDetail", "1", null );
+                    SetPage( 2 );
+                    break;
+
+                case 2:
+                    this.AddHistory( "GivingDetail", "2", null );
+                    BindSelectedPerson();
+                    SetPage( 3 );
+                    break;
+
+                case 3:
+                    if ( VerifyPaymentInfo( out errorMessage ) )
+                    {
+                        if ( ProcessConfirmation( out errorMessage ) )
+                        {
+                            this.AddHistory( "GivingDetail", "3", null );
+                            SetPage( 4 );
+                        }
+                        else
+                        {
+                            ShowMessage( NotificationBoxType.Danger, "Payment Error", errorMessage );
+                        }
+                    }
+                    else
+                    {
+                        ShowMessage( NotificationBoxType.Danger, "Oops!", errorMessage );
+                    }
+
+                    break;
+            }
+        }
+
         #endregion
 
         #region Init methods
@@ -613,21 +520,15 @@ achieve our mission.  We are so grateful for your commitment.
         /// <summary>
         /// Gets the campuses.
         /// </summary>
-        private void GetCampuses()
+        /// <returns></returns>
+        private bool GetCampuses()
         {
             var rockContext = new RockContext();
-            Campuses = new CampusService( new RockContext() ).Queryable()
-                .OrderBy( a => a.Name ).ToDictionary( t => t.Id, t => t.Name );
-
-            if ( Campuses.Count > 1 )
-            {
-                cpCampuses.DataSource = Campuses;
-                cpCampuses.DataBind();
-            }
-            else
-            {
-                // set default campus
-            }
+            var campuses = new CampusService( new RockContext() ).Queryable()
+                .OrderBy( a => a.Name ).ToList();
+            campuses.Insert( 0, new Campus() { Name = string.Empty } );
+            cpCampuses.Campuses = campuses;
+            return campuses.Count > 1;
         }
 
         /// <summary>
@@ -674,90 +575,63 @@ achieve our mission.  We are so grateful for your commitment.
             rptAccountList.DataSource = Accounts.Where( a => a.Selected ).OrderBy( a => a.Order ).ToList();
             rptAccountList.DataBind();
 
-            btnAddAccount.Visible = Accounts.Where( a => !a.Selected ).Any();
+            //btnAddAccount.Visible = Accounts.Where( a => !a.Selected ).Any();
             btnAddAccount.DataSource = Accounts.Where( a => !a.Selected ).ToList();
             btnAddAccount.DataBind();
-
-            if ( Accounts.GroupBy( a => a.CampusId ).Count() > 0 )
-            {
-                //cpCampuses.DataSource = Accounts.Select( )
-            }
         }
 
         /// <summary>
-        /// Gets the person.
+        /// Binds the selected person's data.
         /// </summary>
-        /// <param name="create">if set to <c>true</c> [create].</param>
-        /// <returns></returns>
-        [System.Web.Services.WebMethod]
-        protected Person GetPerson( bool create )
+        protected void BindSelectedPerson()
         {
-            Person person = null;
-            var rockContext = new RockContext();
-            var personService = new PersonService( rockContext );
-
-            rptPersonPicker.DataSource = personService.GetByPhonePartial( pnbPhone.Text ).ToList();
-            rptPersonPicker.DataBind();
-
-            int personId = ViewState["PersonId"] as int? ?? 0;
-
-            if ( personId != 0 )
+            Person selectedPerson;
+            foreach ( RepeaterItem personDisplay in rptPersonPicker.Items )
             {
-                person = personService.Get( personId );
+                var cbPerson = (RockCheckBox)personDisplay.FindControl( "cbPerson" );
+                if ( cbPerson.Checked )
+                {
+                    var hfPersonId = (HiddenField)personDisplay.FindControl( "hfPersonId" );
+                    ViewState["PersonId"] = hfPersonId.ValueAsInt();                    
+                }
             }
 
-            if ( person == null && create )
+            selectedPerson = GetPerson();
+
+            // Set personal information if there is a currently logged in person
+            if ( selectedPerson != null )
+            {                
+                var personService = new PersonService( new RockContext() );
+
+                // Bind their default address if it exists
+                Guid addressTypeGuid = Guid.Empty;
+                if ( !Guid.TryParse( GetAttributeValue( "AddressType" ), out addressTypeGuid ) )
+                {
+                    addressTypeGuid = new Guid( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME );
+                }
+
+                var address = personService.GetFirstLocation( selectedPerson.Id, DefinedValueCache.Read( addressTypeGuid ).Id );
+                if ( address != null )
+                {
+                    txtStreet.Text = address.Street1;
+                    txtCity.Text = address.City;
+                    ddlState.SelectedValue = address.State;
+                    txtZip.Text = address.Zip;
+                }
+
+                txtBillingFirstName.Text = selectedPerson.FirstName;
+                txtBillingLastName.Text = selectedPerson.LastName;
+            }   
+            else
             {
-                // Check to see if there's only one person with same phone number
-                if ( !string.IsNullOrWhiteSpace( pnbPhone.Text ) )
-                {
-                    var personMatches = personService.GetByPhonePartial( pnbPhone.Text ).ToList();
-                    if ( personMatches.Count() == 1 )
-                    {
-                        person = personMatches.FirstOrDefault();
-                    }
-                }
-
-                if ( person == null )
-                {
-                    // Create Person
-                    person = new Person();
-                    //person.FirstName = txtFirst.Text;
-                    //person.LastName = txtLast.Text;
-                    person.Email = txtEmail.Text;
-                    person.EmailPreference = EmailPreference.EmailAllowed;
-
-                    var phone = new PhoneNumber();
-                    phone.CountryCode = PhoneNumber.CleanNumber( pnbPhone.CountryCode );
-                    phone.Number = PhoneNumber.CleanNumber( pnbPhone.Number );
-                    phone.NumberTypeValueId = DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME ) ).Id;
-                    person.PhoneNumbers.Add( phone );
-
-                    // Create Family
-                    var familyGroup = GroupService.SaveNewFamily( rockContext, person, null, false );
-                    if ( familyGroup != null )
-                    {
-                        GroupService.AddNewFamilyAddress(
-                            rockContext,
-                            familyGroup,
-                            GetAttributeValue( "AddressType" ),
-                            txtStreet.Text,
-                            string.Empty,
-                            txtCity.Text,
-                            ddlState.SelectedValue,
-                            txtZip.Text );
-                    }
-                }
-
-                ViewState["PersonId"] = person != null ? person.Id : 0;
-            }
-
-            return person;
+                txtBillingFirstName.Text = txtFirstName.Text;
+                txtBillingLastName.Text = txtLastName.Text;
+            }            
         }
 
         #endregion
 
-        #region Payment Verify/Process methods
+        #region Payment methods
 
         /// <summary>
         /// Processes the payment information.
@@ -782,6 +656,7 @@ achieve our mission.  We are so grateful for your commitment.
                 errorMessages.Add( "Make sure the amount you've entered for each account is a positive amount" );
             }
 
+            // New person, require first and last name
             if ( txtFirstName.Visible == true )
             {
                 if ( string.IsNullOrWhiteSpace( txtFirstName.Text ) || string.IsNullOrWhiteSpace( txtLastName.Text ) )
@@ -829,7 +704,7 @@ achieve our mission.  We are so grateful for your commitment.
                 }
                 else
                 {
-                    if ( string.IsNullOrWhiteSpace( txtFirstName.Text ) && string.IsNullOrWhiteSpace( txtLastName.Text ) )
+                    if ( string.IsNullOrWhiteSpace( txtBillingFirstName.Text ) && string.IsNullOrWhiteSpace( txtBillingLastName.Text ) )
                     {
                         errorMessages.Add( "Make sure to enter the full name as it appears on your credit card or bank statement" );
                     }
@@ -859,20 +734,7 @@ achieve our mission.  We are so grateful for your commitment.
                 return false;
             }
 
-            PaymentInfo paymentInfo = GetPaymentInfo();
-            Person person = GetPerson( false );
-            if ( person != null )
-            {
-                paymentInfo.FirstName = person.FirstName;
-                paymentInfo.LastName = person.LastName;
-            }
-            else
-            {
-                paymentInfo.FirstName = txtFirstName.Text;
-                paymentInfo.LastName = txtLastName.Text;
-            }
-
-            tdTotal.Description = paymentInfo.Amount.ToString( "C" );
+            tdTotal.Description = Accounts.Sum( a => a.Amount ).ToString( "C" );
 
             return true;
         }
@@ -1033,6 +895,20 @@ achieve our mission.  We are so grateful for your commitment.
         #region Navigation/Error Methods
 
         /// <summary>
+        /// Handles the PageNavigate event of the page control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="HistoryEventArgs"/> instance containing the event data.</param>
+        protected void page_PageNavigate( object sender, HistoryEventArgs e )
+        {
+            int pageId = e.State["GivingDetail"].AsIntegerOrNull() ?? 0;
+            if ( pageId > 0 )
+            {
+                SetPage( pageId );
+            }
+        }
+
+        /// <summary>
         /// Sets the page.
         /// </summary>
         /// <param name="page">The page.</param>
@@ -1069,91 +945,66 @@ achieve our mission.  We are so grateful for your commitment.
             }
         }
 
-        /// <summary>
-        /// Registers the startup script.
-        /// </summary>
-        private void RegisterScript()
-        {
-            RockPage.AddScriptLink( ResolveUrl( "~/Scripts/jquery.creditCardTypeDetector.js" ) );
-
-            string scriptFormat = @"
-            Sys.Application.add_load(function () {{
-                // As amounts are entered, validate that they are numeric and recalc total
-                $('.account-amount').on('change', function() {{
-                    var totalAmt = Number(0);
-
-                    $('.account-amount .form-control').each(function (index) {{
-                        var itemValue = $(this).val();
-                        if (itemValue != null && itemValue != '') {{
-                            if (isNaN(itemValue)) {{
-                                $(this).parents('div.input-group').addClass('has-error');
-                            }}
-                            else {{
-                                $(this).parents('div.input-group').removeClass('has-error');
-                                var num = Number(itemValue);
-                                $(this).val(num.toFixed(2));
-                                totalAmt = totalAmt + num;
-                            }}
-                        }}
-                        else {{
-                            $(this).parents('div.input-group').removeClass('has-error');
-                        }}
-                    }});
-                    $('.total-amount').html('$ ' + totalAmt.toFixed(2));
-                    return false;
-                }});
-
-                // Lookup person after keyup event with 10 chars
-                $('.number-lookup').on('input', function() {
-                    alert($(this).val());
-                    var number = $(this).val().replace(/\D/g, '');
-                    if (number.length == 10) {
-                        $.ajax({
-                            type: 'post',
-                            url: 'GiveIn60Seconds.ascx/GetPerson',
-                            contentType: 'application/json; charset=utf-8',
-                            dataType: 'json',
-                            data: '{'format':'' + number + ''}',
-                        });
-                    }
-                });
-
-                // Save the state of the selected payment type pill to a hidden field so that state can
-                // be preserved through postback
-                $('a[data-toggle=""pill""]').on('shown.bs.tab', function (e) {{
-                    var tabHref = $(e.target).attr(""href"");
-                    if (tabHref == '#{0}') {{
-                        $('#{1}').val('CreditCard');
-                    }} else {{
-                        $('#{1}').val('ACH');
-                    }}
-                }});
-
-                // Detect credit card type
-                $('.credit-card').creditCardTypeDetector({{ 'credit_card_logos': '.card-logos' }});
-
-                // Hide or show a div based on selection of checkbox
-                $('input:checkbox.toggle-input').unbind('click').on('click', function () {{
-                    $(this).parents('.checkbox').next('.toggle-content').slideToggle();
-                }});
-
-                // Disable the submit button as soon as it's clicked to prevent double-clicking
-                $('a[id$=""btnNext""]').click(function() {{
-			        $(this).addClass('disabled');
-			        $(this).unbind('click');
-			        $(this).click(function () {{
-				        return false;
-			        }});
-                }});
-            }});";
-
-            string script = string.Format( scriptFormat, divCCPaymentInfo.ClientID, hfPaymentTab.ClientID );
-            ScriptManager.RegisterStartupScript( pnlGiveIn60Seconds, this.GetType(), "giving-profile", script, true );
-        }
-
         #endregion
 
-        #region Payment Helper Methods
+        #region Helper Methods
+
+        /// <summary>
+        /// Gets the person.
+        /// </summary>
+        /// <param name="create">if set to <c>true</c> [create].</param>
+        /// <returns></returns>
+        private Person GetPerson( bool create = false )
+        {
+            Person person = null;
+            var rockContext = new RockContext();
+            var personService = new PersonService( rockContext );
+
+            int personId = ViewState["PersonId"] as int? ?? 0;
+            if ( personId == 0 && CurrentPerson != null )
+            {
+                person = CurrentPerson;
+            }
+            else if ( personId != 0 )
+            {
+                person = personService.Get( personId );
+            }
+
+            if ( person == null && create )
+            {   
+                // Create Person
+                person = new Person();
+                person.FirstName = txtFirstName.Text;
+                person.LastName = txtLastName.Text;
+                person.Email = txtEmail.Text;
+                person.EmailPreference = EmailPreference.EmailAllowed;
+
+                var phone = new PhoneNumber();
+                phone.CountryCode = PhoneNumber.CleanNumber( pnbPhone.CountryCode );
+                phone.Number = PhoneNumber.CleanNumber( pnbPhone.Number );
+                phone.NumberTypeValueId = DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME ) ).Id;
+                person.PhoneNumbers.Add( phone );
+
+                // Create Family
+                var familyGroup = GroupService.SaveNewFamily( rockContext, person, null, false );
+                if ( familyGroup != null )
+                {
+                    GroupService.AddNewFamilyAddress(
+                        rockContext,
+                        familyGroup,
+                        GetAttributeValue( "AddressType" ),
+                        txtStreet.Text,
+                        string.Empty,
+                        txtCity.Text,
+                        ddlState.SelectedValue,
+                        txtZip.Text );
+                }                
+
+                ViewState["PersonId"] = person != null ? person.Id : 0;
+            }
+
+            return person;
+        }
 
         /// <summary>
         /// Gets the payment information.
@@ -1203,8 +1054,10 @@ achieve our mission.  We are so grateful for your commitment.
         private CreditCardPaymentInfo GetCCInfo()
         {
             var cc = new CreditCardPaymentInfo( txtCreditCard.Text, txtCVV.Text, mypExpiration.SelectedDate.Value );
-            cc.NameOnCard = string.Format( "{0} {1}", txtFirstName.Text, txtLastName.Text );
-            cc.LastNameOnCard = txtLastName.Text;
+            cc.NameOnCard = string.Format( "{0} {1}", txtBillingFirstName.Text, txtBillingLastName.Text );
+            cc.FirstName = txtBillingFirstName.Text;
+            cc.LastName = txtBillingLastName.Text;
+            cc.LastNameOnCard = txtBillingLastName.Text;
 
             cc.BillingStreet = txtStreet.Text;
             cc.BillingCity = txtCity.Text;
@@ -1292,6 +1145,87 @@ achieve our mission.  We are so grateful for your commitment.
                 CampusId = campusId;
                 Selected = selected;
             }
+        }
+
+        #endregion
+
+        #region Javascript
+
+        /// <summary>
+        /// Registers the startup script.
+        /// </summary>
+        private void RegisterScript()
+        {
+            RockPage.AddScriptLink( ResolveUrl( "~/Scripts/jquery.creditCardTypeDetector.js" ) );
+
+            string scriptFormat = @"
+            Sys.Application.add_load(function () {{
+                // As amounts are entered, validate that they are numeric and recalc total
+                $('.account-amount').on('keyup', function() {{
+                    var totalAmt = Number(0);
+
+                    $('.account-amount .form-control').each(function (index) {{
+                        var itemValue = $(this).val();
+                        if (itemValue != null && itemValue != '') {{
+                            if (isNaN(itemValue)) {{
+                                $(this).parents('div.input-group').addClass('has-error');
+                            }}
+                            else {{
+                                $(this).parents('div.input-group').removeClass('has-error');
+                                var num = Number(itemValue);
+                                $(this).val(num.toFixed(2));
+                                totalAmt = totalAmt + num;
+                            }}
+                        }}
+                        else {{
+                            $(this).parents('div.input-group').removeClass('has-error');
+                        }}
+                    }});
+                    $('.total-amount').html('$ ' + totalAmt.toFixed(2));
+                    return false;
+                }});
+
+                // Lookup person after keyup event with 10 chars
+                $('div.number-lookup > input.form-control').on('keyup', function () {{
+                    var number = $(this).val().replace(/\D/g, '');
+                    if (number.length == 10) {{
+                        __doPostBack($(this).attr('id'), '');
+                    }}
+                }});
+
+                // Save the state of the selected payment type pill to a hidden field so that state can
+                // be preserved through postback
+                $('a[data-toggle=""pill""]').on('shown.bs.tab', function (e) {{
+                    var tabHref = $(e.target).attr(""href"");
+                    if (tabHref == '#{0}') {{
+                        $('#{1}').val('CreditCard');
+                    }} else {{
+                        $('#{1}').val('ACH');
+                    }}
+                }});
+
+                // Detect credit card type
+                $('.credit-card').creditCardTypeDetector({{ 'credit_card_logos': '.card-logos' }});
+
+                // Hide or show a div based on selection of checkbox
+                $('input:checkbox.toggle-input').unbind('click').on('click', function () {{
+                    $('input:checkbox.toggle-input').not(this).prop('checked', false);
+                    $('.toggle-content').not(this).slideUp();
+                    $(this).parents('.checkbox').next('.toggle-content').slideToggle();
+                }});
+
+                // Disable the submit button as soon as it's clicked to prevent double-clicking
+                $('a[id$=""btnNext""]').click(function() {{
+			        $(this).addClass('disabled');
+			        $(this).unbind('click');
+			        $(this).click(function () {{
+				        return false;
+			        }});
+                }});
+            }});";
+
+            string script = string.Format( scriptFormat, divCCPaymentInfo.ClientID, hfPaymentTab.ClientID );
+            ScriptManager.RegisterStartupScript( pnlGiveIn60Seconds, this.GetType(), "giving-profile", script, true );
         }
 
         #endregion
