@@ -183,14 +183,8 @@ achieve our mission.  We are so grateful for your commitment.
                 if ( !Page.IsPostBack )
                 {
                     // Get the list of accounts that can be used
-                    bool isMultiSite = GetCampuses();
                     GetAccounts();
-
-                    if ( !isMultiSite )
-                    {
-                        cpCampuses.Visible = false;
-                        BindAccounts();
-                    }
+                    BindCampuses();
 
                     // Display Options
                     btnAddAccount.Title = GetAttributeValue( "AddAccountText" );
@@ -559,7 +553,12 @@ achieve our mission.  We are so grateful for your commitment.
         {
             if ( CurrentPerson != null )
             {
-                pnbPhone.Number = CurrentPerson.PhoneNumbers.FirstOrDefault().Number;
+                var currentNumber = CurrentPerson.PhoneNumbers.FirstOrDefault();
+                if ( currentNumber != null )
+                {
+                    pnbPhone.Number = currentNumber.Number;
+                }
+
                 rptPersonPicker.DataSource = new List<Person>() { CurrentPerson };
                 rptPersonPicker.DataBind();
                 divPersonPicker.Visible = true;
@@ -585,20 +584,6 @@ achieve our mission.  We are so grateful for your commitment.
             phPageHeader.Controls.Add( new LiteralControl( GetAttributeValue( "PageHeader" ).ResolveMergeFields( configValues ) ) );
             phPageFooter.Controls.Add( new LiteralControl( GetAttributeValue( "PageFooter" ).ResolveMergeFields( configValues ) ) );
             phReceipt.Controls.Add( new LiteralControl( GetAttributeValue( "ReceiptMessage" ).ResolveMergeFields( configValues ) ) );
-        }
-
-        /// <summary>
-        /// Gets the campuses.
-        /// </summary>
-        /// <returns></returns>
-        private bool GetCampuses()
-        {
-            var rockContext = new RockContext();
-            var campuses = new CampusService( new RockContext() ).Queryable()
-                .OrderBy( a => a.Name ).ToList();
-            campuses.Insert( 0, new Campus() { Name = string.Empty } );
-            cpCampuses.Campuses = campuses;
-            return campuses.Count > 1;
         }
 
         /// <summary>
@@ -634,6 +619,28 @@ achieve our mission.  We are so grateful for your commitment.
                 {
                     Accounts.Add( accountItem );
                 }
+            }
+        }
+
+        /// <summary>
+        /// Gets the campuses.
+        /// </summary>
+        /// <returns></returns>
+        private void BindCampuses()
+        {
+            var rockContext = new RockContext();
+            var campuses = new CampusService( rockContext ).Queryable()
+                .OrderBy( a => a.Name ).ToList();
+            cpCampuses.Campuses = campuses;
+
+            if ( campuses.Count > 1 )
+            {
+                campuses.Insert( 0, new Campus() { Name = string.Empty } );
+            }
+            else
+            {
+                cpCampuses.Visible = false;
+                BindAccounts();
             }
         }
 
@@ -1303,6 +1310,6 @@ achieve our mission.  We are so grateful for your commitment.
             ScriptManager.RegisterStartupScript( pnlGiveIn60Seconds, this.GetType(), "giving-profile", script, true );
         }
 
-        #endregion        
+        #endregion
     }
 }
