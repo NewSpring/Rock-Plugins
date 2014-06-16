@@ -199,11 +199,11 @@ achieve our mission.  We are so grateful for your commitment.
                     bool achEnabled = _achGateway != null;
                     if ( ccEnabled )
                     {
-                        hfPaymentTab.Value = "CreditCard";                        
+                        hfPaymentTab.Value = "CreditCard";
                     }
                     else
                     {
-                        hfPaymentTab.Value = "ACH";                        
+                        hfPaymentTab.Value = "ACH";
                     }
 
                     if ( ccEnabled && achEnabled )
@@ -259,7 +259,6 @@ achieve our mission.  We are so grateful for your commitment.
                     divACHPaymentInfo.RemoveCssClass( "active" );
                     liACH.RemoveCssClass( "active" );
                 }
-                
 
                 ScriptManager.GetCurrent( this.Page ).EnableSecureHistoryState = false;
             }
@@ -311,6 +310,25 @@ achieve our mission.  We are so grateful for your commitment.
         }
 
         /// <summary>
+        /// Handles the ItemDataBound event of the rptPersonPicker control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="RepeaterItemEventArgs"/> instance containing the event data.</param>
+        protected void rptPersonPicker_ItemDataBound( object sender, RepeaterItemEventArgs e )
+        {
+            var currentPerson = e.Item.DataItem as Person;
+            if ( e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem )
+            {
+                var cbPerson = e.Item.FindControl( "cbPerson" ) as RockCheckBox;
+                var hfPersonId = e.Item.FindControl( "hfPersonId" ) as HiddenField;
+                var txtExistingEmail = e.Item.FindControl( "txtExistingEmail" ) as RockTextBox;
+                cbPerson.Label = currentPerson.FullName;
+                hfPersonId.Value = currentPerson.Id.ToString();
+                txtExistingEmail.Text = currentPerson.Email;
+            }
+        }
+
+        /// <summary>
         /// Handles the TextChanged event of the pnbPhone control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
@@ -321,7 +339,7 @@ achieve our mission.  We are so grateful for your commitment.
             var personService = new PersonService( rockContext );
             rptPersonPicker.DataSource = personService.GetByPhonePartial( pnbPhone.Text ).ToList();
             rptPersonPicker.DataBind();
-            divPersonPicker.Visible = true;            
+            divPersonPicker.Visible = true;
         }
 
         /// <summary>
@@ -497,6 +515,7 @@ achieve our mission.  We are so grateful for your commitment.
             {
                 case 1:
                     this.AddHistory( "step", "2", null );
+                    PrefillPerson();
                     SetPage( 2 );
                     break;
 
@@ -530,6 +549,20 @@ achieve our mission.  We are so grateful for your commitment.
                     }
 
                     break;
+            }
+        }
+
+        /// <summary>
+        /// Prefills the person if they are logged in.
+        /// </summary>
+        private void PrefillPerson()
+        {
+            if ( CurrentPerson != null )
+            {
+                pnbPhone.Number = CurrentPerson.PhoneNumbers.FirstOrDefault().Number;
+                rptPersonPicker.DataSource = new List<Person>() { CurrentPerson };
+                rptPersonPicker.DataBind();
+                divPersonPicker.Visible = true;
             }
         }
 
@@ -1232,7 +1265,7 @@ achieve our mission.  We are so grateful for your commitment.
                     if (number.length == 10) {{
                         __doPostBack($(this).attr('id'), '');
                         $('.person-picker').slideToggle();
-                    }} 
+                    }}
                 }});
 
                 // Save the state of the selected payment type pill to a hidden field so that state can
@@ -1270,6 +1303,6 @@ achieve our mission.  We are so grateful for your commitment.
             ScriptManager.RegisterStartupScript( pnlGiveIn60Seconds, this.GetType(), "giving-profile", script, true );
         }
 
-        #endregion
+        #endregion        
     }
 }

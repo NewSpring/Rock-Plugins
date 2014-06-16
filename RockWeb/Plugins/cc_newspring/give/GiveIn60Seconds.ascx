@@ -54,16 +54,16 @@
                         <Rock:PhoneNumberBox ID="pnbPhone" runat="server" Label="Phone" CssClass=" number-lookup" OnTextChanged="pnbPhone_TextChanged" />
 
                         <div id="divPersonPicker" runat="server" class="person-picker" visible="false">
-                            <asp:Repeater ID="rptPersonPicker" runat="server">
+                            <asp:Repeater ID="rptPersonPicker" runat="server" OnItemDataBound="rptPersonPicker_ItemDataBound">
                                 <ItemTemplate>
                                     <div class="checkbox">
-                                        <Rock:RockCheckBox ID="cbPerson" runat="server" Label='<%# Eval("FullName") %>' CssClass="toggle-input" />
-                                        <asp:HiddenField ID="hfPersonId" runat="server" Value='<%# Eval("Id") %>' />
+                                        <Rock:RockCheckBox ID="cbPerson" runat="server" CssClass="toggle-input" />
+                                        <asp:HiddenField ID="hfPersonId" runat="server" />
                                     </div>
                                     <div id="divPersonDetail" runat="server" class="toggle-content" style="display: none">
-                                        <Rock:RockTextBox ID="txtExistingEmail" runat="server" Label="Email" Text='<%# Eval("Email") %>' />
+                                        <Rock:RockTextBox ID="txtExistingEmail" runat="server" Label="Email" />
                                     </div>
-                                </ItemTemplate>                            
+                                </ItemTemplate>
                             </asp:Repeater>
 
                             <div class="new-person">
@@ -153,15 +153,14 @@
                     </div>
 
                     <Rock:TermDescription ID="tdTotal" runat="server" Term="Total" />
-
                 </div>
-            
             </div>
 
             <asp:Panel ID="pnlDupWarning" runat="server" CssClass="alert alert-block" Visible="false">
-                <h4>Warning!</h4>                
+                <h4>Warning!</h4>
                 <div>
-                    <label>You have already submitted a transaction that has been processed.  Are you sure you want
+                    <label>
+                        You have already submitted a transaction that has been processed.  Are you sure you want
                     to submit another possible duplicate transaction?</label>
                 </div>
             </asp:Panel>
