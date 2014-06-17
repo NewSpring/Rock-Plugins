@@ -37,25 +37,17 @@ namespace RockWeb.Plugins.cc_newspring.give
     [BooleanField( "Additional Accounts", "Display option for selecting additional accounts", "Don't display option",
         "Should users be allowed to select additional accounts?  If so, any active account with a Public Name value will be available", true, "", 7 )]
     [TextField( "Add Account Text", "The button text to display for adding an additional account", false, "Add Another Account", "", 8 )]
-
     [BooleanField( "Require Phone", "Should the user be prompted for their phone number?", true, "", 11, "RequirePhone" )]
     [BooleanField( "Require Email", "Should the user be prompted for their email address?", true, "", 12, "RequireEmail" )]
-    [CodeEditorField( "Page Header", "The text (HTML) to display at the top of the page.", CodeEditorMode.Html, CodeEditorTheme.Rock, 400, true, @"
-<p>
+    [CodeEditorField( "Page Header", "The text (HTML) to display at the top of the page.", CodeEditorMode.Html, CodeEditorTheme.Rock, 400, true, @"<p>
 STEP {{PageNumber}} OF 4
-</p>
-<br>
-", "Text Options", 13 )]
-    [CodeEditorField( "Page Footer", "The text (HTML) to display at the bottom of the page.", CodeEditorMode.Html, CodeEditorTheme.Rock, 400, true, @"
-<br>
-<div class='alert alert-info'>
+</p><br>", "Text Options", 13 )]
+    [CodeEditorField( "Page Footer", "The text (HTML) to display at the bottom of the page.", CodeEditorMode.Html, CodeEditorTheme.Rock, 400, true, @"<br><div class='alert alert-info'>
 If you have questions about giving, or difficulty giving online to {{OrganizationName}}, please contact us at {{OrganizationEmail}} or {{ OrganizationPhone }}.
-</div>
-", "Text Options", 14 )]
+</div>", "Text Options", 14 )]
     [CodeEditorField( "Receipt Message", "The text (HTML) to display when the contribution is successful.", CodeEditorMode.Html, CodeEditorTheme.Rock, 400, true, @"
 <p>
-Thank you for your generous contribution.  Your support is helping {{ OrganizationName }} actively
-achieve our mission.  We are so grateful for your commitment.
+Thank you for your generous contribution.  Your support is helping {{ OrganizationName }} reach the world for Jesus.
 </p>
 ", "Text Options", 15 )]
     [EmailTemplateField( "Confirm Account", "Confirm Account Email Template", false, Rock.SystemGuid.SystemEmail.SECURITY_CONFIRM_ACCOUNT, "Email Templates", 17, "ConfirmAccountTemplate" )]
@@ -262,6 +254,8 @@ achieve our mission.  We are so grateful for your commitment.
                 SetPage( 0 );
                 ShowMessage( NotificationBoxType.Danger, "Configuration Error", "Please check the configuration of this block and make sure a valid Credit Card and/or ACH Financial Gateway has been selected." );
             }
+
+            BindHeaders();
         }
 
         #endregion
@@ -332,9 +326,19 @@ achieve our mission.  We are so grateful for your commitment.
         {
             var rockContext = new RockContext();
             var personService = new PersonService( rockContext );
-            rptPersonPicker.DataSource = personService.GetByPhonePartial( pnbPhone.Text ).ToList();
-            rptPersonPicker.DataBind();
-            divPersonPicker.Visible = true;
+            var personList = personService.GetByPhonePartial( pnbPhone.Text ).ToList();
+            
+            if ( personList.Any() )
+            {
+                rptPersonPicker.DataSource = personList;
+                rptPersonPicker.DataBind();
+                divNewPerson.Visible = true;
+            }
+            else
+            {
+                divNoResults.Visible = true;
+                divNewPerson.Visible = true;
+            }
         }
 
         /// <summary>
@@ -547,25 +551,7 @@ achieve our mission.  We are so grateful for your commitment.
             }
         }
 
-        /// <summary>
-        /// Prefills the person if they are logged in.
-        /// </summary>
-        private void PrefillPerson()
-        {
-            if ( CurrentPerson != null )
-            {
-                var currentNumber = CurrentPerson.PhoneNumbers.FirstOrDefault();
-                if ( currentNumber != null )
-                {
-                    pnbPhone.Number = currentNumber.Number;
-                }
-
-                rptPersonPicker.DataSource = new List<Person>() { CurrentPerson };
-                rptPersonPicker.DataBind();
-                divPersonPicker.Visible = true;
-            }
-        }
-
+       
         #endregion
 
         #region Init methods
@@ -632,7 +618,7 @@ achieve our mission.  We are so grateful for your commitment.
             var rockContext = new RockContext();
             var campuses = new CampusService( rockContext ).Queryable()
                 .OrderBy( a => a.Name ).ToList();
-            
+
             if ( campuses.Count > 1 )
             {
                 campuses.Insert( 0, new Campus() { Name = string.Empty } );
@@ -656,7 +642,6 @@ achieve our mission.  We are so grateful for your commitment.
             //btnAddAccount.Visible = Accounts.Where( a => !a.Selected ).Any();
             btnAddAccount.DataSource = Accounts.Where( a => !a.Selected ).ToList();
             btnAddAccount.DataBind();
-            BindHeaders();
         }
 
         /// <summary>
@@ -712,6 +697,24 @@ achieve our mission.  We are so grateful for your commitment.
             tdTotal.Description = Accounts.Sum( a => a.Amount ).ToString( "C" );
         }
 
+        /// <summary>
+        /// Prefills the person if they are logged in.
+        /// </summary>
+        private void PrefillPerson()
+        {
+            if ( CurrentPerson != null )
+            {
+                var currentNumber = CurrentPerson.PhoneNumbers.FirstOrDefault();
+                if ( currentNumber != null )
+                {
+                    pnbPhone.Number = currentNumber.Number;
+                }
+
+                rptPersonPicker.DataSource = new List<Person>() { CurrentPerson };
+                rptPersonPicker.DataBind();                
+            }
+        }
+
         #endregion
 
         #region Payment methods
@@ -723,8 +726,7 @@ achieve our mission.  We are so grateful for your commitment.
         /// <returns></returns>
         private bool VerifyPaymentInfo( out string errorMessage )
         {
-            errorMessage = "We found a couple things to fix";
-
+            errorMessage = string.Empty;
             var errorMessages = new List<string>();
 
             // Validate that an amount was entered
@@ -818,6 +820,7 @@ achieve our mission.  We are so grateful for your commitment.
 
             if ( errorMessages.Any() )
             {
+                errorMessages.Insert( 0, "We found a couple things to fix:" );
                 errorMessage = errorMessages.AsDelimited( "<br/>" );
                 return false;
             }
@@ -1011,8 +1014,7 @@ achieve our mission.  We are so grateful for your commitment.
             btnNext.Text = page > 2 ? "Give Now" : "Next";
 
             hfCurrentPage.Value = page.ToString();
-            BindHeaders();
-
+            
             pnlGiveIn60Seconds.Update();
         }
 
@@ -1251,7 +1253,6 @@ achieve our mission.  We are so grateful for your commitment.
                 // As amounts are entered, validate that they are numeric and recalc total
                 $('.account-amount').on('keyup', function() {{
                     var totalAmt = Number(0);
-
                     $('.account-amount .form-control').each(function (index) {{
                         var itemValue = $(this).val();
                         if (itemValue != null && itemValue != '') {{

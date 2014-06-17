@@ -22,7 +22,7 @@
                         <div id="divContributions" runat="server">
                             <asp:Repeater ID="rptAccountList" runat="server">
                                 <ItemTemplate>                                    
-                                    <Rock:CurrencyBox ID="txtAccountAmount" runat="server" Label='<%# Eval("Name") %>' Text='<%# Eval("AmountFormatted") %>' Placeholder="0.00" CssClass="account-amount" Help='<%# Eval("Description") %>' />
+                                    <Rock:CurrencyBox ID="txtAccountAmount" runat="server" Label='<%# Eval("Name") %>' Text='<%# Eval("AmountFormatted") %>' Placeholder="0.00" CssClass="account-amount" Help='<%# Eval("Description") %>' ToolTip='<%# Eval("Description") %>' />
                                 </ItemTemplate>
                             </asp:Repeater>
 
@@ -51,30 +51,33 @@
                     <fieldset>
                         <Rock:PhoneNumberBox ID="pnbPhone" runat="server" Label="Phone" CssClass=" number-lookup" OnTextChanged="pnbPhone_TextChanged" />
 
-                        <div id="divPersonPicker" runat="server" class="person-picker" visible="false">
-                            <asp:Repeater ID="rptPersonPicker" runat="server" OnItemDataBound="rptPersonPicker_ItemDataBound">
-                                <ItemTemplate>
-                                    <div class="checkbox">
-                                        <Rock:RockCheckBox ID="cbPerson" runat="server" CssClass="toggle-input" />
-                                        <asp:HiddenField ID="hfPersonId" runat="server" />
-                                    </div>
-                                    <div id="divPersonDetail" runat="server" class="toggle-content" style="display: none">
-                                        <Rock:RockTextBox ID="txtExistingEmail" runat="server" Label="Email" />
-                                    </div>
-                                </ItemTemplate>
-                            </asp:Repeater>
+                        <div id="divNoResults" runat="server" visible="false">
+                            <label class="no-results">No Matches Found</label>
+                        </div>
 
-                            <div class="new-person">
+                        <asp:Repeater ID="rptPersonPicker" runat="server"  OnItemDataBound="rptPersonPicker_ItemDataBound">
+                            <ItemTemplate>
                                 <div class="checkbox">
-                                    <Rock:RockCheckBox ID="cbNewPerson" runat="server" Label="... or enter a different name" CssClass="toggle-input" />
+                                    <Rock:RockCheckBox ID="cbPerson" runat="server" CssClass="toggle-input" />
+                                    <asp:HiddenField ID="hfPersonId" runat="server" />
                                 </div>
                                 <div id="divPersonDetail" runat="server" class="toggle-content" style="display: none">
-                                    <Rock:RockTextBox ID="txtFirstName" runat="server" Label="First" />
-                                    <Rock:RockTextBox ID="txtLastName" runat="server" Label="Last" />
-                                    <Rock:RockTextBox ID="txtNewEmail" runat="server" Label="Email" />
+                                    <Rock:RockTextBox ID="txtExistingEmail" runat="server" Label="Email" />
                                 </div>
+                            </ItemTemplate>                                
+                        </asp:Repeater>
+                            
+                        <div id="divNewPerson" runat="server" visible="false">
+                            <div class="checkbox">
+                                <Rock:RockCheckBox ID="cbNewPerson" runat="server" Label="... or enter a different name" CssClass="toggle-input" />
+                            </div>
+                            <div id="divPersonDetail" runat="server" class="toggle-content" style="display: none">
+                                <Rock:RockTextBox ID="txtFirstName" runat="server" Label="First" />
+                                <Rock:RockTextBox ID="txtLastName" runat="server" Label="Last" />
+                                <Rock:RockTextBox ID="txtNewEmail" runat="server" Label="Email" />
                             </div>
                         </div>
+                        
                     </fieldset>
                 </div>
             </div>
