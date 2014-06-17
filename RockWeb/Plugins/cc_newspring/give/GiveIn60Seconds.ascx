@@ -21,10 +21,8 @@
 
                         <div id="divContributions" runat="server">
                             <asp:Repeater ID="rptAccountList" runat="server">
-                                <ItemTemplate>
-                                    <div data-toggle="tooltip" data-placement="top" title="<%# Eval("Description") %>">
-                                        <Rock:CurrencyBox ID="txtAccountAmount" runat="server" Label='<%# Eval("Name") %>' Text='<%# Eval("AmountFormatted") %>' Placeholder="0.00" CssClass="account-amount" />
-                                    </div>
+                                <ItemTemplate>                                    
+                                    <Rock:CurrencyBox ID="txtAccountAmount" runat="server" Label='<%# Eval("Name") %>' Text='<%# Eval("AmountFormatted") %>' Placeholder="0.00" CssClass="account-amount" Help='<%# Eval("Description") %>' />
                                 </ItemTemplate>
                             </asp:Repeater>
 
