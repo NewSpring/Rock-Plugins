@@ -38,17 +38,18 @@ namespace RockWeb.Plugins.cc_newspring.give
         "Should users be allowed to select additional accounts?  If so, any active account with a Public Name value will be available", true, "", 7 )]
     [TextField( "Add Account Text", "The button text to display for adding an additional account", false, "Add Another Account", "", 8 )]
 
-    // 9 - 12
-
+    [BooleanField( "Require Phone", "Should the user be prompted for their phone number?", true, "", 11, "RequirePhone" )]
+    [BooleanField( "Require Email", "Should the user be prompted for their email address?", true, "", 12, "RequireEmail" )]
     [CodeEditorField( "Page Header", "The text (HTML) to display at the top of the page.", CodeEditorMode.Html, CodeEditorTheme.Rock, 400, true, @"
 <p>
-Please confirm the information below. Once you have confirmed that the information is accurate click the 'Finish' button to complete your transaction.
+STEP {{PageNumber}} OF 4
 </p>
+<br>
 ", "Text Options", 13 )]
     [CodeEditorField( "Page Footer", "The text (HTML) to display at the bottom of the page.", CodeEditorMode.Html, CodeEditorTheme.Rock, 400, true, @"
+<br>
 <div class='alert alert-info'>
-By clicking the 'finish' button below I agree to allow {{ OrganizationName }} to debit the amount above from my account. I acknowledge that I may
-update the transaction information at any time by returning to this website. Please call the Finance Office if you have any additional questions.
+If you have questions about giving, or difficulty giving online to {{OrganizationName}}, please contact us at {{OrganizationEmail}} or {{ OrganizationPhone }}.
 </div>
 ", "Text Options", 14 )]
     [CodeEditorField( "Receipt Message", "The text (HTML) to display when the contribution is successful.", CodeEditorMode.Html, CodeEditorTheme.Rock, 400, true, @"
@@ -572,7 +573,7 @@ achieve our mission.  We are so grateful for your commitment.
         /// <summary>
         /// Adds the headers.
         /// </summary>
-        private void GetHeaders()
+        private void BindHeaders()
         {
             // Resolve the text field merge fields
             var configValues = new Dictionary<string, object>();
@@ -631,11 +632,11 @@ achieve our mission.  We are so grateful for your commitment.
             var rockContext = new RockContext();
             var campuses = new CampusService( rockContext ).Queryable()
                 .OrderBy( a => a.Name ).ToList();
-            cpCampuses.Campuses = campuses;
-
+            
             if ( campuses.Count > 1 )
             {
                 campuses.Insert( 0, new Campus() { Name = string.Empty } );
+                cpCampuses.Campuses = campuses;
             }
             else
             {
@@ -655,6 +656,7 @@ achieve our mission.  We are so grateful for your commitment.
             //btnAddAccount.Visible = Accounts.Where( a => !a.Selected ).Any();
             btnAddAccount.DataSource = Accounts.Where( a => !a.Selected ).ToList();
             btnAddAccount.DataBind();
+            BindHeaders();
         }
 
         /// <summary>
@@ -721,7 +723,7 @@ achieve our mission.  We are so grateful for your commitment.
         /// <returns></returns>
         private bool VerifyPaymentInfo( out string errorMessage )
         {
-            errorMessage = string.Empty;
+            errorMessage = "We found a couple things to fix";
 
             var errorMessages = new List<string>();
 
@@ -744,6 +746,11 @@ achieve our mission.  We are so grateful for your commitment.
                 {
                     errorMessages.Add( "Make sure to enter both a first and last name" );
                 }
+            }
+
+            if ( string.IsNullOrWhiteSpace( pnbPhone.Number ) )
+            {
+                errorMessages.Add( "Make sure to enter a valid phone number.  A phone number is required for us to attribute your contribution" );
             }
 
             if ( string.IsNullOrWhiteSpace( txtEmail.Text ) )
@@ -1004,7 +1011,7 @@ achieve our mission.  We are so grateful for your commitment.
             btnNext.Text = page > 2 ? "Give Now" : "Next";
 
             hfCurrentPage.Value = page.ToString();
-            GetHeaders();
+            BindHeaders();
 
             pnlGiveIn60Seconds.Update();
         }
