@@ -25,8 +25,6 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "RockWeb(1)", "http://localh
 		SlnRelativePath = "RockWeb\"
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cc.newspring.give", "cc.newspring.give\cc.newspring.give.csproj", "{BA60AFE4-4A42-4F30-AD68-7FBE93657C8B}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,10 +35,6 @@ Global
 		{22348267-9BDF-4B5E-BB6E-37B5FA770224}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{22348267-9BDF-4B5E-BB6E-37B5FA770224}.Release|Any CPU.ActiveCfg = Debug|Any CPU
 		{22348267-9BDF-4B5E-BB6E-37B5FA770224}.Release|Any CPU.Build.0 = Debug|Any CPU
-		{BA60AFE4-4A42-4F30-AD68-7FBE93657C8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BA60AFE4-4A42-4F30-AD68-7FBE93657C8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BA60AFE4-4A42-4F30-AD68-7FBE93657C8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BA60AFE4-4A42-4F30-AD68-7FBE93657C8B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
