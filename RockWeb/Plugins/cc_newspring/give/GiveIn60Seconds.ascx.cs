@@ -1251,7 +1251,7 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
             string scriptFormat = @"
             Sys.Application.add_load(function () {{
                 // As amounts are entered, validate that they are numeric and recalc total
-                $('.account-amount').on('keyup', function() {{
+                $('.account-amount').on('change', function() {{
                     var totalAmt = Number(0);
                     $('.account-amount .form-control').each(function (index) {{
                         var itemValue = $(this).val();
