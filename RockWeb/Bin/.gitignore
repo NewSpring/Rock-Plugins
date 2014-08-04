@@ -1,3 +1,4 @@
 *.pdb
 /cc.newspring.SampleProject.dll
 /cc.newspring.dll
+/cc.newspring.AttendedCheckIn.dll
