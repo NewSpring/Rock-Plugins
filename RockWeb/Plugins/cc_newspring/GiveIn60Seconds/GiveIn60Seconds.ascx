@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="GiveIn60Seconds.ascx.cs" Inherits="RockWeb.Plugins.cc_newspring.give.GiveIn60Seconds" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="GiveIn60Seconds.ascx.cs" Inherits="RockWeb.Plugins.cc_newspring.GiveIn60Seconds.Give" %>
 
 <asp:UpdatePanel ID="pnlGiveIn60Seconds" runat="server" UpdateMode="Conditional">
     <ContentTemplate>

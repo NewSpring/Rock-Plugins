@@ -14,7 +14,7 @@ using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
-namespace RockWeb.Plugins.cc_newspring.give
+namespace RockWeb.Plugins.cc_newspring.GiveIn60Seconds
 {
     #region Block Attributes
 
@@ -54,7 +54,7 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
 
     #endregion
 
-    public partial class GiveIn60Seconds : Rock.Web.UI.RockBlock
+    public partial class Give : Rock.Web.UI.RockBlock
     {
         #region Fields
 
@@ -327,7 +327,7 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
             var rockContext = new RockContext();
             var personService = new PersonService( rockContext );
             var personList = personService.GetByPhonePartial( pnbPhone.Text ).ToList();
-            
+
             if ( personList.Any() )
             {
                 rptPersonPicker.DataSource = personList;
@@ -551,7 +551,6 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
             }
         }
 
-       
         #endregion
 
         #region Init methods
@@ -680,7 +679,7 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
                     txtStreet.Text = address.Street1;
                     txtCity.Text = address.City;
                     ddlState.SelectedValue = address.State;
-                    txtZip.Text = address.Zip;
+                    txtZip.Text = address.PostalCode;
                 }
 
                 txtBillingFirstName.Text = selectedPerson.FirstName;
@@ -711,7 +710,7 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
                 }
 
                 rptPersonPicker.DataSource = new List<Person>() { CurrentPerson };
-                rptPersonPicker.DataBind();                
+                rptPersonPicker.DataBind();
             }
         }
 
@@ -1014,7 +1013,7 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
             btnNext.Text = page > 2 ? "Give Now" : "Next";
 
             hfCurrentPage.Value = page.ToString();
-            
+
             pnlGiveIn60Seconds.Update();
         }
 
@@ -1087,7 +1086,8 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
                         string.Empty,
                         txtCity.Text,
                         ddlState.SelectedValue,
-                        txtZip.Text );
+                        txtZip.Text,
+                        string.Empty );
                 }
 
                 ViewState["PersonId"] = person != null ? person.Id : 0;
@@ -1129,10 +1129,10 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
             paymentInfo.Amount = Accounts.Sum( a => a.Amount );
             paymentInfo.Email = txtEmail.Text;
             paymentInfo.Phone = PhoneNumber.FormattedNumber( pnbPhone.CountryCode, pnbPhone.Number, true );
-            paymentInfo.Street = txtStreet.Text;
+            paymentInfo.Street1 = txtStreet.Text;
             paymentInfo.City = txtCity.Text;
             paymentInfo.State = ddlState.SelectedValue;
-            paymentInfo.Zip = txtZip.Text;
+            paymentInfo.PostalCode = txtZip.Text;
 
             return paymentInfo;
         }
@@ -1149,10 +1149,10 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
             cc.LastName = txtBillingLastName.Text;
             cc.LastNameOnCard = txtBillingLastName.Text;
 
-            cc.BillingStreet = txtStreet.Text;
+            cc.BillingStreet1 = txtStreet.Text;
             cc.BillingCity = txtCity.Text;
             cc.BillingState = ddlState.SelectedValue;
-            cc.BillingZip = txtZip.Text;
+            cc.BillingPostalCode = txtZip.Text;
 
             return cc;
         }
