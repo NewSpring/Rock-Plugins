@@ -3,7 +3,7 @@ A CyberSource plugin for Rock RMS: http://www.rockrms.com/
 Built with the Rock developer kit: https://github.com/SparkDevNetwork/RockKit
 
 ______________________________________________
-How to Install:
+Installation:
 
 * Download Rock.CyberSource.dll into RockWeb\Plugins: https://github.com/NewSpring/Cybersource-Plugin/blob/master/RockWeb/Plugins/Rock.CyberSource.dll
 * Go to Admin Tools -> System Settings -> Financial Gateways and select the CyberSource option
@@ -14,7 +14,7 @@ Currently only United States giving is supported.
 Please create an issue in this repository if you have issues.
 ______________________________________________
 
-Updating to the latest Cybersource WSDL:
+Developer notes for updating:
 
 1. Make sure the WCF toolkit is installed from https://support.cybersource.com/cybskb/index?page=content&id=C631&actp=LIST
 2. Open CMD shell in the sample code directory (specifically sample_wcf.cs).
