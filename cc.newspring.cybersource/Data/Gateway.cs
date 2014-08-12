@@ -347,7 +347,7 @@ namespace Rock.CyberSource
                 var startDate = GetDate( verifyReply.paySubscriptionRetrieveReply.startDate );
                 transaction.StartDate = startDate ?? transaction.StartDate;
                 transaction.NextPaymentDate = NextPaymentDate( startDate, verifyReply.paySubscriptionRetrieveReply.frequency ) ?? transaction.NextPaymentDate;
-                transaction.NumberOfPayments = verifyReply.paySubscriptionRetrieveReply.totalPayments.AsInteger() ?? transaction.NumberOfPayments;
+                transaction.NumberOfPayments = verifyReply.paySubscriptionRetrieveReply.totalPayments.AsIntegerOrNull() ?? transaction.NumberOfPayments;
                 transaction.LastStatusUpdateDateTime = DateTime.Now;
 
                 return true;
@@ -676,11 +676,11 @@ namespace Rock.CyberSource
             billingInfo.lastName = paymentInfo.LastName.Left( 60 );         // up to 60 chars
             billingInfo.email = paymentInfo.Email;                          // up to 255 chars
             billingInfo.phoneNumber = paymentInfo.Phone.Left( 15 );         // up to 15 chars
-            billingInfo.street1 = paymentInfo.Street.Left( 50 );            // up to 50 chars
+            billingInfo.street1 = paymentInfo.Street1.Left( 50 );            // up to 50 chars
             billingInfo.city = paymentInfo.City.Left( 50 );                 // up to 50 chars
             billingInfo.state = paymentInfo.State.Left( 2 );                // only 2 chars
 
-            var zip = paymentInfo.Zip;
+            var zip = paymentInfo.PostalCode;
             if ( !string.IsNullOrWhiteSpace( zip ) && zip.Length > 5 )
             {
                 Regex.Replace( zip, @"^(.{5})(.{4})$", "$1-$2" );           // up to 9 chars with a separating -
@@ -697,10 +697,10 @@ namespace Rock.CyberSource
             if ( paymentInfo is CreditCardPaymentInfo )
             {
                 var cc = paymentInfo as CreditCardPaymentInfo;
-                billingInfo.street1 = cc.BillingStreet.Left( 50 );
+                billingInfo.street1 = cc.BillingStreet1.Left( 50 );
                 billingInfo.city = cc.BillingCity.Left( 50 );
                 billingInfo.state = cc.BillingState.Left( 2 );
-                billingInfo.postalCode = cc.BillingZip.Left( 10 );
+                billingInfo.postalCode = cc.BillingPostalCode.Left( 10 );
             }
 
             return billingInfo;
