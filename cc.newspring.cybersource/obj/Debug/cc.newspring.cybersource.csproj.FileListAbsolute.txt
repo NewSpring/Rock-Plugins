@@ -1,0 +1,6 @@
+C:\Users\david.stevens\Code\cybersource\cc.newspring.cybersource\bin\Debug\Rock.CyberSource.dll
+C:\Users\david.stevens\Code\cybersource\cc.newspring.cybersource\bin\Debug\Rock.CyberSource.pdb
+C:\Users\david.stevens\Code\cybersource\cc.newspring.cybersource\obj\Debug\cc.newspring.cybersource.csprojResolveAssemblyReference.cache
+C:\Users\david.stevens\Code\cybersource\cc.newspring.cybersource\obj\Debug\Rock.CyberSource.dll
+C:\Users\david.stevens\Code\cybersource\cc.newspring.cybersource\obj\Debug\Rock.CyberSource.pdb
+C:\Users\david.stevens\Code\cybersource\cc.newspring.cybersource\bin\Debug\Rock.CyberSource.dll.config
