@@ -1,3 +1,7 @@
 /LINQPad.config
 /Bin
+
 web.connectionstrings.config
+App_Browsers
+App_Code
+App_Data
