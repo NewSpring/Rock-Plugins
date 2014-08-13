@@ -9,8 +9,6 @@ Installation:
 * Go to Admin Tools -> System Settings -> Financial Gateways and select the CyberSource option
 * Fill out your MerchantID, Transaction Key, and Reporting User credentials (if you want to use reporting)
 
-Currently only United States giving is supported. 
-
 Please create an issue in this repository if you have issues.
 ______________________________________________
 
