@@ -676,7 +676,7 @@ namespace Rock.CyberSource
             billingInfo.lastName = paymentInfo.LastName.Left( 60 );         // up to 60 chars
             billingInfo.email = paymentInfo.Email;                          // up to 255 chars
             billingInfo.phoneNumber = paymentInfo.Phone.Left( 15 );         // up to 15 chars
-            billingInfo.street1 = paymentInfo.Street1.Left( 50 );            // up to 50 chars
+            billingInfo.street1 = paymentInfo.Street1.Left( 50 );           // up to 50 chars
             billingInfo.city = paymentInfo.City.Left( 50 );                 // up to 50 chars
             billingInfo.state = paymentInfo.State.Left( 2 );                // only 2 chars
 
@@ -685,10 +685,10 @@ namespace Rock.CyberSource
             {
                 Regex.Replace( zip, @"^(.{5})(.{4})$", "$1-$2" );           // up to 9 chars with a separating -
             }
-
             billingInfo.postalCode = zip;
 
-            billingInfo.country = "US";                                     // only 2 chars
+            var country = paymentInfo.Country ?? "US";
+            billingInfo.country = country.Left( 2 );                        // only 2 chars
 
             var ipAddr = Dns.GetHostEntry( Dns.GetHostName() ).AddressList
                 .FirstOrDefault( ip => ip.AddressFamily == AddressFamily.InterNetwork );
