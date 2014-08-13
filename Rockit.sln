@@ -2,21 +2,21 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "RockWeb(1)", "http://localhost:50345", "{22348267-9BDF-4B5E-BB6E-37B5FA770224}"
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "RockWeb(1)", "http://vsdev:50345", "{22348267-9BDF-4B5E-BB6E-37B5FA770224}"
 	ProjectSection(WebsiteProperties) = preProject
 		UseIISExpress = "true"
 		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.5.1"
 		ProjectReferences = "{bc36cac2-1f25-4190-9297-157ddd2e4960}|cc.newspring.AttendedCheckIn.dll;"
-		Debug.AspNetCompiler.VirtualPath = "/localhost_50345"
+		Debug.AspNetCompiler.VirtualPath = "/vsdev_50345"
 		Debug.AspNetCompiler.PhysicalPath = "RockWeb\"
-		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_50345\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\vsdev_50345\"
 		Debug.AspNetCompiler.Updateable = "true"
 		Debug.AspNetCompiler.ForceOverwrite = "true"
 		Debug.AspNetCompiler.FixedNames = "false"
 		Debug.AspNetCompiler.Debug = "True"
-		Release.AspNetCompiler.VirtualPath = "/localhost_50345"
+		Release.AspNetCompiler.VirtualPath = "/vsdev_50345"
 		Release.AspNetCompiler.PhysicalPath = "RockWeb\"
-		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_50345\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\vsdev_50345\"
 		Release.AspNetCompiler.Updateable = "true"
 		Release.AspNetCompiler.ForceOverwrite = "true"
 		Release.AspNetCompiler.FixedNames = "false"
