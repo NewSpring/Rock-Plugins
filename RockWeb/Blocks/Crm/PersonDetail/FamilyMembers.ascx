@@ -1,4 +1,4 @@
-<%@ Control Language="C#" AutoEventWireup="true" CodeFile="FamilyMembers.ascx.cs" Inherits="RockWeb.Blocks.Crm.PersonDetail.FamilyMembers" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="FamilyMembers.ascx.cs" Inherits="RockWeb.Blocks.Crm.PersonDetail.FamilyMembers" %>
 
 <asp:UpdatePanel ID="upFamilyMembers" runat="server">
     <ContentTemplate>
@@ -22,7 +22,7 @@
 
                                 <asp:Repeater ID="rptrMembers" runat="server">
                                     <ItemTemplate>
-                                        <li class="member">
+                                        <li class='<%# FormatPersonCssClass( (bool?)Eval("Person.IsDeceased") ) %>'>
                                             <a href='<%# FormatPersonLink(Eval("PersonId").ToString()) %>'>
                                                 <div class="person-image" id="divPersonImage" runat="server"></div>
                                                 <div>
@@ -50,7 +50,7 @@
                                                 <i class="fa fa-map-marker"></i>
                                             </a>
                                             <div class="address">
-                                                <%# Eval("Location.FormattedHtmlValue") %>
+                                                <%# Eval("Location.FormattedHtmlAddress") %>
                                             </div>
                                             <div class="pull-left rollover-item">
                                                 <asp:LinkButton ID="lbVerify" runat="server">

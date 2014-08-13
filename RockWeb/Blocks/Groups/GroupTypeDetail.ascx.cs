@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright 2013 by the Spark Development Network
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -474,6 +474,7 @@ namespace RockWeb.Blocks.Groups
             groupType.GroupTypePurposeValueId = ddlGroupTypePurpose.SelectedValueAsInt();
             groupType.AllowMultipleLocations = cbAllowMultipleLocations.Checked;
             groupType.InheritedGroupTypeId = gtpInheritedGroupType.SelectedGroupTypeId;
+            groupType.EnableLocationSchedules = cbEnableLocationSchedules.Checked;
 
             groupType.ChildGroupTypes = new List<GroupType>();
             groupType.ChildGroupTypes.Clear();
@@ -711,6 +712,10 @@ namespace RockWeb.Blocks.Groups
             LocationTypesDictionary = new Dictionary<int, string>();
             groupType.LocationTypes.ToList().ForEach( a => LocationTypesDictionary.Add( a.LocationTypeValueId, a.LocationTypeValue.Name ) );
             BindLocationTypesGrid();
+
+            // Support Location Schedules
+            cbEnableLocationSchedules.Enabled = !groupType.IsSystem;
+            cbEnableLocationSchedules.Checked = groupType.EnableLocationSchedules ?? false;
 
             // Check In
             cbTakesAttendance.Checked = groupType.TakesAttendance;

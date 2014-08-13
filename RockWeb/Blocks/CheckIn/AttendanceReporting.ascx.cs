@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright 2013 by the Spark Development Network
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -342,7 +342,7 @@ function(item) {
         /// </summary>
         /// <param name="sender">The sender.</param>
         /// <param name="e">The e.</param>
-        protected void lcAttendance_ChartClick( object sender, FlotChart.ChartClickArgs e )
+        protected void lcAttendance_ChartClick( object sender, ChartClickArgs e )
         {
             if ( this.DetailPageGuid.HasValue )
             {

@@ -1,4 +1,4 @@
-<%@ Control Language="C#" AutoEventWireup="true" CodeFile="Disc.ascx.cs" Inherits="Rockweb.Blocks.Crm.Disc" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="Disc.ascx.cs" Inherits="Rockweb.Blocks.Crm.Disc" %>
 <div id="tabs">
     <ul id="navTabs" class="nav nav-tabs">
         <li class="active"><a data-toggle="tab" href="#instructions">Instructions</a></li>

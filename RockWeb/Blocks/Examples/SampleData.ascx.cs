@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright 2013 by the Spark Development Network
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -1563,18 +1563,6 @@ namespace RockWeb.Blocks.Examples
         {
             var service = new NoteTypeService( rockContext );
             var noteType = service.Get( _personEntityTypeId, noteTypeName );
-            // if the note type does not exist, create it
-            if ( noteType == null )
-            {
-                noteType = new NoteType();
-                noteType.IsSystem = false;
-                noteType.EntityTypeId = _personEntityTypeId;
-                noteType.EntityTypeQualifierColumn = string.Empty;
-                noteType.EntityTypeQualifierValue = string.Empty;
-                noteType.Name = noteTypeName;
-                service.Add( noteType );
-                rockContext.SaveChanges();
-            }
 
             // Find the person's alias
             int? createdByPersonAliasId = null;

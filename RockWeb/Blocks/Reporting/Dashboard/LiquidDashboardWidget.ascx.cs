@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright 2013 by the Spark Development Network
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +25,7 @@ using Rock.Web.UI.Controls;
 namespace RockWeb.Blocks.Reporting.Dashboard
 {
     /// <summary>
-    /// 
+    /// NOTE: Most of the logic for processing the Attributes is in Rock.Rest.MetricsController.GetHtmlForBlock
     /// </summary>
     [DisplayName( "Liquid Dashboard Widget" )]
     [Category( "Reporting > Dashboard" )]
@@ -43,7 +43,9 @@ namespace RockWeb.Blocks.Reporting.Dashboard
         <div class='col-md-6'>
             {{ metric.LastValueDate | Date: 'MMM' }}
               <span style='font-size:40px'>{{ metric.LastValue }}</span>
-            <p>YTD {{ metric.CumulativeValue }} GOAL {{ metric.GoalValue }}</p>
+            <p>
+                YTD {{ metric.CumulativeValue }} {% if metric.GoalValue %} GOAL {{ metric.GoalValue }} {% endif %}
+            </p>
         </div>
         <div class='col-md-6'>
             <i class='{{ metric.IconCssClass }} fa-5x'></i>
@@ -103,6 +105,8 @@ namespace RockWeb.Blocks.Reporting.Dashboard
         protected override void OnLoad( System.EventArgs e )
         {
             base.OnLoad( e );
+            pnlDashboardTitle.Visible = !string.IsNullOrEmpty( this.Title );
+            pnlDashboardSubtitle.Visible = !string.IsNullOrEmpty( this.Subtitle );
             lDashboardTitle.Text = this.Title;
             lDashboardSubtitle.Text = this.Subtitle;
         }

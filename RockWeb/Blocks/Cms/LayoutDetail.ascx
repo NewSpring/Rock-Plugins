@@ -1,4 +1,4 @@
-<%@ Control Language="C#" AutoEventWireup="true" CodeFile="LayoutDetail.ascx.cs" Inherits="RockWeb.Blocks.Crm.LayoutDetail" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="LayoutDetail.ascx.cs" Inherits="RockWeb.Blocks.Crm.LayoutDetail" %>
 
 <asp:UpdatePanel ID="upDetail" runat="server">
     <ContentTemplate>

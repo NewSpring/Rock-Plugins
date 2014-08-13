@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright 2013 by the Spark Development Network
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -101,6 +101,11 @@ namespace RockWeb.Blocks.WorkFlow
                 }
 
                 RockPage.PageTitle = _workflowType.Name;
+
+                if ( !string.IsNullOrWhiteSpace( _workflowType.IconCssClass ) )
+                {
+                    lHeadingIcon.Text = string.Format("<i class='{0}'></i>", _workflowType.IconCssClass);
+                }
             }
             else
             {

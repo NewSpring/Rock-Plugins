@@ -1,4 +1,4 @@
-<%@ Control Language="C#" AutoEventWireup="true" CodeFile="LocationSelect.ascx.cs" Inherits="RockWeb.Blocks.CheckIn.LocationSelect" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="LocationSelect.ascx.cs" Inherits="RockWeb.Blocks.CheckIn.LocationSelect" %>
 <asp:UpdatePanel ID="upContent" runat="server">
 <ContentTemplate>
 
