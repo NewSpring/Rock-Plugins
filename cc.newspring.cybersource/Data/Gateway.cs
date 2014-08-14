@@ -232,6 +232,18 @@ namespace Rock.CyberSource
         }
 
         /// <summary>
+        /// Reactivates the scheduled payment (CyberSource not supported).
+        /// </summary>
+        /// <param name="transaction">The transaction.</param>
+        /// <param name="errorMessage">The error message.</param>
+        /// <returns></returns>
+        public override bool ReactivateScheduledPayment( FinancialScheduledTransaction transaction, out string errorMessage )
+        {
+            errorMessage = string.Empty;
+            return false;
+        }
+
+        /// <summary>
         /// Updates the scheduled payment.
         /// </summary>
         /// <param name="schedule">The schedule.</param>
