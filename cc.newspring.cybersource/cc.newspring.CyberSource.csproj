@@ -119,8 +119,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(TargetDir)$(AssemblyName).dll" "$(SolutionDir)RockWeb\Plugins\$(AssemblyName).dll"
-copy /Y "$(TargetDir)$(AssemblyName).pdb" "$(SolutionDir)RockWeb\Plugins\$(AssemblyName).pdb"</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
