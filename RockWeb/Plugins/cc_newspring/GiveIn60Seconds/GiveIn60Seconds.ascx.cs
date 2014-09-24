@@ -402,7 +402,7 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
                 var transaction = new FinancialTransactionService( rockContext ).GetByTransactionCode( TransactionCode );
                 if ( transaction != null )
                 {
-                    authorizedPerson = transaction.AuthorizedPerson;
+                    authorizedPerson = transaction.AuthorizedPersonAlias.Person;
                     referenceNumber = gateway.GetReferenceNumber( transaction, out errorMessage );
                 }
 
@@ -430,7 +430,8 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
                         var recipients = new Dictionary<string, Dictionary<string, object>>();
                         recipients.Add( authorizedPerson.Email, mergeObjects );
 
-                        Rock.Communication.Email.Send( GetAttributeValue( "ConfirmAccountTemplate" ).AsGuid(), recipients, ResolveRockUrl( "~/" ), ResolveRockUrl( "~~/" ) );
+                        // TODO FIGURE THIS OUT
+                        //Rock.Communication.Email.Send( GetAttributeValue( "ConfirmAccountTemplate" ).AsGuid(), recipients, ResolveRockUrl( "~/" ), ResolveRockUrl( "~~/" ) );
                     }
 
                     var paymentInfo = GetPaymentInfo();
@@ -445,7 +446,7 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
                     else
                     {
                         var savedAccount = new FinancialPersonSavedAccount();
-                        savedAccount.PersonId = authorizedPerson.Id;
+                        savedAccount.PersonAliasId = authorizedPerson.Id;
                         savedAccount.ReferenceNumber = referenceNumber;
                         savedAccount.Name = txtSaveAccount.Text;
                         savedAccount.MaskedAccountNumber = paymentInfo.MaskedNumber;
@@ -618,16 +619,16 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
             var campuses = new CampusService( rockContext ).Queryable()
                 .OrderBy( a => a.Name ).ToList();
 
-            if ( campuses.Count > 1 )
-            {
-                campuses.Insert( 0, new Campus() { Name = string.Empty } );
-                cpCampuses.Campuses = campuses;
-            }
-            else
-            {
-                cpCampuses.Visible = false;
-                BindAccounts();
-            }
+            //if ( campuses.Count > 1 )
+            //{
+            //    campuses.Insert( 0, new Campus() { Name = string.Empty } );
+            //    cpCampuses.Campuses = campuses;
+            //}
+            //else
+            //{
+            //    cpCampuses.Visible = false;
+            //    BindAccounts();
+            //}
         }
 
         /// <summary>
@@ -676,10 +677,10 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
                 var address = personService.GetFirstLocation( selectedPerson.Id, DefinedValueCache.Read( addressTypeGuid ).Id );
                 if ( address != null )
                 {
-                    txtStreet.Text = address.Street1;
-                    txtCity.Text = address.City;
-                    ddlState.SelectedValue = address.State;
-                    txtZip.Text = address.PostalCode;
+                    txtStreet.Text = address.Location.Street1;
+                    txtCity.Text = address.Location.City;
+                    ddlState.SelectedValue = address.Location.State;
+                    txtZip.Text = address.Location.PostalCode;
                 }
 
                 txtBillingFirstName.Text = selectedPerson.FirstName;
@@ -873,7 +874,7 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
                 if ( transaction != null )
                 {
                     transaction.TransactionDateTime = RockDateTime.Now;
-                    transaction.AuthorizedPersonId = person.Id;
+                    transaction.AuthorizedPersonAlias.PersonId = person.Id;
                     transaction.GatewayEntityTypeId = gateway.TypeId;
                     transaction.TransactionTypeValueId = DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.TRANSACTION_TYPE_CONTRIBUTION ) ).Id;
                     transaction.CurrencyTypeValueId = paymentInfo.CurrencyTypeValue.Id;
@@ -902,7 +903,7 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
 
                     if ( string.IsNullOrWhiteSpace( ccSuffix ) )
                     {
-                        ccSuffix = paymentInfo.CurrencyTypeValue.Name;
+                        ccSuffix = paymentInfo.CurrencyTypeValue.Value;
                     }
 
                     string batchName = GetAttributeValue( "BatchNamePrefix" ).Trim() + " " + ccSuffix;
