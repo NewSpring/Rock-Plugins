@@ -158,7 +158,7 @@ namespace RockWeb.Blocks.Finance
                 FinancialScheduledTransactionService transactionService = new FinancialScheduledTransactionService( rockContext );
 
                 var schedules = transactionService.Queryable( "ScheduledTransactionDetails.Account" )
-                                .Where( s => s.AuthorizedPersonId == CurrentPerson.Id && s.IsActive == true );
+                                .Where( s => s.AuthorizedPersonAlias.PersonId == CurrentPerson.Id && s.IsActive == true );
 
                 List<Dictionary<string, object>> scheduleSummaries = new List<Dictionary<string, object>>();
 
@@ -194,10 +194,10 @@ namespace RockWeb.Blocks.Finance
                         scheduleSummary.Add( "DaysSinceLastPayment", null );
                     }
 
-                    scheduleSummary.Add("CurrencyType", schedule.CurrencyTypeValue.Name);
-                    scheduleSummary.Add("CreditCardType", schedule.CreditCardTypeValue.Name);
+                    scheduleSummary.Add("CurrencyType", schedule.CurrencyTypeValue.Value);
+                    scheduleSummary.Add("CreditCardType", schedule.CreditCardTypeValue.Value);
                     scheduleSummary.Add("UrlEncryptedKey", schedule.UrlEncodedKey);
-                    scheduleSummary.Add("Frequency",  schedule.TransactionFrequencyValue.Name);
+                    scheduleSummary.Add("Frequency",  schedule.TransactionFrequencyValue.Value);
                     scheduleSummary.Add("FrequencyDescription", schedule.TransactionFrequencyValue.Description);
                     
                     List<Dictionary<string, object>> summaryDetails = new List<Dictionary<string,object>>();

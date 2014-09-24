@@ -82,7 +82,9 @@ namespace RockWeb.Blocks.CheckIn
         {
             base.OnLoad( e );
 
-            lcAttendance.Options.SetChartStyle( this.GetAttributeValue( "ChartStyle" ).AsGuidOrNull() );
+            var chartStyleDefinedValueGuid = this.GetAttributeValue( "ChartStyle" ).AsGuidOrNull();
+
+            lcAttendance.Options.SetChartStyle( chartStyleDefinedValueGuid );
 
             if ( !Page.IsPostBack )
             {
@@ -135,9 +137,7 @@ namespace RockWeb.Blocks.CheckIn
         /// </summary>
         public void LoadDropDowns()
         {
-            var rockContext = new RockContext();
-
-            cpCampuses.Campuses = new CampusService( rockContext ).Queryable().OrderBy( a => a.Name ).ToList();
+            cpCampuses.Campuses = CampusCache.All();
         }
 
         /// <summary>

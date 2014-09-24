@@ -859,8 +859,8 @@ namespace RockWeb.Blocks.Groups
                     wpLocations.Visible = false;
                 }
 
-                gLocations.Columns[2].Visible = groupType.EnableLocationSchedules ?? false;
-                spSchedules.Visible = groupType.EnableLocationSchedules ?? false;
+                gLocations.Columns[2].Visible = groupType != null && ( groupType.EnableLocationSchedules ?? false );
+                spSchedules.Visible = groupType != null && ( groupType.EnableLocationSchedules ?? false );
 
                 phGroupAttributes.Controls.Clear();
                 group.LoadAttributes();
@@ -967,7 +967,7 @@ namespace RockWeb.Blocks.Groups
                                 {
                                     Text = string.Format(
                                     "<div class='group-location-map'>{0}<a href='{1}'><img src='{2}'/></a></div>",
-                                    groupLocation.GroupLocationTypeValue != null ? ( "<h4>" + groupLocation.GroupLocationTypeValue.Name + "</h4>" ) : string.Empty,
+                                    groupLocation.GroupLocationTypeValue != null ? ( "<h4>" + groupLocation.GroupLocationTypeValue.Value + "</h4>" ) : string.Empty,
                                     groupMapUrl,
                                     mapLink ),
                                     Mode = LiteralMode.PassThrough
@@ -983,7 +983,7 @@ namespace RockWeb.Blocks.Groups
                                 phMaps.Controls.Add(
                                     new LiteralControl( string.Format(
                                         "<div class='group-location-map'>{0}<a href='{1}'><img src='{2}'/></a></div>",
-                                        groupLocation.GroupLocationTypeValue != null ? ( "<h4>" + groupLocation.GroupLocationTypeValue.Name + "</h4>" ) : string.Empty,
+                                        groupLocation.GroupLocationTypeValue != null ? ( "<h4>" + groupLocation.GroupLocationTypeValue.Value + "</h4>" ) : string.Empty,
                                         groupMapUrl,
                                         mapLink ) ) );
                             }
@@ -992,25 +992,7 @@ namespace RockWeb.Blocks.Groups
                 }
             }
 
-            bool displayMapButton = group.GroupLocations
-                .Where( gl => 
-                    gl.Location != null && 
-                    ( gl.Location.GeoPoint != null || gl.Location.GeoFence != null ) )
-                .Any();
-            if (!displayMapButton && group.GroupType != null)
-            {
-                // Current group doesn't have a mappaple location, but check to see if any of the child group types allow maps
-                foreach( var childGroupType in group.GroupType.ChildGroupTypes)
-                {
-                    if ( childGroupType.LocationTypes.Any() )
-                    {
-                        displayMapButton = true;
-                        break;
-                    }
-                }
-            }
-                  
-            hlMap.Visible = displayMapButton;
+            hlMap.Visible = !string.IsNullOrWhiteSpace( groupMapUrl );
             hlMap.NavigateUrl = groupMapUrl;
             
             btnSecurity.Visible = group.IsAuthorized( Authorization.ADMINISTRATE, CurrentPerson );
@@ -1054,11 +1036,9 @@ namespace RockWeb.Blocks.Groups
         /// </summary>
         private void LoadDropDowns()
         {
-            CampusService campusService = new CampusService( new RockContext() );
-            List<Campus> campuses = campusService.Queryable().OrderBy( a => a.Name ).ToList();
-            campuses.Insert( 0, new Campus { Id = None.Id, Name = None.Text } );
-            ddlCampus.DataSource = campuses;
+            ddlCampus.DataSource = CampusCache.All();
             ddlCampus.DataBind();
+            ddlCampus.Items.Insert( 0, new ListItem( None.Text, None.IdValue ) );
         }
 
         /// <summary>
@@ -1312,7 +1292,7 @@ namespace RockWeb.Blocks.Groups
                                             .Where( l => l.IsMappedLocation && !l.GroupLocationTypeValue.Guid.Equals( previousLocationType ) ) )
                                         {
                                             ListItem li = new ListItem(
-                                                string.Format( "{0} {1} ({2})", member.Person.FullName, familyGroupLocation.GroupLocationTypeValue.Name, familyGroupLocation.Location.ToString() ),
+                                                string.Format( "{0} {1} ({2})", member.Person.FullName, familyGroupLocation.GroupLocationTypeValue.Value, familyGroupLocation.Location.ToString() ),
                                                 string.Format( "{0}|{1}", familyGroupLocation.Location.Id, member.PersonId ) );
 
                                             ddlMember.Items.Add( li );
@@ -1345,10 +1325,14 @@ namespace RockWeb.Blocks.Groups
                                 }
                             }
 
-                            if ( displayMemberTab && ddlMember.Items.Count > 0 && groupLocation.GroupMemberPersonId.HasValue )
+                            if ( displayMemberTab && ddlMember.Items.Count > 0 && groupLocation.GroupMemberPersonAliasId.HasValue )
                             {
-                                ddlMember.SetValue( string.Format( "{0}|{1}", groupLocation.LocationId, groupLocation.GroupMemberPersonId ) );
                                 LocationTypeTab = MEMBER_LOCATION_TAB_TITLE;
+                                int? personId = new PersonAliasService( rockContext ).GetPersonId( groupLocation.GroupMemberPersonAliasId.Value );
+                                if ( personId.HasValue )
+                                {
+                                    ddlMember.SetValue( string.Format( "{0}|{1}", groupLocation.LocationId, personId.Value ) );
+                                }
                             }
                             else if ( displayOtherTab )
                             {
@@ -1408,7 +1392,7 @@ namespace RockWeb.Blocks.Groups
         protected void dlgLocations_SaveClick( object sender, EventArgs e )
         {
             Location location = null;
-            int? memberPersonId = null;
+            int? memberPersonAliasId = null;
             RockContext rockContext = new RockContext();
 
             if ( LocationTypeTab.Equals( MEMBER_LOCATION_TAB_TITLE ) )
@@ -1425,7 +1409,7 @@ namespace RockWeb.Blocks.Groups
                             location.CopyPropertiesFrom( dbLocation );
                         }
 
-                        memberPersonId = int.Parse( ids[1] );
+                        memberPersonAliasId = new PersonAliasService( rockContext ).GetPrimaryAliasId( int.Parse( ids[1] ) );
                     }
                 }
             }
@@ -1454,7 +1438,7 @@ namespace RockWeb.Blocks.Groups
                     GroupLocationsState.Add( groupLocation );
                 }
 
-                groupLocation.GroupMemberPersonId = memberPersonId;
+                groupLocation.GroupMemberPersonAliasId = memberPersonAliasId;
                 groupLocation.Location = location;
                 groupLocation.LocationId = groupLocation.Location.Id;
                 groupLocation.GroupLocationTypeValueId = ddlLocationType.SelectedValueAsId();
@@ -1492,7 +1476,7 @@ namespace RockWeb.Blocks.Groups
                 {
                     gl.Guid,
                     gl.Location,
-                    Type = gl.GroupLocationTypeValue.Name,
+                    Type = gl.GroupLocationTypeValue.Value,
                     Schedules = gl.Schedules.Select( s => s.Name).ToList().AsDelimited(", ")
                 } )
                 .ToList();

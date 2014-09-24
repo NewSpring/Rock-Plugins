@@ -512,15 +512,18 @@ achieve our mission.  We are so grateful for your commitment.
                 if ( int.TryParse( PageParameter( "ScheduledTransactionId" ), out txnId ) )
                 {
                     var service = new FinancialScheduledTransactionService( rockContext );
-                    var scheduledTransaction = service.Queryable( "ScheduledTransactionDetails,GatewayEntityType,CurrencyTypeValue,CreditCardTypeValue" )
+                    var scheduledTransaction = service.Queryable( "AuthorizedPersonAlias.Person,ScheduledTransactionDetails,GatewayEntityType,CurrencyTypeValue,CreditCardTypeValue" )
                         .Where( t =>
                             t.Id == txnId &&
-                            ( t.AuthorizedPersonId == targetPerson.Id || t.AuthorizedPerson.GivingGroupId == targetPerson.GivingGroupId ) )
+                            ( t.AuthorizedPersonAlias.PersonId == targetPerson.Id || t.AuthorizedPersonAlias.Person.GivingGroupId == targetPerson.GivingGroupId ) )
                         .FirstOrDefault();
 
                     if ( scheduledTransaction != null )
                     {
-                        TargetPersonId = scheduledTransaction.AuthorizedPersonId;
+                        if ( scheduledTransaction.AuthorizedPersonAlias != null )
+                        {
+                            TargetPersonId = scheduledTransaction.AuthorizedPersonAlias.PersonId;
+                        }
                         ScheduledTransactionId = scheduledTransaction.Id;
 
                         if ( refresh )
@@ -645,17 +648,23 @@ achieve our mission.  We are so grateful for your commitment.
                 {
                     ccEnabled = true;
                     txtCardFirstName.Visible = Gateway.SplitNameOnCard;
-                    txtCardFirstName.Text = scheduledTransaction.AuthorizedPerson.FirstName;
+                    var authorizedPerson = scheduledTransaction.AuthorizedPersonAlias.Person;
+                    txtCardFirstName.Text = authorizedPerson.FirstName;
                     txtCardLastName.Visible = Gateway.SplitNameOnCard;
-                    txtCardLastName.Text = scheduledTransaction.AuthorizedPerson.LastName;
+                    txtCardLastName.Text = authorizedPerson.LastName;
                     txtCardName.Visible = !Gateway.SplitNameOnCard;
-                    txtCardName.Text = scheduledTransaction.AuthorizedPerson.FullName;
+                    txtCardName.Text = authorizedPerson.FullName;
 
-                    var address = new PersonService( new RockContext() ).GetFirstLocation( 
-                        scheduledTransaction.AuthorizedPerson.Id,
-                        DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() ).Id );
-
-                    acBillingAddress.SetValues( address );
+                    var groupLocation = new PersonService( new RockContext() ).GetFirstLocation(
+                        authorizedPerson.Id, DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() ).Id );
+                    if ( groupLocation != null )
+                    {
+                        acBillingAddress.SetValues( groupLocation.Location );
+                    }
+                    else
+                    {
+                        acBillingAddress.SetValues( null );
+                    }
 
                     mypExpiration.MinimumYear = RockDateTime.Now.Year;
                 }
@@ -799,7 +808,7 @@ achieve our mission.  We are so grateful for your commitment.
                 errorMessages.Add( "Make sure the amount you've entered for each account is a positive amount" );
             }
 
-            string howOften = DefinedValueCache.Read( btnFrequency.SelectedValueAsId().Value ).Name;
+            string howOften = DefinedValueCache.Read( btnFrequency.SelectedValueAsId().Value ).Value;
             DateTime when = DateTime.MinValue;
 
             // Make sure a repeating payment starts in the future
@@ -890,7 +899,8 @@ achieve our mission.  We are so grateful for your commitment.
 
             if ( ScheduledTransactionId.HasValue )
             {
-                scheduledTransaction = new FinancialScheduledTransactionService( rockContext ).Get( ScheduledTransactionId.Value );
+                scheduledTransaction = new FinancialScheduledTransactionService( rockContext )
+                    .Queryable("AuthorizedPersonAlias.Person").FirstOrDefault( s => s.Id == ScheduledTransactionId.Value );
             }
 
             if ( scheduledTransaction == null )
@@ -899,7 +909,7 @@ achieve our mission.  We are so grateful for your commitment.
                 return false;
             }
 
-            if ( scheduledTransaction.AuthorizedPerson == null )
+            if ( scheduledTransaction.AuthorizedPersonAlias == null || scheduledTransaction.AuthorizedPersonAlias.Person == null )
             {
                 errorMessage = "There was a problem determining the person associated with the transaction";
                 return false;
@@ -970,7 +980,8 @@ achieve our mission.  We are so grateful for your commitment.
 
                 if ( ScheduledTransactionId.HasValue )
                 {
-                    scheduledTransaction = transactionService.Get( ScheduledTransactionId.Value );
+                    scheduledTransaction = transactionService
+                        .Queryable("AuthorizedPersonAlias.Person").FirstOrDefault( s => s.Id == ScheduledTransactionId.Value );
                 }
 
                 if ( scheduledTransaction == null )
@@ -979,7 +990,7 @@ achieve our mission.  We are so grateful for your commitment.
                     return false;
                 }
 
-                if ( scheduledTransaction.AuthorizedPerson == null )
+                if ( scheduledTransaction.AuthorizedPersonAlias == null || scheduledTransaction.AuthorizedPersonAlias.Person == null)
                 {
                     errorMessage = "There was a problem determining the person associated with the transaction";
                     return false;
@@ -1026,13 +1037,13 @@ achieve our mission.  We are so grateful for your commitment.
                 {
                     if ( paymentInfo.CurrencyTypeValue != null )
                     {
-                        changeSummary.Append( paymentInfo.CurrencyTypeValue.Name );
+                        changeSummary.Append( paymentInfo.CurrencyTypeValue.Value );
                         scheduledTransaction.CurrencyTypeValueId = paymentInfo.CurrencyTypeValue.Id;
 
                         DefinedValueCache creditCardTypeValue = paymentInfo.CreditCardTypeValue;
                         if ( creditCardTypeValue != null )
                         {
-                            changeSummary.AppendFormat( " - {0}", creditCardTypeValue.Name );
+                            changeSummary.AppendFormat( " - {0}", creditCardTypeValue.Value );
                             scheduledTransaction.CreditCardTypeValueId = creditCardTypeValue.Id;
                         }
                         else
@@ -1158,14 +1169,15 @@ achieve our mission.  We are so grateful for your commitment.
             if ( paymentInfo != null )
             {
                 paymentInfo.Amount = SelectedAccounts.Sum( a => a.Amount );
-                paymentInfo.FirstName = scheduledTransaction.AuthorizedPerson.FirstName;
-                paymentInfo.LastName = scheduledTransaction.AuthorizedPerson.LastName;
-                paymentInfo.Email = scheduledTransaction.AuthorizedPerson.Email;
+                var authorizedPerson = scheduledTransaction.AuthorizedPersonAlias.Person;
+                paymentInfo.FirstName = authorizedPerson.FirstName;
+                paymentInfo.LastName = authorizedPerson.LastName;
+                paymentInfo.Email = authorizedPerson.Email;
 
                 bool displayPhone = false;
                 if ( bool.TryParse( GetAttributeValue( "DisplayPhone" ), out displayPhone ) && displayPhone )
                 {
-                    var phoneNumber = personService.GetPhoneNumber( scheduledTransaction.AuthorizedPerson, DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME ) ) );
+                    var phoneNumber = personService.GetPhoneNumber( authorizedPerson, DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME ) ) );
                     paymentInfo.Phone = phoneNumber != null ? phoneNumber.ToString() : string.Empty;
                 }
 
@@ -1175,15 +1187,15 @@ achieve our mission.  We are so grateful for your commitment.
                     addressTypeGuid = new Guid( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME );
                 }
 
-                var address = personService.GetFirstLocation( scheduledTransaction.AuthorizedPerson.Id, DefinedValueCache.Read( addressTypeGuid ).Id );
-                if ( address != null )
+                var groupLocation = personService.GetFirstLocation( authorizedPerson.Id, DefinedValueCache.Read( addressTypeGuid ).Id );
+                if ( groupLocation != null && groupLocation.Location != null )
                 {
-                    paymentInfo.Street1 = address.Street1;
-                    paymentInfo.Street2 = address.Street2;
-                    paymentInfo.City = address.City;
-                    paymentInfo.State = address.State;
-                    paymentInfo.PostalCode = address.PostalCode;
-                    paymentInfo.Country = address.Country;
+                    paymentInfo.Street1 = groupLocation.Location.Street1;
+                    paymentInfo.Street2 = groupLocation.Location.Street2;
+                    paymentInfo.City = groupLocation.Location.City;
+                    paymentInfo.State = groupLocation.Location.State;
+                    paymentInfo.PostalCode = groupLocation.Location.PostalCode;
+                    paymentInfo.Country = groupLocation.Location.Country;
                 }
             }
 

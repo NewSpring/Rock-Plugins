@@ -23,7 +23,7 @@
 
                                     <asp:Repeater ID="rptAccountList" runat="server">
                                         <ItemTemplate>
-                                            <Rock:CurrencyBox ID="txtAccountAmount" runat="server" Label='<%# Eval("Name") %>' Text='<%# Eval("AmountFormatted") %>' Placeholder="0.00" CssClass="account-amount" />
+                                            <Rock:CurrencyBox ID="txtAccountAmount" runat="server" Label='<%# Eval("Name") %>' Text='<%# ((decimal)Eval("Amount")).ToString("N2") %>' Placeholder="0.00" CssClass="account-amount" />
                                         </ItemTemplate>
                                     </asp:Repeater>
                                     <Rock:ButtonDropDownList ID="btnAddAccount" runat="server" CssClass="btn btn-primary" Visible="false" Label=" "
@@ -36,7 +36,7 @@
 
                                     <div id="divRepeatingPayments" runat="server" visible="false">
                                         <Rock:ButtonDropDownList ID="btnFrequency" runat="server" CssClass="btn btn-primary" Label="Frequency"
-                                            DataTextField="Name" DataValueField="Id" />
+                                            DataTextField="Value" DataValueField="Id" />
                                         <Rock:DatePicker ID="dtpStartDate" runat="server" Label="First Payment" />
                                     </div>
 
@@ -59,7 +59,7 @@
                                     <Rock:RockTextBox ID="txtLastName" runat="server" Label="Last Name"></Rock:RockTextBox>
                                     <Rock:PhoneNumberBox ID="pnbPhone" runat="server" Label="Phone"></Rock:PhoneNumberBox>
                                     <Rock:RockTextBox ID="txtEmail" runat="server" Label="Email"></Rock:RockTextBox>
-                                    <Rock:AddressControl ID="acAddress" runat="server" UseStateAbbreviation="true" UseCountryAbbreviation="false" Required="true" />
+                                    <Rock:AddressControl ID="acAddress" runat="server" UseStateAbbreviation="true" UseCountryAbbreviation="false" />
                                 </fieldset>
                             </div>
                         </div>
@@ -186,10 +186,10 @@
                         <asp:Panel ID="pnlDupWarning" runat="server" CssClass="alert alert-block">
                             <h4>Warning!</h4>
                             <p>
-                                You have already submitted a transaction that has been processed.  Are you sure you want
+                                You have already submitted a similar transaction that has been processed.  Are you sure you want
                             to submit another possible duplicate transaction?
                             </p>
-                            <asp:LinkButton ID="btnConfirm" runat="server" Text="Yes, submit another transaction" CssClass="btn btn-primary" OnClick="btnConfirm_Click" />
+                            <asp:LinkButton ID="btnConfirm" runat="server" Text="Yes, submit another transaction" CssClass="btn btn-danger margin-t-sm" OnClick="btnConfirm_Click" />
                         </asp:Panel>
                     </div>
                 </div>
@@ -251,7 +251,7 @@
 
         <div id="divActions" runat="server" class="actions">
             <asp:LinkButton ID="btnPrev" runat="server" Text="Previous" CssClass="btn btn-link" OnClick="btnPrev_Click" Visible="false" />
-            <asp:LinkButton ID="btnNext" runat="server" Text="Next" CssClass="btn btn-primary" OnClick="btnNext_Click" />
+            <asp:LinkButton ID="btnNext" runat="server" Text="Next" CssClass="btn btn-primary pull-right" OnClick="btnNext_Click" />
         </div>
 
         <asp:HiddenField ID="hfCurrentPage" runat="server" />

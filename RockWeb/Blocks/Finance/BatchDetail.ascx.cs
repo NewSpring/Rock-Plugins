@@ -358,10 +358,10 @@ namespace RockWeb.Blocks.Finance
 
                 tbName.Text = batch.Name;
 
-                ddlStatus.BindToEnum( typeof( BatchStatus ) );
+                ddlStatus.BindToEnum<BatchStatus>();
                 ddlStatus.SelectedIndex = (int)(BatchStatus)batch.Status;
 
-                campCampus.Campuses = new CampusService( new RockContext() ).Queryable().OrderBy( a => a.Name ).ToList();
+                campCampus.Campuses = CampusCache.All();
                 if ( batch.CampusId.HasValue )
                 {
                     campCampus.SetValue( batch.CampusId.Value );

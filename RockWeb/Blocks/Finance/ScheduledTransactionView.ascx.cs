@@ -120,11 +120,11 @@ namespace RockWeb.Blocks.Finance
         protected void lbUpdate_Click( object sender, EventArgs e )
         {
             var txn = GetScheduledTransaction();
-            if ( txn != null && txn.AuthorizedPerson != null )
+            if ( txn != null && txn.AuthorizedPersonAlias != null && txn.AuthorizedPersonAlias.Person != null )
             {
                 var parms = new Dictionary<string, string>();
                 parms.Add( "ScheduledTransactionId", txn.Id.ToString() );
-                parms.Add( "Person", txn.AuthorizedPerson.UrlEncodedKey );
+                parms.Add( "Person", txn.AuthorizedPersonAlias.Person.UrlEncodedKey );
                 NavigateToLinkedPage( "UpdatePage", parms );
             }
         }
@@ -141,7 +141,7 @@ namespace RockWeb.Blocks.Finance
             {
                 var rockContext = new RockContext();
                 var txnService = new FinancialScheduledTransactionService( rockContext );
-                var txn = txnService.Get( txnId.Value );
+                var txn = txnService.Queryable("AuthorizedPersonAlias.Person").FirstOrDefault( t => t.Id == txnId.Value );
                 if ( txn != null )
                 {
                     string errorMessage = string.Empty;
@@ -170,7 +170,7 @@ namespace RockWeb.Blocks.Finance
             {
                 var rockContext = new RockContext();
                 var txnService = new FinancialScheduledTransactionService( rockContext );
-                var txn = txnService.Get( txnId.Value );
+                var txn = txnService.Queryable( "AuthorizedPersonAlias.Person" ).FirstOrDefault( t => t.Id == txnId.Value );
                 if ( txn != null )
                 {
                     string errorMessage = string.Empty;
@@ -201,7 +201,7 @@ namespace RockWeb.Blocks.Finance
             {
                 var rockContext = new RockContext();
                 var txnService = new FinancialScheduledTransactionService( rockContext );
-                var txn = txnService.Get( txnId.Value );
+                var txn = txnService.Queryable( "AuthorizedPersonAlias.Person" ).FirstOrDefault( t => t.Id == txnId.Value );
                 if ( txn != null )
                 {
                     string errorMessage = string.Empty;
@@ -238,11 +238,12 @@ namespace RockWeb.Blocks.Finance
                 string rockUrlRoot = ResolveRockUrl( "/" );
 
                 var detailsLeft = new DescriptionList()
-                    .Add( "Person", txn.AuthorizedPerson != null ? txn.AuthorizedPerson.GetAnchorTag( rockUrlRoot ) : string.Empty );
+                    .Add( "Person", ( txn.AuthorizedPersonAlias != null && txn.AuthorizedPersonAlias.Person != null ) ?
+                        txn.AuthorizedPersonAlias.Person.GetAnchorTag( rockUrlRoot ) : string.Empty );
 
                 var detailsRight = new DescriptionList()
                     .Add( "Amount", ( txn.ScheduledTransactionDetails.Sum( d => (decimal?)d.Amount ) ?? 0.0M ).ToString( "C2" ) )
-                    .Add( "Frequency", txn.TransactionFrequencyValue != null ? txn.TransactionFrequencyValue.Name : string.Empty )
+                    .Add( "Frequency", txn.TransactionFrequencyValue != null ? txn.TransactionFrequencyValue.Value : string.Empty )
                     .Add( "Start Date", txn.StartDate.ToShortDateString() )
                     .Add( "End Date", txn.EndDate.HasValue ? txn.EndDate.Value.ToShortDateString() : string.Empty )
                     .Add( "Next Payment Date", txn.NextPaymentDate.HasValue ? txn.NextPaymentDate.Value.ToShortDateString() : string.Empty )
@@ -250,10 +251,10 @@ namespace RockWeb.Blocks.Finance
 
                 if ( txn.CurrencyTypeValue != null )
                 {
-                    string currencyType = txn.CurrencyTypeValue.Name;
+                    string currencyType = txn.CurrencyTypeValue.Value;
                     if ( txn.CurrencyTypeValue.Guid.Equals( Rock.SystemGuid.DefinedValue.CURRENCY_TYPE_CREDIT_CARD.AsGuid() ) )
                     {
-                        currencyType += txn.CreditCardTypeValue != null ? ( " - " + txn.CreditCardTypeValue.Name ) : string.Empty;
+                        currencyType += txn.CreditCardTypeValue != null ? ( " - " + txn.CreditCardTypeValue.Value ) : string.Empty;
                     }
                     detailsLeft.Add( "Currency Type", currencyType );
                 }

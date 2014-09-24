@@ -56,7 +56,7 @@ namespace RockWeb.Blocks.WorkFlow
         {
             base.OnInit( e );
 
-            if ( _workflowType != null )
+            if ( _workflowType != null && _workflowType.IsAuthorized( Authorization.EDIT, CurrentPerson ) )
             {
                 gfWorkflows.ApplyFilterClick += gfWorkflows_ApplyFilterClick;
                 gfWorkflows.DisplayFilterValue += gfWorkflows_DisplayFilterValue;
@@ -69,12 +69,8 @@ namespace RockWeb.Blocks.WorkFlow
                 gWorkflows.Actions.ShowAdd = true;
                 gWorkflows.Actions.AddClick += gWorkflows_Add;
                 gWorkflows.GridRebind += gWorkflows_GridRebind;
-                gWorkflows.RowDataBound += gWorkflows_RowDataBound;
-
-                // Block Security and special attributes (RockPage takes care of View)
-                bool canAddEditDelete = IsUserAuthorized( Authorization.EDIT );
-                gWorkflows.Actions.ShowAdd = canAddEditDelete;
-                gWorkflows.IsDeleteEnabled = canAddEditDelete;
+                gWorkflows.Actions.ShowAdd = true;
+                gWorkflows.IsDeleteEnabled = true;
 
                 AddAttributeColumns();
 
@@ -84,6 +80,20 @@ namespace RockWeb.Blocks.WorkFlow
                 dateField.SortExpression = "CreatedDateTime";
                 dateField.HeaderText = "Created";
                 dateField.FormatAsElapsedTime = true;
+
+                var statusField = new BoundField();
+                gWorkflows.Columns.Add( statusField );
+                statusField.DataField = "Status";
+                statusField.SortExpression = "Status";
+                statusField.HeaderText = "Status";
+                statusField.HtmlEncode = false;
+
+                var stateField = new BoundField();
+                gWorkflows.Columns.Add( stateField );
+                stateField.DataField = "State";
+                stateField.SortExpression = "CompletedDateTime";
+                stateField.HeaderText = "State";
+                stateField.HtmlEncode = false;
 
                 var formField = new EditField();
                 gWorkflows.Columns.Add( formField );
@@ -125,7 +135,6 @@ namespace RockWeb.Blocks.WorkFlow
                 BindFilter();
                 BindGrid();
             }
-
             base.OnLoad( e );
         }
 
@@ -174,11 +183,6 @@ namespace RockWeb.Blocks.WorkFlow
                         e.Value = DateRangePicker.FormatDelimitedValues( e.Value );
                         break;
                     }
-                case "State":
-                    {
-                        e.Value =  e.Value == "0" ? "Active" : "Completed";
-                        break;
-                    }
                 case "Completed":
                     {
                         e.Value = DateRangePicker.FormatDelimitedValues( e.Value );
@@ -197,16 +201,27 @@ namespace RockWeb.Blocks.WorkFlow
                         }
                         break;
                     }
+                case "Name":
+                case "Status":
+                case "State":
+                    {
+                        break;
+                    }
+                default:
+                    {
+                        e.Value = string.Empty;
+                        break;
+                    }
             }
         }
 
         protected void gfWorkflows_ApplyFilterClick( object sender, EventArgs e )
         {
             gfWorkflows.SaveUserPreference( "Activated", drpActivated.DelimitedValues );
-            gfWorkflows.SaveUserPreference( "State", ddlState.SelectedValue );
             gfWorkflows.SaveUserPreference( "Completed", drpCompleted.DelimitedValues );
             gfWorkflows.SaveUserPreference( "Name", tbName.Text );
             gfWorkflows.SaveUserPreference( "Status", tbStatus.Text );
+            gfWorkflows.SaveUserPreference( "State", GetState() );
 
             int? personId = ppInitiator.SelectedValue;
             gfWorkflows.SaveUserPreference( "Initiator", personId.HasValue ? personId.Value.ToString() : "" );
@@ -271,29 +286,6 @@ namespace RockWeb.Blocks.WorkFlow
         }
 
         /// <summary>
-        /// Handles the RowDataBound event of the gWorkflows control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="GridViewRowEventArgs"/> instance containing the event data.</param>
-        void gWorkflows_RowDataBound( object sender, GridViewRowEventArgs e )
-        {
-            if ( e.Row.RowType == DataControlRowType.DataRow )
-            {
-                Literal lActivities = e.Row.FindControl( "lActivities" ) as Literal;
-                if ( lActivities != null )
-                {
-                    var workflow = e.Row.DataItem as Workflow;
-                    if ( workflow != null )
-                    {
-                        string activities = string.Empty;
-                        workflow.ActiveActivities.ToList().ForEach( a => activities += a.ActivityType.Name + "<br/>" );
-                        lActivities.Text = activities;
-                    }
-                }
-            }
-        }
-
-        /// <summary>
         /// Handles the Click event of the formField control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
@@ -313,6 +305,47 @@ namespace RockWeb.Blocks.WorkFlow
         #endregion
 
         #region Methods
+
+        /// <summary>
+        /// Gets the state.
+        /// </summary>
+        /// <returns></returns>
+        private string GetState()
+        {
+            // Get the check box list values by evaluating the posted form values for each input item in the rendered checkbox list.  
+            // This is required because of a bug in ASP.NET that results in the Selected property for CheckBoxList items to not be
+            // set correctly on a postback.
+            var selectedItems = new List<string>();
+            for ( int i = 0; i < cblState.Items.Count; i++ )
+            {
+                string value = Request.Form[cblState.UniqueID + "$" + i.ToString()];
+                if ( value != null )
+                {
+                    cblState.Items[i].Selected = true;
+                    selectedItems.Add( value );
+                }
+                else
+                {
+                    cblState.Items[i].Selected = false;
+                }
+            }
+
+            // no items were selected (not good)
+            if (!selectedItems.Any())
+            {
+                return "None";
+            }
+
+            // Only one item was selected, return it's value
+            if (selectedItems.Count() == 1)
+            {
+                return selectedItems[0];
+            }
+
+            // All items were selected, which is not technically a 'filter'
+            return string.Empty;
+        }
+
 
         /// <summary>
         /// Binds the defined values grid.
@@ -366,8 +399,6 @@ namespace RockWeb.Blocks.WorkFlow
         private void BindFilter()
         {
             drpActivated.DelimitedValues = gfWorkflows.GetUserPreference( "Activated" );
-            ddlState.SetValue( gfWorkflows.GetUserPreference( "State" ) );
-            drpActivated.DelimitedValues = gfWorkflows.GetUserPreference( "Activated" );
             drpCompleted.DelimitedValues = gfWorkflows.GetUserPreference( "Completed" );
             tbName.Text = gfWorkflows.GetUserPreference( "Name" );
             tbStatus.Text = gfWorkflows.GetUserPreference( "Status" );
@@ -380,6 +411,12 @@ namespace RockWeb.Blocks.WorkFlow
             else
             {
                 ppInitiator.SetValue( null );
+            }
+
+            string state = gfWorkflows.GetUserPreference( "State" );
+            foreach( ListItem li in cblState.Items )
+            {
+                li.Selected = string.IsNullOrWhiteSpace( state ) || state.Contains( li.Value );
             }
         }
 
@@ -395,7 +432,7 @@ namespace RockWeb.Blocks.WorkFlow
                 var rockContext = new RockContext();
                 var workflowService = new WorkflowService( rockContext );
 
-                var qry = workflowService.Queryable( "Activities" )
+                var qry = workflowService.Queryable( "Activities.ActivityType,InitiatorPersonAlias.Person" )
                     .Where( w => w.WorkflowTypeId.Equals( _workflowType.Id ) );
 
                 // Activated Date Range Filter
@@ -412,10 +449,18 @@ namespace RockWeb.Blocks.WorkFlow
                 }
 
                 // State Filter
-                int? state = gfWorkflows.GetUserPreference( "State" ).AsIntegerOrNull();
-                if ( state.HasValue )
+                string state = gfWorkflows.GetUserPreference( "State" );
+                if (!string.IsNullOrWhiteSpace(state))
                 {
-                    qry = qry.Where( w => w.CompletedDateTime.HasValue == ( state == 1 ) );
+                    // somewhat of a backwards comparison to account for value of "None"
+                    if ( !state.Equals( "Active" ) )
+                    {
+                        qry = qry.Where( w => w.CompletedDateTime.HasValue );
+                    }
+                    if ( !state.Equals( "Completed" ) )
+                    {
+                        qry = qry.Where( w => !w.CompletedDateTime.HasValue );
+                    }
                 }
 
                 // Completed Date Range Filter
@@ -449,16 +494,53 @@ namespace RockWeb.Blocks.WorkFlow
                     qry = qry.Where( w => w.Status.StartsWith( status ) );
                 }
 
+                List<Workflow> workflows = null;
+
                 var sortProperty = gWorkflows.SortProperty;
                 if ( sortProperty != null )
                 {
-                    gWorkflows.DataSource = qry.Sort( sortProperty ).ToList();
+                    if ( sortProperty.Property == "Initiator" )
+                    {
+                        if ( sortProperty.Direction == SortDirection.Ascending )
+                        {
+                            workflows = qry
+                                .OrderBy( w => w.InitiatorPersonAlias.Person.LastName )
+                                .ThenBy( w => w.InitiatorPersonAlias.Person.NickName )
+                                .ToList();
+                        }
+                        else
+                        {
+                            workflows = qry
+                                .OrderByDescending( w => w.InitiatorPersonAlias.Person.LastName )
+                                .ThenByDescending( w => w.InitiatorPersonAlias.Person.NickName )
+                                .ToList();
+                        }
+                    }
+                    else
+                    {
+                        workflows = qry.Sort( sortProperty ).ToList();
+                    }
                 }
                 else
                 {
-                    gWorkflows.DataSource = qry.OrderByDescending( s => s.CreatedDateTime ).ToList();
+                    workflows = qry.OrderByDescending( s => s.CreatedDateTime ).ToList();
                 }
 
+                // Since we're not binding to actual workflow list, but are using AttributeField columns,
+                // we need to save the workflows into the grid's object list
+                gWorkflows.ObjectList = new Dictionary<string, object>();
+                workflows.ForEach( w => gWorkflows.ObjectList.Add( w.Id.ToString(), w ) );
+
+                gWorkflows.DataSource = workflows.Select( w => new
+                {
+                    w.Id,
+                    w.Name,
+                    Initiator = ( w.InitiatorPersonAlias != null ? w.InitiatorPersonAlias.Person.FullName : "" ),
+                    Activities = w.ActiveActivities.Select( a => a.ActivityType.Name ).ToList().AsDelimited( "<br/>" ),
+                    w.CreatedDateTime,
+                    Status = string.Format( "<span class='label label-info'>{0}</span>", w.Status ),
+                    State = ( w.CompletedDateTime.HasValue ? "<span class='label label-default'>Completed</span>" : "<span class='label label-success'>Active</span>" )
+                } ).ToList();
                 gWorkflows.DataBind();
             }
             else

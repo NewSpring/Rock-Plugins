@@ -20,8 +20,7 @@
                             <div class="col-md-6">
                                 <Rock:DataTextBox ID="tbName" runat="server" SourceTypeName="Rock.Model.DataView, Rock" PropertyName="Name" CssClass="" />
                                 <Rock:DataTextBox ID="tbDescription" runat="server" SourceTypeName="Rock.Model.DataView, Rock" PropertyName="Description" TextMode="MultiLine" Rows="4" />
-                                <Rock:DataDropDownList ID="ddlEntityType" runat="server" SourceTypeName="Rock.Model.DataView, Rock" PropertyName="EntityTypeId"
-                                    Label="Applies To" DataTextField="FriendlyName" DataValueField="Id" AutoPostBack="true" OnSelectedIndexChanged="ddlEntityType_SelectedIndexChanged" />
+                                <Rock:EntityTypePicker ID="etpEntityType" runat="server" Label="Applies To" OnSelectedIndexChanged="etpEntityType_SelectedIndexChanged" />
                             </div>
                             <div class="col-md-6">
                                 <Rock:RockDropDownList ID="ddlTransform" runat="server" Label="Post-filter Transformation" />
@@ -35,7 +34,7 @@
                     <div class="actions">
                         <asp:LinkButton ID="btnSave" runat="server" Text="Save" CssClass="btn btn-primary" OnClick="btnSave_Click" />
                         <asp:LinkButton ID="btnCancel" runat="server" Text="Cancel" CssClass="btn btn-link" CausesValidation="false" OnClick="btnCancel_Click" />
-                        <asp:LinkButton ID="btnPreview" runat="server" Text="Preview" CssClass="btn btn-action pull-right" CausesValidation="false" OnClick="btnPreview_Click" />
+                        <asp:LinkButton ID="btnPreview" runat="server" Text="Preview" CssClass="btn btn-default pull-right" CausesValidation="false" OnClick="btnPreview_Click" />
                     </div>
 
                 </div>
@@ -92,16 +91,5 @@
             </Rock:ModalDialog>
 
         </asp:Panel>
-        <script type="text/javascript">
-            Sys.Application.add_load(function () {
-                $('#preview-modal-scroll-container').mouseenter(function () {
-                    $('#preview-modal-scroll-container').tinyscrollbar({ size: 150, sizethumb: 20 });
-
-                    $('.scroll-container').on('mouseenter', function () {
-                        $('.scroll-container').tinyscrollbar_update('relative');
-                    });
-                });
-            });
-        </script>
     </ContentTemplate>
 </asp:UpdatePanel>

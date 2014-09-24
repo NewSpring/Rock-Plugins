@@ -36,7 +36,7 @@ namespace RockWeb.Blocks.Finance
 {
     [DisplayName( "Transaction List" )]
     [Category( "Finance" )]
-    [Description( "Builds a list of all financial transactions which can be filtered by date, account/fund, transaction type, etc." )]
+    [Description( "Builds a list of all financial transactions which can be filtered by date, account, transaction type, etc." )]
 
     [ContextAware]
     [LinkedPage( "Detail Page" )]
@@ -137,29 +137,43 @@ namespace RockWeb.Blocks.Finance
         {
             base.OnLoad( e );
 
+            bool promptWithFilter = true;
             var contextEntity = this.ContextEntity();
             if ( contextEntity != null )
             {
                 if ( contextEntity is Person )
                 {
                     _person = contextEntity as Person;
+                    promptWithFilter = false;
                 }
                 else if ( contextEntity is FinancialBatch )
                 {
                     _batch = contextEntity as FinancialBatch;
                     gfTransactions.Visible = false;
+                    promptWithFilter = false;
                 }
                 else if ( contextEntity is FinancialScheduledTransaction )
                 {
                     _scheduledTxn = contextEntity as FinancialScheduledTransaction;
                     gfTransactions.Visible = false;
+                    promptWithFilter = false;
                 }
             }
 
             if ( !Page.IsPostBack )
             {
                 BindFilter();
-                BindGrid();
+
+                if ( promptWithFilter && gfTransactions.Visible )
+                {
+                    //// NOTE: Special Case for this List Block since there could be a very large number of transactions:
+                    //// If the filter is shown and we aren't filtering by anything else, don't automatically populate the grid. Wait for them to hit apply on the filter
+                    gfTransactions.Show();
+                }
+                else
+                {
+                    BindGrid();
+                }
             }
 
             if ( _batch != null )
@@ -285,7 +299,7 @@ namespace RockWeb.Blocks.Finance
                         var definedValue = DefinedValueCache.Read( definedValueId );
                         if ( definedValue != null )
                         {
-                            e.Value = definedValue.Name;
+                            e.Value = definedValue.Value;
                         }
                     }
 
@@ -301,6 +315,7 @@ namespace RockWeb.Blocks.Finance
         protected void gfTransactions_ApplyFilterClick( object sender, EventArgs e )
         {
             gfTransactions.SaveUserPreference( "Date Range", drpDates.DelimitedValues );
+            gfTransactions.SaveUserPreference( "Row Limit", nbRowLimit.Text );
             gfTransactions.SaveUserPreference( "Amount Range", nreAmount.DelimitedValues );
             gfTransactions.SaveUserPreference( "Transaction Code", tbTransactionCode.Text );
             gfTransactions.SaveUserPreference( "Account", ddlAccount.SelectedValue != All.Id.ToString() ? ddlAccount.SelectedValue : string.Empty );
@@ -333,7 +348,7 @@ namespace RockWeb.Blocks.Finance
                         else
                         {
                             var currencyTypeValue = DefinedValueCache.Read( currencyTypeId );
-                            currencyType = currencyTypeValue != null ? currencyTypeValue.Name : string.Empty;
+                            currencyType = currencyTypeValue != null ? currencyTypeValue.Value : string.Empty;
                             _currencyTypes.Add( currencyTypeId, currencyType );
                         }
 
@@ -347,7 +362,7 @@ namespace RockWeb.Blocks.Finance
                             else
                             {
                                 var creditCardTypeValue = DefinedValueCache.Read( creditCardTypeId );
-                                creditCardType = creditCardTypeValue != null ? creditCardTypeValue.Name : string.Empty;
+                                creditCardType = creditCardTypeValue != null ? creditCardTypeValue.Value : string.Empty;
                                 _creditCardTypes.Add( creditCardTypeId, creditCardType );
                             }
 
@@ -511,8 +526,10 @@ namespace RockWeb.Blocks.Finance
         private void BindFilter()
         {
             drpDates.DelimitedValues = gfTransactions.GetUserPreference( "Date Range" );
+            nbRowLimit.Text = gfTransactions.GetUserPreference( "Row Limit" );
             nreAmount.DelimitedValues = gfTransactions.GetUserPreference( "Amount Range" );
             tbTransactionCode.Text = gfTransactions.GetUserPreference( "Transaction Code" );
+
 
             var accountService = new FinancialAccountService( new RockContext() );
             ddlAccount.Items.Add( new ListItem( string.Empty, string.Empty ) );
@@ -595,7 +612,7 @@ namespace RockWeb.Blocks.Finance
 
             // Qry
             var qry = new FinancialTransactionService( new RockContext() )
-                .Queryable( "AuthorizedPerson,ProcessedByPersonAlias.Person" );
+                .Queryable( "AuthorizedPersonAlias.Person,ProcessedByPersonAlias.Person" );
 
             // Set up the selection filter
             if ( _batch != null )
@@ -625,7 +642,7 @@ namespace RockWeb.Blocks.Finance
                 // otherwise set the selection based on filter settings
                 if ( _person != null )
                 {
-                    qry = qry.Where( t => t.AuthorizedPersonId == _person.Id );
+                    qry = qry.Where( t => t.AuthorizedPersonAlias.PersonId == _person.Id );
                 }
 
                 // Date Range
@@ -640,6 +657,13 @@ namespace RockWeb.Blocks.Finance
                 {
                     DateTime upperDate = drp.UpperValue.Value.Date.AddDays( 1 );
                     qry = qry.Where( t => t.TransactionDateTime < upperDate );
+                }
+
+                // Row Limit
+                int? rowLimit = gfTransactions.GetUserPreference( "Row Limit" ).AsIntegerOrNull();
+                if (rowLimit.HasValue)
+                {
+                    qry = qry.Take( rowLimit.Value );
                 }
 
                 // Amount Range
