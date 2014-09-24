@@ -726,10 +726,10 @@ namespace Rock.CyberSource
         private BillTo GetBillTo( FinancialTransaction transaction )
         {
             BillTo billingInfo = new BillTo();
-            billingInfo.customerID = transaction.AuthorizedPerson.Id.ToString();
-            billingInfo.firstName = transaction.AuthorizedPerson.FirstName.Left( 50 );       // up to 50 chars
-            billingInfo.lastName = transaction.AuthorizedPerson.LastName.Left( 50 );         // up to 60 chars
-            billingInfo.email = transaction.AuthorizedPerson.Email.Left( 255 );              // up to 255 chars
+            billingInfo.customerID = transaction.AuthorizedPersonAlias.Id.ToString();
+            billingInfo.firstName = transaction.AuthorizedPersonAlias.Person.FirstName.Left( 50 );       // up to 50 chars
+            billingInfo.lastName = transaction.AuthorizedPersonAlias.Person.LastName.Left( 50 );         // up to 60 chars
+            billingInfo.email = transaction.AuthorizedPersonAlias.Person.Email.Left( 255 );              // up to 255 chars
             billingInfo.ipAddress = Dns.GetHostEntry( Dns.GetHostName() )
                 .AddressList.FirstOrDefault( ip => ip.AddressFamily == AddressFamily.InterNetwork ).ToString();
 
@@ -782,7 +782,7 @@ namespace Rock.CyberSource
 
             if ( cc.CreditCardTypeValue != null )
             {
-                switch ( cc.CreditCardTypeValue.Name )
+                switch ( cc.CreditCardTypeValue.Value )
                 {
                     case "Visa":
                         card.cardType = "001";
