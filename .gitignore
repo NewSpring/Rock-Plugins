@@ -1,2 +1,3 @@
 *.suo
 /packages/*.*
+web.[Cc]onnectionStrings.config
