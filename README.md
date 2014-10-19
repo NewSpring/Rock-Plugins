@@ -1,2 +1,4 @@
-Rock-NewSpring
-==============
+Rockit
+=======
+
+Rock Software Development Kit (SDK)
