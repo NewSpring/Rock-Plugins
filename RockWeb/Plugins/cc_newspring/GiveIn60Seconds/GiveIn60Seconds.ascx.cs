@@ -566,7 +566,7 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
             Rock.Web.Cache.GlobalAttributesCache.Read().AttributeValues
                 .Where( v => v.Key.StartsWith( "Organization", StringComparison.CurrentCultureIgnoreCase ) )
                 .ToList()
-                .ForEach( v => configValues.Add( v.Key, v.Value.Value ) );
+                .ForEach( v => configValues.Add( v.Key, v.Value ) );
             configValues.Add( "PageNumber", hfCurrentPage.Value.AsType<int?>() ?? 0 );
             phPageHeader.Controls.Add( new LiteralControl( GetAttributeValue( "PageHeader" ).ResolveMergeFields( configValues ) ) );
             phPageFooter.Controls.Add( new LiteralControl( GetAttributeValue( "PageFooter" ).ResolveMergeFields( configValues ) ) );
