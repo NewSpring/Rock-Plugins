@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Rock.CyberSource.Properties {
+namespace cc.newspring.CyberSource.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
