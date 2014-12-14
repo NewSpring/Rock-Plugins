@@ -2,3 +2,4 @@
 /Bin
 *.webinfo
 
+*.connectionstrings.config
