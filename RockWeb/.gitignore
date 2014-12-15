@@ -1,2 +1,5 @@
 /LINQPad.config
 /Bin
+*.webinfo
+
+*.connectionstrings.config

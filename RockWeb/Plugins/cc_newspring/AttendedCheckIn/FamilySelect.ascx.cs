@@ -105,7 +105,7 @@ namespace RockWeb.Blocks.CheckIn.Attended
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void lbCloseAddPerson_Click( object sender, EventArgs e )
         {
-            ShowOrHideAddModal( "add-person-modal", false);
+            ShowOrHideAddModal( "add-person-modal", false );
         }
 
         protected void lbCloseAddFamily_Click( object sender, EventArgs e )
@@ -638,7 +638,7 @@ namespace RockWeb.Blocks.CheckIn.Attended
         #region Internal Methods
 
         /// <summary>
-        /// Binds the person search results grid.
+        /// Binds the person search results grid on the New Person/Visitor screen.
         /// </summary>
         private void BindPersonGrid()
         {
@@ -733,7 +733,7 @@ namespace RockWeb.Blocks.CheckIn.Attended
                     {
                         if ( family.People.Where( f => f.FamilyMember ).Any() )
                         {
-                            var familyMembers = family.People.Where( f => f.FamilyMember ).ToList();
+                            var familyMembers = family.People.Where( f => f.FamilyMember && !f.ExcludedByFilter ).ToList();
                             familyMembers.ForEach( p => p.Selected = true );
                             hfSelectedPerson.Value = string.Join( ",", familyMembers.Select( f => f.Person.Id ) ) + ",";
                             memberDataSource = familyMembers.OrderBy( p => p.Person.FullNameReversed ).ToList();
@@ -741,7 +741,7 @@ namespace RockWeb.Blocks.CheckIn.Attended
 
                         if ( family.People.Where( f => !f.FamilyMember ).Any() )
                         {
-                            var familyVisitors = family.People.Where( f => !f.FamilyMember ).ToList();
+                            var familyVisitors = family.People.Where( f => !f.FamilyMember && !f.ExcludedByFilter ).ToList();
                             hfSelectedVisitor.Value = string.Join( ",", familyVisitors.Select( f => f.Person.Id ) ) + ",";
                             visitorDataSource = familyVisitors.OrderBy( p => p.Person.FullNameReversed ).ToList();
                         }
@@ -805,14 +805,17 @@ namespace RockWeb.Blocks.CheckIn.Attended
             ShowOrHideAddModal( "add-person-modal", true );
         }
 
-        protected void ShowOrHideAddModal(string elementId, bool doShow) {
+        protected void ShowOrHideAddModal( string elementId, bool doShow )
+        {
             var js = "$('.modal-backdrop').remove();";
 
-            if(doShow) {
+            if ( doShow )
+            {
                 js += "var modal = $('#" + elementId + ":not(:visible)');" +
                     "modal.modal('show');";
             }
-            else {
+            else
+            {
                 js += "var modal = $('#" + elementId + ":visible');" +
                     "modal.modal('hide');";
             }
