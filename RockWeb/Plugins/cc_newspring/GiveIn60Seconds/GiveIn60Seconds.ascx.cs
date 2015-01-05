@@ -50,9 +50,9 @@ If you have questions about giving, or difficulty giving online to {{Organizatio
 Thank you for your generous contribution.  Your support is helping {{ OrganizationName }} reach the world for Jesus.
 </p>
 ", "Text Options", 15 )]
-    [EmailTemplateField( "Confirm Account", "Confirm Account Email Template", false, Rock.SystemGuid.SystemEmail.SECURITY_CONFIRM_ACCOUNT, "Email Templates", 17, "ConfirmAccountTemplate" )]
+    [SystemEmailFieldAttribute( "Confirm Account", "Confirm Account Email Template", false, Rock.SystemGuid.SystemEmail.SECURITY_CONFIRM_ACCOUNT, "Email Templates", 17, "ConfirmAccountTemplate" )]
 
-    #endregion
+    #endregion Block Attributes
 
     public partial class Give : Rock.Web.UI.RockBlock
     {
@@ -102,7 +102,7 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
             set { ViewState["CreditCardTypeValueId"] = value; }
         }
 
-        #endregion
+        #endregion Fields
 
         #region Base Control Methods
 
@@ -258,7 +258,7 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
             BindHeaders();
         }
 
-        #endregion
+        #endregion Base Control Methods
 
         #region Event methods
 
@@ -552,7 +552,7 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
             }
         }
 
-        #endregion
+        #endregion Event methods
 
         #region Init methods
 
@@ -715,7 +715,7 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
             }
         }
 
-        #endregion
+        #endregion Init methods
 
         #region Payment methods
 
@@ -979,7 +979,7 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
             }
         }
 
-        #endregion
+        #endregion Payment methods
 
         #region Navigation/Error Methods
 
@@ -1035,7 +1035,7 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
             }
         }
 
-        #endregion
+        #endregion Navigation/Error Methods
 
         #region Helper Methods
 
@@ -1195,7 +1195,7 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
             return null;
         }
 
-        #endregion
+        #endregion Helper Methods
 
         #region Helper Class
 
@@ -1238,7 +1238,7 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
             }
         }
 
-        #endregion
+        #endregion Helper Class
 
         #region Javascript
 
@@ -1319,6 +1319,6 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
             ScriptManager.RegisterStartupScript( pnlGiveIn60Seconds, this.GetType(), "giving-profile", script, true );
         }
 
-        #endregion
+        #endregion Javascript
     }
 }
