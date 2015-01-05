@@ -27,7 +27,7 @@
                 </Rock:BootstrapButton>
             </div>
         </div>
-                
+               
         <div class="row checkin-body">
             <div class="col-xs-3">
                 <asp:UpdatePanel ID="pnlGroupTypes" runat="server" UpdateMode="Conditional">
@@ -71,7 +71,7 @@
                     </asp:Repeater>
                 </ContentTemplate>
                 </asp:UpdatePanel>
-            </div>
+            </div>            
 
             <div class="col-xs-3 selected-grid">
                 <h3>Selected</h3>
@@ -94,14 +94,17 @@
         </div>
 
         <div class="row at-the-bottom">
-           <div class="col-xs-3 col-xs-offset-9">
-                <asp:LinkButton ID="lbAddNote" runat="server" Text="Add a Note" CssClass="btn btn-primary btn-block btn-checkin-select" OnClick="lbAddNote_Click" CausesValidation="false" />
+            <div class="col-xs-3 col-xs-offset-6">
+                <asp:LinkButton ID="lbEditInfo" runat="server" Text="Edit Info" CssClass="btn btn-primary btn-block btn-checkin-select" OnClick="lbEditInfo_Click" CausesValidation="false" />
+            </div>
+            <div class="col-xs-3">
+                <asp:LinkButton ID="lbAddNote" runat="server" Text="Add Note" CssClass="btn btn-primary btn-block btn-checkin-select" OnClick="lbAddNote_Click" CausesValidation="false" />
             </div>
         </div>
 
     </asp:Panel>
 
-    <div class="modal fade" id="notes-modal" role="dialog">
+    <div class="modal" id="notes-modal" role="dialog">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <asp:HiddenField ID="hfOpenNotePanel" runat="server" />
@@ -111,7 +114,7 @@
                         <Rock:BootstrapButton ID="closeNotesModal" runat="server" CssClass="btn btn-lg btn-primary" OnClick="lbCloseNotes_Click" Text="Cancel" EnableViewState="false" />
                     </div>
                     <div class="col-xs-6 text-center">
-                        <h3>Add Notes</h3>
+                        <h2>Add Notes</h2>
                     </div>
                     <div class="col-xs-3 checkin-actions text-right">
                         <asp:LinkButton ID="lbAddNoteSave" CssClass="btn btn-lg btn-primary" runat="server" OnClick="lbAddNoteSave_Click" Text="Save" EnableViewState="false" />
@@ -133,6 +136,48 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="edit-info-modal" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <div class="row checkin-header">
+                    <div class="col-xs-3 checkin-actions">
+                        <Rock:BootstrapButton ID="lbCloseEditInfo" runat="server" CssClass="btn btn-lg btn-primary" OnClick="lbCloseEditInfo_Click" Text="Cancel" EnableViewState="false" />
+                    </div>
+
+                    <div class="col-xs-6 text-center">
+                        <h2>Edit Info</h2>
+                    </div>
+
+                    <div class="col-xs-3 checkin-actions text-right">
+                        <Rock:BootstrapButton ID="lbSaveEditInfo" ValidationGroup="Person" CausesValidation="true" CssClass="btn btn-lg btn-primary" runat="server" OnClick="lbSaveEditInfo_Click" Text="Save" EnableViewState="false" />
+                    </div>
+                </div>        
+    
+                <div class="checkin-body">
+                    <div class="row">               
+                        <div class="col-xs-2">
+                            <Rock:RockTextBox ID="tbFirstName" runat="server" Label="First Name" ValidationGroup="Person" />
+                        </div>
+                        <div class="col-xs-2">
+                            <Rock:RockTextBox ID="tbNickname" runat="server" ValidationGroup="Person" Label="Nickname" />
+                        </div>
+                        <div class="col-xs-2">
+                            <Rock:RockTextBox ID="tbLastName" runat="server" Label="Last Name" ValidationGroup="Person" />
+                        </div>
+                        <div class="col-xs-3">
+                            <Rock:DatePicker ID="dpDOB" runat="server" Label="DOB" ValidationGroup="Person" CssClass="date-picker" />
+                        </div>                        
+                        <div class="col-xs-3">
+                            <Rock:RockDropDownList ID="ddlAbility" runat="server" Label="Ability/Grade" />
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>

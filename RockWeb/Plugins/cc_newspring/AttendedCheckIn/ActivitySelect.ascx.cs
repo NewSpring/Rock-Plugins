@@ -20,6 +20,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using cc.newspring.AttendedCheckIn.Utility;
 using Rock;
 using Rock.Attribute;
 using Rock.CheckIn;
@@ -79,6 +80,9 @@ namespace RockWeb.Blocks.CheckIn.Attended
         /// </summary>
         protected int CheckInNoteTypeId;
 
+        /// <summary>
+        /// A list of attendance counts per schedule
+        /// </summary>
         protected class ScheduleAttendance
         {
             public int ScheduleId { get; set; }
@@ -104,54 +108,50 @@ namespace RockWeb.Blocks.CheckIn.Attended
             }
             else
             {
+                var personId = Request.QueryString["personId"].AsType<int?>();
                 SetHeader();
                 if ( !Page.IsPostBack )
                 {
-                    var personId = Request.QueryString["personId"].AsType<int?>();
-                    if ( personId > 0 )
+                    var person = GetPerson();
+
+                    if ( person != null && person.GroupTypes.Any() )
                     {
-                        CheckInPerson person = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault()
-                            .People.Where( p => p.Person.Id == personId ).FirstOrDefault();
-
-                        if ( person != null && person.GroupTypes.Any() )
+                        ViewState["locationId"] = Request.QueryString["locationId"];
+                        ViewState["scheduleId"] = Request.QueryString["scheduleId"];
+                        var selectedGroupType = person.GroupTypes.Where( gt => gt.Selected ).FirstOrDefault();
+                        if ( selectedGroupType != null )
                         {
-                            ViewState["locationId"] = Request.QueryString["locationId"];
-                            ViewState["scheduleId"] = Request.QueryString["scheduleId"];
-                            var selectedGroupType = person.GroupTypes.Where( gt => gt.Selected ).FirstOrDefault();
-                            if ( selectedGroupType != null )
-                            {
-                                ViewState["groupTypeId"] = selectedGroupType.GroupType.Id.ToString();
-                            }
-
-                            BindGroupTypes( person.GroupTypes );
-                            BindLocations( person.GroupTypes );
-                            BindSchedules( person.GroupTypes );
-                            BindSelectedGrid();
-
-                            // look up check-in notes
-                            var rockContext = new RockContext();
-                            var personTypeId = new Person().TypeId;
-                            CheckInNoteTypeId = new NoteTypeService( rockContext ).Queryable()
-                                .Where( t => t.Name == "Check-In" && t.EntityTypeId == personTypeId )
-                                .Select( t => t.Id ).FirstOrDefault();
-
-                            ViewState["checkInNoteTypeId"] = CheckInNoteTypeId;
-
-                            var checkInNote = new NoteService( rockContext )
-                                .GetByNoteTypeId( CheckInNoteTypeId )
-                                .Where( n => n.EntityId == personId )
-                                .FirstOrDefault();
-
-                            if ( checkInNote != null )
-                            {
-                                tbNoteText.Text = checkInNote.Text;
-                            }
-
-                            var allergyAttributeId = new AttributeService( rockContext )
-                                .GetByEntityTypeId( new Person().TypeId )
-                                .Where( a => a.Name.ToUpper() == "ALLERGY" ).FirstOrDefault().Id;
-                            LoadAttributeControl( allergyAttributeId, (int)personId );
+                            ViewState["groupTypeId"] = selectedGroupType.GroupType.Id.ToString();
                         }
+
+                        BindGroupTypes( person.GroupTypes );
+                        BindLocations( person.GroupTypes );
+                        BindSchedules( person.GroupTypes );
+                        BindSelectedGrid();
+
+                        // look up check-in notes
+                        var rockContext = new RockContext();
+                        var personTypeId = new Person().TypeId;
+                        CheckInNoteTypeId = new NoteTypeService( rockContext ).Queryable()
+                            .Where( t => t.Name == "Check-In" && t.EntityTypeId == personTypeId )
+                            .Select( t => t.Id ).FirstOrDefault();
+
+                        ViewState["checkInNoteTypeId"] = CheckInNoteTypeId;
+
+                        var checkInNote = new NoteService( rockContext )
+                            .GetByNoteTypeId( CheckInNoteTypeId )
+                            .Where( n => n.EntityId == person.Person.Id )
+                            .FirstOrDefault();
+
+                        if ( checkInNote != null )
+                        {
+                            tbNoteText.Text = checkInNote.Text;
+                        }
+
+                        var allergyAttributeId = new AttributeService( rockContext )
+                            .GetByEntityTypeId( new Person().TypeId )
+                            .Where( a => a.Name.ToUpper() == "ALLERGY" ).FirstOrDefault().Id;
+                        LoadAttributeControl( allergyAttributeId, person.Person.Id );
                     }
                     else
                     {
@@ -159,32 +159,30 @@ namespace RockWeb.Blocks.CheckIn.Attended
                         GoBack();
                     }
                 }
-            }
 
-            // reload the attribute field.
-            var pId = Request.QueryString["personId"].AsType<int?>();
-            if ( pId > 0 )
-            {
-                var allergyAttributeId = new AttributeService( new RockContext() ).GetByEntityTypeId( new Person().TypeId )
-                    .Where( a => a.Name.ToUpper() == "ALLERGY" ).FirstOrDefault().Id;
-                LoadAttributeControl( allergyAttributeId, (int)pId );
+                // reload the attribute field.
+                if ( personId > 0 )
+                {
+                    var allergyAttributeId = new AttributeService( new RockContext() ).GetByEntityTypeId( new Person().TypeId )
+                        .Where( a => a.Name.ToUpper() == "ALLERGY" ).FirstOrDefault().Id;
+                    LoadAttributeControl( allergyAttributeId, (int)personId );
+                }
             }
         }
 
-        #endregion
+        #endregion Control Methods
 
+        /// <summary>
+        /// Sets the header.
+        /// </summary>
         protected void SetHeader()
         {
-            var personId = Request.QueryString["personId"].AsType<int?>();
-            if ( personId > 0 )
-            {
-                CheckInPerson person = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault()
-                    .People.Where( p => p.Person.Id == personId ).FirstOrDefault();
+            var person = GetPerson();
 
-                if ( person != null )
-                {
-                    lblPersonName.Text = person.Person.FullName;
-                }
+            if ( person != null )
+            {
+                var first = person.Person.NickName ?? person.Person.FirstName;
+                lblPersonName.Text = string.Format( "{0} {1}", first, person.Person.LastName );
             }
         }
 
@@ -197,12 +195,10 @@ namespace RockWeb.Blocks.CheckIn.Attended
         /// <param name="e">The <see cref="RepeaterCommandEventArgs"/> instance containing the event data.</param>
         protected void rGroupType_ItemCommand( object source, ListViewCommandEventArgs e )
         {
-            var personId = Request.QueryString["personId"].AsType<int?>();
-            if ( personId > 0 )
-            {
-                var person = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault()
-                    .People.Where( p => p.Person.Id == personId ).FirstOrDefault();
+            var person = GetPerson();
 
+            if ( person != null )
+            {
                 foreach ( ListViewDataItem item in rGroupType.Items )
                 {
                     if ( item.ID != e.Item.ID )
@@ -233,12 +229,10 @@ namespace RockWeb.Blocks.CheckIn.Attended
         /// <param name="e">The <see cref="ListViewCommandEventArgs"/> instance containing the event data.</param>
         protected void lvLocation_ItemCommand( object sender, ListViewCommandEventArgs e )
         {
-            var personId = Request.QueryString["personId"].AsType<int?>();
-            if ( personId > 0 )
-            {
-                var person = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault()
-                    .People.Where( p => p.Person.Id == personId ).FirstOrDefault();
+            var person = GetPerson();
 
+            if ( person != null )
+            {
                 foreach ( ListViewDataItem item in lvLocation.Items )
                 {
                     if ( item.ID != e.Item.ID )
@@ -268,12 +262,10 @@ namespace RockWeb.Blocks.CheckIn.Attended
         /// <param name="e">The <see cref="RepeaterCommandEventArgs"/> instance containing the event data.</param>
         protected void rSchedule_ItemCommand( object source, RepeaterCommandEventArgs e )
         {
-            var personId = Request.QueryString["personId"].AsType<int?>();
-            if ( personId > 0 )
-            {
-                var person = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault()
-                    .People.Where( p => p.Person.Id == personId ).FirstOrDefault();
+            var person = GetPerson();
 
+            if ( person != null )
+            {
                 foreach ( RepeaterItem item in rSchedule.Items )
                 {
                     if ( item.ID != e.Item.ID )
@@ -347,17 +339,20 @@ namespace RockWeb.Blocks.CheckIn.Attended
         /// <param name="e">The <see cref="ListViewItemEventArgs"/> instance containing the event data.</param>
         protected void lvLocation_ItemDataBound( object sender, ListViewItemEventArgs e )
         {
-            var selectedLocationId = ViewState["locationId"].ToString().AsType<int?>();
-            if ( e.Item.ItemType == ListViewItemType.DataItem )
+            if ( ViewState["locationId"] != null )
             {
-                var location = (CheckInLocation)e.Item.DataItem;
-                var lbLocation = (LinkButton)e.Item.FindControl( "lbLocation" );
-                lbLocation.CommandArgument = location.Location.Id.ToString();
-                lbLocation.Text = location.Location.Name + " (" + getLocationAttendance( location ) + ")";
-
-                if ( location.Selected && location.Location.Id == selectedLocationId )
+                var selectedLocationId = ViewState["locationId"].ToString().AsType<int?>();
+                if ( e.Item.ItemType == ListViewItemType.DataItem )
                 {
-                    lbLocation.AddCssClass( "active" );
+                    var location = (CheckInLocation)e.Item.DataItem;
+                    var lbLocation = (LinkButton)e.Item.FindControl( "lbLocation" );
+                    lbLocation.CommandArgument = location.Location.Id.ToString();
+                    lbLocation.Text = location.Location.Name + " (" + GetLocationAttendance( location ) + ")";
+
+                    if ( location.Selected && location.Location.Id == selectedLocationId )
+                    {
+                        lbLocation.AddCssClass( "active" );
+                    }
                 }
             }
         }
@@ -385,6 +380,106 @@ namespace RockWeb.Blocks.CheckIn.Attended
             }
         }
 
+        /// <summary>
+        /// Handles the Click event of the lbCloseEditInfo control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void lbCloseEditInfo_Click( object sender, EventArgs e )
+        {
+            ShowOrHideAddModal( "edit-info-modal", false );
+        }
+
+        /// <summary>
+        /// Handles the Click event of the lbSaveEditInfo control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void lbSaveEditInfo_Click( object sender, EventArgs e )
+        {
+            if ( string.IsNullOrEmpty( tbFirstName.Text ) || string.IsNullOrEmpty( tbLastName.Text ) || string.IsNullOrEmpty( dpDOB.Text ) )
+            {
+                Page.Validate( "Person" );
+                ShowOrHideAddModal( "edit-info-modal", true );
+                return;
+            }
+
+            var currentPerson = GetPerson();
+
+            var changes = currentPerson.Person.FirstName == tbFirstName.Text;
+            changes = changes || currentPerson.Person.LastName == tbLastName.Text;
+            changes = changes || currentPerson.Person.NickName == tbNickname.Text;
+            changes = changes || currentPerson.Person.BirthDate == dpDOB.SelectedDate;
+
+            if ( changes )
+            {
+                var newContext = new RockContext();
+                var person = new PersonService( newContext ).Get( currentPerson.Person.Id );
+                person.LoadAttributes();
+
+                person.FirstName = tbFirstName.Text;
+                currentPerson.Person.FirstName = tbFirstName.Text;
+
+                person.LastName = tbLastName.Text;
+                currentPerson.Person.LastName = tbLastName.Text;
+
+                person.BirthDate = dpDOB.SelectedDate;
+                currentPerson.Person.BirthDate = dpDOB.SelectedDate;
+
+                person.NickName = tbNickname.Text.Length > 0 ? tbNickname.Text : tbFirstName.Text;
+                currentPerson.Person.NickName = tbNickname.Text.Length > 0 ? tbNickname.Text : tbFirstName.Text;
+
+                var optionGroup = ddlAbility.SelectedItem.Attributes["optiongroup"];
+                if ( !string.IsNullOrEmpty( optionGroup ) )
+                {
+                    // Selected ability level
+                    if ( optionGroup == "Ability" )
+                    {
+                        person.SetAttributeValue( "AbilityLevel", ddlAbility.SelectedValue );
+                        currentPerson.Person.SetAttributeValue( "AbilityLevel", ddlAbility.SelectedValue );
+
+                        person.Grade = null;
+                        currentPerson.Person.Grade = null;
+
+                        person.SaveAttributeValues();
+                    }
+                    // Selected a grade
+                    else if ( optionGroup == "Grade" )
+                    {
+                        var grade = ddlAbility.SelectedValueAsEnum<GradeLevel>();
+                        person.Grade = (int?)grade;
+                        currentPerson.Person.Grade = (int?)grade;
+
+                        person.Attributes.Remove( "AbilityLevel" );
+                        currentPerson.Person.Attributes.Remove( "AbilityLevel" );
+
+                        person.SaveAttributeValues();
+                    }
+                }
+
+                newContext.SaveChanges();
+                SetHeader();
+            }
+
+            ShowOrHideAddModal( "edit-info-modal", false );
+        }
+
+        /// <summary>
+        /// Handles the Click event of the lbEditInfo control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void lbEditInfo_Click( object sender, EventArgs e )
+        {
+            ResetEditInfo();
+            ShowOrHideAddModal( "edit-info-modal", true );
+        }
+
+        /// <summary>
+        /// Handles the Click event of the lbCloseNotes control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void lbCloseNotes_Click( object sender, EventArgs e )
         {
             ShowOrHideAddModal( "notes-modal", false );
@@ -409,13 +504,11 @@ namespace RockWeb.Blocks.CheckIn.Attended
         /// <param name="e">The <see cref="RowEventArgs" /> instance containing the event data.</param>
         protected void gSelectedGrid_Delete( object sender, RowEventArgs e )
         {
-            var personId = Request.QueryString["personId"].AsType<int?>();
-            if ( personId > 0 )
+            var person = GetPerson();
+
+            if ( person != null )
             {
                 // Delete an item. Remove the selected attribute from the group, location and schedule
-                var person = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault()
-                    .People.Where( p => p.Person.Id == personId ).FirstOrDefault();
-
                 int index = e.RowIndex;
                 var row = gSelectedGrid.Rows[index];
                 var dataKeyValues = gSelectedGrid.DataKeys[index].Values;
@@ -479,6 +572,11 @@ namespace RockWeb.Blocks.CheckIn.Attended
             ShowOrHideAddModal( "notes-modal", true );
         }
 
+        /// <summary>
+        /// Shows or hides the modal.
+        /// </summary>
+        /// <param name="elementId">The element identifier.</param>
+        /// <param name="doShow">if set to <c>true</c> [do show].</param>
         protected void ShowOrHideAddModal( string elementId, bool doShow )
         {
             var js = "$('.modal-backdrop').remove();";
@@ -514,19 +612,16 @@ namespace RockWeb.Blocks.CheckIn.Attended
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void lbAddNoteSave_Click( object sender, EventArgs e )
         {
-            var personId = Request.QueryString["personId"].AsType<int?>();
-            var person = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault()
-                .People.Where( p => p.Person.Id == personId ).FirstOrDefault();
-
+            var person = GetPerson();
             var rockContext = new RockContext();
             var checkInNote = new NoteService( rockContext ).GetByNoteTypeId( int.Parse( ViewState["checkInNoteTypeId"].ToString() ) )
-                .Where( n => n.EntityId == personId )
+                .Where( n => n.EntityId == person.Person.Id )
                 .FirstOrDefault();
             if ( checkInNote == null )
             {
                 checkInNote = new Note();
                 checkInNote.IsSystem = false;
-                checkInNote.EntityId = personId;
+                checkInNote.EntityId = person.Person.Id;
                 checkInNote.NoteTypeId = int.Parse( ViewState["checkInNoteTypeId"].ToString() );
                 rockContext.Notes.Add( checkInNote );
             }
@@ -553,7 +648,6 @@ namespace RockWeb.Blocks.CheckIn.Attended
             }
 
             rockContext.SaveChanges();
-            //mpeAddNote.Hide();
             ShowOrHideAddModal( "notes-modal", false );
         }
 
@@ -577,7 +671,7 @@ namespace RockWeb.Blocks.CheckIn.Attended
             GoNext();
         }
 
-        #endregion
+        #endregion Edit Events
 
         #region Internal Methods
 
@@ -672,7 +766,7 @@ namespace RockWeb.Blocks.CheckIn.Attended
                     location = locations.FirstOrDefault();
                 }
 
-                getScheduleAttendance( location );
+                GetScheduleAttendance( location );
                 rSchedule.DataSource = location.Schedules.ToList();
                 rSchedule.DataBind();
                 pnlSchedules.Update();
@@ -684,12 +778,10 @@ namespace RockWeb.Blocks.CheckIn.Attended
         /// </summary>
         protected void BindSelectedGrid()
         {
-            var personId = Request.QueryString["personId"].AsType<int?>();
-            if ( personId > 0 )
-            {
-                var person = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault()
-                    .People.Where( p => p.Person.Id == (int)personId ).FirstOrDefault();
+            var person = GetPerson();
 
+            if ( person != null )
+            {
                 var selectedGroupTypes = person.GroupTypes.Where( gt => gt.Selected ).ToList();
                 var selectedGroups = selectedGroupTypes.SelectMany( gt => gt.Groups.Where( g => g.Selected ) ).ToList();
                 var selectedLocations = selectedGroups.SelectMany( g => g.Locations.Where( l => l.Selected ) ).ToList();
@@ -717,16 +809,67 @@ namespace RockWeb.Blocks.CheckIn.Attended
         }
 
         /// <summary>
+        /// Gets the family.
+        /// </summary>
+        /// <returns></returns>
+        private CheckInFamily GetFamily()
+        {
+            return CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Gets the person.
+        /// </summary>
+        /// <returns></returns>
+        private CheckInPerson GetPerson()
+        {
+            var personId = Request.QueryString["personId"].AsType<int?>();
+            var family = GetFamily();
+
+            if ( personId == null || personId < 1 || family == null )
+            {
+                return null;
+            }
+
+            return family.People.Where( p => p.Person.Id == personId ).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Resets the edit info modal.
+        /// </summary>
+        private void ResetEditInfo()
+        {
+            var person = GetPerson();
+            ddlAbility.LoadAbilityAndGradeItems();
+
+            tbFirstName.Text = person.Person.FirstName;
+            tbLastName.Text = person.Person.LastName;
+            tbNickname.Text = person.Person.NickName;
+            dpDOB.SelectedDate = person.Person.BirthDate;
+
+            tbFirstName.Required = true;
+            tbLastName.Required = true;
+            dpDOB.Required = true;
+
+            if ( person.Person.Grade.HasValue )
+            {
+                ddlAbility.SelectedValue = ( (GradeLevel)person.Person.Grade.Value ).ToString();
+            }
+            else if ( person.Person.Attributes.ContainsKey( "AbilityLevel" ) )
+            {
+                ddlAbility.SelectedValue = person.Person.GetAttributeValue( "AbilityLevel" );
+            }
+        }
+
+        /// <summary>
         /// Goes back to the confirmation page with no changes.
         /// </summary>
         private new void GoBack()
         {
-            var personId = Request.QueryString["personId"].AsType<int?>();
-            if ( personId > 0 )
-            {
-                var person = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault()
-                .People.Where( p => p.Person.Id == personId ).FirstOrDefault();
+            var person = GetPerson();
 
+            if ( person != null )
+            {
                 var groupTypes = person.GroupTypes.ToList();
                 groupTypes.ForEach( gt => gt.Selected = gt.PreSelected );
 
@@ -754,12 +897,10 @@ namespace RockWeb.Blocks.CheckIn.Attended
         {
             if ( gSelectedGrid.Rows.Count > 0 )
             {
-                var personId = Request.QueryString["personId"].AsType<int?>();
-                if ( personId > 0 )
-                {
-                    var person = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault()
-                        .People.Where( p => p.Person.Id == personId ).FirstOrDefault();
+                var person = GetPerson();
 
+                if ( person != null )
+                {
                     var groupTypes = person.GroupTypes.ToList();
                     groupTypes.ForEach( gt => gt.PreSelected = gt.Selected );
 
@@ -810,23 +951,16 @@ namespace RockWeb.Blocks.CheckIn.Attended
         /// </summary>
         /// <param name="location"></param>
         /// <returns></returns>
-        protected string getLocationAttendance( CheckInLocation location )
+        protected string GetLocationAttendance( CheckInLocation location )
         {
-            var attendanceCount = "";
-            var rockContext = new RockContext();
-            var attendanceService = new AttendanceService( rockContext );
-            var attendanceQuery = attendanceService.GetByDateAndLocation( DateTime.Now, location.Location.Id );
-            var firstScheduleId = location.Schedules.FirstOrDefault().Schedule.Id;
-            attendanceQuery = attendanceQuery.Where( l => l.ScheduleId == firstScheduleId );
-            attendanceCount = attendanceQuery.Count().ToString();
-            return attendanceCount;
+            return KioskLocationAttendance.Read( location.Location.Id ).CurrentCount.ToString();
         }
 
         /// <summary>
         /// Gets the attendance count for all of the schedules for a location. This will show on the schedule buttons.
         /// </summary>
         /// <param name="location"></param>
-        protected void getScheduleAttendance( CheckInLocation location )
+        protected void GetScheduleAttendance( CheckInLocation location )
         {
             var rockContext = new RockContext();
             var attendanceService = new AttendanceService( rockContext );
@@ -841,6 +975,6 @@ namespace RockWeb.Blocks.CheckIn.Attended
             }
         }
 
-        #endregion
+        #endregion Internal Methods
     }
 }
