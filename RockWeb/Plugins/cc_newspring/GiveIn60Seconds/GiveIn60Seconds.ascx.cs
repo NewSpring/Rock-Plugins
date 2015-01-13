@@ -439,7 +439,7 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
                     if ( errorMessage.Any() )
                     {
                         nbSaveAccount.Title = "Invalid Transaction";
-                        nbSaveAccount.Text = "Sorry, the account information cannot be saved. " + errorMessage;
+                        nbSaveAccount.Text = string.Format( "Sorry, the account information cannot be saved. {0}", errorMessage );
                         nbSaveAccount.NotificationBoxType = NotificationBoxType.Danger;
                         nbSaveAccount.Visible = true;
                     }
@@ -906,7 +906,7 @@ Thank you for your generous contribution.  Your support is helping {{ Organizati
                         ccSuffix = paymentInfo.CurrencyTypeValue.Value;
                     }
 
-                    string batchName = GetAttributeValue( "BatchNamePrefix" ).Trim() + " " + ccSuffix;
+                    string batchName = string.Format( "{0} {1}", GetAttributeValue( "BatchNamePrefix" ).Trim(), ccSuffix );
 
                     var batchService = new FinancialBatchService( rockContext );
                     var batch = batchService.Queryable()

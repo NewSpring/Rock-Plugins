@@ -475,7 +475,7 @@ namespace Rock.CyberSource
             return scheduledTransaction.TransactionCode;
         }
 
-        #endregion
+        #endregion Gateway Component Implementation
 
         #region Process Transaction
 
@@ -618,7 +618,7 @@ namespace Rock.CyberSource
             }
         }
 
-        #endregion
+        #endregion Process Transaction
 
         #region Helper Methods
 
@@ -970,6 +970,6 @@ namespace Rock.CyberSource
             }
         }
 
-        #endregion
+        #endregion Helper Methods
     }
 }
