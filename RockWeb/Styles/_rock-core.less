@@ -46,6 +46,10 @@
 
 @import "./Bootstrap/mixins.less";
 
+// import the following files as less files so they are concatenated properly
+@import (less) "./bootstrap-modal/bootstrap-modal-bs3patch.css";
+@import (less) "./bootstrap-modal/bootstrap-modal.css";
+
 
 
 
@@ -331,7 +335,7 @@ a.help {
     .panel-body {
 
         .grid.grid-panel {
-            margin: -15px;
+            margin: -15px -15px -30px -15px;
 
             .grid-filter {
                 border-radius: 0;

@@ -48,11 +48,6 @@ namespace RockWeb.Blocks.Prayer
         private static readonly string _PrayerRequestKeyParameter = "prayerRequestId";
 
         /// <summary>
-        /// The PrayerRequest entity type id.  This causes only categories that are appropriate to the PrayerRequest entity to be listed.
-        /// </summary>
-        private int? _prayerRequestEntityTypeId = null;
-
-        /// <summary>
         /// Holds whether or not the person can add, edit, and delete.
         /// </summary>
         private bool _canAddEditDelete = false;
@@ -90,13 +85,9 @@ namespace RockWeb.Blocks.Prayer
         {
             base.OnInit( e );
 
-            PrayerRequest prayerRequest = new PrayerRequest();
-            Type type = prayerRequest.GetType();
-            _prayerRequestEntityTypeId = Rock.Web.Cache.EntityTypeCache.GetId( type.FullName );
-
             BindFilter();
 
-            gPrayerRequests.DataKeyNames = new string[] { "id" };
+            gPrayerRequests.DataKeyNames = new string[] { "Id" };
             gPrayerRequests.Actions.AddClick += gPrayerRequests_Add;
             gPrayerRequests.GridRebind += gPrayerRequests_GridRebind;
 
@@ -522,7 +513,7 @@ namespace RockWeb.Blocks.Prayer
         private void DeleteAllRelatedNotes( PrayerRequest prayerRequest, RockContext rockContext )
         {
             var noteTypeService = new NoteTypeService( rockContext );
-            var noteType = noteTypeService.Get( _prayerRequestEntityTypeId.Value, "Prayer Comment" );
+            var noteType = noteTypeService.Get( Rock.SystemGuid.NoteType.PRAYER_COMMENT.AsGuid() );
             var noteService = new NoteService( rockContext );
             var prayerComments = noteService.Get( noteType.Id, prayerRequest.Id );
             foreach ( Note prayerComment in prayerComments )

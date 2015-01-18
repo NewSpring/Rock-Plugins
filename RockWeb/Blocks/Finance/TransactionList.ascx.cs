@@ -82,7 +82,7 @@ namespace RockWeb.Blocks.Finance
 
             if ( _canConfigure )
             {
-                gTransactions.DataKeyNames = new string[] { "id" };
+                gTransactions.DataKeyNames = new string[] { "Id" };
                 gTransactions.Actions.ShowAdd = true;
                 gTransactions.Actions.AddClick += gTransactions_Add;
                 gTransactions.GridRebind += gTransactions_GridRebind;
@@ -752,7 +752,7 @@ namespace RockWeb.Blocks.Finance
             }
             else
             {
-                qry = qry.OrderByDescending( t => t.TransactionDateTime );
+                qry = qry.OrderBy( t => t.Id );
             }
 
             gTransactions.DataSource = qry.AsNoTracking().ToList();
