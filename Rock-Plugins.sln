@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "RockWeb(1)", "http://vsdev:50345", "{22348267-9BDF-4B5E-BB6E-37B5FA770224}"
 	ProjectSection(WebsiteProperties) = preProject
@@ -30,6 +30,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cc.newspring.GiveIn60Second
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cc.newspring.CyberSource", "cc.newspring.CyberSource\cc.newspring.CyberSource.csproj", "{83775A9E-0455-4801-B1EF-DC70D786D09B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cc.newspring.Apollos", "Apollos\cc.newspring.Apollos.csproj", "{9F3591C6-451C-4C38-A1D2-6E8B99C81DA3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +54,10 @@ Global
 		{83775A9E-0455-4801-B1EF-DC70D786D09B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{83775A9E-0455-4801-B1EF-DC70D786D09B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{83775A9E-0455-4801-B1EF-DC70D786D09B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F3591C6-451C-4C38-A1D2-6E8B99C81DA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F3591C6-451C-4C38-A1D2-6E8B99C81DA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F3591C6-451C-4C38-A1D2-6E8B99C81DA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F3591C6-451C-4C38-A1D2-6E8B99C81DA3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
