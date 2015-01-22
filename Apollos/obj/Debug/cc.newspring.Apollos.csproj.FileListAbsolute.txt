@@ -1,0 +1,4 @@
+C:\Users\ndsev\Desktop\Rock-Plugins\Apollos\bin\Debug\Apollos.dll
+C:\Users\ndsev\Desktop\Rock-Plugins\Apollos\bin\Debug\Apollos.pdb
+C:\Users\ndsev\Desktop\Rock-Plugins\Apollos\obj\Debug\Apollos.dll
+C:\Users\ndsev\Desktop\Rock-Plugins\Apollos\obj\Debug\Apollos.pdb

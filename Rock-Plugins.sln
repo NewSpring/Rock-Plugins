@@ -30,7 +30,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cc.newspring.GiveIn60Second
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cc.newspring.CyberSource", "cc.newspring.CyberSource\cc.newspring.CyberSource.csproj", "{83775A9E-0455-4801-B1EF-DC70D786D09B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cc.newspring.Apollos", "Apollos\cc.newspring.Apollos.csproj", "{9F3591C6-451C-4C38-A1D2-6E8B99C81DA3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cc.newspring.Apollos", "cc.newspring.Apollos\cc.newspring.Apollos.csproj", "{9F3591C6-451C-4C38-A1D2-6E8B99C81DA3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
