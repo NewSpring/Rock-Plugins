@@ -1,9 +1,0 @@
-C:\Users\ndsev\Desktop\Rock-Plugins\Apollos\bin\Debug\Apollos.dll
-C:\Users\ndsev\Desktop\Rock-Plugins\Apollos\bin\Debug\Apollos.pdb
-C:\Users\ndsev\Desktop\Rock-Plugins\Apollos\obj\Debug\Apollos.dll
-C:\Users\ndsev\Desktop\Rock-Plugins\Apollos\obj\Debug\Apollos.pdb
-C:\Users\ndsev\Desktop\Rock-Plugins\cc.newspring.Apollos\bin\Debug\Apollos.dll
-C:\Users\ndsev\Desktop\Rock-Plugins\cc.newspring.Apollos\bin\Debug\Apollos.pdb
-C:\Users\ndsev\Desktop\Rock-Plugins\cc.newspring.Apollos\obj\Debug\cc.newspring.Apollos.csprojResolveAssemblyReference.cache
-C:\Users\ndsev\Desktop\Rock-Plugins\cc.newspring.Apollos\obj\Debug\Apollos.dll
-C:\Users\ndsev\Desktop\Rock-Plugins\cc.newspring.Apollos\obj\Debug\Apollos.pdb

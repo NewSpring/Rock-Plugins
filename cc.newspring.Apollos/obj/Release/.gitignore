@@ -5,3 +5,4 @@
 /cc.newspring.Apollos.csproj.FileListAbsolute.txt
 /Apollos.pdb
 *.dll
+*.cache
