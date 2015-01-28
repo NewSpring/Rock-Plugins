@@ -31,7 +31,7 @@ namespace Apollos.Security.Authentication.Apollos
     [Description( "Apollos Authentication Provider" )]
     [Export( typeof( AuthenticationComponent ) )]
     [ExportMetadata( "ComponentName", "Apollos" )]
-    [IntegerField( "Rounds", "", false, 10 )]
+    [IntegerField( "Work Factor", "", false, 10 )]
     [BooleanField( "Allow Change Password", "Set to true to allow user to change their password from the Rock system", true, "Server" )]
     public class Apollos : AuthenticationComponent
     {
