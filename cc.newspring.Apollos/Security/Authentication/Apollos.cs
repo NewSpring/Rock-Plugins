@@ -20,6 +20,7 @@
 using System;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.Configuration;
 using System.Security.Cryptography;
 using System.Text;
 using Apollos;
@@ -40,6 +41,19 @@ namespace Apollos.Security.Authentication.Apollos
     public class Apollos : AuthenticationComponent
     {
         /// <summary>
+        /// Initializes the <see cref="Database" /> class.
+        /// </summary>
+        /// <exception cref="System.Configuration.ConfigurationErrorsException">Authentication requires a 'PasswordKey' app setting</exception>
+        static Apollos()
+        {
+            var passwordKey = ConfigurationManager.AppSettings["PasswordKey"];
+            if ( String.IsNullOrWhiteSpace( passwordKey ) )
+            {
+                throw new ConfigurationErrorsException( "Authentication requires a 'PasswordKey' app setting" );
+            }
+        }
+
+        /// <summary>
         /// Gets the type of the service.
         /// </summary>
         /// <value>
@@ -47,7 +61,7 @@ namespace Apollos.Security.Authentication.Apollos
         /// </value>
         public override AuthenticationServiceType ServiceType
         {
-            get { return AuthenticationServiceType.External; }
+            get { return AuthenticationServiceType.Internal; }
         }
 
         /// <summary>
@@ -96,8 +110,9 @@ namespace Apollos.Security.Authentication.Apollos
         {
             var workFactor = GetAttributeValue( "WorkFactor" ).AsType<int>();
             var hashedPassword = SHA256( password );
-            string salt = BCrypt.Net.BCrypt.GenerateSalt( workFactor );
-            return BCrypt.Net.BCrypt.HashPassword( hashedPassword );
+            var salt = BCrypt.Net.BCrypt.GenerateSalt( workFactor );
+            var encodedPassword = BCrypt.Net.BCrypt.HashPassword( hashedPassword );
+            return encodedPassword;
         }
 
         /// <summary>
@@ -158,8 +173,27 @@ namespace Apollos.Security.Authentication.Apollos
         public override bool ChangePassword( UserLogin user, string oldPassword, string newPassword, out string warningMessage )
         {
             warningMessage = null;
+            AuthenticationComponent authenticationComponent = AuthenticationContainer.GetComponent( user.EntityType.Name );
 
-            return false;
+            if ( authenticationComponent == null || !authenticationComponent.IsActive )
+            {
+                throw new Exception( string.Format( "'{0}' service does not exist, or is not active", user.EntityType.FriendlyName ) );
+            }
+
+            if ( authenticationComponent.ServiceType == AuthenticationServiceType.External )
+            {
+                throw new Exception( "Cannot change password on external service type" );
+            }
+
+            if ( !authenticationComponent.Authenticate( user, oldPassword ) )
+            {
+                return false;
+            }
+
+            user.Password = authenticationComponent.EncodePassword( user, newPassword );
+            user.LastPasswordChangedDateTime = RockDateTime.Now;
+
+            return true;
         }
 
         /// <summary>
