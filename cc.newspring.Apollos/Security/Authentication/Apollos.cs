@@ -20,7 +20,11 @@
 using System;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.Security.Cryptography;
+using System.Text;
 using Apollos;
+using BCrypt;
+using BCrypt.Net;
 using Rock;
 using Rock.Attribute;
 using Rock.Model;
@@ -66,18 +70,7 @@ namespace Apollos.Security.Authentication.Apollos
         /// <returns></returns>
         public override bool Authenticate( UserLogin user, string password )
         {
-            return false;
-        }
-
-        /// <summary>
-        /// Encodes the password.
-        /// </summary>
-        /// <param name="user">The user.</param>
-        /// <param name="password"></param>
-        /// <returns></returns>
-        public override string EncodePassword( UserLogin user, string password )
-        {
-            return null;
+            return EncodePassword( user, password ) == user.Password;
         }
 
         /// <summary>
@@ -91,6 +84,20 @@ namespace Apollos.Security.Authentication.Apollos
         public override bool Authenticate( System.Web.HttpRequest request, out string userName, out string returnUrl )
         {
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Encodes the password.
+        /// </summary>
+        /// <param name="user">The user.</param>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        public override string EncodePassword( UserLogin user, string password )
+        {
+            var workFactor = GetAttributeValue( "WorkFactor" ).AsType<int>();
+            var hashedPassword = SHA256( password );
+            string salt = BCrypt.Net.BCrypt.GenerateSalt( workFactor );
+            return BCrypt.Net.BCrypt.HashPassword( hashedPassword );
         }
 
         /// <summary>
@@ -153,6 +160,25 @@ namespace Apollos.Security.Authentication.Apollos
             warningMessage = null;
 
             return false;
+        }
+
+        /// <summary>
+        /// SHA256s the specified password.
+        /// </summary>
+        /// <param name="password">The password.</param>
+        /// <returns></returns>
+        private static string SHA256( string password )
+        {
+            SHA256Managed crypt = new SHA256Managed();
+            string hash = String.Empty;
+            byte[] crypto = crypt.ComputeHash( Encoding.UTF8.GetBytes( password ), 0, Encoding.UTF8.GetByteCount( password ) );
+
+            foreach ( byte bit in crypto )
+            {
+                hash += bit.ToString( "x2" );
+            }
+
+            return hash;
         }
     }
 }
