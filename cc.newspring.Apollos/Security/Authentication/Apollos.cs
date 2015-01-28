@@ -110,7 +110,7 @@ namespace Apollos.Security.Authentication.Apollos
         {
             var workFactor = GetAttributeValue( "WorkFactor" ).AsType<int>();
             var hashedPassword = SHA256( password );
-            var salt = BCrypt.Net.BCrypt.GenerateSalt( workFactor );
+            var salt = string.IsNullOrEmpty( user.Password ) ? BCrypt.Net.BCrypt.GenerateSalt( workFactor ) : user.Password;
             var encodedPassword = BCrypt.Net.BCrypt.HashPassword( hashedPassword );
             return encodedPassword;
         }
