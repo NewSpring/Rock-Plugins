@@ -18,17 +18,21 @@
      */
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Configuration;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using Apollos;
 using BCrypt;
 using BCrypt.Net;
+using RestSharp;
 using Rock;
 using Rock.Attribute;
 using Rock.Model;
+using Rock.Net;
 using Rock.Security;
 
 namespace Apollos.Security.Authentication.Apollos
@@ -36,7 +40,11 @@ namespace Apollos.Security.Authentication.Apollos
     [Description( "Apollos Authentication Provider" )]
     [Export( typeof( AuthenticationComponent ) )]
     [ExportMetadata( "ComponentName", "Apollos" )]
-    [IntegerField( "Work Factor", "", false, 10 )]
+    [IntegerField( "Work Factor", "Iteration count to generate salts in BCrypt", false, 10 )]
+    [BooleanField( "Sync Logins", "Do you want to synchronize logins with the specified URL", false )]
+    [TextField( "Login Sync URL", "The URL endpoint to synchronize with", false, "" )]
+    [TextField( "Token Name", "The key by which the token should be identified in the header of HTTP requests", false, "" )]
+    [TextField( "Token Value", "The value of the token to authenticate with the URL endpoint", false, "" )]
     [BooleanField( "Allow Change Password", "Set to true to allow user to change their password from the Rock system", true, "Server" )]
     public class Apollos : AuthenticationComponent
     {
@@ -47,6 +55,7 @@ namespace Apollos.Security.Authentication.Apollos
         static Apollos()
         {
             var passwordKey = ConfigurationManager.AppSettings["PasswordKey"];
+
             if ( String.IsNullOrWhiteSpace( passwordKey ) )
             {
                 throw new ConfigurationErrorsException( "Authentication requires a 'PasswordKey' app setting" );
@@ -111,7 +120,7 @@ namespace Apollos.Security.Authentication.Apollos
             var workFactor = GetAttributeValue( "WorkFactor" ).AsType<int>();
             var hashedPassword = SHA256( password );
             var salt = string.IsNullOrEmpty( user.Password ) ? BCrypt.Net.BCrypt.GenerateSalt( workFactor ) : user.Password;
-            var encodedPassword = BCrypt.Net.BCrypt.HashPassword( hashedPassword );
+            var encodedPassword = BCrypt.Net.BCrypt.HashPassword( hashedPassword, salt );
             return encodedPassword;
         }
 
@@ -193,7 +202,44 @@ namespace Apollos.Security.Authentication.Apollos
             user.Password = authenticationComponent.EncodePassword( user, newPassword );
             user.LastPasswordChangedDateTime = RockDateTime.Now;
 
+            var doSync = GetAttributeValue( "SyncLogins" ).AsType<bool>();
+
+            if ( doSync )
+            {
+                DoSync( user );
+            }
+
             return true;
+        }
+
+        /// <summary>
+        /// Does the synchronize.
+        /// </summary>
+        /// <param name="user">The user.</param>
+        private void DoSync( UserLogin user )
+        {
+            var apollosUrl = GetAttributeValue( "LoginSyncURL" ).AsType<string>();
+            var tokenName = GetAttributeValue( "TokenName" ).AsType<string>();
+            var token = GetAttributeValue( "TokenValue" ).AsType<string>();
+
+            if ( string.IsNullOrEmpty( apollosUrl ) )
+            {
+                return;
+            }
+
+            var client = new RestClient( apollosUrl );
+            var request = new RestRequest( "/" + user.Id, Method.POST );
+
+            request.RequestFormat = DataFormat.Json;
+            request.AddJsonBody( new
+            {
+                password = user.Password,
+                personAliasId = user.PersonId,
+                userName = user.UserName
+            } );
+
+            request.AddHeader( tokenName, token );
+            var response = client.Execute( request );
         }
 
         /// <summary>
