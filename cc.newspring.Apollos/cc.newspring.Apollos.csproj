@@ -7,7 +7,7 @@
     <ProjectGuid>{9F3591C6-451C-4C38-A1D2-6E8B99C81DA3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Apollos</RootNamespace>
+    <RootNamespace>cc.newspring.Apollos</RootNamespace>
     <AssemblyName>cc.newspring.Apollos</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
