@@ -17,23 +17,11 @@
      * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
      */
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-using System.Configuration;
-using System.Net;
-using System.Security.Cryptography;
-using System.Text;
-using Apollos;
-using BCrypt;
-using BCrypt.Net;
-using RestSharp;
-using Rock;
 using Rock.Attribute;
 using Rock.Model;
-using Rock.Net;
-using Rock.Security;
 
 namespace cc.newspring.Apollos
 {
@@ -43,7 +31,7 @@ namespace cc.newspring.Apollos
     [TextField( "Sync URL", "The URL endpoint to synchronize with", false, "" )]
     [TextField( "Token Name", "The key by which the token should be identified in the header of HTTP requests", false, "" )]
     [TextField( "Token Value", "The value of the token to authenticate with the URL endpoint", false, "" )]
-    internal class ApollosSync : Rock.Workflow.ActionComponent
+    public class ApollosSync : Rock.Workflow.ActionComponent
     {
         public override bool Execute( Rock.Data.RockContext rockContext, WorkflowAction action, object entity, out List<string> errorMessages )
         {
