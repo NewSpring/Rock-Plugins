@@ -37,6 +37,9 @@
     <Reference Include="DotLiquid">
       <HintPath>..\RockWeb\Bin\DotLiquid.dll</HintPath>
     </Reference>
+    <Reference Include="EntityFramework">
+      <HintPath>..\packages\EntityFramework.6.1.2\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\Excavator\packages\Embeds\Newtonsoft.Json.dll</HintPath>
@@ -73,8 +76,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(SolutionDir)cc.newspring.Apollos\bin\cc.newspring.Apollos.dll" "$(SolutionDir)RockWeb\Plugins\cc_newspring\Apollos\"
-copy /Y "$(SolutionDir)cc.newspring.Apollos\bin\BCrypt.Net.dll" "$(SolutionDir)RockWeb\Plugins\cc_newspring\Apollos\"</PostBuildEvent>
+    <PostBuildEvent>xcopy /Y /R "$(SolutionDir)cc.newspring.Apollos\bin\cc.newspring.Apollos.dll" "$(SolutionDir)RockWeb\Plugins\cc_newspring\Apollos\"
+xcopy /Y /R "$(SolutionDir)cc.newspring.Apollos\bin\BCrypt.Net.dll" "$(SolutionDir)RockWeb\Plugins\cc_newspring\Apollos\"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
