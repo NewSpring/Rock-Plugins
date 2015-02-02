@@ -23,15 +23,15 @@ using System.ComponentModel.Composition;
 using Rock.Attribute;
 using Rock.Model;
 
-namespace cc.newspring.Apollos
+namespace cc.newspring.Apollos.Workflow.Action
 {
-    [Description( "Sync with Apollos" )]
+    [Description( "Sync with API" )]
     [Export( typeof( Rock.Workflow.ActionComponent ) )]
-    [ExportMetadata( "ComponentName", "Apollos Sync" )]
+    [ExportMetadata( "ComponentName", "API Sync" )]
     [TextField( "Sync URL", "The URL endpoint to synchronize with", false, "" )]
     [TextField( "Token Name", "The key by which the token should be identified in the header of HTTP requests", false, "" )]
     [TextField( "Token Value", "The value of the token to authenticate with the URL endpoint", false, "" )]
-    public class ApollosSync : Rock.Workflow.ActionComponent
+    public class APISync : Rock.Workflow.ActionComponent
     {
         public override bool Execute( Rock.Data.RockContext rockContext, WorkflowAction action, object entity, out List<string> errorMessages )
         {

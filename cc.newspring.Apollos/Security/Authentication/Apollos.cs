@@ -18,24 +18,17 @@
      */
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-using System.Configuration;
-using System.Net;
 using System.Security.Cryptography;
 using System.Text;
-using Apollos;
-using BCrypt;
-using BCrypt.Net;
 using RestSharp;
 using Rock;
 using Rock.Attribute;
 using Rock.Model;
-using Rock.Net;
 using Rock.Security;
 
-namespace Apollos.Security.Authentication.Apollos
+namespace cc.newspring.Apollos.Security.Authentication
 {
     [Description( "Apollos Authentication Provider" )]
     [Export( typeof( AuthenticationComponent ) )]

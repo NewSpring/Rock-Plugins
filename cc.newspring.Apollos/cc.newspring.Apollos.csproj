@@ -63,7 +63,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ApollosSync.cs" />
+    <Compile Include="Workflow\Action\APISync.cs" />
     <Compile Include="Security\Authentication\Apollos.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
