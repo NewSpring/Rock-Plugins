@@ -44,7 +44,6 @@ namespace cc.newspring.Apollos.Security.Authentication
         /// <summary>
         /// Initializes the <see cref="Database" /> class.
         /// </summary>
-        /// <exception cref="System.Configuration.ConfigurationErrorsException">Authentication requires a 'PasswordKey' app setting</exception>
         static Apollos()
         {
         }
@@ -106,7 +105,12 @@ namespace cc.newspring.Apollos.Security.Authentication
         {
             var workFactor = GetAttributeValue( "WorkFactor" ).AsType<int>();
             var hashedPassword = SHA256( password );
-            var salt = string.IsNullOrEmpty( user.Password ) ? BCrypt.Net.BCrypt.GenerateSalt( workFactor ) : user.Password;
+            var salt = user.Password;
+            if ( string.IsNullOrEmpty( salt ) || !salt.StartsWith( "$2a$" ) )
+            {
+                salt = BCrypt.Net.BCrypt.GenerateSalt( workFactor );
+            }
+
             return BCrypt.Net.BCrypt.HashPassword( hashedPassword, salt );
         }
 
