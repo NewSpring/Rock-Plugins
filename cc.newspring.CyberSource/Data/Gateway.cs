@@ -25,7 +25,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.ServiceModel;
 using System.Text.RegularExpressions;
-
 using Rock.Attribute;
 using Rock.Financial;
 using Rock.Model;
