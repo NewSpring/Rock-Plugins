@@ -20,7 +20,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
         [HttpGet]
         [Authenticate, Secured]
         [System.Web.Http.Route( "api/UserLogins/{id}" )]
-        public ApollosUserLogin GetById( int id )
+        public new ApollosUserLogin GetById( int id )
         {
             return new ApollosUserLogin( base.GetById( id ) );
         }
@@ -32,7 +32,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
         [HttpGet]
         [Authenticate, Secured]
         [System.Web.Http.Route( "api/UserLogins" )]
-        public object[] Get()
+        public new object[] Get()
         {
             var logins = base.Get();
             var apollosLogins = new Queue();
