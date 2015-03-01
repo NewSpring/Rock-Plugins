@@ -4561,8 +4561,8 @@ fieldset[disabled] .btn {
 }
 .btn-default {
   color: #ffffff;
-  background-color: #7f7e7e;
-  border-color: #9d9c9c;
+  background-color: #0070ad;
+  border-color: #0070ad;
 }
 .btn-default:hover,
 .btn-default:focus,
@@ -4570,8 +4570,8 @@ fieldset[disabled] .btn {
 .btn-default.active,
 .open > .dropdown-toggle.btn-default {
   color: #ffffff;
-  background-color: #656565;
-  border-color: #7f7d7d;
+  background-color: #004f7a;
+  border-color: #00496f;
 }
 .btn-default:active,
 .btn-default.active,
@@ -4593,17 +4593,17 @@ fieldset[disabled] .btn-default:active,
 .btn-default.disabled.active,
 .btn-default[disabled].active,
 fieldset[disabled] .btn-default.active {
-  background-color: #7f7e7e;
-  border-color: #9d9c9c;
+  background-color: #0070ad;
+  border-color: #0070ad;
 }
 .btn-default .badge {
-  color: #7f7e7e;
+  color: #0070ad;
   background-color: #ffffff;
 }
 .btn-primary {
   color: #ffffff;
-  background-color: #e3151a;
-  border-color: #b00a0e;
+  background-color: #006093;
+  border-color: #006093;
 }
 .btn-primary:hover,
 .btn-primary:focus,
@@ -4611,8 +4611,8 @@ fieldset[disabled] .btn-default.active {
 .btn-primary.active,
 .open > .dropdown-toggle.btn-primary {
   color: #ffffff;
-  background-color: #b41115;
-  border-color: #760709;
+  background-color: #003f60;
+  border-color: #003856;
 }
 .btn-primary:active,
 .btn-primary.active,
@@ -4634,11 +4634,11 @@ fieldset[disabled] .btn-primary:active,
 .btn-primary.disabled.active,
 .btn-primary[disabled].active,
 fieldset[disabled] .btn-primary.active {
-  background-color: #e3151a;
-  border-color: #b00a0e;
+  background-color: #006093;
+  border-color: #006093;
 }
 .btn-primary .badge {
-  color: #e3151a;
+  color: #006093;
   background-color: #ffffff;
 }
 .btn-success {
@@ -8015,7 +8015,9 @@ h1 {
   opacity: 0.33;
 }
 body {
-  background: #85b11c url('../Assets/Images/background.jpg') top right no-repeat fixed;
+  background-color: #0081c6;
+  background-position: top right;
+  background-repeat: no-repeat;
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
@@ -8024,7 +8026,6 @@ body {
 }
 @media all and (-webkit-min-device-pixel-ratio: 1.5) {
   body {
-    background-image: url('../Assets/Images/background@2x.jpg');
     background-size: 1348px 1024px;
   }
 }
@@ -8092,15 +8093,15 @@ body {
 }
 .btn-checkbox {
   padding: 24px;
-  background-color: #7f7e7e;
+  background-color: #0070ad;
   color: #ffffff;
-  border-color: #9d9c9c;
+  border-color: #0070ad;
   font-size: 20px;
 }
 .btn-checkbox.active {
-  background-color: #e3151a;
+  background-color: #006093;
   color: #ffffff;
-  border-color: #b00a0e;
+  border-color: #006093;
 }
 .btn-checkbox i {
   font-size: 92px;
@@ -8133,10 +8134,10 @@ body {
   z-index: 1060;
 }
 .bootbox .modal-content {
-  background-color: #85b11c;
+  background-color: #0081c6;
 }
 .bootbox .modal-footer {
-  border-top-color: #b8e350;
+  border-top-color: #2db6ff;
 }
 .checkin-search-body {
   margin-right: auto !important;
@@ -8228,115 +8229,6 @@ input.checkin-phone-entry {
   right: 1px;
   overflow: hidden;
 }
-/*
-    Used to manage styles related to modal dialog.
-
-*/
-.modal-overflow.modal {
-  top: 48px;
-}
-.modal-content {
-  border: 0;
-  background-color: #85b11c;
-  color: #ffffff;
-}
-.modal-content .modal-header {
-  background-color: #85b11c;
-  color: #ffffff;
-  padding: 5px 15px;
-  min-height: 34px;
-}
-.modal-content .modal-header:before,
-.modal-content .modal-header:after {
-  content: " ";
-  display: table;
-}
-.modal-content .modal-header:after {
-  clear: both;
-}
-.modal-content .modal-header:before,
-.modal-content .modal-header:after {
-  content: " ";
-  display: table;
-}
-.modal-content .modal-header:after {
-  clear: both;
-}
-.modal-content .modal-header h3 {
-  float: left;
-  margin-right: 12px;
-}
-.modal-content .modal-header .close {
-  margin: 0;
-  padding: 6px;
-  color: #ffffff;
-  text-shadow: none;
-}
-.modal-content .modal-header .label {
-  margin-top: 8px;
-}
-.modal-content .modal-header small {
-  margin-top: 12px;
-  display: block;
-  color: #e6e6e6;
-}
-.modal-content .modal-body {
-  color: #ffffff;
-  text-align: left;
-}
-.modal-content .modal-body .nav-pills {
-  margin: 6px 0 18px;
-}
-.modal-content .modal-body > .scroll-container {
-  width: 720px;
-}
-.modal-content .modal-body > .scroll-container > .viewport {
-  width: 670px;
-}
-.modal-content .modal-body.iframe {
-  overflow: hidden;
-}
-.modal-content .modal-footer {
-  padding: 8px;
-  margin-top: 10px;
-  background-color: #85b11c;
-  color: #ffffff;
-  border-radius: 0 0 4px 4px;
-}
-.modal {
-  background-color: #ffffff;
-  margin-top: 20px;
-}
-.modal-body {
-  padding: 8px 12px 12px 12px;
-}
-.modal-footer:after {
-  clear: both;
-}
-.modal-footer .btn {
-  float: right;
-  margin-left: 5px;
-}
-#modal-popup_iframe {
-  height: 100%;
-  width: 100%;
-  border: 0;
-  display: block;
-}
-.modal.bootbox {
-  width: auto;
-}
-.bootbox .modal-dialog {
-  margin: 0;
-}
-@media (max-width: 991px) {
-  .bootbox .modal-dialog {
-    width: auto;
-  }
-}
-.bootbox .modal-body {
-  padding-top: 20px;
-}
 @font-face {
   font-family: 'OpenSans';
   src: url('../../../Assets/Fonts/OpenSans/OpenSans-Regular-webfont.eot');
@@ -8365,7 +8257,20 @@ input.checkin-phone-entry {
   font-weight: 700;
   font-style: normal;
 }
+/*  Had to put this here so it has access to variables */
+.btn-primary:active,
+.btn-primary.active {
+  background-color: #6bac43;
+  border-color: #6bac43;
+}
+.btn:focus,
+.btn:active {
+  outline: none;
+}
 .checkin-count h3,
 .checkin-count li {
   color: #4c4c4b;
+}
+.btn {
+  letter-spacing: -0.5px;
 }
