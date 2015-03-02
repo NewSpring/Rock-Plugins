@@ -3,15 +3,15 @@ var gulp = require('gulp'),
 	less = require('gulp-less');
 
 gulp.task('less', function () {
-  return gulp.src('Themes/KidSpring/**/*.less')
+  return gulp.src('./Themes/KidSpring/**/*.less')
     .pipe(less())
-    .pipe(gulp.dest('Themes/KidSpring'))
+    .pipe(gulp.dest('./Themes/KidSpring'))
 });
 
 gulp.task('sass', function(){
-	gulp.src('Themes/KidSpring/Styles/*.scss')
+	gulp.src('./Plugins/**/*.scss')
 	.pipe(sass())
-	.pipe(gulp.dest('Themes/KidSpring/Styles'))
+	.pipe(gulp.dest('./Plugins'))
 });
 
 gulp.task('watch', function(){

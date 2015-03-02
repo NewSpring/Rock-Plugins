@@ -8016,8 +8016,10 @@ h1 {
 }
 body {
   background-color: #0081c6;
-  background-position: top right;
+  background-image: url('../Assets/Images/kidspring-logo.png');
+  background-position: bottom right;
   background-repeat: no-repeat;
+  background-size: 20%;
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
@@ -8267,10 +8269,40 @@ input.checkin-phone-entry {
 .btn:active {
   outline: none;
 }
+body {
+  background-image: none;
+}
+body:after {
+  content: '';
+  position: absolute;
+  bottom: 20px;
+  right: 50px;
+  width: 220px;
+  height: 220px;
+  background-image: url('../Assets/Images/kidspring-logo.png');
+  background-size: cover;
+  z-index: -1;
+}
 .checkin-count h3,
 .checkin-count li {
   color: #4c4c4b;
 }
 .btn {
   letter-spacing: -0.5px;
+}
+/* Helper Classes */
+.color-primary {
+  color: #0081c6;
+}
+.color-secondary {
+  color: #6bac43;
+}
+.background-primary {
+  background-color: #0081c6;
+}
+.background-secondary {
+  background-color: #6bac43;
+}
+.base-heading-font {
+  font-family: 'OpenSans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }

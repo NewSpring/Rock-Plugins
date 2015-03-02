@@ -118,9 +118,10 @@
 // --------------------------------------------------
 .checkinBackground () {
     background-color: @bg-color;
-    // background-image: url('../Assets/Images/background.jpg');
-    background-position: top right;
+    background-image: url('../Assets/Images/kidspring-logo.png');
+    background-position: bottom right;
     background-repeat: no-repeat;
+    background-size: 20%;
 }
 
 .checkinBackgroundRetina()
@@ -142,6 +143,21 @@
 //
 // Custom Overrides
 // --------------------------------------------------
+body {
+    background-image: none;
+}
+
+body:after {
+    content: '';
+    position: absolute;
+    bottom: 20px;
+    right: 50px;
+    width: 220px;
+    height: 220px;
+    background-image: url('../Assets/Images/kidspring-logo.png');
+    background-size: cover;
+    z-index: -1;
+}
 
 .checkin-count h3,
 .checkin-count li {
@@ -161,4 +177,4 @@
 .background-primary { background-color: @primary-color; }
 .background-secondary { background-color: @secondary-color; }
 .base-heading-font { font-family: @font-family-base; }
-.base-copy-font { font-family: @font-family-copy; }
+//.base-copy-font { font-family: @font-family-copy; }
