@@ -217,15 +217,10 @@ namespace cc.newspring.Apollos.Security.Authentication
             }
 
             var client = new RestClient( apollosUrl );
-            var request = new RestRequest( "/" + user.Id, Method.POST );
+            var request = new RestRequest( Method.POST );
 
             request.RequestFormat = DataFormat.Json;
-            request.AddJsonBody( new
-            {
-                password = user.Password,
-                personAliasId = user.PersonId,
-                userName = user.UserName
-            } );
+            request.AddJsonBody( new ApollosUserLogin( user ) );
 
             request.AddHeader( tokenName, token );
             var response = client.Execute( request );
