@@ -1,3 +1,11 @@
+# Ignore everything:
 *.suo
-/packages/*.*
+*.sln
+*.xml
+*.md
+/packages
+/cc.newspring.*
+/Dev Tools
+/Labels
 web.[Cc]onnectionStrings.config
+*.json
