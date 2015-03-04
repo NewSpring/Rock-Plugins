@@ -8305,3 +8305,12 @@ body:after {
 .base-heading-font {
   font-family: 'OpenSans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
+.btn-negative,
+.btn-negative:focus {
+  background-color: #b83833;
+  border-color: #b83833;
+}
+.btn-negative:hover {
+  background-color: #902c28 !important;
+  border-color: #902c28 !important;
+}

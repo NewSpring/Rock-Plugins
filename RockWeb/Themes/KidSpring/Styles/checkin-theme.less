@@ -18,8 +18,9 @@
 // Variables
 // --------------------------------------------------
 
-@primary-color: #0081C6; // KidSpring Blue
-@secondary-color:  #6bac43; // NewSpring Green
+@primary-color:     #0081C6; // KidSpring Blue
+@secondary-color:   #6bac43; // NewSpring Green
+@negative-color:    #B83833;
 
 // Font Variables
 @font-family-base:     'OpenSans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -178,3 +179,13 @@ body:after {
 .background-secondary { background-color: @secondary-color; }
 .base-heading-font { font-family: @font-family-base; }
 //.base-copy-font { font-family: @font-family-copy; }
+
+.btn-negative, .btn-negative:focus {
+    background-color: @negative-color;
+    border-color: @negative-color;
+}
+
+.btn-negative:hover {
+    background-color: darken(@negative-color, 10) !important;
+    border-color: darken(@negative-color, 10) !important;
+}
