@@ -8260,7 +8260,6 @@ input.checkin-phone-entry {
   font-style: normal;
 }
 /*  Had to put this here so it has access to variables */
-.btn-primary:active,
 .btn-primary.active {
   background-color: #6bac43;
   border-color: #6bac43;
