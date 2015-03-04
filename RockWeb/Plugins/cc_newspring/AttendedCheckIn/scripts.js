@@ -1,7 +1,7 @@
 ﻿var AttendedCheckin = (function () {
 
     var loadStyles = function () {
-        var relPath = '../plugins/cc_newspring/attendedcheckin/styles.css';
+        var relPath = '../plugins/cc_newspring/attendedcheckin/Styles/styles.css';
         var styleLink = $('<link>').attr('rel', 'stylesheet').attr('href', relPath);
         $('head').append(styleLink);
     };
@@ -33,15 +33,15 @@
         return isOverflowing;
     };
 
-    var addShadowIfOverflows = function (element) {
-        if (!hasOverFlow(element)) {
-            $(element).css('box-shadow', 'none');
-            return;
-        }
+    // var addShadowIfOverflows = function (element) {
+    //     if (!hasOverFlow(element)) {
+    //         $(element).css('box-shadow', 'none');
+    //         return;
+    //     }
 
-        var bottomShadowCss = 'inset 0 -15px 15px #999999';
-        $(element).css('box-shadow', bottomShadowCss);
-    };
+    //     var bottomShadowCss = 'inset 0 -15px 15px #999999';
+    //     $(element).css('box-shadow', bottomShadowCss);
+    // };
 
     var handleGridOverflowShadows = function () {
         var grids = $('.grid');
