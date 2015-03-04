@@ -94,6 +94,7 @@
   <ItemGroup>
     <Compile Include="Models\ApollosUserLogin.cs" />
     <Compile Include="Rest\Controllers\ApollosUserLoginsController.cs" />
+    <Compile Include="Utilities\Validation.cs" />
     <Compile Include="Workflow\Action\APISync.cs" />
     <Compile Include="Security\Authentication\Apollos.cs" />
     <Compile Include="ExtensionMethods.cs" />
