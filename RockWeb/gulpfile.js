@@ -3,9 +3,9 @@ var gulp = require('gulp'),
 	less = require('gulp-less');
 
 gulp.task('less', function () {
-  return gulp.src('./Themes/KidSpring/**/*.less')
+  return gulp.src('./Themes/NewSpring/**/*.less')
     .pipe(less())
-    .pipe(gulp.dest('./Themes/KidSpring'))
+    .pipe(gulp.dest('./Themes/NewSpring'))
 });
 
 gulp.task('sass', function(){
