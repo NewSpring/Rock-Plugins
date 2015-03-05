@@ -57,9 +57,10 @@ namespace cc.newspring.Apollos.Rest.Controllers
         [HttpDelete]
         [Authenticate, Secured]
         [System.Web.Http.Route( "api/UserLogins/{id}" )]
-        public void Delete( int id )
+        public override HttpResponseMessage Delete( int id )
         {
             base.Delete( id );
+            return new HttpResponseMessage( HttpStatusCode.NoContent );
         }
 
         /// <summary>
