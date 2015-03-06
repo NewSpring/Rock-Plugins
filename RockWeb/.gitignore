@@ -1,4 +1,5 @@
 /LINQPad.config
 /Bin
+/node_modules
 *.webinfo
 
