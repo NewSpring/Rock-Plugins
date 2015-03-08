@@ -42,6 +42,7 @@
                                         <span class='checkin-sub-title'>
                                             <%# Eval("SubCaption") %>
                                         </span>
+                                        <div class='fa fa-refresh fa-spin'></div>
                                     </asp:LinkButton>
                                 </ItemTemplate>
                             </asp:ListView>
@@ -73,7 +74,7 @@
                                 </ItemTemplate>
                                 <EmptyDataTemplate>
                                     <div class="text-center large-font">
-                                        <asp:Literal ID="lblPersonTitle" runat="server" Text="No one in this family is eligible for check-in." />
+                                        <asp:Literal ID="lblPersonTitle" runat="server" Text="No family member(s) are eligible for check-in." />
                                     </div>
                                 </EmptyDataTemplate>
                             </asp:ListView>
@@ -103,6 +104,11 @@
 						                </span>
                                     </asp:LinkButton>
                                 </ItemTemplate>
+                                <EmptyDataTemplate>
+                                    <div class="text-center large-font">
+                                        <asp:Literal ID="lblPersonTitle" runat="server" Text="No visitor(s) are eligible for check-in." />
+                                    </div>
+                                </EmptyDataTemplate>
                             </asp:ListView>
                             <asp:DataPager ID="dpVisitorPager" runat="server" PageSize="4" PagedControlID="lvVisitor">
                                 <Fields>
@@ -113,9 +119,10 @@
                     </asp:UpdatePanel>
                 </div>
 
-                <div id="divNothingFound" runat="server" class="col-xs-9" visible="false">
+                <!-- Nothing Found State -->
+                <h3 id="divNothingFound" runat="server" class="col-xs-9 centered" visible="false">
                     <asp:Literal ID="lblNothingFound" runat="server" EnableViewState="false" />
-                </div>
+                </h3>
 
                 <div id="divActions" runat="server" class="col-xs-3">
                     <h3 id="actions" runat="server" class="text-center">Actions</h3>
@@ -125,59 +132,60 @@
                     <asp:LinkButton ID="lbNewFamily" runat="server" CssClass="btn btn-primary btn-lg btn-block btn-checkin-select" OnClick="lbNewFamily_Click" Text="New Family" CausesValidation="false" EnableViewState="false" />
                 </div>
 
-                <div>
+                <%--<div>
                     <Rock:BootstrapButton ID="lbCheckout" runat="server" CssClass="btn btn-lg btn-primary btn-lg btn-block btn-checkin-select checkout" OnClick="lbCheckout_Click"
                         Text="Checkout" EnableViewState="false" />
-                </div>
+                </div>--%>
             </div>
         </asp:Panel>
 
+        <!-- ADD PERSON MODAL -->
         <Rock:ModalDialog ID="mdlAddPerson" runat="server" Content-DefaultButton="lbPersonSearch">
             <Content>
-                <div class="row checkin-header">
-                    <div class="checkin-actions">
-                        <div class="col-xs-3">
-                            <Rock:BootstrapButton ID="lbClosePerson" runat="server" CssClass="btn btn-lg btn-primary" OnClick="lbClosePerson_Click" Text="Cancel" EnableViewState="false" />
-                        </div>
+                <div class="soft-quarter-ends">
+                    <!-- Modal Header -->
+                    <div class="row checkin-header">
+                        <div class="checkin-actions">
+                            <div class="col-xs-3">
+                                <Rock:BootstrapButton ID="lbClosePerson" runat="server" CssClass="btn btn-lg btn-primary" OnClick="lbClosePerson_Click" Text="Cancel" EnableViewState="false" />
+                            </div>
 
-                        <div class="col-xs-6">
-                            <h2 class="text-center">
-                                <asp:Literal ID="lblAddPersonHeader" runat="server" /></h2>
-                        </div>
+                            <div class="col-xs-6">
+                                <h2 class="text-center">
+                                    <asp:Literal ID="lblAddPersonHeader" runat="server" /></h2>
+                            </div>
 
-                        <div class="col-xs-3 text-right">
-                            <Rock:BootstrapButton ID="lbPersonSearch" runat="server" CssClass="btn btn-lg btn-primary" OnClick="lbPersonSearch_Click" Text="Search" EnableViewState="false" />
-                        </div>
-                    </div>
-                </div>
-
-                <div class="checkin-body">
-                    <div class="row">
-                        <div class="col-xs-2">
-                            <Rock:RockTextBox ID="tbFirstNamePerson" runat="server" CssClass="col-xs-12" RequiredErrorMessage="First Name is Required" Label="First Name" ValidationGroup="Person" DisplayRequiredIndicator="true" />
-                        </div>
-                        <div class="col-xs-2">
-                            <Rock:RockTextBox ID="tbLastNamePerson" runat="server" CssClass="col-xs-12" RequiredErrorMessage="Last Name is Required" Label="Last Name" ValidationGroup="Person" DisplayRequiredIndicator="true" />
-                        </div>
-                        <div class="col-xs-1">
-                            <Rock:RockDropDownList ID="ddlSuffix" runat="server" CssClass="col-xs-12" Label="Suffix" />
-                        </div>
-                        <div class="col-xs-3">
-                            <Rock:DatePicker ID="dpDOBPerson" runat="server" RequiredErrorMessage="DOB is Required" Label="Date of Birth" CssClass="col-xs-12 date-picker" ValidationGroup="Person" DisplayRequiredIndicator="true" />
-                        </div>
-                        <div class="col-xs-2">
-                            <Rock:RockDropDownList ID="ddlGenderPerson" runat="server" RequiredErrorMessage="Gender is Required" Label="Gender" CssClass="col-xs-12" ValidationGroup="Person" />
-                        </div>
-                        <div class="col-xs-2">
-                            <Rock:RockDropDownList ID="ddlAbilityPerson" runat="server" Label="Ability/Grade" CssClass="col-xs-12" />
+                            <div class="col-xs-3 text-right">
+                                <Rock:BootstrapButton ID="lbPersonSearch" runat="server" CssClass="btn btn-lg btn-primary" OnClick="lbPersonSearch_Click" Text="Search" EnableViewState="false" />
+                            </div>
                         </div>
                     </div>
 
-                    <div class="row">
-                        <asp:UpdatePanel ID="pnlPersonSearch" runat="server">
-                            <ContentTemplate>
-                                <div class="grid">
-                                    <Rock:Grid ID="rGridPersonResults" runat="server" OnRowCommand="rGridPersonResults_AddExistingPerson" EnableResponsiveTable="false"
+                    <!-- Modal Body -->
+                    <div class="checkin-body">
+                        <div class="row">
+                            <div class="col-xs-2">
+                                <Rock:RockTextBox ID="tbFirstNamePerson" runat="server" CssClass="col-xs-12" Label="First Name" ValidationGroup="Person" />
+                            </div>
+                            <div class="col-xs-2">
+                                <Rock:RockTextBox ID="tbLastNamePerson" runat="server" CssClass="col-xs-12" Label="Last Name" ValidationGroup="Person" />
+                            </div>
+                            <div class="col-xs-1">
+                                <Rock:RockDropDownList ID="ddlSuffix" runat="server" CssClass="col-xs-12" Label="Suffix" />
+                            </div>
+                            <div class="col-xs-3">
+                                <Rock:DatePicker ID="dpDOBPerson" runat="server" Label="Date of Birth" CssClass="col-xs-12 date-picker" ValidationGroup="Person" />
+                            </div>
+                            <div class="col-xs-2">
+                                <Rock:RockDropDownList ID="ddlGenderPerson" runat="server" Label="Gender" CssClass="col-xs-12" ValidationGroup="Person" />
+                            </div>
+                            <div class="col-xs-2">
+                                <Rock:RockDropDownList ID="ddlAbilityPerson" runat="server" Label="Ability/Grade" CssClass="col-xs-12" />
+                            </div>
+
+                            <div class="row flush-sides">
+                                <div class="grid full-width soft-quarter-sides">
+                                    <Rock:Grid ID="rGridPersonResults" runat="server" OnRowCommand="rGridPersonResults_AddExistingPerson" EnableResponsiveTable="true"
                                         OnGridRebind="rGridPersonResults_GridRebind" ShowActionRow="false" PageSize="4" DataKeyNames="Id" AllowSorting="true">
                                         <Columns>
                                             <asp:BoundField DataField="Id" Visible="false" />
@@ -190,99 +198,108 @@
                                             <asp:BoundField DataField="Attribute" HeaderText="Ability/Grade" SortExpression="Attribute" />
                                             <asp:TemplateField>
                                                 <ItemTemplate>
-                                                    <asp:LinkButton ID="lbAdd" runat="server" CssClass="btn btn-lg btn-primary" CommandName="Add"
-                                                        Text="Add" CommandArgument="<%# ((GridViewRow) Container).RowIndex %>" CausesValidation="false"><i class="fa fa-plus"></i>
-                                                    </asp:LinkButton>
+                                                    <Rock:BootstrapButton ID="lbAdd" runat="server" CssClass="btn btn-lg btn-primary" CommandName="Add"
+                                                        Text="Add" CommandArgument="<%# ((GridViewRow) Container).RowIndex %>" CausesValidation="false">
+                                                    </Rock:BootstrapButton>
                                                 </ItemTemplate>
                                             </asp:TemplateField>
                                         </Columns>
                                     </Rock:Grid>
                                 </div>
-                            </ContentTemplate>
-                        </asp:UpdatePanel>
-                    </div>
+                            </div>
 
-                    <div class="row">
-                        <div class="col-xs-12 text-right">
-                            <asp:LinkButton ID="lbNewPerson" runat="server" Text="None of these, add a new person" CssClass="btn btn-lg btn-primary btn-checkin-select" OnClick="lbNewPerson_Click" ValidationGroup="Person" CausesValidation="true" />
+                            <div class="row">
+                                <div class="soft-quarter-sides">
+                                    <div class="col-xs-12 text-right">
+                                        <Rock:BootstrapButton ID="lbNewPerson" runat="server" Text="None of these, add a new person" CssClass="btn btn-lg btn-primary btn-checkin-select"
+                                            OnClick="lbNewPerson_Click" ValidationGroup="Person" CausesValidation="true">
+                                        </Rock:BootstrapButton>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </Content>
         </Rock:ModalDialog>
 
+        <!-- ADD FAMILY MODAL -->
         <Rock:ModalDialog ID="mdlNewFamily" runat="server" Content-DefaultButton="lbSaveFamily">
             <Content>
-                <div class="row checkin-header">
-                    <div class="col-xs-3 checkin-actions">
-                        <Rock:BootstrapButton ID="lbCloseFamily" runat="server" Text="Cancel" CssClass="btn btn-lg btn-primary" OnClick="lbCloseFamily_Click" EnableViewState="false" />
+                <div class="soft-quarter-ends">
+                    <!-- Modal Header -->
+                    <div class="row checkin-header">
+                        <div class="col-xs-3 checkin-actions">
+                            <Rock:BootstrapButton ID="lbCloseFamily" runat="server" Text="Cancel" CssClass="btn btn-lg btn-primary" OnClick="lbCloseFamily_Click" EnableViewState="false" />
+                        </div>
+
+                        <div class="col-xs-6 text-center">
+                            <h2>New Family</h2>
+                        </div>
+
+                        <div class="col-xs-3 checkin-actions text-right">
+                            <Rock:BootstrapButton ID="lbSaveFamily" CssClass="btn btn-lg btn-primary" runat="server" Text="Save" OnClick="lbSaveFamily_Click" ValidationGroup="Family" CausesValidation="true" />
+                        </div>
                     </div>
 
-                    <div class="col-xs-6 text-center">
-                        <h2>New Family</h2>
-                    </div>
+                    <!-- Modal Body -->
+                    <div class="checkin-body">
+                        <asp:ListView ID="lvNewFamily" runat="server" OnPagePropertiesChanging="lvNewFamily_PagePropertiesChanging" OnItemDataBound="lvNewFamily_ItemDataBound">
+                            <LayoutTemplate>
+                                <div class="row large-font">
+                                    <div class="col-xs-2">
+                                        <label>First Name</label>
+                                    </div>
+                                    <div class="col-xs-2">
+                                        <label>Last Name</label>
+                                    </div>
+                                    <div class="col-xs-1">
+                                        <label>Suffix</label>
+                                    </div>
+                                    <div class="col-xs-3">
+                                        <label>Date of Birth</label>
+                                    </div>
+                                    <div class="col-xs-2">
+                                        <label>Gender</label>
+                                    </div>
+                                    <div class="col-xs-2">
+                                        <label>Ability/Grade</label>
+                                    </div>
+                                </div>
+                                <asp:PlaceHolder ID="itemPlaceholder" runat="server" />
+                            </LayoutTemplate>
+                            <ItemTemplate>
+                                <div class="row expanded">
+                                    <div class="col-xs-2">
+                                        <Rock:RockTextBox ID="tbFirstName" runat="server" Text='<%# ((SerializedPerson)Container.DataItem).FirstName %>' ValidationGroup="Family" />
+                                    </div>
+                                    <div class="col-xs-2">
+                                        <Rock:RockTextBox ID="tbLastName" runat="server" Text='<%# ((SerializedPerson)Container.DataItem).LastName %>' ValidationGroup="Family" />
+                                    </div>
+                                    <div class="col-xs-1">
+                                        <Rock:RockDropDownList ID="ddlSuffix" runat="server" />
+                                    </div>
+                                    <div class="col-xs-3">
+                                        <Rock:DatePicker ID="dpBirthDate" runat="server" SelectedDate='<%# ((SerializedPerson)Container.DataItem).BirthDate %>' ValidationGroup="Family" CssClass="date-picker" />
+                                    </div>
+                                    <div class="col-xs-2">
+                                        <Rock:RockDropDownList ID="ddlGender" runat="server" ValidationGroup="Family" />
+                                    </div>
+                                    <div class="col-xs-2">
+                                        <Rock:RockDropDownList ID="ddlAbilityGrade" runat="server" />
+                                    </div>
+                                </div>
+                            </ItemTemplate>
+                        </asp:ListView>
 
-                    <div class="col-xs-3 checkin-actions text-right">
-                        <Rock:BootstrapButton ID="lbSaveFamily" CssClass="btn btn-lg btn-primary" runat="server" Text="Save" OnClick="lbSaveFamily_Click" ValidationGroup="Family" CausesValidation="true" />
-                    </div>
-                </div>
-
-                <div class="checkin-body">
-                    <asp:ListView ID="lvNewFamily" runat="server" OnPagePropertiesChanging="lvNewFamily_PagePropertiesChanging" OnItemDataBound="lvNewFamily_ItemDataBound">
-                        <LayoutTemplate>
-                            <div class="row large-font">
-                                <div class="col-xs-2">
-                                    <label>First Name</label>
-                                </div>
-                                <div class="col-xs-2">
-                                    <label>Last Name</label>
-                                </div>
-                                <div class="col-xs-1">
-                                    <label>Suffix</label>
-                                </div>
-                                <div class="col-xs-3">
-                                    <label>Date of Birth</label>
-                                </div>
-                                <div class="col-xs-2">
-                                    <label>Gender</label>
-                                </div>
-                                <div class="col-xs-2">
-                                    <label>Ability/Grade</label>
-                                </div>
+                        <div class="row">
+                            <div class="col-xs-offset-9 col-xs-3 text-right">
+                                <asp:DataPager ID="dpNewFamily" runat="server" PageSize="4" PagedControlID="lvNewFamily">
+                                    <Fields>
+                                        <asp:NextPreviousPagerField ButtonType="Button" ButtonCssClass="pagination btn btn-lg btn-primary btn-checkin-select" />
+                                    </Fields>
+                                </asp:DataPager>
                             </div>
-                            <asp:PlaceHolder ID="itemPlaceholder" runat="server" />
-                        </LayoutTemplate>
-                        <ItemTemplate>
-                            <div class="row expanded">
-                                <div class="col-xs-2">
-                                    <Rock:RockTextBox ID="tbFirstName" runat="server" RequiredErrorMessage="First Name is Required" Text='<%# ((SerializedPerson)Container.DataItem).FirstName %>' ValidationGroup="Family" DisplayRequiredIndicator="true" />
-                                </div>
-                                <div class="col-xs-2">
-                                    <Rock:RockTextBox ID="tbLastName" runat="server" RequiredErrorMessage="Last Name is Required" Text='<%# ((SerializedPerson)Container.DataItem).LastName %>' ValidationGroup="Family" DisplayRequiredIndicator="true" />
-                                </div>
-                                <div class="col-xs-1">
-                                    <Rock:RockDropDownList ID="ddlSuffix" runat="server" />
-                                </div>
-                                <div class="col-xs-3">
-                                    <Rock:DatePicker ID="dpBirthDate" runat="server" RequiredErrorMessage="Date of Birth is Required" SelectedDate='<%# ((SerializedPerson)Container.DataItem).BirthDate %>' ValidationGroup="Family" DisplayRequiredIndicator="true" CssClass="date-picker" />
-                                </div>
-                                <div class="col-xs-2">
-                                    <Rock:RockDropDownList ID="ddlGender" runat="server" RequiredErrorMessage="Gender is Required" ValidationGroup="Family" />
-                                </div>
-                                <div class="col-xs-2">
-                                    <Rock:RockDropDownList ID="ddlAbilityGrade" runat="server" />
-                                </div>
-                            </div>
-                        </ItemTemplate>
-                    </asp:ListView>
-
-                    <div class="row">
-                        <div class="col-xs-offset-9 col-xs-3 text-right">
-                            <asp:DataPager ID="dpNewFamily" runat="server" PageSize="4" PagedControlID="lvNewFamily">
-                                <Fields>
-                                    <asp:NextPreviousPagerField ButtonType="Button" ButtonCssClass="pagination btn btn-lg btn-primary btn-checkin-select" />
-                                </Fields>
-                            </asp:DataPager>
                         </div>
                     </div>
                 </div>
@@ -302,6 +319,9 @@
         $('.family').unbind('click').on('click', function () {
             $(this).toggleClass('active');
             $(this).siblings('.family').removeClass('active');
+            if (!$(this).hasClass('btn-loading')) {
+                $(this).addClass('btn-loading');
+            }
         });
 
         $('.person').unbind('click').on('click', function () {
@@ -326,10 +346,6 @@
                 $('#hfSelectedVisitor').val(buttonId + selectedIds);
             }
             return false;
-        });
-
-        $('#<%= pnlFamily.ClientID %>').on('click', 'a', function () {
-            $('.nothing-eligible').html("<i class='fa fa-refresh fa-spin fa-2x'></i>");
         });
     };
 

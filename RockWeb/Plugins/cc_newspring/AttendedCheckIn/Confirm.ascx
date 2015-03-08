@@ -42,7 +42,6 @@
                                         <asp:BoundField DataField="Schedule" HeaderText="Time" />
                                         <asp:BoundField DataField="ScheduleId" Visible="false" />
                                         <Rock:EditField HeaderText="Edit" ControlStyle-CssClass="btn btn-lg btn-primary" OnClick="gPersonList_Edit" />
-                                        <Rock:DeleteField HeaderText="Delete" ControlStyle-CssClass="btn btn-lg btn-primary" OnClick="gPersonList_Delete" />
                                         <asp:TemplateField HeaderText="Print">
                                             <ItemTemplate>
                                                 <asp:LinkButton ID="btnPrint" runat="server" CssClass="btn btn-lg btn-primary" CommandName="Print" CommandArgument="<%# Container.DataItemIndex %>">
@@ -50,17 +49,15 @@
                                                 </asp:LinkButton>
                                             </ItemTemplate>
                                         </asp:TemplateField>
+                                        <Rock:DeleteField HeaderText="Delete" ControlStyle-CssClass="btn btn-lg btn-primary btn-negative" OnClick="gPersonList_Delete" />
                                     </Columns>
                                 </Rock:Grid>
+                                <div class="col-xs-offset-9 col-xs-3 hard-right push-quarter-top">
+                                    <Rock:BootstrapButton ID="lbPrintAll" CssClass="btn btn-primary btn-lg btn-block btn-checkin-select" runat="server" OnClick="lbPrintAll_Click" Text="Print All" EnableViewState="false" />
+                                </div>
                             </div>
                         </ContentTemplate>
                     </asp:UpdatePanel>
-                </div>
-                <div class="row at-the-bottom">
-                    <div class="col-xs-9"></div>
-                    <div class="col-xs-3">
-                        <Rock:BootstrapButton ID="lbPrintAll" CssClass="btn btn-primary btn-lg btn-block btn-checkin-select" runat="server" OnClick="lbPrintAll_Click" Text="Print All" EnableViewState="false" />
-                    </div>
                 </div>
             </div>
         </asp:Panel>
