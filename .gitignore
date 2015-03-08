@@ -4,7 +4,10 @@
 *.xml
 *.md
 /packages
-/cc.newspring.*
+/cc.newspring.Apollos
+/cc.newspring.CyberSource
+/cc.newspring.AttendedCheckin
+
 /Dev Tools
 /Labels
 web.[Cc]onnectionStrings.config
