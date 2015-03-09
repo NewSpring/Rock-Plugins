@@ -34,7 +34,6 @@ namespace cc.newspring.Apollos.Security.Authentication
     [Export( typeof( AuthenticationComponent ) )]
     [ExportMetadata( "ComponentName", "Apollos" )]
     [IntegerField( "Work Factor", "Iteration count to generate salts in BCrypt", false, 10 )]
-    [BooleanField( "Sync Logins", "Synchronize login tokens with a specified URL?", false )]
     [TextField( "Login Sync URL", "The URL endpoint to synchronize with", false, "" )]
     [TextField( "Token Name", "The header key to identify the token in the header of HTTP requests", false, "" )]
     [TextField( "Token Value", "The value of the token to authenticate with the URL endpoint", false, "" )]
@@ -111,7 +110,8 @@ namespace cc.newspring.Apollos.Security.Authentication
                 salt = BCrypt.Net.BCrypt.GenerateSalt( workFactor );
             }
 
-            return BCrypt.Net.BCrypt.HashPassword( hashedPassword, salt );
+            var hash = BCrypt.Net.BCrypt.HashPassword( hashedPassword, salt );
+            return hash;
         }
 
         /// <summary>
@@ -192,38 +192,7 @@ namespace cc.newspring.Apollos.Security.Authentication
             user.Password = authenticationComponent.EncodePassword( user, newPassword );
             user.LastPasswordChangedDateTime = RockDateTime.Now;
 
-            var syncLogins = GetAttributeValue( "SyncLogins" ).AsType<bool>();
-            if ( syncLogins )
-            {
-                SynchronizeLogins( user );
-            }
-
             return true;
-        }
-
-        /// <summary>
-        /// Does the synchronize.
-        /// </summary>
-        /// <param name="user">The user.</param>
-        private void SynchronizeLogins( UserLogin user )
-        {
-            var apollosUrl = GetAttributeValue( "LoginSyncURL" ).AsType<string>();
-            var tokenName = GetAttributeValue( "TokenName" ).AsType<string>();
-            var token = GetAttributeValue( "TokenValue" ).AsType<string>();
-
-            if ( string.IsNullOrEmpty( apollosUrl ) )
-            {
-                return;
-            }
-
-            var client = new RestClient( apollosUrl );
-            var request = new RestRequest( Method.POST );
-
-            request.RequestFormat = DataFormat.Json;
-            request.AddJsonBody( new ApollosUserLogin( user ) );
-
-            request.AddHeader( tokenName, token );
-            var response = client.Execute( request );
         }
 
         /// <summary>
