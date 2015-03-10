@@ -41,10 +41,17 @@ namespace cc.newspring.Apollos.Rest.Controllers
         {
             var logins = base.Get();
             var apollosLogins = new Queue();
+            var context = new RockContext();
+            var entityTypeService = new EntityTypeService( context );
+            var apollosAuth = entityTypeService.Get( ApollosAuthName );
+            var apollosAuthId = apollosAuth.Id;
 
             foreach ( var login in logins )
             {
-                apollosLogins.Enqueue( new ApollosUserLogin( login ) );
+                if ( Validation.IsEmail( login.UserName ) && login.EntityTypeId == apollosAuthId )
+                {
+                    apollosLogins.Enqueue( new ApollosUserLogin( login ) );
+                }
             }
 
             return apollosLogins.ToArray();
