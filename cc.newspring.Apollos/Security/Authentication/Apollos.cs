@@ -34,9 +34,6 @@ namespace cc.newspring.Apollos.Security.Authentication
     [Export( typeof( AuthenticationComponent ) )]
     [ExportMetadata( "ComponentName", "Apollos" )]
     [IntegerField( "Work Factor", "Iteration count to generate salts in BCrypt", false, 10 )]
-    [TextField( "Login Sync URL", "The URL endpoint to synchronize with", false, "" )]
-    [TextField( "Token Name", "The header key to identify the token in the header of HTTP requests", false, "" )]
-    [TextField( "Token Value", "The value of the token to authenticate with the URL endpoint", false, "" )]
     [BooleanField( "Allow Change Password", "Set to true to allow user to change their password from the Rock system", true, "Server" )]
     public class Apollos : AuthenticationComponent
     {
