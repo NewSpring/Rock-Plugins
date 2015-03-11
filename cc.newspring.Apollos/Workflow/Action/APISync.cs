@@ -17,6 +17,7 @@ namespace cc.newspring.Apollos.Workflow.Action
     [TextField( "Sync URL", "The specific URL endpoint this related entity type should synchronize with", true, "" )]
     [TextField( "Token Name", "The key by which the token should be identified in the header of HTTP requests", false, "" )]
     [TextField( "Token Value", "The value of the token to authenticate with the URL endpoint", false, "" )]
+    [CustomDropdownListField( "Entity Name", "The type that this action is syncing", "UserLogin,Person", true )]
     public class APISync : Rock.Workflow.ActionComponent
     {
         public override bool Execute( Rock.Data.RockContext rockContext, WorkflowAction action, object entity, out List<string> errorMessages )
@@ -29,26 +30,55 @@ namespace cc.newspring.Apollos.Workflow.Action
             var tokenValue = GetAttributeValue( action, "TokenValue" );
             var lastSlash = "/";
 
+            if ( string.IsNullOrWhiteSpace( url ) )
+            {
+                return true;
+            }
+
             if ( url.EndsWith( lastSlash ) )
             {
                 lastSlash = string.Empty;
             }
 
-            var userLogin = new ApollosUserLogin( (UserLogin)entity );
-            var client = new RestClient( string.Format( "{0}{1}{2}", url, lastSlash, userLogin.Id ) );
-            var request = new RestRequest();
-
+            var request = new RestRequest( isSave ? Method.POST : Method.DELETE );
             request.RequestFormat = DataFormat.Json;
             request.AddHeader( tokenName, tokenValue );
 
-            if ( isSave )
+            RestClient client = null;
+            var entityName = GetAttributeValue( action, "EntityName" );
+
+            switch ( entityName )
             {
-                request.Method = Method.POST;
-                request.AddJsonBody( userLogin );
-            }
-            else
-            {
-                request.Method = Method.DELETE;
+                case "UserLogin":
+                    var userLogin = new ApollosUserLogin( (UserLogin)entity );
+
+                    if ( !userLogin.Id.HasValue )
+                    {
+                        return true;
+                    }
+
+                    client = new RestClient( string.Format( "{0}{1}{2}", url, lastSlash, userLogin.Id.Value ) );
+
+                    if ( isSave )
+                    {
+                        request.AddJsonBody( userLogin );
+                    }
+
+                    break;
+
+                case "Person":
+                    var person = (Person)entity;
+                    client = new RestClient( string.Format( "{0}{1}{2}", url, lastSlash, person.Id ) );
+
+                    if ( isSave )
+                    {
+                        request.AddJsonBody( person );
+                    }
+
+                    break;
+
+                default:
+                    return true;
             }
 
             var response = client.Execute( request );
