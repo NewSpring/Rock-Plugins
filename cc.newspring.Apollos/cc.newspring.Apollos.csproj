@@ -93,7 +93,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Migrations\001_SetupWorkflowsAndTriggers.cs" />
-    <Compile Include="Models\ApollosPerson.cs" />
     <Compile Include="Models\ApollosUserLogin.cs" />
     <Compile Include="Rest\Controllers\ApollosUserLoginsController.cs" />
     <Compile Include="Utilities\NewtonsoftJsonSerializer.cs" />
