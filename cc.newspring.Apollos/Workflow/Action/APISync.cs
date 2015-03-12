@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
-
 using System.ComponentModel.Composition;
-
+using cc.newspring.Apollos.Utilities;
 using RestSharp;
 using Rock.Attribute;
-
+using Rock.Data;
 using Rock.Model;
 
 namespace cc.newspring.Apollos.Workflow.Action
@@ -17,7 +16,6 @@ namespace cc.newspring.Apollos.Workflow.Action
     [TextField( "Sync URL", "The specific URL endpoint this related entity type should synchronize with", true, "" )]
     [TextField( "Token Name", "The key by which the token should be identified in the header of HTTP requests", false, "" )]
     [TextField( "Token Value", "The value of the token to authenticate with the URL endpoint", false, "" )]
-    [CustomDropdownListField( "Entity Name", "The type that this action is syncing", "UserLogin,Person", true )]
     public class APISync : Rock.Workflow.ActionComponent
     {
         public override bool Execute( Rock.Data.RockContext rockContext, WorkflowAction action, object entity, out List<string> errorMessages )
@@ -44,41 +42,14 @@ namespace cc.newspring.Apollos.Workflow.Action
             request.RequestFormat = DataFormat.Json;
             request.AddHeader( tokenName, tokenValue );
 
-            RestClient client = null;
-            var entityName = GetAttributeValue( action, "EntityName" );
+            var model = (IModel)entity;
+            var fullUrl = string.Format( "{0}{1}{2}", url, lastSlash, model.Id );
+            var client = new RestClient( fullUrl );
 
-            switch ( entityName )
+            if ( isSave )
             {
-                case "UserLogin":
-                    var userLogin = new ApollosUserLogin( (UserLogin)entity );
-
-                    if ( !userLogin.Id.HasValue )
-                    {
-                        return true;
-                    }
-
-                    client = new RestClient( string.Format( "{0}{1}{2}", url, lastSlash, userLogin.Id.Value ) );
-
-                    if ( isSave )
-                    {
-                        request.AddJsonBody( userLogin );
-                    }
-
-                    break;
-
-                case "Person":
-                    var person = (Person)entity;
-                    client = new RestClient( string.Format( "{0}{1}{2}", url, lastSlash, person.Id ) );
-
-                    if ( isSave )
-                    {
-                        request.AddJsonBody( person );
-                    }
-
-                    break;
-
-                default:
-                    return true;
+                request.JsonSerializer = new NewtonsoftJsonSerializer( request.JsonSerializer );
+                request.AddJsonBody( model );
             }
 
             var response = client.Execute( request );

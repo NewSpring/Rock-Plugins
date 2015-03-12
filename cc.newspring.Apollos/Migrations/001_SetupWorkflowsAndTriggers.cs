@@ -52,7 +52,6 @@ namespace cc.newspring.Apollos.Migrations
         private string tokenNameAttributeGuid = "3AF3C584-8687-495C-A474-8568AF5D44B4";
         private string tokenValueAttributeGuid = "8DF06A26-0544-436F-8034-BF86C465AD2B";
         private string orderAttributeGuid = "B3B900AB-27A0-4573-8144-0CEC65C0C381";
-        private string entityNameAttributeGuid = "6E344B78-B6F6-41C0-A439-EA974710B1F9";
 
         private void DeleteTriggersByCategory( string guid )
         {
@@ -143,7 +142,6 @@ namespace cc.newspring.Apollos.Migrations
             RockMigrationHelper.AddActionTypeAttributeValue( actionGuid, syncAttributeGuid, @"" );
             RockMigrationHelper.AddActionTypeAttributeValue( actionGuid, tokenValueAttributeGuid, @"" );
             RockMigrationHelper.AddActionTypeAttributeValue( actionGuid, tokenNameAttributeGuid, @".apollos" );
-            RockMigrationHelper.AddActionTypeAttributeValue( actionGuid, entityNameAttributeGuid, entityName );
             RockMigrationHelper.AddActionTypeAttributeValue( actionGuid, orderAttributeGuid, @"" );
             RockMigrationHelper.AddActionTypeAttributeValue( actionGuid, activeAttributeGuid, @"False" );
             RockMigrationHelper.AddActionTypeAttributeValue( actionGuid, actionAttributeGuid, actionName );
@@ -182,7 +180,6 @@ namespace cc.newspring.Apollos.Migrations
             RockMigrationHelper.UpdateWorkflowActionEntityAttribute( apiSyncGuid, "7525C4CB-EE6B-41D4-9B64-A08048D5A5C0", "Action", "Action", "The workflow that this action is under is triggered by what type of event", 0, @"", actionAttributeGuid ); // Action
             RockMigrationHelper.UpdateWorkflowActionEntityAttribute( apiSyncGuid, "9C204CD0-1233-41C5-818A-C5DA439445AA", "Sync URL", "SyncURL", "The specific URL endpoint this related entity type should synchronize with", 0, @"", syncAttributeGuid ); // Sync URL
             RockMigrationHelper.UpdateWorkflowActionEntityAttribute( apiSyncGuid, "9C204CD0-1233-41C5-818A-C5DA439445AA", "Token Name", "TokenName", "The key by which the token should be identified in the header of HTTP requests", 0, @"", tokenNameAttributeGuid ); // Token Name
-            RockMigrationHelper.UpdateWorkflowActionEntityAttribute( apiSyncGuid, "7525C4CB-EE6B-41D4-9B64-A08048D5A5C0", "Entity Name", "EntityName", "The type that this action is syncing", 0, @"", entityNameAttributeGuid ); // Entity Name
             RockMigrationHelper.UpdateWorkflowActionEntityAttribute( apiSyncGuid, "9C204CD0-1233-41C5-818A-C5DA439445AA", "Token Value", "TokenValue", "The value of the token to authenticate with the URL endpoint", 0, @"", tokenValueAttributeGuid ); // Token Value
             RockMigrationHelper.UpdateWorkflowActionEntityAttribute( apiSyncGuid, "A75DFC58-7A1B-4799-BF31-451B2BBE38FF", "Order", "Order", "The order that this service should be used (priority)", 0, @"", orderAttributeGuid ); // Order
 
