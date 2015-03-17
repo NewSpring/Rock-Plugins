@@ -1,11 +1,3 @@
-/*  
-use master
-
-restore database test from test with replace
-
-*/
-use test
-
 declare @isSystem bit = 0
 declare @delimiter varchar(5) = ' - '
 
@@ -608,6 +600,11 @@ end
 
 
 /* TESTING SECTION
+
+use master
+restore database test from test with replace
+
+use test
 
 
 select '(''' + substring(c.name, 7, len(c.name)-6) + ''', '  --as 'child.grouptype'
