@@ -346,15 +346,15 @@ begin
 		declare @volunteer varchar(255) = 'Volunteer'
 		declare @attendee varchar(255) = 'Attendee'
 
-		select @scopeIndex = min(Id) from _topAreas
-		select @numItems = count(1) + @scopeIndex from _topAreas
+		select @scopeIndex = min(Id) from #topAreas
+		select @numItems = count(1) + @scopeIndex from #topAreas
 
 		while @scopeIndex <= @numItems
 		begin
 
 			select @areaName = '', @topAreaId = 0, @groupRoleId = 0
 			select @areaName = name, @attendanceRule = attendanceRule, @inheritedTypeId = inheritedType
-			from _topAreas where id = @scopeIndex
+			from #topAreas where id = @scopeIndex
 
 			if @areaName <> ''
 			begin
@@ -439,15 +439,15 @@ begin
 		-- set kid level grouptypes
 		/* ========================== */
 		declare @parentArea varchar(255), @areaId int, @parentGroupId int
-		select @scopeIndex = min(Id) from _subKidAreas
-		select @numItems = @scopeIndex + count(1) from _subKidAreas
+		select @scopeIndex = min(Id) from #subKidAreas
+		select @numItems = @scopeIndex + count(1) from #subKidAreas
 
 		while @scopeIndex <= @numItems
 		begin
 
 			select @areaName = ''
 			select @areaName = name, @parentArea = parentName, @inheritedTypeId = inheritedType
-			from _subKidAreas where id = @scopeIndex
+			from #subKidAreas where id = @scopeIndex
 
 			if @areaName <> ''
 			begin
@@ -490,7 +490,7 @@ begin
 				insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name,
 					Description, IsSecurityRole, IsActive, [Order], [Guid])
 				select @isSystem, @parentGroupId, @areaId, @campusId,  @areaName,
-					 @areaName + @delimiter + 'Group', 0, 1, 10, NEWID()
+					@areaName + @delimiter + 'Group', 0, 1, 10, NEWID()
 
 			end
 			--end if area not empty
@@ -505,15 +505,15 @@ begin
 		/* ========================== */
 		declare @groupName varchar(255), @groupTypeName varchar(255), @locationName varchar(255)
 		declare @locationId int, @parentLocationId int, @groupTypeId int, @parentGroupTypeId int, @groupId int
-		select @scopeIndex = min(Id) from _groupStructure
-		select @numItems = @scopeIndex + count(1) from _groupStructure
+		select @scopeIndex = min(Id) from #groupStructure
+		select @numItems = @scopeIndex + count(1) from #groupStructure
 
 		while @scopeIndex <= @numItems
 		begin
 
 			select @groupName = null, @groupTypeName = null, @locationName = null, @locationId = null
 			select @groupName = groupName, @groupTypeName = groupTypeName, @locationName = locationName
-			from _groupStructure where id = @scopeIndex
+			from #groupStructure where id = @scopeIndex
 
 			if @groupName is not null
 			begin
@@ -537,11 +537,11 @@ begin
 
 				;with locationChildren as (
 					select l.id, l.parentLocationId, l.name
-						from test..location l
+						from location l
 						where id = @campusLocationId
 					union all
 					select l2.id, l2.parentlocationId, l2.name
-						from test..location l2
+						from location l2
 						inner join locationChildren lc
 						on lc.id = l2.ParentLocationId
 				)
@@ -563,11 +563,11 @@ begin
 
 					;with locationChildren as (
 						select l.id, l.parentLocationId, l.name
-							from test..location l
+							from location l
 							where id = @campusLocationId
 						union all
 						select l2.id, l2.parentlocationId, l2.name
-							from test..location l2
+							from location l2
 							inner join locationChildren lc
 							on lc.id = l2.ParentLocationId
 					)
