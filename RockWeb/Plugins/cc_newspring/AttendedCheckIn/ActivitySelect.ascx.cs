@@ -70,7 +70,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
 
         protected List<ScheduleAttendance> ScheduleAttendanceList = new List<ScheduleAttendance>();
 
-        #endregion
+        #endregion Variables
 
         #region Control Methods
 
@@ -159,8 +159,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                 LoadAttributeControl( allergyAttribute.Id, person.Person.Id );
             }
 
-            bool showGroupNames = bool.Parse( GetAttributeValue( "DisplayGroupNames" ) );
-            if ( showGroupNames )
+            if ( GetAttributeValue( "DisplayGroupNames" ).AsBoolean() )
             {
                 hdrLocations.InnerText = "Group";
             }
@@ -314,25 +313,24 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
         /// <param name="e">The <see cref="ListViewItemEventArgs"/> instance containing the event data.</param>
         protected void lvLocation_ItemDataBound( object sender, ListViewItemEventArgs e )
         {
-            bool showGroupNames = bool.Parse( GetAttributeValue( "DisplayGroupNames" ) ?? "false" );
             if ( e.Item.ItemType == ListViewItemType.DataItem )
             {
                 int locationId = 0;
                 string displayName = string.Empty;
-                bool optionSelected = false;
-                if ( !showGroupNames )
-                {
+                bool itemSelected = false;
+                if ( GetAttributeValue( "DisplayGroupNames" ).AsBoolean() )
+                {   // parse group items
+                    var group = (CheckInGroup)e.Item.DataItem;
+                    displayName = group.Group.Name;
+                    itemSelected = group.Selected;
+                    locationId = group.Locations.Select( l => l.Location.Id ).FirstOrDefault();
+                }
+                else
+                {   // parse location items
                     var location = (CheckInLocation)e.Item.DataItem;
                     locationId = location.Location.Id;
                     displayName = location.Location.Name;
-                    optionSelected = location.Selected;
-                }
-                else
-                {
-                    var group = (CheckInGroup)e.Item.DataItem;
-                    displayName = group.Group.Name;
-                    optionSelected = group.Selected;
-                    locationId = group.Locations.Select( l => l.Location.Id ).FirstOrDefault();
+                    itemSelected = location.Selected;
                 }
 
                 var lbLocation = (LinkButton)e.Item.FindControl( "lbLocation" );
@@ -340,7 +338,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                 lbLocation.Text = displayName.Truncate( 21 );
                 lbLocation.CommandArgument = locationId.ToString();
 
-                if ( optionSelected )
+                if ( itemSelected )
                 {
                     lbLocation.AddCssClass( "active" );
                 }
@@ -549,72 +547,61 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
             }
 
             CheckInPerson currentPerson = GetPerson();
+            var rockContext = new RockContext();
+            Person person = new PersonService( rockContext ).Get( currentPerson.Person.Id );
+            person.LoadAttributes();
 
-            var changes = currentPerson.Person.FirstName == tbFirstName.Text;
-            changes = changes || currentPerson.Person.LastName == tbLastName.Text;
-            changes = changes || currentPerson.Person.SuffixValueId == ddlSuffix.SelectedValueAsId();
-            changes = changes || currentPerson.Person.NickName == tbNickname.Text;
-            changes = changes || currentPerson.Person.BirthDate == dpDOB.SelectedDate;
+            person.FirstName = tbFirstName.Text;
+            currentPerson.Person.FirstName = tbFirstName.Text;
 
-            if ( changes )
+            person.LastName = tbLastName.Text;
+            currentPerson.Person.LastName = tbLastName.Text;
+
+            person.SuffixValueId = ddlSuffix.SelectedValueAsId();
+            currentPerson.Person.SuffixValueId = ddlSuffix.SelectedValueAsId();
+
+            var DOB = dpDOB.SelectedDate;
+            if ( DOB != null )
             {
-                var rockContext = new RockContext();
-                Person person = new PersonService( rockContext ).Get( currentPerson.Person.Id );
-                person.LoadAttributes();
-
-                person.FirstName = tbFirstName.Text;
-                currentPerson.Person.FirstName = tbFirstName.Text;
-
-                person.LastName = tbLastName.Text;
-                currentPerson.Person.LastName = tbLastName.Text;
-
-                person.SuffixValueId = ddlSuffix.SelectedValueAsId();
-                currentPerson.Person.SuffixValueId = ddlSuffix.SelectedValueAsId();
-
-                var DOB = dpDOB.SelectedDate;
-                if ( DOB != null )
-                {
-                    person.BirthDay = ( (DateTime)DOB ).Day;
-                    currentPerson.Person.BirthDay = ( (DateTime)DOB ).Day;
-                    person.BirthMonth = ( (DateTime)DOB ).Month;
-                    currentPerson.Person.BirthMonth = ( (DateTime)DOB ).Month;
-                    person.BirthYear = ( (DateTime)DOB ).Year;
-                    currentPerson.Person.BirthYear = ( (DateTime)DOB ).Year;
-                }
-
-                person.NickName = tbNickname.Text.Length > 0 ? tbNickname.Text : tbFirstName.Text;
-                currentPerson.Person.NickName = tbNickname.Text.Length > 0 ? tbNickname.Text : tbFirstName.Text;
-
-                var optionGroup = ddlAbility.SelectedItem.Attributes["optiongroup"];
-                if ( !string.IsNullOrEmpty( optionGroup ) )
-                {
-                    // Selected ability level
-                    if ( optionGroup == "Ability" )
-                    {
-                        person.SetAttributeValue( "AbilityLevel", ddlAbility.SelectedValue );
-                        currentPerson.Person.SetAttributeValue( "AbilityLevel", ddlAbility.SelectedValue );
-
-                        person.GradeOffset = null;
-                        currentPerson.Person.GradeOffset = null;
-
-                        person.SaveAttributeValues();
-                    }
-                    // Selected a grade
-                    else if ( optionGroup == "Grade" )
-                    {
-                        person.GradeOffset = ddlAbility.SelectedValueAsId();
-                        currentPerson.Person.GradeOffset = ddlAbility.SelectedValueAsId();
-
-                        person.Attributes.Remove( "AbilityLevel" );
-                        currentPerson.Person.Attributes.Remove( "AbilityLevel" );
-
-                        person.SaveAttributeValues();
-                    }
-                }
-
-                rockContext.SaveChanges();
+                person.BirthDay = ( (DateTime)DOB ).Day;
+                currentPerson.Person.BirthDay = ( (DateTime)DOB ).Day;
+                person.BirthMonth = ( (DateTime)DOB ).Month;
+                currentPerson.Person.BirthMonth = ( (DateTime)DOB ).Month;
+                person.BirthYear = ( (DateTime)DOB ).Year;
+                currentPerson.Person.BirthYear = ( (DateTime)DOB ).Year;
             }
 
+            person.NickName = tbNickname.Text.Length > 0 ? tbNickname.Text : tbFirstName.Text;
+            currentPerson.Person.NickName = tbNickname.Text.Length > 0 ? tbNickname.Text : tbFirstName.Text;
+            var optionGroup = ddlAbility.SelectedItem.Attributes["optiongroup"];
+
+            if ( !string.IsNullOrEmpty( optionGroup ) )
+            {
+                // Selected ability level
+                if ( optionGroup == "Ability" )
+                {
+                    person.SetAttributeValue( "AbilityLevel", ddlAbility.SelectedValue );
+                    currentPerson.Person.SetAttributeValue( "AbilityLevel", ddlAbility.SelectedValue );
+
+                    person.GradeOffset = null;
+                    currentPerson.Person.GradeOffset = null;
+                }
+                // Selected a grade
+                else if ( optionGroup == "Grade" )
+                {
+                    person.GradeOffset = ddlAbility.SelectedValueAsId();
+                    currentPerson.Person.GradeOffset = ddlAbility.SelectedValueAsId();
+
+                    person.Attributes.Remove( "AbilityLevel" );
+                    currentPerson.Person.Attributes.Remove( "AbilityLevel" );
+                }
+            }
+
+            person.SetAttributeValue( "IsSpecialNeeds", cbSpecialNeeds.Checked.ToTrueFalse() );
+            currentPerson.Person.SetAttributeValue( "IsSpecialNeeds", cbSpecialNeeds.Checked.ToTrueFalse() );
+            person.SaveAttributeValues();           
+
+            rockContext.SaveChanges();
             mdlInfo.Hide();
         }
 
@@ -700,20 +687,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
 
                 int placeInList = 1;
                 List<Rock.Lava.ILiquidizable> locationItems = null;
-                bool showGroupNames = bool.Parse( GetAttributeValue( "DisplayGroupNames" ) ?? "false" );
-                if ( !showGroupNames )
-                {
-                    var allLocations = groupType.Groups.SelectMany( g => g.Locations ).OrderBy( l => l.Location.Name ).ToList();
-                    if ( locationId > 0 )
-                    {
-                        var selectedLocation = allLocations.FirstOrDefault( l => l.Location.Id == locationId );
-                        placeInList = allLocations.IndexOf( selectedLocation ) + 1;
-                    }
-
-                    // Show Group Names not set, locationItems is Type <CheckInLocation>
-                    locationItems = allLocations.Cast<Rock.Lava.ILiquidizable>().ToList();
-                }
-                else
+                if ( GetAttributeValue( "DisplayGroupNames" ).AsBoolean() )
                 {
                     var allGroups = groupType.Groups.OrderBy( g => g.Group.Name ).ToList();
                     if ( groupId > 0 )
@@ -722,8 +696,20 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                         placeInList = allGroups.IndexOf( selectedGroup ) + 1;
                     }
 
-                    // Show Group Names is set, locationItems is Type <CheckInGroup>
+                    // Show group names, locationItems is Type <CheckInGroup>
                     locationItems = allGroups.Cast<Rock.Lava.ILiquidizable>().ToList();
+                }
+                else
+                {
+                    var allLocations = groupType.Groups.SelectMany( g => g.Locations ).OrderBy( l => l.Location.Name ).ToList();
+                    if ( locationId > 0 )
+                    {
+                        var selectedLocation = allLocations.FirstOrDefault( l => l.Location.Id == locationId );
+                        placeInList = allLocations.IndexOf( selectedLocation ) + 1;
+                    }
+
+                    // Show location names, locationItems is Type <CheckInLocation>
+                    locationItems = allLocations.Cast<Rock.Lava.ILiquidizable>().ToList();
                 }
 
                 var pageToGoTo = placeInList / dpLocation.PageSize;
@@ -894,7 +880,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
             {
                 ddlAbility.SelectedValue = person.Person.GradeOffset.ToString();
             }
-            else if ( person.Person.Attributes.ContainsKey( "AbilityLevel" ) )
+            else if ( person.Person.AttributeValues.ContainsKey( "AbilityLevel" ) )
             {
                 var personAbility = person.Person.GetAttributeValue( "AbilityLevel" );
                 if ( !string.IsNullOrWhiteSpace( personAbility ) )
@@ -902,6 +888,8 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                     ddlAbility.SelectedValue = personAbility;
                 }
             }
+
+            cbSpecialNeeds.Checked = person.Person.GetAttributeValue( "IsSpecialNeeds" ).AsBoolean();
         }
 
         /// <summary>
@@ -991,6 +979,6 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
             }
         }
 
-        #endregion
+        #endregion Classes
     }
 }

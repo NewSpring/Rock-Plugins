@@ -38,6 +38,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
     [Category( "Check-in > Attended" )]
     [Description( "Attended Check-In Family Select Block" )]
     [BooleanField( "Enable Add Buttons", "Show the add people/visitor/family buttons on the family select page?", true )]
+    [DefinedValueField( "2E6540EA-63F0-40FE-BE50-F2A84735E600", "Default Connection Status", "Select the default connection status for people added in checkin", true, false, "B91BA046-BC1E-400C-B85D-638C1F4E0CE2" )]
     [TextField( "Not Found Text", "What text should display when the nothing is found?", true, "Please add them using one of the buttons on the right" )]
     public partial class FamilySelect : CheckInBlock
     {
@@ -64,7 +65,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
             }
         }
 
-        #endregion
+        #endregion Variables
 
         #region Control Methods
 
@@ -168,8 +169,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
             }
 
             // Check if the add buttons can be displayed
-            bool showAddButtons = true;
-            bool.TryParse( GetAttributeValue( "EnableAddButtons" ), out showAddButtons );
+            bool showAddButtons = GetAttributeValue( "EnableAddButtons" ).AsBoolean();
 
             lbAddFamilyMember.Visible = showAddButtons;
             lbAddVisitor.Visible = showAddButtons;
@@ -546,7 +546,8 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                         BirthDate =  dpDOBPerson.SelectedDate,
                         Gender = ddlGenderPerson.SelectedValueAsEnum<Gender>(),
                         Ability =  ddlAbilityPerson.SelectedValue,
-                        AbilityGroup = ddlAbilityPerson.SelectedItem.Attributes["optiongroup"]
+                        AbilityGroup = ddlAbilityPerson.SelectedItem.Attributes["optiongroup"],
+                        IsSpecialNeeds = cbSpecialNeeds.Checked
                     }
                 } );
 
@@ -567,6 +568,13 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                         AddVisitorRelationships( checkInFamily, checkInPerson.Person.Id );
                         hfSelectedVisitor.Value += checkInPerson.Person.Id + ",";
                         checkInPerson.FamilyMember = false;
+
+                        // If a child, make the family group explicitly so the child role type can be selected. If no
+                        // family group is explicitly made, Rock makes one with Adult role type by default
+                        if ( dpDOBPerson.SelectedDate.Age() < 18 )
+                        {
+                            AddGroupMembers( null, newPeople );
+                        }
                     }
 
                     checkInPerson.Selected = true;
@@ -670,6 +678,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                 newPerson.Gender = ( (RockDropDownList)item.FindControl( "ddlGender" ) ).SelectedValueAsEnum<Gender>();
                 newPerson.Ability = ( (RockDropDownList)item.FindControl( "ddlAbilityGrade" ) ).SelectedValue;
                 newPerson.AbilityGroup = ( (RockDropDownList)item.FindControl( "ddlAbilityGrade" ) ).SelectedItem.Attributes["optiongroup"];
+                newPerson.IsSpecialNeeds = ( (RockCheckBox)item.FindControl( "cbSpecialNeeds" ) ).Checked;
 
                 if ( currentPage.HasValue )
                 {
@@ -871,6 +880,12 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                 }
             }
 
+            if ( cbSpecialNeeds.Checked )
+            {
+                peopleList = peopleList.Where( p => p.Attributes.ContainsKey( "IsSpecialNeeds" )
+                    && p.GetAttributeValue( "IsSpecialNeeds" ) == "True" ).ToList();
+            }
+
             // Load person grid
             var matchingPeople = peopleList.Select( p => new
             {
@@ -885,7 +900,12 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                     ? p.GradeFormatted
                     : abilityLevelValues.Where( dv => dv.Guid.ToString()
                         .Equals( p.GetAttributeValue( "AbilityLevel" ), StringComparison.OrdinalIgnoreCase ) )
-                        .Select( dv => dv.Value ).FirstOrDefault()
+                        .Select( dv => dv.Value ).FirstOrDefault(),
+                IsSpecialNeeds = p.Attributes.Keys.Contains( "IsSpecialNeeds" )
+                     ? p.GetAttributeValue( "IsSpecialNeeds" ) == "True"
+                        ? "Yes"
+                        : string.Empty
+                     : string.Empty
             } ).OrderByDescending( p => p.BirthDate ).ToList();
 
             rGridPersonResults.DataSource = matchingPeople;
@@ -969,12 +989,20 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
             {
                 var rockContext = new RockContext();
                 var personService = new PersonService( rockContext );
-                var connectionStatus = DefinedTypeCache.Read( new Guid( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS ) );
-                var statusAttendee = connectionStatus.DefinedValues.FirstOrDefault( dv => dv.Guid.Equals( new Guid( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_ATTENDEE ) ) );
+
+                var defaultStatusGuid = GetAttributeValue( "DefaultConnectionStatus" ).AsGuid();
+                var connectionStatus = DefinedValueCache.Read( defaultStatusGuid, rockContext );
+
+                var recordStatus = DefinedTypeCache.Read( new Guid( Rock.SystemGuid.DefinedType.PERSON_RECORD_STATUS ) );
+                var activeRecord = recordStatus.DefinedValues.FirstOrDefault( dv => dv.Guid.Equals( new Guid( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE ) ) );
+
+                var recordType = DefinedTypeCache.Read( new Guid( Rock.SystemGuid.DefinedType.PERSON_RECORD_TYPE ) );
+                var personType = recordType.DefinedValues.FirstOrDefault( dv => dv.Guid.Equals( new Guid( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON ) ) );
 
                 foreach ( SerializedPerson np in serializedPeople.Where( p => p.IsValid() ) )
                 {
-                    bool hasAbilityOrGradeValue = !string.IsNullOrWhiteSpace( np.Ability );
+                    bool hasAbility = !string.IsNullOrWhiteSpace( np.Ability ) && np.AbilityGroup == "Ability";
+                    bool hasGrade = !string.IsNullOrWhiteSpace( np.Ability ) && np.AbilityGroup == "Grade";
 
                     var person = new Person();
                     person.FirstName = np.FirstName;
@@ -989,12 +1017,22 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                         person.BirthYear = ( (DateTime)np.BirthDate ).Year;
                     }
 
-                    if ( statusAttendee != null )
+                    if ( connectionStatus != null )
                     {
-                        person.ConnectionStatusValueId = statusAttendee.Id;
+                        person.ConnectionStatusValueId = connectionStatus.Id;
                     }
 
-                    if ( hasAbilityOrGradeValue && np.AbilityGroup == "Grade" )
+                    if ( activeRecord != null )
+                    {
+                        person.RecordStatusValueId = activeRecord.Id;
+                    }
+
+                    if ( personType != null )
+                    {
+                        person.RecordTypeValueId = personType.Id;
+                    }
+
+                    if ( hasGrade )
                     {
                         person.GradeOffset = np.Ability.AsIntegerOrNull();
                     }
@@ -1002,10 +1040,17 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                     // Add the person so we can assign an ability (if set)
                     personService.Add( person );
 
-                    if ( hasAbilityOrGradeValue && np.AbilityGroup == "Ability" )
+                    if ( hasAbility || np.IsSpecialNeeds )
                     {
                         person.LoadAttributes( rockContext );
-                        person.SetAttributeValue( "AbilityLevel", np.Ability );
+
+                        if ( hasAbility )
+                        {
+                            person.SetAttributeValue( "AbilityLevel", np.Ability );
+                            person.SaveAttributeValues( rockContext );
+                        }
+
+                        person.SetAttributeValue( "IsSpecialNeeds", np.IsSpecialNeeds.ToTrueFalse() );
                         person.SaveAttributeValues( rockContext );
                     }
 
@@ -1066,6 +1111,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                 groupMember.IsSystem = false;
                 groupMember.GroupId = familyGroup.Id;
                 groupMember.PersonId = person.Id;
+
                 if ( person.Age >= 18 )
                 {
                     groupMember.GroupRoleId = familyGroupType.Roles.FirstOrDefault( r =>
@@ -1132,6 +1178,8 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
 
             public string AbilityGroup { get; set; }
 
+            public bool IsSpecialNeeds { get; set; }
+
             public bool IsValid()
             {
                 return !( string.IsNullOrWhiteSpace( FirstName ) || string.IsNullOrWhiteSpace( LastName )
@@ -1146,6 +1194,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                 Gender = new Gender();
                 Ability = string.Empty;
                 AbilityGroup = string.Empty;
+                IsSpecialNeeds = false;
             }
         }
 
