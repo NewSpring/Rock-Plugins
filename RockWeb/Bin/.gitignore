@@ -4,6 +4,18 @@
 #    Microsoft.Data.OData.dll
 #    System.Spatial.dll
 /*.pdb
+/de
+/es
+/fr
+/it
+/ja
+/ko
+/no
+/pt-br
+/ru
+/tr
+/zh-Hans
+/zh-Hant
 
 #specific files
 /Rock.Migrations.dll
