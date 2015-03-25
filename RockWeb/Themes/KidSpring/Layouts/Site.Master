@@ -17,7 +17,7 @@
     <asp:ContentPlaceHolder ID="css" runat="server" />
 
 	<!-- Included CSS Files -->
-    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/checkin-theme.css", true) %>"/>
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/checkin-theme.min.css", true) %>"/>
 
     <script src="<%# ResolveRockUrl("~/Scripts/fastclick.js", true) %>" ></script>
 
