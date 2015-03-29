@@ -1,3 +1,52 @@
+#file types
+_ReSharper.*
+*.resharper
+*.DS_Store
+*.tlog
+*.vsp
+*.psess
+*.v11.suo
+*.user
 *.suo
-/packages/*.*
+#*.Framework.XML
+
+#specific files
+RockJobSchedulerService.Xml
 web.[Cc]onnectionStrings.config
+desktop.ini
+Rock.XML
+pageviews.csv
+RockLogster.csv
+Quartz.xml
+README.md
+README.markdown
+Packages.dgml
+StyleCop.Cache
+
+#specific folders
+Applications
+database
+Design Assets
+Documentation
+DotLiquid
+Installers
+libs
+Quartz
+[Oo]bj/
+Rock
+Rock.Client
+Rock.CodeGeneration
+Rock.PayFlowPro
+Rock.Plugin
+Rock.Rest
+Rock.Migrations
+Rock.Tests
+Rock.Version
+RockJobSchedulerService
+RockWeb/Cache/*
+RockWeb/App_Data/PackageStaging
+/scaffolding.config
+/Build/*
+packages
+*.sln.GhostDoc.xml
+/Rock.sln
