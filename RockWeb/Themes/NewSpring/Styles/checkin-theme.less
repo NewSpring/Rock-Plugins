@@ -12,15 +12,12 @@
 @import "../../../Styles/FontAwesome/font-awesome.less";
 @import "../../../Styles/Bootstrap/bootstrap.less"; 
 @import "../../../Styles/_checkin-core.less";
-// @import "../../../Styles/_modal.less";
+@import "../../../Styles/_modal.less";
+@import "../../../Styles/_helpers.less";
 
 //
 // Variables
 // --------------------------------------------------
-
-@primary-color:     #404040; // KidSpring Blue
-@secondary-color:   #6bac43; // NewSpring Green
-@negative-color:    #B83833;
 
 // Font Variables
 @font-family-base:     'colfax-web', 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -28,7 +25,9 @@
 @font-weight-bold:      600;
 @font-weight-semibold:  500;
 
-@bg-color:      @primary-color;
+@bg-color:      #404040; 
+@fg-color:      #6bac43; // NewSpring Green   
+@neg-color:     #B83833;
 @text-color:    #fff;
 
 @modal-body-bg: @bg-color;
@@ -45,15 +44,15 @@
 @subheader-font-weight:     @font-weight-light;
 
 // Button Styles
-@btn-default-bg: darken(@primary-color, 5);
+@btn-default-bg: darken(@bg-color, 5);
 @btn-default-color:     #fff;
-@btn-default-border:   darken(@primary-color, 5);
+@btn-default-border:   darken(@bg-color, 5);
 @checkin-button-text-weight:    @font-weight-bold;
 @checkin-button-alttext-weight: @font-weight-light;
 
 @btn-primary-color:    #fff;
-@btn-primary-border:   lighten(@primary-color, 20);
-@btn-primary-bg:    lighten(@primary-color, 20);
+@btn-primary-border:   lighten(@bg-color, 20);
+@btn-primary-bg:    lighten(@bg-color, 20);
 
 @btn-disabled-color: @btn-primary-border;
 @btn-disabled-bg: darken(@btn-primary-bg, 20%);
@@ -61,6 +60,20 @@
 // scroll bar
 @scrollbar-bg: #000;
 @scrollbar-border: #adaeaf;
+
+// colors
+@accent-color: @fg-color;
+@accent-text-color: @btn-primary-color;
+
+@accent-light-color: @btn-default-bg;
+@accent-light-text-color: @btn-primary-color;
+
+@accent-semibold-color: @btn-default-bg;
+@accent-semibold-text-color: @btn-primary-color;
+
+// override accent bold to use an offset color
+@accent-bold-color: @neg-color;
+@accent-bold-text-color: @btn-primary-color;
 
 // Fonts
 // -------------------------
@@ -119,18 +132,8 @@
 
 .checkinBackgroundRetina()
 {
-    // background-image: url('../Assets/Images/background@2x.jpg');
+    //background-image: url('../Assets/Images/background@2x.jpg');
     background-size: 1348px 1024px; // should be 1/2 of the actual
-}
-
-/*  Had to put this here so it has access to variables */
-.btn-primary.active {
-    background-color: @secondary-color;
-    border-color: @secondary-color;
-}
-
-.btn:focus, .btn:active {
-    outline: none;
 }
 
 //
@@ -143,8 +146,8 @@ body {
 body:after {
     content: '';
     position: absolute;
-    bottom: 0px;
-    right: 0px;
+    bottom: 0;
+    right: 0;
     width: 120px;
     height: 120px;
     background-image: url('../Assets/Images/newspring-logo.png');
@@ -152,40 +155,7 @@ body:after {
     z-index: -1;
 }
 
-.checkin-count h3,
-.checkin-count li {
-	color: #4c4c4b;
-}
-
-.btn {
-    letter-spacing: -.5px;
-}
-
-.btn-checkin-select {
-    padding-top: 15px;
-    padding-bottom: 13px;
-}
-
-.tenkey a.digit {
-    line-height: 64px !important;
-}
-
-
-/* Helper Classes */
-
-.color-primary { color: @primary-color; }
-.color-secondary { color: @secondary-color; }
-.background-primary { background-color: @primary-color; }
-.background-secondary { background-color: @secondary-color; }
-.base-heading-font { font-family: @font-family-base; }
-//.base-copy-font { font-family: @font-family-copy; }
-
-.btn-negative, .btn-negative:focus {
-    background-color: @negative-color;
-    border-color: @negative-color;
-}
-
-.btn-negative:hover {
-    background-color: darken(@negative-color, 10) !important;
-    border-color: darken(@negative-color, 10) !important;
+.btn-primary.active {
+    background-color: @accent-color;
+    border-color: @accent-color;
 }

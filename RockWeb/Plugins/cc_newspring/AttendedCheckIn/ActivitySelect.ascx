@@ -82,16 +82,13 @@
                     <h3 class="text-center">Selected</h3>
                     <asp:UpdatePanel ID="pnlSelected" runat="server" UpdateMode="Conditional">
                         <ContentTemplate>
-                            <div class="grid cozy">
-                                <Rock:Grid ID="gSelectedGrid" runat="server" ShowHeader="false" ShowFooter="false" EnableResponsiveTable="false" DisplayType="Light"
+                            <div class="grid">
+                                <Rock:Grid ID="gSelectedGrid" runat="server" ShowHeader="false" ShowFooter="false" EnableResponsiveTable="true" DisplayType="Light"
                                     DataKeyNames="GroupId, LocationId, ScheduleId" EmptyDataText="No Locations Selected">
                                     <Columns>
-                                        <asp:BoundField DataField="Schedule" />
-                                        <asp:BoundField DataField="ScheduleId" Visible="false" />
-                                        <asp:BoundField DataField="GroupId" Visible="false" />
-                                        <asp:BoundField DataField="Location" />
-                                        <asp:BoundField DataField="LocationId" Visible="false" />
-                                        <Rock:DeleteField OnClick="gSelectedGrid_Delete" ControlStyle-CssClass="btn btn-primary btn-negative" />
+                                        <asp:BoundField ItemStyle-CssClass="col-xs-3" DataField="Schedule" />
+                                        <asp:BoundField ItemStyle-CssClass="col-xs-8" DataField="Location" />
+                                        <Rock:DeleteField ItemStyle-CssClass="col-xs-1" ControlStyle-CssClass="btn btn-lg accent-bold-color accent-bold-color-bordered" OnClick="gSelectedGrid_Delete" />
                                     </Columns>
                                 </Rock:Grid>
                             </div>
@@ -101,55 +98,20 @@
             </div>
 
             <div class="row checkin-footer at-the-bottom">
-                <div class="col-xs-3 col-xs-offset-6">
+                <div class="col-xs-3 col-xs-offset-9">
                     <asp:LinkButton ID="lbEditInfo" runat="server" Text="Edit Info" CssClass="btn btn-primary btn-block btn-checkin-select" OnClick="lbEditInfo_Click" CausesValidation="false" />
-                </div>
-                <div class="col-xs-3">
-                    <asp:LinkButton ID="lbAddNote" runat="server" Text="Add/Edit Note" CssClass="btn btn-primary btn-block btn-checkin-select" OnClick="lbAddNote_Click" CausesValidation="false" />
                 </div>
             </div>
         </asp:Panel>
 
-        <Rock:ModalDialog ID="mdlNotes" runat="server" Content-DefaultButton="lbSaveNotes">
-            <Content>
-                <div class="soft-quarter-ends">
-                    <div class="checkin-header row">
-                        <div class="col-xs-3 checkin-actions">
-                            <Rock:BootstrapButton ID="lbCloseNotes" runat="server" CssClass="btn btn-lg btn-primary" OnClick="lbCloseNotes_Click" Text="Cancel" EnableViewState="false" />
-                        </div>
-                        <div class="col-xs-6 text-center">
-                            <h2>Add Notes</h2>
-                        </div>
-                        <div class="col-xs-3 checkin-actions text-right">
-                            <asp:LinkButton ID="lbSaveNotes" CssClass="btn btn-lg btn-primary" runat="server" OnClick="lbSaveNotes_Click" Text="Save" EnableViewState="false" />
-                        </div>
-                    </div>
-
-                    <div class="checkin-body">
-                        <div class="row">
-                            <div class="col-xs-12">
-                                <asp:PlaceHolder ID="phAttributes" runat="server" EnableViewState="false"></asp:PlaceHolder>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-xs-12">
-                                <div class="form-group">
-                                    <label>Notes</label>
-                                    <Rock:RockTextBox ID="tbNoteText" runat="server" MaxLength="60" Rows="3" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </Content>
-        </Rock:ModalDialog>
-
+        <!-- EDIT INFO MODAL -->
         <Rock:ModalDialog ID="mdlInfo" runat="server" Content-DefaultButton="lbSaveEditInfo">
             <Content>
                 <div class="soft-quarter-ends">
                     <div class="row checkin-header">
                         <div class="col-xs-3 checkin-actions">
-                            <Rock:BootstrapButton ID="lbCloseEditInfo" runat="server" CssClass="btn btn-lg btn-primary" OnClick="lbCloseEditInfo_Click" Text="Cancel" EnableViewState="false" />
+                            <Rock:BootstrapButton ID="lbCloseEditInfo" runat="server" CssClass="btn btn-lg btn-primary"
+                                OnClick="lbCloseEditInfo_Click" Text="Cancel" EnableViewState="false" />
                         </div>
 
                         <div class="col-xs-6 text-center">
@@ -157,7 +119,8 @@
                         </div>
 
                         <div class="col-xs-3 checkin-actions text-right">
-                            <Rock:BootstrapButton ID="lbSaveEditInfo" ValidationGroup="Person" CausesValidation="true" CssClass="btn btn-lg btn-primary" runat="server" OnClick="lbSaveEditInfo_Click" Text="Save" EnableViewState="false" />
+                            <Rock:BootstrapButton ID="lbSaveEditInfo" ValidationGroup="Person" CausesValidation="true" CssClass="btn btn-lg btn-primary" runat="server"
+                                OnClick="lbSaveEditInfo_Click" Text="Save" EnableViewState="false" />
                         </div>
                     </div>
 
@@ -181,8 +144,16 @@
                             <div class="col-xs-2">
                                 <Rock:RockDropDownList ID="ddlAbility" runat="server" Label="Ability/Grade" />
                             </div>
-                            <div class="col-xs-1">
+                            <div class="col-xs-1 shift-up centered">
                                 <Rock:RockCheckBox ID="cbSpecialNeeds" runat="server" Label="Special Needs" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-6">
+                                <Rock:RockTextBox ID="tbNoteText" runat="server" Label="Notes" MaxLength="60" />
+                            </div>
+                            <div class="col-xs-6">
+                                <asp:PlaceHolder ID="phAttributes" runat="server" EnableViewState="false"></asp:PlaceHolder>
                             </div>
                         </div>
                     </div>
@@ -193,15 +164,3 @@
 </asp:UpdatePanel>
 
 <script type="text/javascript" src="../plugins/cc_newspring/attendedcheckin/scripts.js"></script>
-
-<script type="text/javascript">
-
-    var removeModalOverlay = function () {
-        $('.modal:visible').css('z-index', Number($('.modal-backdrop').css('z-index')) + 1);
-    };
-
-    $(document).ready(function () {
-        removeModalOverlay();
-    });
-    Sys.WebForms.PageRequestManager.getInstance().add_endRequest(removeModalOverlay);
-</script>

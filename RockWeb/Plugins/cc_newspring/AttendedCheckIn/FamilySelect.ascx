@@ -127,15 +127,11 @@
                 <div id="divActions" runat="server" class="col-xs-3">
                     <h3 id="actions" runat="server" class="text-center">Actions</h3>
 
-                    <asp:LinkButton ID="lbAddVisitor" runat="server" CssClass="btn btn-primary btn-lg btn-block btn-checkin-select" OnClick="lbAddVisitor_Click" Text="Add Visitor" CausesValidation="false" EnableViewState="false" />
-                    <asp:LinkButton ID="lbAddFamilyMember" runat="server" CssClass="btn btn-primary btn-lg btn-block btn-checkin-select" OnClick="lbAddFamilyMember_Click" Text="Add Person" CausesValidation="false" EnableViewState="false" />
-                    <asp:LinkButton ID="lbNewFamily" runat="server" CssClass="btn btn-primary btn-lg btn-block btn-checkin-select" OnClick="lbNewFamily_Click" Text="New Family" CausesValidation="false" EnableViewState="false" />
+                    <asp:LinkButton ID="lbAddVisitor" runat="server" Text="Add Visitor" CssClass="btn btn-primary btn-lg btn-block btn-checkin-select" OnClick="lbAddVisitor_Click" CausesValidation="false" EnableViewState="false" />
+                    <asp:LinkButton ID="lbAddFamilyMember" runat="server" Text="Add Person" CssClass="btn btn-primary btn-lg btn-block btn-checkin-select" OnClick="lbAddFamilyMember_Click" CausesValidation="false" EnableViewState="false" />
+                    <asp:LinkButton ID="lbNewFamily" runat="server" Text="New Family" CssClass="btn btn-primary btn-lg btn-block btn-checkin-select" OnClick="lbNewFamily_Click" CausesValidation="false" EnableViewState="false" />
+                    <asp:LinkButton ID="lbEditInfo" runat="server" Text="Edit Info" CssClass="btn btn-primary btn-block btn-checkin-select" OnClick="lbEditInfo_Click" CausesValidation="false" EnableViewState="false" />
                 </div>
-
-                <%--<div>
-                    <Rock:BootstrapButton ID="lbCheckout" runat="server" CssClass="btn btn-lg btn-primary btn-lg btn-block btn-checkin-select checkout" OnClick="lbCheckout_Click"
-                        Text="Checkout" EnableViewState="false" />
-                </div>--%>
             </div>
         </asp:Panel>
 
@@ -165,25 +161,25 @@
                     <div class="checkin-body">
                         <div class="row">
                             <div class="col-xs-2">
-                                <Rock:RockTextBox ID="tbFirstNamePerson" runat="server" CssClass="col-xs-12" Label="First Name" ValidationGroup="Person" />
+                                <Rock:RockTextBox ID="tbPersonFirstName" runat="server" CssClass="col-xs-12" Label="First Name" ValidationGroup="Person" />
                             </div>
                             <div class="col-xs-2">
-                                <Rock:RockTextBox ID="tbLastNamePerson" runat="server" CssClass="col-xs-12" Label="Last Name" ValidationGroup="Person" />
+                                <Rock:RockTextBox ID="tbPersonLastName" runat="server" CssClass="col-xs-12" Label="Last Name" ValidationGroup="Person" />
                             </div>
                             <div class="col-xs-1">
-                                <Rock:RockDropDownList ID="ddlSuffix" runat="server" CssClass="col-xs-12" Label="Suffix" />
+                                <Rock:RockDropDownList ID="ddlPersonSuffix" runat="server" CssClass="col-xs-12" Label="Suffix" />
                             </div>
                             <div class="col-xs-2">
-                                <Rock:DatePicker ID="dpDOBPerson" runat="server" Label="Date of Birth" CssClass="col-xs-12 date-picker" ValidationGroup="Person" data-show-age="true" />
+                                <Rock:DatePicker ID="dpPersonDOB" runat="server" Label="Date of Birth" CssClass="col-xs-12 date-picker" ValidationGroup="Person" data-show-age="true" />
                             </div>
                             <div class="col-xs-2">
-                                <Rock:RockDropDownList ID="ddlGenderPerson" runat="server" Label="Gender" CssClass="col-xs-12" ValidationGroup="Person" />
+                                <Rock:RockDropDownList ID="ddlPersonGender" runat="server" Label="Gender" CssClass="col-xs-12" ValidationGroup="Person" />
                             </div>
                             <div class="col-xs-2">
-                                <Rock:RockDropDownList ID="ddlAbilityPerson" runat="server" Label="Ability/Grade" CssClass="col-xs-12" />
+                                <Rock:RockDropDownList ID="ddlPersonAbilityGrade" runat="server" Label="Ability/Grade" CssClass="col-xs-12" />
                             </div>
-                            <div class="col-xs-1">
-                                <Rock:RockCheckBox ID="cbSpecialNeeds" Label="Special Needs" runat="server" />
+                            <div class="col-xs-1 shift-up centered">
+                                <Rock:RockCheckBox ID="cbPersonSpecialNeeds" Label="Special Needs" runat="server" CssClass="" />
                             </div>
 
                             <div class="row flush-sides">
@@ -191,15 +187,14 @@
                                     <Rock:Grid ID="rGridPersonResults" runat="server" OnRowCommand="rGridPersonResults_AddExistingPerson" EnableResponsiveTable="true"
                                         OnGridRebind="rGridPersonResults_GridRebind" ShowActionRow="false" PageSize="4" DataKeyNames="Id" AllowSorting="true">
                                         <Columns>
-                                            <asp:BoundField DataField="Id" Visible="false" />
-                                            <asp:BoundField DataField="FirstName" HeaderText="First Name" SortExpression="FirstName" />
-                                            <asp:BoundField DataField="LastName" HeaderText="Last Name" SortExpression="LastName" />
-                                            <asp:BoundField DataField="SuffixValue" HeaderText="Suffix" SortExpression="SuffixValue" />
-                                            <asp:BoundField DataField="BirthDate" HeaderText="DOB" SortExpression="BirthDate" DataFormatString="{0:MM/dd/yy}" HtmlEncode="false" />
-                                            <asp:BoundField DataField="Age" HeaderText="Age" SortExpression="Age" />
-                                            <asp:BoundField DataField="Gender" HeaderText="Gender" SortExpression="Gender" />
-                                            <asp:BoundField DataField="Attribute" HeaderText="Ability/Grade" SortExpression="Attribute" />
-                                            <asp:BoundField DataField="IsSpecialNeeds" HeaderText="Special Needs" SortExpression="IsSpecialNeeds" />
+                                            <Rock:RockBoundField HeaderStyle-CssClass="col-xs-2" ItemStyle-CssClass="col-xs-2" HeaderText="First Name" DataField="FirstName" SortExpression="FirstName" />
+                                            <Rock:RockBoundField HeaderStyle-CssClass="col-xs-2" ItemStyle-CssClass="col-xs-2" HeaderText="Last Name" DataField="LastName" SortExpression="LastName" />
+                                            <Rock:RockBoundField HeaderStyle-CssClass="col-xs-1" ItemStyle-CssClass="col-xs-1" HeaderText="Suffix" DataField="SuffixValue" SortExpression="SuffixValue" />
+                                            <Rock:RockBoundField HeaderStyle-CssClass="col-xs-1" ItemStyle-CssClass="col-xs-1" HeaderText="DOB" DataField="BirthDate" DataFormatString="{0:MM/dd/yy}" HtmlEncode="false" SortExpression="BirthDate" />
+                                            <Rock:RockBoundField HeaderStyle-CssClass="col-xs-1" ItemStyle-CssClass="col-xs-1" HeaderText="Age" DataField="Age" SortExpression="Age" />
+                                            <Rock:RockBoundField HeaderStyle-CssClass="col-xs-2" ItemStyle-CssClass="col-xs-2" HeaderText="Gender" DataField="Gender" SortExpression="Gender" />
+                                            <Rock:RockBoundField HeaderStyle-CssClass="col-xs-2" ItemStyle-CssClass="col-xs-2" HeaderText="Ability/Grade" DataField="Attribute" SortExpression="Attribute" />
+                                            <Rock:RockBoundField HeaderStyle-CssClass="col-xs-1" ItemStyle-CssClass="col-xs-1" HeaderText="Special Needs" DataField="IsSpecialNeeds" SortExpression="IsSpecialNeeds" />
                                             <asp:TemplateField>
                                                 <ItemTemplate>
                                                     <Rock:BootstrapButton ID="lbAdd" runat="server" CssClass="btn btn-lg btn-primary" CommandName="Add"
@@ -315,6 +310,63 @@
                 </div>
             </Content>
         </Rock:ModalDialog>
+
+        <!-- EDIT INFO MODAL -->
+        <Rock:ModalDialog ID="mdlInfo" runat="server" Content-DefaultButton="lbSaveEditInfo">
+            <Content>
+                <div class="soft-quarter-ends">
+                    <div class="row checkin-header">
+                        <div class="col-xs-3 checkin-actions">
+                            <Rock:BootstrapButton ID="lbCloseEditInfo" runat="server" CssClass="btn btn-lg btn-primary"
+                                OnClick="lbCloseEditInfo_Click" Text="Cancel" EnableViewState="false" />
+                        </div>
+
+                        <div class="col-xs-6 text-center">
+                            <h2>Edit Info</h2>
+                        </div>
+
+                        <div class="col-xs-3 checkin-actions text-right">
+                            <Rock:BootstrapButton ID="lbSaveEditInfo" ValidationGroup="Person" CausesValidation="true" CssClass="btn btn-lg btn-primary" runat="server"
+                                OnClick="lbSaveEditInfo_Click" Text="Save" EnableViewState="false" />
+                        </div>
+                    </div>
+
+                    <div class="checkin-body">
+                        <div class="row">
+                            <div class="col-xs-2">
+                                <Rock:RockTextBox ID="tbFirstName" runat="server" Label="First Name" ValidationGroup="Person" Required="true" />
+                            </div>
+                            <div class="col-xs-2">
+                                <Rock:RockTextBox ID="tbNickname" runat="server" ValidationGroup="Person" Label="Nickname" />
+                            </div>
+                            <div class="col-xs-2">
+                                <Rock:RockTextBox ID="tbLastName" runat="server" Label="Last Name" ValidationGroup="Person" Required="true" />
+                            </div>
+                            <div class="col-xs-1">
+                                <Rock:RockDropDownList ID="ddlSuffix" runat="server" Label="Suffix" />
+                            </div>
+                            <div class="col-xs-2">
+                                <Rock:DatePicker ID="dpDOB" runat="server" CssClass="date-picker" data-show-age="true" Label="Date of Birth" ValidationGroup="Person" Required="true" />
+                            </div>
+                            <div class="col-xs-2">
+                                <Rock:RockDropDownList ID="ddlAbilityGrade" runat="server" Label="Ability/Grade" />
+                            </div>
+                            <div class="col-xs-1 shift-up centered">
+                                <Rock:RockCheckBox ID="cbSpecialNeeds" runat="server" Label="Special Needs" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-6">
+                                <Rock:RockTextBox ID="tbNoteText" runat="server" Label="Notes" MaxLength="60" />
+                            </div>
+                            <div class="col-xs-6">
+                                <asp:PlaceHolder ID="phAttributes" runat="server" EnableViewState="false"></asp:PlaceHolder>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Content>
+        </Rock:ModalDialog>
     </ContentTemplate>
 </asp:UpdatePanel>
 
@@ -323,8 +375,6 @@
 <script type="text/javascript">
 
     var setControlEvents = function () {
-
-        $('.modal:visible').css('z-index', Number($('.modal-backdrop').css('z-index')) + 1);
 
         $('.family').unbind('click').on('click', function () {
             $(this).toggleClass('active');
