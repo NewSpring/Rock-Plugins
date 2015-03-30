@@ -27,6 +27,7 @@ using System.Web.UI.WebControls;
 using Rock;
 using Rock.Attribute;
 using Rock.CheckIn;
+using Rock.Data;
 using Rock.Model;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
@@ -56,12 +57,6 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
 
             RockPage.AddScriptLink( this.Page, "~/Scripts/CheckinClient/cordova-2.4.0.js", false );
             RockPage.AddScriptLink( this.Page, "~/Scripts/CheckinClient/ZebraPrint.js", false );
-
-            if ( CurrentWorkflow == null || CurrentCheckInState == null )
-            {
-                NavigateToHomePage();
-                return;
-            }
         }
 
         /// <summary>
@@ -72,8 +67,15 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
         {
             base.OnLoad( e );
 
+            if ( CurrentWorkflow == null || CurrentCheckInState == null )
+            {
+                NavigateToHomePage();
+                return;
+            }
+
             if ( !Page.IsPostBack )
             {
+                gPersonList.UseAccessibleHeader = true;
                 BindGrid();
             }
         }
@@ -86,7 +88,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
             var selectedPeopleList = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault()
                 .People.Where( p => p.Selected ).OrderBy( p => p.Person.FullNameReversed ).ToList();
 
-            var checkInList = new List<Checkins>();
+            var checkInList = new List<Activity>();
             foreach ( var person in selectedPeopleList )
             {
                 var selectedGroupTypes = person.GroupTypes.Where( gt => gt.Selected ).ToList();
@@ -100,14 +102,18 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                         {
                             foreach ( var schedule in location.Schedules.Where( s => s.Selected ) )
                             {
-                                var checkIn = new Checkins();
-                                checkIn.PersonId = person.Person.Id;
+                                var checkIn = new Activity();
+
                                 checkIn.Name = person.Person.FullName;
-                                checkIn.GroupId = group.Group.Id;
                                 checkIn.Location = location.Location.Name;
-                                checkIn.LocationId = location.Location.Id;
                                 checkIn.Schedule = schedule.Schedule.Name;
+                                checkIn.PersonId = person.Person.Id;
+                                checkIn.GroupId = group.Group.Id;
+                                checkIn.LocationId = location.Location.Id;
                                 checkIn.ScheduleId = schedule.Schedule.Id;
+
+                                // are they already checked in?
+                                checkIn.CheckedIn = schedule.LastCheckIn != null && schedule.LastCheckIn.Value.Date.Equals( DateTime.Today );
                                 checkInList.Add( checkIn );
                             }
                         }
@@ -115,12 +121,28 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                 }
                 else
                 {   // auto assignment didn't select anything
-                    checkInList.Add( new Checkins { PersonId = person.Person.Id, Name = person.Person.FullName, GroupId = 0, LocationId = 0, ScheduleId = 0 } );
+                    checkInList.Add( new Activity { PersonId = person.Person.Id, Name = person.Person.FullName, GroupId = 0, LocationId = 0, ScheduleId = 0 } );
                 }
             }
 
             gPersonList.DataSource = checkInList.OrderBy( c => c.Name ).ThenBy( c => c.Schedule ).ToList();
             gPersonList.DataBind();
+        }
+
+        /// <summary>
+        /// Handles the RowDataBound event of the gPersonList control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="GridViewRowEventArgs"/> instance containing the event data.</param>
+        protected void gPersonList_RowDataBound( object sender, GridViewRowEventArgs e )
+        {
+            if ( e.Row.RowType == DataControlRowType.DataRow )
+            {
+                if ( ( (Activity)e.Row.DataItem ).CheckedIn )
+                {
+                    e.Row.Cells[3].Text = "<span class=\"fa fa-check\"/>";
+                }
+            }
         }
 
         #endregion Control Methods
@@ -177,6 +199,20 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
             var groupId = Convert.ToInt32( dataKeyValues["GroupId"] );
             var locationId = Convert.ToInt32( dataKeyValues["LocationId"] );
             var scheduleId = Convert.ToInt32( dataKeyValues["ScheduleId"] );
+            var alreadyCheckedIn = dataKeyValues["CheckedIn"].ToString().AsBoolean();
+
+            if ( alreadyCheckedIn )
+            {
+                var rockContext = new RockContext();
+                var personAttendance = new AttendanceService( rockContext ).Get( DateTime.Today, locationId, scheduleId, groupId, personId );
+                if ( personAttendance != null )
+                {
+                    personAttendance.DidAttend = false;
+                    rockContext.SaveChanges();
+                }
+
+                rockContext.Dispose();
+            }
 
             var selectedPerson = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault()
                 .People.Where( p => p.Person.Id == personId ).FirstOrDefault();
@@ -202,7 +238,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                 selectedSchedule.Selected = false;
                 selectedSchedule.PreSelected = false;
 
-                // clear checkin rows without anything selected
+                // clear checkin rows that aren't selected
                 if ( !selectedLocation.Schedules.Any( s => s.Selected ) )
                 {
                     selectedLocation.Selected = false;
@@ -423,6 +459,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                                             {
                                                 printContent = Regex.Replace( printContent, string.Format( @"(?<=\^FD){0}(?=\^FS)", mergeField.Key ), mergeField.Value );
 
+                                                // don't print empty field content
                                                 //if ( !string.IsNullOrWhiteSpace( mergeField.Value ) )
                                                 //{
                                                 //    printContent = Regex.Replace( printContent, string.Format( @"(?<=\^FD){0}(?=\^FS)", mergeField.Key ), mergeField.Value );
@@ -521,7 +558,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
         /// <summary>
         /// Check-In information class used to bind the selected grid.
         /// </summary>
-        protected class Checkins
+        protected class Activity
         {
             public int PersonId { get; set; }
 
@@ -529,15 +566,17 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
 
             public int GroupId { get; set; }
 
-            public string Location { get; set; }
-
             public int LocationId { get; set; }
 
-            public string Schedule { get; set; }
+            public string Location { get; set; }
 
             public int ScheduleId { get; set; }
 
-            public Checkins()
+            public string Schedule { get; set; }
+
+            public bool CheckedIn { get; set; }
+
+            public Activity()
             {
                 PersonId = 0;
                 Name = string.Empty;
@@ -546,6 +585,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                 LocationId = 0;
                 Schedule = string.Empty;
                 ScheduleId = 0;
+                CheckedIn = false;
             }
         }
 

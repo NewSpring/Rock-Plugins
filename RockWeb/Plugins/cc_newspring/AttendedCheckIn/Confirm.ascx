@@ -30,26 +30,23 @@
                     <asp:UpdatePanel ID="pnlSelectedGrid" runat="server">
                         <ContentTemplate>
                             <div class="grid in-the-middle">
-                                <Rock:Grid ID="gPersonList" runat="server" DataKeyNames="PersonId,GroupId,LocationId,ScheduleId" DisplayType="Light"
-                                    CssClass="three-col-with-controls" EnableResponsiveTable="false" ShowFooter="false" EmptyDataText="No People Selected"
-                                    OnRowCommand="gPersonList_Print" OnGridRebind="gPersonList_GridRebind">
+                                <Rock:Grid ID="gPersonList" runat="server" DataKeyNames="PersonId,GroupId,LocationId,ScheduleId,CheckedIn"
+                                    DisplayType="Light" EnableResponsiveTable="true" ShowFooter="false" EmptyDataText="No People Selected" CssClass="three-col-with-controls"
+                                    OnRowCommand="gPersonList_Print" OnRowDataBound="gPersonList_RowDataBound" OnGridRebind="gPersonList_GridRebind">
                                     <Columns>
-                                        <asp:BoundField DataField="PersonId" Visible="false" />
-                                        <asp:BoundField DataField="Name" HeaderText="Name" />
-                                        <asp:BoundField DataField="GroupId" Visible="false" />
-                                        <asp:BoundField DataField="Location" HeaderText="Assigned To" />
-                                        <asp:BoundField DataField="LocationId" Visible="false" />
-                                        <asp:BoundField DataField="Schedule" HeaderText="Time" />
-                                        <asp:BoundField DataField="ScheduleId" Visible="false" />
-                                        <Rock:EditField HeaderText="Edit" ControlStyle-CssClass="btn btn-lg btn-primary" OnClick="gPersonList_Edit" />
-                                        <asp:TemplateField HeaderText="Print">
+                                        <Rock:RockBoundField HeaderStyle-CssClass="col-xs-3" HeaderText="Name" ItemStyle-CssClass="col-xs-3" DataField="Name" />
+                                        <Rock:RockBoundField HeaderStyle-CssClass="col-xs-2" HeaderText="Location" ItemStyle-CssClass="col-xs-2" DataField="Location" />
+                                        <Rock:RockBoundField HeaderStyle-CssClass="col-xs-2" HeaderText="Schedule" ItemStyle-CssClass="col-xs-2" DataField="Schedule" />
+                                        <Rock:RockBoundField HeaderStyle-CssClass="col-xs-2 centered" HeaderText="Checked In" ItemStyle-CssClass="col-xs-2 centered" />
+                                        <Rock:EditField HeaderStyle-CssClass="col-xs-1 centered" HeaderText="Edit" ControlStyle-CssClass="col-xs-1 btn btn-lg btn-primary" OnClick="gPersonList_Edit" />
+                                        <Rock:RockTemplateField HeaderStyle-CssClass="col-xs-1 centered" HeaderText="Print">
                                             <ItemTemplate>
-                                                <asp:LinkButton ID="btnPrint" runat="server" CssClass="btn btn-lg btn-primary" CommandName="Print" CommandArgument="<%# Container.DataItemIndex %>">
-                                            <i class="fa fa-print"></i>
+                                                <asp:LinkButton ID="btnPrint" runat="server" CssClass="col-xs-1 btn btn-lg btn-primary" CommandName="Print" CommandArgument="<%# Container.DataItemIndex %>">
+                                                    <i class="fa fa-print"></i>
                                                 </asp:LinkButton>
                                             </ItemTemplate>
-                                        </asp:TemplateField>
-                                        <Rock:DeleteField HeaderText="Delete" ControlStyle-CssClass="btn btn-lg btn-primary btn-negative" OnClick="gPersonList_Delete" />
+                                        </Rock:RockTemplateField>
+                                        <Rock:DeleteField HeaderStyle-CssClass="col-xs-1 centered" HeaderText="Delete" ControlStyle-CssClass="col-xs-1 btn btn-lg btn-primary accent-bold-color accent-bold-color-bordered" OnClick="gPersonList_Delete" />
                                     </Columns>
                                 </Rock:Grid>
                                 <div class="col-xs-offset-9 col-xs-3 hard-right push-quarter-top">
