@@ -1,7 +1,8 @@
 ﻿/*
      
-     Rock Park Check-in Theme
-     Crafted by: Spark Development Network
+     Fuse Check-in Theme
+     Crafted by: @briankalwat
+     � NewSpring
 
  */
 /*!
@@ -8945,12 +8946,7 @@ body:after {
   background-size: cover;
   z-index: -1;
 }
-.btn-negative,
-.btn-negative:focus {
-  background-color: #b83833;
-  border-color: #b83833;
-}
-.btn-negative:hover {
-  background-color: #902c28 !important;
-  border-color: #902c28 !important;
+.btn-primary.active {
+  background-color: #6bac43;
+  border-color: #6bac43;
 }
