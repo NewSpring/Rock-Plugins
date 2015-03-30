@@ -2,13 +2,28 @@
 <%@ Import Namespace="System.Web.Optimization" %>
 <!DOCTYPE html>
 
+<script runat="server">
+
+    // keep code below to call base class init method
+
+    /// <summary>
+    /// Raises the <see cref="E:System.Web.UI.Control.Init" /> event.
+    /// </summary>
+    /// <param name="e">An <see cref="T:System.EventArgs" /> object that contains the event data.</param>
+    protected override void OnInit( EventArgs e )
+    {
+        base.OnInit( e );
+    }
+
+</script>
+
 <html class="no-js">
 <head runat="server">
+
     <meta http-equiv="X-UA-Compatible" content="IE=10" />
     <meta charset="utf-8">
     <title></title>
     
-    <script src="<%# ResolveRockUrl("~/Scripts/modernizr.js", true) %>" ></script>
     <script src="<%# ResolveRockUrl("~/Scripts/jquery-1.10.2.min.js", true) %>"></script>
 
     <!-- Set the viewport width to device width for mobile -->
@@ -17,9 +32,11 @@
     <asp:ContentPlaceHolder ID="css" runat="server" />
 
 	<!-- Included CSS Files -->
-    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/checkin-theme.min.css", true) %>"/>
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/bootstrap.css", true) %>"/>
+	<link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/theme.css", true) %>"/>
+	<link rel="stylesheet" href="<%# ResolveRockUrl("~/Styles/developer.css", true) %>"/>
 
-    <script src="<%# ResolveRockUrl("~/Scripts/fastclick.js", true) %>" ></script>
+    <script src="<%# ResolveRockUrl("~/Scripts/modernizr.js", true) %>" ></script>
 
     <asp:ContentPlaceHolder ID="head" runat="server"></asp:ContentPlaceHolder>
 
@@ -32,21 +49,70 @@
 
 </head>
 <body>
+
     <form id="form1" runat="server">
-            
+
+        <!-- Page Header -->
+        <header>
+
+            <!-- Brand Bar -->
+            <nav class="navbar navbar-inverse navbar-static-top">
+                <div class="container">
+			        <div class="navbar-header">
+                        <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".navbar-collapse">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <Rock:Zone Name="Header" runat="server" />
+			        </div>	
+                    <div class="navbar-collapse collapse">   
+                        <!-- Main Navigation -->
+                        <div class="pull-right">
+                            <Rock:Zone Name="Login" runat="server" />
+                        </div>
+                        <Rock:Zone Name="Navigation" runat="server" />
+			        </div>	
+                </div>
+            </nav>
+
+        </header>
+
+        <asp:ContentPlaceHolder ID="feature" runat="server"></asp:ContentPlaceHolder>
+
         <asp:ContentPlaceHolder ID="main" runat="server"></asp:ContentPlaceHolder>
-            
+
+	    <footer>
+            <div class="container">
+
+                <hr />
+
+                <div class="row">
+			        <div class="col-md-12">
+				        <Rock:Zone Name="Footer" runat="server" />
+			        </div>
+		        </div>
+
+            </div>
+	    </footer>
+
+        <%-- controls for scriptmanager and update panel --%>
+        <asp:ScriptManager ID="sManager" runat="server"/>
+        <asp:UpdateProgress id="updateProgress" runat="server" DisplayAfter="800">
+		        <ProgressTemplate>
+		            <div class="updateprogress-status">
+                        <div class="spinner">
+                          <div class="rect1"></div>
+                          <div class="rect2"></div>
+                          <div class="rect3"></div>
+                          <div class="rect4"></div>
+                          <div class="rect5"></div>
+                        </div>
+                    </div>
+                    <div class="updateprogress-bg modal-backdrop"></div>
+		        </ProgressTemplate>
+        </asp:UpdateProgress>
+
     </form>
 
-    <script>
-        window.addEventListener('load', function () {
-            new FastClick(document.body);
-        }, false);
-
-        // add quick fade-in effect to the page
-        $(document).ready(function () {
-            $("body").rockFadeIn();
-        });
-    </script>
 </body>
+
 </html>
