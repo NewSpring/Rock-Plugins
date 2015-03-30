@@ -72,6 +72,38 @@ DECLARE @specialNeedsGroupType INT = (
 	--WHERE [Guid] = '2CB16E13-141F-419F-BACD-8283AB6B3299'
 );
 
+INSERT [Attribute] (
+	[IsSystem]
+    ,[FieldTypeId]
+    ,[EntityTypeId]
+    ,[EntityTypeQualifierColumn]
+    ,[EntityTypeQualifierValue]
+    ,[Key]
+    ,[Name]
+    ,[Description]
+    ,[Order]
+    ,[IsGridColumn]
+    ,[DefaultValue]
+    ,[IsMultiValue]
+    ,[IsRequired]
+    ,[Guid]
+) VALUES (
+	0,
+	(SELECT [Id] FROM [FieldType] WHERE [Name] = 'Boolean'),
+	(SELECT [Id] FROM [EntityType] WHERE [Name] = 'Rock.Model.Group'),
+	'GroupTypeId',
+	@specialNeedsGroupType,
+	'IsSpecialNeeds',
+	'Is Special Needs',
+	'Indicates if this group caters to those who have special needs.',
+	0,
+	0,
+	'False',
+	0,
+	0,
+	NEWID()
+);
+
 insert #subKidAreas
 values
 ('Nursery', 'KidSpring Attendee', 15),
@@ -604,6 +636,37 @@ begin
 end
 -- end campuses loop
 
+/* ========================== */
+-- Add IsSpecialNeeds attribute value to spring zone groups
+/* ========================== */
+DECLARE @isSpecialNeedsAttributeId INT = (
+	SELECT [Id]
+	FROM [Attribute]
+	WHERE 
+		[Key] = 'IsSpecialNeeds'
+		AND [EntityTypeId] = (
+			SELECT [Id]
+			FROM [EntityType]
+			WHERE [Name] = 'Rock.Model.Group'
+		)
+);
+
+INSERT [AttributeValue] (
+	[IsSystem]
+    ,[AttributeId]
+    ,[EntityId]
+    ,[Value]
+    ,[Guid]
+) SELECT 
+	0,
+	@isSpecialNeedsAttributeId,
+	g.[Id],
+	'True',
+	NEWID()
+	FROM [Group] g
+	JOIN [Group] parent ON g.ParentGroupId = parent.Id
+	JOIN [GroupType] parentGt ON parent.GroupTypeId = parentGt.Id
+	WHERE parentGt.InheritedGroupTypeId = 29;
 
 
 /* TESTING SECTION
