@@ -65,12 +65,19 @@ create table #subKidAreas (
 	inheritedType int
 )
 
+DECLARE @specialNeedsGroupType INT = (
+	SELECT [Id]
+	FROM [GroupType]
+	WHERE [Name] = 'Check in By Special Needs'
+	--WHERE [Guid] = '2CB16E13-141F-419F-BACD-8283AB6B3299'
+);
+
 insert #subKidAreas
 values
 ('Nursery', 'KidSpring Attendee', 15),
 ('Preschool', 'KidSpring Attendee', 15),
 ('Elementary', 'KidSpring Attendee', 17),
-('Special Needs', 'KidSpring Attendee', NULL),
+('Special Needs', 'KidSpring Attendee', @specialNeedsGroupType),
 ('Nursery Vols', 'KidSpring Volunteer', 15),
 ('Preschool Vols', 'KidSpring Volunteer', 15),
 ('Elementary Vols', 'KidSpring Volunteer', 15),
