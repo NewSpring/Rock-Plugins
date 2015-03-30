@@ -24,8 +24,9 @@ using System.Web.UI.WebControls;
 using Rock;
 using Rock.Data;
 using Rock.Model;
+using RockFramework = Rock;
 
-namespace RockWeb.Themes.Stark.Layouts
+namespace RockWeb.Themes.Rock.Layouts
 {
     public partial class Error : System.Web.UI.Page
     {
@@ -50,9 +51,9 @@ namespace RockWeb.Themes.Stark.Layouts
                     try
                     {
                         // check to see if the user is an admin, if so allow them to view the error details
-                        var userLogin = Rock.Model.UserLoginService.GetCurrentUser();
+                        var userLogin = RockFramework.Model.UserLoginService.GetCurrentUser();
                         GroupService service = new GroupService( new RockContext() );
-                        Group adminGroup = service.GetByGuid( new Guid( Rock.SystemGuid.Group.GROUP_ADMINISTRATORS ) );
+                        Group adminGroup = service.GetByGuid( new Guid( RockFramework.SystemGuid.Group.GROUP_ADMINISTRATORS ) );
                         showDetails = userLogin != null && adminGroup.Members.Where( m => m.PersonId == userLogin.PersonId ).Count() > 0;
                     }
                     catch { }
