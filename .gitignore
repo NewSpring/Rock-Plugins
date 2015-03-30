@@ -8,9 +8,13 @@ _ReSharper.*
 *.v11.suo
 *.user
 *.suo
+*.sln
+*.xml
+*.md
 #*.Framework.XML
 
 #specific files
+*.sln.GhostDoc.xml
 RockJobSchedulerService.Xml
 web.[Cc]onnectionStrings.config
 desktop.ini
@@ -25,18 +29,19 @@ StyleCop.Cache
 
 #specific folders
 Applications
-packages
 cc.newspring.Apollos
 cc.newspring.CyberSource
 cc.newspring.AttendedCheckin
 Checkin Labels
 database
 Design Assets
-Dev Tools
+/Dev Tools/*
 Documentation
 DotLiquid
 Installers
+Labels
 libs
+packages
 Quartz
 [Oo]bj/
 Rock
@@ -53,6 +58,4 @@ RockWeb/Cache/*
 RockWeb/App_Data/PackageStaging
 /scaffolding.config
 /Build/*
-packages
-*.sln.GhostDoc.xml
-/Rock.sln
+*.StyleCop

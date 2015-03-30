@@ -1,3 +1,0 @@
-select 'alter table [' + TABLE_NAME + '] nocheck constraint all' [DisableAllConstraints] from INFORMATION_SCHEMA.TABLES where TABLE_NAME not in ('__MigrationHistory', 'sysdiagrams') order by TABLE_NAME
-
-select 'alter table [' + TABLE_NAME + '] check constraint all' [EnableAllConstraints] from INFORMATION_SCHEMA.TABLES where TABLE_NAME not in ('__MigrationHistory', 'sysdiagrams') order by TABLE_NAME

@@ -1,1 +1,0 @@
-select TABLE_SCHEMA, TABLE_NAME from INFORMATION_SCHEMA.TABLES where TABLE_NAME not in ('__MigrationHistory', 'sysdiagrams') order by TABLE_NAME

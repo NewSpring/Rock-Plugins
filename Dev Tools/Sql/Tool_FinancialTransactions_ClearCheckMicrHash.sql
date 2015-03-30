@@ -1,1 +1,0 @@
-update FinancialTransaction set CheckMicrHash = null where CheckMicrHash is not null
