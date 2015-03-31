@@ -42,9 +42,12 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
     [Description( "Attended Check-In Confirmation Block" )]
     [LinkedPage( "Activity Select Page" )]
     [BooleanField( "Print Individual Labels", "Select this option to print one label per person's group, location, & schedule.", false )]
-    //[NewSpringField( "Designated Parent Label", "Select a label to print once per print job.  Unselect to print with every print job.", false )]
+    [BinaryFileField( "DE0E5C50-234B-474C-940C-C571F385E65F", "Designated Parent Label", "Select a label to print once per print job.  Unselect to print with every print job.", false )]
     public partial class Confirm : CheckInBlock
     {
+        private bool AlreadyPrintedOnClient = false;
+        private bool AlreadyPrintedOnServer = false;
+
         #region Control Methods
 
         /// <summary>
@@ -330,7 +333,6 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
             // Make sure we can save the attendance and get an attendance code
             if ( SaveAttendance() )
             {
-                string designatedParentLabel = GetAttributeValue( "DesignatedParentLabel" );
                 if ( GetAttributeValue( "PrintIndividualLabels" ).AsBoolean() )
                 {
                     // separate labels by person and that's it
@@ -393,7 +395,9 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
         /// </summary>
         private void PrintLabels()
         {
+            var designatedLabelGuid = GetAttributeValue( "DesignatedParentLabel" ).AsGuidOrNull();
             var errors = new List<string>();
+
             if ( ProcessActivity( "Create Labels", out errors ) )
             {
                 SaveState();
@@ -414,18 +418,25 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                         if ( groupType != null )
                         {
                             var printFromClient = groupType.Labels.Where( l => l.PrintFrom == Rock.Model.PrintFrom.Client );
+                            if ( AlreadyPrintedOnClient )
+                            {
+                                printFromClient = printFromClient.Where( l => l.FileGuid != designatedLabelGuid );
+                            }
+
                             if ( printFromClient.Any() )
                             {
                                 var urlRoot = string.Format( "{0}://{1}", Request.Url.Scheme, Request.Url.Authority );
                                 printFromClient.ToList().ForEach( l => l.LabelFile = urlRoot + l.LabelFile );
                                 AddLabelScript( printFromClient.ToJson() );
+                                AlreadyPrintedOnClient = AlreadyPrintedOnClient || printFromClient.Any( l => l.FileGuid == designatedLabelGuid );
                             }
 
-                            //
-                            // add check for parent label already printed
-                            //
-
                             var printFromServer = groupType.Labels.Where( l => l.PrintFrom == Rock.Model.PrintFrom.Server );
+                            if ( AlreadyPrintedOnServer )
+                            {
+                                printFromServer = printFromServer.Where( l => l.FileGuid != designatedLabelGuid );
+                            }
+
                             if ( printFromServer.Any() )
                             {
                                 Socket socket = null;
@@ -485,6 +496,8 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                                             }
                                         }
                                     }
+
+                                    AlreadyPrintedOnServer = AlreadyPrintedOnServer || label.FileGuid == designatedLabelGuid;
                                 }
 
                                 if ( socket != null && socket.Connected )
