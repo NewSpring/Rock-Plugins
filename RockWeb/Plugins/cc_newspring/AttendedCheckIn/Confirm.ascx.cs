@@ -48,12 +48,12 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
         private bool RemoveLabelFromClientQueue = false;
         private bool RemoveLabelFromServerQueue = false;
 
-        public bool RunSaveAttendance
+        private bool RunSaveAttendance
         {
             get
             {
                 var attendanceCodeSet = ViewState["RunSaveAttendance"].ToStringSafe();
-                if ( attendanceCodeSet != null )
+                if ( !string.IsNullOrWhiteSpace( attendanceCodeSet ) )
                 {
                     return attendanceCodeSet.AsBoolean();
                 }
@@ -503,6 +503,9 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                                                 var ns = new NetworkStream( socket );
                                                 byte[] toSend = System.Text.Encoding.ASCII.GetBytes( printContent );
                                                 ns.Write( toSend, 0, toSend.Length );
+
+                                                // Remove from future server queue
+                                                RemoveLabelFromServerQueue = RemoveLabelFromServerQueue || label.FileGuid == designatedLabelGuid;
                                             }
                                             else
                                             {
@@ -510,9 +513,6 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                                             }
                                         }
                                     }
-
-                                    // Remove from future server queue
-                                    RemoveLabelFromServerQueue = RemoveLabelFromServerQueue || label.FileGuid == designatedLabelGuid;
                                 }
 
                                 if ( socket != null && socket.Connected )
