@@ -430,6 +430,10 @@ begin
 				insert GroupTypeAssociation
 				values (@initialAreaId, @topAreaId)
 
+				-- allow children of this grouptype
+				insert GroupTypeAssociation
+				values (@topAreaId, @topAreaId)
+
 				/* ========================== */
 				-- set default grouptype role
 				/* ========================== */
@@ -521,6 +525,10 @@ begin
 
 				insert GroupTypeAssociation
 				values (@topAreaId, @areaId)
+
+				-- allow children of this grouptype
+				insert GroupTypeAssociation
+				values (@areaId, @areaId)
 
 				/* ============================== */
 				-- set default grouptype role
