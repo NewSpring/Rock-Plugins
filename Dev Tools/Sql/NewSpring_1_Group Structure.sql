@@ -1,3 +1,13 @@
+/* ====================================================== */
+-- NewSpring Script #1: 
+-- Inserts campuses, groups, grouptypes and locations.
+
+-- Make sure you're using the right database:
+
+USE [Rock]
+
+/* ====================================================== */
+
 declare @isSystem bit = 0
 declare @delimiter varchar(5) = ' - '
 
