@@ -1,16 +1,12 @@
 ﻿using System;
-
 using System.Linq;
-
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using Rock;
 using Rock.Data;
-
 using Rock.Financial;
 using Rock.Model;
-
 using Rock.Rest;
 using Rock.Rest.Filters;
 using Rock.Web.Cache;
@@ -21,6 +17,11 @@ namespace cc.newspring.Apollos.Rest.Controllers
     {
         private static string gatewayName = "Rock.CyberSource.Gateway";
 
+        /// <summary>
+        /// Gives through CyberSource with the specified give parameters.
+        /// </summary>
+        /// <param name="giveParameters">The give parameters.</param>
+        /// <returns></returns>
         [Authenticate, Secured]
         [HttpPost]
         [System.Web.Http.Route( "api/Give" )]
@@ -198,7 +199,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
 
             if ( transaction == null || !string.IsNullOrWhiteSpace( errorMessage ) )
             {
-                return GenerateResponse( HttpStatusCode.InternalServerError, errorMessage ?? "The transactions could not be created" );
+                return GenerateResponse( HttpStatusCode.InternalServerError, errorMessage ?? "The gateway had a problem and/or did not create a transaction as expected" );
             }
 
             transaction.TransactionDateTime = RockDateTime.Now;
@@ -218,9 +219,14 @@ namespace cc.newspring.Apollos.Rest.Controllers
 
             new FinancialTransactionService( rockContext ).Add( transaction );
             rockContext.SaveChanges();
-            return new HttpResponseMessage( HttpStatusCode.NoContent );
+            return GenerateResponse( HttpStatusCode.NoContent );
         }
 
+        /// <summary>
+        /// Creates a person within his/her own family using the giving parameters.
+        /// </summary>
+        /// <param name="giveParameters">The give parameters.</param>
+        /// <returns></returns>
         private Person CreatePerson( GiveParameters giveParameters )
         {
             var person = new Person()
@@ -292,6 +298,12 @@ namespace cc.newspring.Apollos.Rest.Controllers
             return person;
         }
 
+        /// <summary>
+        /// Generates a response for an API request.
+        /// </summary>
+        /// <param name="code">The code.</param>
+        /// <param name="message">The message.</param>
+        /// <returns></returns>
         private HttpResponseMessage GenerateResponse( HttpStatusCode code, string message = null )
         {
             var response = new HttpResponseMessage( code );
