@@ -93,8 +93,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Migrations\001_SetupWorkflowsAndTriggers.cs" />
+    <Compile Include="Models\GiveParamaters.cs" />
     <Compile Include="Models\ApollosUserLogin.cs" />
     <Compile Include="Rest\Controllers\ApollosUserLoginsController.cs" />
+    <Compile Include="Rest\Controllers\GiveController.cs" />
     <Compile Include="Utilities\NewtonsoftJsonSerializer.cs" />
     <Compile Include="Utilities\Validation.cs" />
     <Compile Include="Workflow\Action\APISync.cs" />
