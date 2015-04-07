@@ -1,3 +1,7 @@
+test:
+  override:
+    - sleep 5
+
 deployment:
   production:
     branch: develop
