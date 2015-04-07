@@ -33,6 +33,19 @@ namespace cc.newspring.Apollos.Rest.Controllers
                 return GenerateResponse( HttpStatusCode.BadRequest, "PhoneNumber is required" );
             }
 
+            if ( giveParameters.CampusId == 0 )
+            {
+                return GenerateResponse( HttpStatusCode.BadRequest, "CampusId is required" );
+            }
+
+            var rockContext = new RockContext();
+            var campus = new CampusService( rockContext ).Get( giveParameters.CampusId );
+
+            if ( campus == null )
+            {
+                return GenerateResponse( HttpStatusCode.BadRequest, "CampusId did not resolve to a valid campus" );
+            }
+
             if ( string.IsNullOrWhiteSpace( giveParameters.Email ) )
             {
                 return GenerateResponse( HttpStatusCode.BadRequest, "Email is required" );
@@ -121,7 +134,6 @@ namespace cc.newspring.Apollos.Rest.Controllers
             }
 
             var totalAmount = 0m;
-            var rockContext = new RockContext();
 
             foreach ( var accountAmount in giveParameters.AmountDetails )
             {
@@ -158,10 +170,24 @@ namespace cc.newspring.Apollos.Rest.Controllers
                 {
                     return GenerateResponse( HttpStatusCode.BadRequest, "The PersonId did not resolve to an existing person record" );
                 }
+
+                if ( string.IsNullOrWhiteSpace( person.Email ) )
+                {
+                    person.Email = giveParameters.Email;
+                }
+
+                if ( person.PhoneNumbers.Count() == 0 )
+                {
+                    person.PhoneNumbers.Add( new PhoneNumber()
+                    {
+                        Number = giveParameters.PhoneNumber,
+                        NumberTypeValueId = DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME ) ).Id
+                    } );
+                }
             }
             else
             {
-                person = CreatePerson( giveParameters );
+                person = CreatePerson( giveParameters, rockContext );
 
                 if ( person == null )
                 {
@@ -234,6 +260,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
 
             transaction.TransactionDateTime = RockDateTime.Now;
             transaction.AuthorizedPersonAliasId = person.PrimaryAliasId;
+            transaction.AuthorizedPersonAlias = person.PrimaryAlias;
             transaction.GatewayEntityTypeId = gateway.TypeId;
             transaction.TransactionTypeValueId = DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.TRANSACTION_TYPE_CONTRIBUTION ) ).Id;
             transaction.CurrencyTypeValueId = paymentInfo.CurrencyTypeValue.Id;
@@ -300,14 +327,17 @@ namespace cc.newspring.Apollos.Rest.Controllers
                     if ( giveParameters.AccountType.ToLower() == "checking" || giveParameters.AccountType.ToLower() == "savings" )
                     {
                         var bankAccountService = new FinancialPersonBankAccountService( rockContext );
-                        var bankAccount = bankAccountService.Get( giveParameters.RoutingNumber, giveParameters.AccountNumber );
+                        var accountNumberSecured = FinancialPersonBankAccount.EncodeAccountNumber( giveParameters.RoutingNumber, giveParameters.AccountNumber );
+                        var bankAccount = bankAccountService.Queryable().Where( a =>
+                            a.AccountNumberSecured == accountNumberSecured &&
+                            a.PersonAliasId == person.PrimaryAliasId.Value ).FirstOrDefault();
 
-                        if ( bankAccount == null || bankAccount.PersonAliasId != person.PrimaryAliasId.Value )
+                        if ( bankAccount == null )
                         {
                             bankAccount = new FinancialPersonBankAccount();
                             bankAccount.PersonAliasId = person.PrimaryAliasId.Value;
                             bankAccount.AccountNumberMasked = maskedAccountNumber;
-                            bankAccount.AccountNumberSecured = FinancialPersonBankAccount.EncodeAccountNumber( giveParameters.RoutingNumber, giveParameters.AccountNumber );
+                            bankAccount.AccountNumberSecured = accountNumberSecured;
                             bankAccountService.Add( bankAccount );
                         }
                     }
@@ -323,13 +353,22 @@ namespace cc.newspring.Apollos.Rest.Controllers
         /// </summary>
         /// <param name="giveParameters">The give parameters.</param>
         /// <returns></returns>
-        private Person CreatePerson( GiveParameters giveParameters )
+        private Person CreatePerson( GiveParameters giveParameters, RockContext rockContext )
         {
             var person = new Person()
             {
                 FirstName = giveParameters.FirstName,
-                LastName = giveParameters.LastName
+                LastName = giveParameters.LastName,
+                IsEmailActive = true,
+                Email = giveParameters.Email,
+                EmailPreference = EmailPreference.EmailAllowed,
+                RecordTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id,
+                ConnectionStatusValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_PARTICIPANT ).Id,
+                RecordStatusValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE ).Id
             };
+
+            // Create Person/Family
+            var familyGroup = PersonService.SaveNewPerson( person, rockContext, giveParameters.CampusId, false );
 
             if ( !string.IsNullOrWhiteSpace( giveParameters.PhoneNumber ) )
             {
@@ -339,30 +378,6 @@ namespace cc.newspring.Apollos.Rest.Controllers
                     NumberTypeValueId = DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME ) ).Id
                 } );
             }
-
-            var rockContext = new RockContext();
-            new PersonService( rockContext ).Add( person );
-
-            // Need to save to get the person's Id
-            rockContext.SaveChanges();
-
-            if ( !person.Aliases.Any() )
-            {
-                person.Aliases.Add( new PersonAlias { AliasPersonId = person.Id, AliasPersonGuid = person.Guid } );
-            }
-
-            var familyGroupType = GroupTypeCache.GetFamilyGroupType();
-            var adultId = familyGroupType.Roles.FirstOrDefault( r =>
-                r.Guid == new Guid( Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT ) ).Id;
-
-            var familyGroup = new Group
-            {
-                GroupTypeId = familyGroupType.Id,
-                IsSecurityRole = false,
-                IsSystem = false,
-                IsActive = true,
-                Name = person.LastName + " Family"
-            };
 
             if ( !( string.IsNullOrWhiteSpace( giveParameters.Street1 ) ||
                         string.IsNullOrWhiteSpace( giveParameters.City ) ||
@@ -384,19 +399,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
                 } );
             }
 
-            new GroupService( rockContext ).Add( familyGroup );
-
-            var groupMember = new GroupMember
-            {
-                IsSystem = false,
-                GroupId = familyGroup.Id,
-                PersonId = person.Id,
-                GroupRoleId = adultId
-            };
-
-            familyGroup.Members.Add( groupMember );
             rockContext.SaveChanges();
-
             return person;
         }
 
