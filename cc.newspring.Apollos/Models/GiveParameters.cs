@@ -5,7 +5,7 @@ namespace cc.newspring.Apollos
 {
     public class GiveParameters
     {
-        public AccountAmount[] Amounts { get; set; }
+        public AmountDetail[] AmountDetails { get; set; }
 
         public string Email { get; set; }
 
@@ -40,11 +40,13 @@ namespace cc.newspring.Apollos
         public string Country { get; set; }
 
         public string PhoneNumber { get; set; }
+
+        public int? SourceAccountId { get; set; }
     }
 
-    public class AccountAmount
+    public class AmountDetail
     {
-        public int AccountId { get; set; }
+        public int TargetAccountId { get; set; }
 
         public decimal Amount { get; set; }
     }
