@@ -64,7 +64,8 @@ values
 /* ====================================================== */
 -- kids structure
 /* ====================================================== */
-DECLARE @specialNeedsGroupType INT = (
+DECLARE @SpecialNeedsGroupId INT
+DECLARE @SpecialNeedsGroupTypeId INT = (
 	SELECT [Id]
 	FROM [GroupType]
 	WHERE [Name] = 'Check in By Special Needs'
@@ -76,7 +77,7 @@ VALUES ( 0,
 	(SELECT [Id] FROM [FieldType] WHERE [Name] = 'Boolean'),
 	(SELECT [Id] FROM [EntityType] WHERE [Name] = 'Rock.Model.Group'),
 	'GroupTypeId',
-	@specialNeedsGroupType,
+	@SpecialNeedsGroupTypeId,
 	'IsSpecialNeeds',
 	'Is Special Needs',
 	'Indicates if this group caters to those who have special needs.',
@@ -87,6 +88,8 @@ VALUES ( 0,
 	0,
 	NEWID()
 );
+
+SET @SpecialNeedsGroupId = SCOPE_IDENTITY()
 
 if object_id('tempdb..#subKidAreas') is not null
 begin
@@ -105,7 +108,7 @@ values
 ('Nursery', 'KidSpring Attendee', 15),
 ('Preschool', 'KidSpring Attendee', 15),
 ('Elementary', 'KidSpring Attendee', 17),
-('Special Needs', 'KidSpring Attendee', @specialNeedsGroupType),
+('Special Needs', 'KidSpring Attendee', @SpecialNeedsGroupTypeId),
 ('Nursery Vols', 'KidSpring Volunteer', 15),
 ('Preschool Vols', 'KidSpring Volunteer', 15),
 ('Elementary Vols', 'KidSpring Volunteer', 15),
@@ -468,35 +471,9 @@ begin
 				select @isSystem, @initialGroupId, @topAreaId, @campusId, @areaName,
 					@code + @delimiter + @areaName + ' Group', 0, 1, 0, NEWID()
 
-
-				/* ====================================================== */
-				-- set location hiearchy
-				/* ====================================================== */
-
-				--if charindex(@volunteer, @areaName) > 0
-				--begin
-				--	select @baseLocation = rtrim(substring( @areaName, 0, charindex(@volunteer, @areaName)))
-				--end
-				--else begin
-				--	select @baseLocation = rtrim(substring( @areaName, 0, charindex(@attendee, @areaName)))
-				--end
-
-				--select @baseLocationId = Id from location
-				--where name = @baseLocation
-				--and ParentLocationId = @campusLocationId
-
-				-- set up parent if doesn't exist
-				--if @baseLocationId is null
-				--begin
-				--	insert location (ParentLocationId, Name, IsActive, [Guid])
-				--	select @campusLocationId, @baseLocation, 1, NEWID()
-				--	set @baseLocationId = SCOPE_IDENTITY()
-				--end
-
 				-- set up child location
 				insert location (ParentLocationId, Name, IsActive, [Guid])
 				select @campusLocationId, @areaName, 1, NEWID()
-				--select @baseLocationId, @areaName, 1, NEWID()
 
 				select @baseLocationId = NULL, @baseLocation = ''
 			end
@@ -508,7 +485,7 @@ begin
 
 
 		/* ====================================================== */
-		-- set kid level grouptypes
+		-- set tri level grouptypes
 		/* ====================================================== */
 		declare @parentArea varchar(255), @areaId int, @parentGroupId int
 		select @scopeIndex = min(Id) from #subKidAreas
@@ -676,24 +653,13 @@ end
 /* ====================================================== */
 -- Add IsSpecialNeeds attribute value to spring zone groups
 /* ====================================================== */
-DECLARE @isSpecialNeedsAttributeId INT = (
-	SELECT [Id]
-	FROM [Attribute]
-	WHERE 
-		[Key] = 'IsSpecialNeeds'
-		AND [EntityTypeId] = (
-			SELECT [Id]
-			FROM [EntityType]
-			WHERE [Name] = 'Rock.Model.Group'
-		)
-);
 
 INSERT [AttributeValue] ( [IsSystem],[AttributeId],[EntityId],[Value] ,[Guid] ) 
-SELECT 0, @isSpecialNeedsAttributeId, g.[Id], 'True', NEWID()
+SELECT 0, @SpecialNeedsGroupId, g.[Id], 'True', NEWID()
 FROM [Group] g
 JOIN [Group] parent ON g.ParentGroupId = parent.Id
 JOIN [GroupType] parentGt ON parent.GroupTypeId = parentGt.Id
-WHERE parentGt.InheritedGroupTypeId = 29;
+WHERE g.Name = 'Spring Zone' or g.Name = 'Spring Zone Jr.'
 
 
 /* ====================================================== */
