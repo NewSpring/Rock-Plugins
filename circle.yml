@@ -13,3 +13,13 @@ deployment:
           s3_location:
             bucket: ns.ops
             key_pattern: rock/develop/rock-plugins-{SHORT_COMMIT}-{BUILD_NUM}
+
+    branch: release
+    codedeploy:
+      StagingRock:
+        deployment_group: Beta
+        revision_location:
+          revision_type: S3
+          s3_location:
+            bucket: ns.ops
+            key_pattern: rock/release/rock-plugins-{SHORT_COMMIT}-{BUILD_NUM}
