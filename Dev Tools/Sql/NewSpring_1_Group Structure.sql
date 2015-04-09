@@ -83,7 +83,7 @@ VALUES ( 0,
 	'Indicates if this group caters to those who have special needs.',
 	0,
 	0,
-	'False',
+	'True',
 	0,
 	0,
 	NEWID()
