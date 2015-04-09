@@ -65,11 +65,11 @@ values
 -- campus kids structure
 /* ====================================================== */
 DECLARE @SpecialNeedsGroupId INT
-DECLARE @SpecialNeedsGroupTypeId INT = (
+DECLARE @SpecialNeedsGroupTypeId INT
+SELECT @SpecialNeedsGroupTypeId = (
 	SELECT [Id]
 	FROM [GroupType]
-	WHERE [Name] = 'Check in By Special Needs'
-	--WHERE [Guid] = '2CB16E13-141F-419F-BACD-8283AB6B3299'
+	WHERE [Name] = 'Check in By Special Needs'	
 );
 
 INSERT [Attribute] ( [IsSystem],[FieldTypeId],[EntityTypeId],[EntityTypeQualifierColumn],[EntityTypeQualifierValue],[Key],[Name],[Description],[Order],[IsGridColumn],[DefaultValue],[IsMultiValue],[IsRequired],[Guid]) 
@@ -326,8 +326,8 @@ values
 ('Preschool Vols', 'Base Camp Jr. Volunteer', 'Base Camp Jr.'),
 ('Preschool Vols', 'Fire Station Volunteer', 'Fire Station'),
 ('Preschool Vols', 'Fire Station Team Leader', 'Fire Station'),
-('Preschool Vols', 'Lil Spring Volunteer', 'Lil Spring'),
-('Preschool Vols', 'Lil Spring Team Leader', 'Lil Spring'),
+('Preschool Vols', 'Lil'' Spring Volunteer', 'Lil'' Spring'),
+('Preschool Vols', 'Lil'' Spring Team Leader', 'Lil'' Spring'),
 ('Preschool Vols', 'Police Volunteer', 'Police'),
 ('Preschool Vols', 'Police Team Leader', 'Police'),
 ('Preschool Vols', 'Pop''s Garage Volunteer', 'Pop''s Garage'),
@@ -413,7 +413,8 @@ values
 /* ====================================================== */
 -- college grouptype
 /* ====================================================== */
-declare @collegeArea varchar(255) = 'NewSpring College',
+declare @collegeArea varchar(255) = 'NewSpring College', 
+	@collegeLocation varchar(255) = 'Class Attendee',
 	@collegeAttendance int = 2, @collegeInheritedType int = null
 
 /* ====================================================== */
@@ -907,10 +908,6 @@ begin
 
 		select @areaLocationId = SCOPE_IDENTITY()
 
-		-- set group location
-		insert grouplocation (groupid, locationid, IsMailingLocation, IsMappedLocation, [Guid])
-		values (@areaGroupId, @areaLocationId, 0, 0, NEWID())
-
 		-- create a subset of groups for this grouptype
 		if object_id('tempdb..#childGroups') is not null
 		begin
@@ -942,7 +939,8 @@ begin
 			if @childGroup <> ''
 			begin
 
-				declare @childGroupId int = 0, @childLocationId int = 0
+				declare @childGroupId int = 0
+
 				/* ====================================================== */
 				-- create child group
 				/* ====================================================== */
@@ -954,18 +952,10 @@ begin
 				select @childGroupId = SCOPE_IDENTITY()
 
 				/* ====================================================== */
-				-- create child location
-				/* ====================================================== */
-				insert location (ParentLocationId, Name, IsActive, [Guid])
-				select @areaLocationId, @childGroup, 1, NEWID()
-
-				select @childLocationid = SCOPE_IDENTITY()
-
-				/* ====================================================== */
 				-- set group location
 				/* ====================================================== */
 				insert grouplocation (groupid, locationid, IsMailingLocation, IsMappedLocation, [Guid])
-				values (@childGroupId, @childLocationid, 0, 0, NEWID())
+				values (@childGroupId, @areaLocationId, 0, 0, NEWID())
 			end
 			-- end childGroup not empty
 
@@ -1013,12 +1003,12 @@ where id = @campusAreaId
 /* ====================================================== */
 -- create college group
 /* ====================================================== */
-insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name,
-	Description, IsSecurityRole, IsActive, [Order], [Guid])
-select @isSystem, NULL, @campusAreaId, @campusId, @campusName,
-	@campusName + ' Group', 0, 1, 0, NEWID()
+--insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name,
+--	Description, IsSecurityRole, IsActive, [Order], [Guid])
+--select @isSystem, NULL, @campusAreaId, @campusId, @campusName,
+--	@campusName + ' Group', 0, 1, 0, NEWID()
 
-select @campusGroupId = SCOPE_IDENTITY()
+--select @campusGroupId = SCOPE_IDENTITY()
 
 /* ====================================================== */
 -- create college grouptype
@@ -1057,12 +1047,12 @@ set DefaultGroupRoleId = @defaultRoleId
 where id = @currentAreaId
 
 /* ====================================================== */
--- create top-level group and location
+-- create top-level college group and location
 /* ====================================================== */
-select @areaGroupId = 0, @areaLocationid = 0
+select @areaGroupId = 0, @areaLocationid = 0, @locationId = 0
 insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name,
 	Description, IsSecurityRole, IsActive, [Order], [Guid])
-select @isSystem, @campusGroupId, @currentAreaId, @campusId, @areaName,
+select @isSystem, NULL, @currentAreaId, @campusId, @areaName,
 	@campusCode + @delimiter + @areaName + ' Group', 0, 1, 0, NEWID()
 
 select @areaGroupId = SCOPE_IDENTITY()
@@ -1073,9 +1063,10 @@ select @campusLocationId, @areaName, 1, NEWID()
 
 select @areaLocationId = SCOPE_IDENTITY()
 
--- set group location
-insert grouplocation (groupid, locationid, IsMailingLocation, IsMappedLocation, [Guid])
-values (@areaGroupId, @areaLocationId, 0, 0, NEWID())
+insert location (ParentLocationId, Name, IsActive, [Guid])
+select @areaLocationId, @collegeLocation, 1, NEWID()
+
+select @locationId = SCOPE_IDENTITY()
 
 /* ====================================================== */
 -- create college groups
@@ -1086,15 +1077,13 @@ select @numItems = @scopeIndex + count(1) from #collegeGroups
 		
 while @scopeIndex < @numItems
 begin
-	select @groupName = '', @groupTypeName = '', @locationName = '', @locationId = null
-	select @groupName = groupName, @groupTypeName = groupTypeName, @locationName = locationName
+	select @groupName = '', @groupTypeName = '', @groupId = 0
+	select @groupName = groupName, @groupTypeName = groupTypeName
 	from #collegeGroups where id = @scopeIndex
 
 	if @groupName <> ''
 	begin
 		
-		select @childGroupId = 0, @childLocationid = 0
-
 		/* ====================================================== */
 		-- create child group
 		/* ====================================================== */
@@ -1103,19 +1092,11 @@ begin
 		select @isSystem, @areaGroupid, @currentAreaId, @campusId,  @groupName,
 			@groupName + @delimiter + 'Group', 0, 1, 10, NEWID()
 
-		select @childGroupid = SCOPE_IDENTITY()
-
-		/* ====================================================== */
-		-- create child location
-		/* ====================================================== */
-		insert location (ParentLocationId, Name, IsActive, [Guid])
-		select @areaLocationId, @groupName, 1, NEWID()
-
-		select @childLocationId = SCOPE_IDENTITY()
+		select @groupId = SCOPE_IDENTITY()
 
 		-- set group location
 		insert grouplocation (groupid, locationid, IsMailingLocation, IsMappedLocation, [Guid])
-		values (@childGroupid, @childLocationId, 0, 0, NEWID())
+		values (@groupId, @locationId, 0, 0, NEWID())
 	end
 	-- end childGroup not empty
 
