@@ -248,7 +248,7 @@ values
 ('KS Production Vols', 'Elementary Worship Leader', 'Production Volunteer'),
 ('KS Support Vols', 'Advocate', 'Support Volunteer'),
 ('KS Support Vols', 'Advocate Team Leader', 'Support Volunteer'),
-('KS Support Vols', 'Assistant', 'Support Volunteer'),
+('KS Support Vols', 'KidSpring Area Leader', 'Support Volunteer'),
 ('KS Support Vols', 'Check-In Volunteer', 'Support Volunteer'),
 ('KS Support Vols', 'Check-In Team Leader', 'Support Volunteer'),
 ('KS Support Vols', 'First Time Team Volunteer', 'Support Volunteer'),
