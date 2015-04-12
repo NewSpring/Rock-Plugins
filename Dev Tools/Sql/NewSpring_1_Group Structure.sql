@@ -20,17 +20,25 @@ delete from Campus where id = 1
 
 insert Campus (IsSystem, Name, ShortCode, [Guid], IsActive)
 values
+(@isSystem, 'Aiken', 'AKN', NEWID(), 1),
 (@isSystem, 'Anderson', 'AND', NEWID(), 1),
 (@isSystem, 'Boiling Springs', 'BSP', NEWID(), 1),
 (@isSystem, 'Charleston', 'CHS', NEWID(), 1),
+(@isSystem, 'Clemson', 'CLE', NEWID(), 1),
 (@isSystem, 'Columbia', 'COL', NEWID(), 1),
 (@isSystem, 'Florence', 'FLO', NEWID(), 1),
 (@isSystem, 'Greenville', 'GVL', NEWID(), 1),
 (@isSystem, 'Greenwood', 'GWD', NEWID(), 1),
+(@isSystem, 'Greer', 'GRR', NEWID(), 1),
+(@isSystem, 'Hilton Head', 'HHI', NEWID(), 1),
 (@isSystem, 'Lexington', 'LEX', NEWID(), 1),
 (@isSystem, 'Myrtle Beach', 'MYR', NEWID(), 1),
+(@isSystem, 'Northeast Columbia', 'NEC', NEWID(), 1),
 (@isSystem, 'Powdersville', 'POW', NEWID(), 1),
-(@isSystem, 'Spartanburg', 'SPA', NEWID(), 1)
+(@isSystem, 'Rock Hill', 'RKH', NEWID(), 1),
+(@isSystem, 'Simpsonville', 'SIM', NEWID(), 1),
+(@isSystem, 'Spartanburg', 'SPA', NEWID(), 1),
+(@isSystem, 'Sumter', 'SUM', NEWID(), 1)
 
 
 /* ====================================================== */
