@@ -46,6 +46,13 @@ namespace cc.newspring.Apollos.Migrations
         private string personDeleteActionGuid = "615A7E78-331E-4329-8A84-F5AF1B8A03A8";
         private string personSaveActionGuid = "0D26EC13-8B9F-4732-ADAA-8CEABE6EC9AC";
 
+        private string transactionDeleteTypeGuid = "6D419224-0F09-4C6F-84DD-1DFB680D907F";
+        private string transactionSaveTypeGuid = "176DA7CC-2E79-4333-A460-E156DA660828";
+        private string transactionDeleteActivityGuid = "37098907-0BBD-4CB2-A018-9DDC4EE214C8";
+        private string transactionSaveActivityGuid = "CACABC91-BEEF-4E88-949C-7CADE231225C";
+        private string transactionDeleteActionGuid = "0D3168EE-8FEF-476D-93C5-3200F74C2AD0";
+        private string transactionSaveActionGuid = "05EE8319-BC8E-4741-9184-BFFFE90BD863";
+
         private string activeAttributeGuid = "65CB1840-9F36-4369-AC8E-7AB94BF18D1B";
         private string actionAttributeGuid = "B5B78DE9-41ED-4175-9DF5-E3E62ADEC388";
         private string syncAttributeGuid = "C166C5D7-FE59-45ED-B38A-5B7B08124CF2";
@@ -193,6 +200,10 @@ namespace cc.newspring.Apollos.Migrations
             entityName = "Person";
             SetupWorkflow( entityName, personDeleteTypeGuid, personSaveTypeGuid, personDeleteActivityGuid, personSaveActivityGuid, personDeleteActionGuid, personSaveActionGuid );
             CreateTriggers( entityName, string.Empty, "''", personSaveTypeGuid, personDeleteTypeGuid );
+
+            entityName = "FinancialTransaction";
+            SetupWorkflow( entityName, transactionDeleteTypeGuid, transactionSaveTypeGuid, transactionDeleteActivityGuid, transactionSaveActivityGuid, transactionDeleteActionGuid, transactionSaveActionGuid );
+            CreateTriggers( entityName, string.Empty, "''", transactionSaveTypeGuid, transactionDeleteTypeGuid );
         }
 
         /// <summary>
@@ -206,21 +217,29 @@ namespace cc.newspring.Apollos.Migrations
 
             DeleteAttributeValuesByAction( userSaveActionGuid );
             DeleteAttributeValuesByAction( userDeleteActionGuid );
+            DeleteAttributeValuesByAction( transactionSaveActionGuid );
+            DeleteAttributeValuesByAction( transactionDeleteActionGuid );
             DeleteAttributeValuesByAction( personSaveActionGuid );
             DeleteAttributeValuesByAction( personDeleteActionGuid );
 
             DeleteWorkflowActionType( userSaveActionGuid );
             DeleteWorkflowActionType( userDeleteActionGuid );
+            DeleteWorkflowActionType( transactionSaveActionGuid );
+            DeleteWorkflowActionType( transactionDeleteActionGuid );
             DeleteWorkflowActionType( personSaveActionGuid );
             DeleteWorkflowActionType( personDeleteActionGuid );
 
             DeleteWorkflowActivityType( userSaveActivityGuid );
             DeleteWorkflowActivityType( userDeleteActivityGuid );
+            DeleteWorkflowActivityType( transactionSaveActivityGuid );
+            DeleteWorkflowActivityType( transactionDeleteActivityGuid );
             DeleteWorkflowActivityType( personSaveActivityGuid );
             DeleteWorkflowActivityType( personDeleteActivityGuid );
 
             DeleteWorkflowType( userSaveTypeGuid );
             DeleteWorkflowType( userDeleteTypeGuid );
+            DeleteWorkflowType( transactionSaveTypeGuid );
+            DeleteWorkflowType( transactionDeleteTypeGuid );
             DeleteWorkflowType( personSaveTypeGuid );
             DeleteWorkflowType( personDeleteTypeGuid );
 
