@@ -1106,7 +1106,7 @@ begin
 		insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name,
 			Description, IsSecurityRole, IsActive, [Order], [Guid])
 		select @isSystem, @areaGroupid, @currentAreaId, @campusId,  @groupName,
-			@groupName + @delimiter + 'Group', 0, 1, 10, NEWID()
+			@groupName + 'Group', 0, 1, 10, NEWID()
 
 		select @groupId = SCOPE_IDENTITY()
 
