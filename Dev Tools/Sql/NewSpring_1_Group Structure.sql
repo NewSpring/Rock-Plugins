@@ -160,25 +160,25 @@ values
 ('Preschool', 'Base Camp Jr.', 'Base Camp Jr.'),
 ('Preschool', 'Fire Station', 'Fire Station'),
 ('Preschool', 'Lil'' Spring', 'Lil'' Spring'),
-('Preschool', 'Police', 'Police'),
+('Preschool', 'SpringTown Police', 'SpringTown Police'),
 ('Preschool', 'Pop''s Garage', 'Pop''s Garage'),
 ('Preschool', 'Spring Fresh', 'Spring Fresh'),
-('Preschool', 'Toys', 'Toys'),
+('Preschool', 'SpringTown Toys', 'SpringTown Toys'),
 ('Preschool', 'Treehouse', 'Treehouse'),
 ('Special Needs', 'Spring Zone Jr.', 'Spring Zone Jr.'),
 ('Special Needs', 'Spring Zone', 'Spring Zone'),
 
 -- vol structure from COL
 ('Creativity & Tech Attendee', 'Choir', 'Creativity & Tech Attendee'),
-('Creativity & Tech Attendee', 'Special Event Attendee', 'Creativity & Tech Attendee'),
-('Creativity & Tech Volunteer', 'Band Green Room', 'Creativity & Tech Volunteer'),
 ('Creativity & Tech Volunteer', 'Band', 'Creativity & Tech Volunteer'),
+('Creativity & Tech Volunteer', 'Band Green Room', 'Creativity & Tech Volunteer'),
 ('Creativity & Tech Volunteer', 'IT Team', 'Creativity & Tech Volunteer'),
-('Creativity & Tech Volunteer', 'Load In / Load Out', 'Creativity & Tech Volunteer'),
+('Creativity & Tech Volunteer', 'Load In/Load Out', 'Creativity & Tech Volunteer'),
 ('Creativity & Tech Volunteer', 'New Serve Team', 'Creativity & Tech Volunteer'),
 ('Creativity & Tech Volunteer', 'Office Team', 'Creativity & Tech Volunteer'),
 ('Creativity & Tech Volunteer', 'Production Team', 'Creativity & Tech Volunteer'),
-('Creativity & Tech Volunteer', 'Social Media / PR Team', 'Creativity & Tech Volunteer'),
+('Creativity & Tech Volunteer', 'Social Media/PR Team', 'Creativity & Tech Volunteer'),
+('Creativity & Tech Attendee', 'Special Event Attendee', 'Creativity & Tech Attendee'),
 ('Creativity & Tech Volunteer', 'Special Event Volunteer', 'Creativity & Tech Volunteer'),
 ('Elementary Vols', 'Base Camp Volunteer', 'Base Camp'),
 ('Elementary Vols', 'Base Camp Team Leader', 'Base Camp'),
@@ -198,6 +198,7 @@ values
 ('Fuse Attendee', '7th Grade Student', 'Fuse Attendee'),
 ('Fuse Attendee', '8th Grade Student', 'Fuse Attendee'),
 ('Fuse Attendee', '9th Grade Student', 'Fuse Attendee'),
+('Fuse Attendee', 'Special Event Attendee', 'Fuse Attendee'),
 ('Fuse Volunteer', 'Atrium', 'Fuse Volunteer'),
 ('Fuse Volunteer', 'Campus Safety', 'Fuse Volunteer'),
 ('Fuse Volunteer', 'Care', 'Fuse Volunteer'),
@@ -208,7 +209,7 @@ values
 ('Fuse Volunteer', 'Greeter', 'Fuse Volunteer'),
 ('Fuse Volunteer', 'Jump Off', 'Fuse Volunteer'),
 ('Fuse Volunteer', 'Leadership Team', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Load In / Load Out', 'Fuse Volunteer'),
+('Fuse Volunteer', 'Load In/Load Out', 'Fuse Volunteer'),
 ('Fuse Volunteer', 'Lounge', 'Fuse Volunteer'),
 ('Fuse Volunteer', 'New Serve', 'Fuse Volunteer'),
 ('Fuse Volunteer', 'Next Steps', 'Fuse Volunteer'),
@@ -231,7 +232,7 @@ values
 ('Guest Services Attendee', 'Awake Team', 'Guest Services Attendee'),
 ('Guest Services Attendee', 'Facility Cleaning Crew', 'Guest Services Attendee'),
 ('Guest Services Attendee', 'Greeting Team', 'Guest Services Attendee'),
-('Guest Services Attendee', 'Load In / Load Out', 'Guest Services Attendee'),
+('Guest Services Attendee', 'Load In/Load Out', 'Guest Services Attendee'),
 ('Guest Services Attendee', 'Office Team', 'Guest Services Attendee'),
 ('Guest Services Attendee', 'Parking Team', 'Guest Services Attendee'),
 ('Guest Services Attendee', 'VHQ Team', 'Guest Services Attendee'),
@@ -245,15 +246,17 @@ values
 ('Guest Services Volunteer', 'Sign Language Team', 'Guest Services Volunteer'),
 ('Guest Services Volunteer', 'Special Event Volunteer', 'Guest Services Volunteer'),
 ('Guest Services Volunteer', 'Usher Team', 'Guest Services Volunteer'),
+('KS Production Vols', 'Elementary Actor', 'Production Volunteer'),
+('KS Production Vols', 'Elementary Media', 'Production Volunteer'),
 ('KS Production Vols', 'Elementary Production Area Leader', 'Production Volunteer'),
 ('KS Production Vols', 'Elementary Production Service Leader', 'Production Volunteer'),
-('KS Production Vols', 'Elementary Actor', 'Production Volunteer'),
+('KS Production Vols', 'Elementary Worship Leader', 'Production Volunteer'),
+('KS Production Vols', 'Preschool Actor', 'Production Volunteer'),
+('KS Production Vols', 'Preschool Media', 'Production Volunteer'),
 ('KS Production Vols', 'Preschool Production Area Leader', 'Production Volunteer'),
 ('KS Production Vols', 'Preschool Production Service Leader', 'Production Volunteer'),
-('KS Production Vols', 'Preschool Actor', 'Production Volunteer'),
-('KS Production Vols', 'Elementary Media', 'Production Volunteer'),
-('KS Production Vols', 'Preschool Media', 'Production Volunteer'),
-('KS Production Vols', 'Elementary Worship Leader', 'Production Volunteer'),
+('KS Production Vols', 'Production Area Leader', 'Production Volunteer'),
+('KS Production Vols', 'Production Service Leader', 'Production Volunteer'),
 ('KS Support Vols', 'Advocate', 'Support Volunteer'),
 ('KS Support Vols', 'Advocate Team Leader', 'Support Volunteer'),
 ('KS Support Vols', 'KidSpring Area Leader', 'Support Volunteer'),
@@ -266,12 +269,13 @@ values
 ('KS Support Vols', 'Guest Services Service Leader', 'Support Volunteer'),
 ('KS Support Vols', 'Guest Services Area Leader', 'Support Volunteer'),
 ('KS Support Vols', 'Office Team', 'Support Volunteer'),
-('KS Support Vols', 'Load In / Load Out', 'Support Volunteer'),
-('KS Support Vols', 'New Serve Team Volunteer', 'Support Volunteer'),
+('KS Support Vols', 'Load In/Load Out', 'Support Volunteer'),
+('KS Support Vols', 'New Serve Volunteer', 'Support Volunteer'),
 ('KS Support Vols', 'New Serve Area Leader', 'Support Volunteer'),
 ('KS Support Vols', 'New Serve Service Leader', 'Support Volunteer'),
 ('KS Support Vols', 'Trainer', 'Support Volunteer'),
 ('Next Steps Attendee', 'Baptism Attendee', 'Next Steps Attendee'),
+('Next Steps Attendee', 'Budget Class Attendee', 'Next Steps Attendee'),
 ('Next Steps Attendee', 'Creativity & Tech Basics', 'Next Steps Attendee'),
 ('Next Steps Attendee', 'Creativity & Tech First Look', 'Next Steps Attendee'),
 ('Next Steps Attendee', 'Creativity & Tech First Serve', 'Next Steps Attendee'),
@@ -293,6 +297,7 @@ values
 ('Next Steps Attendee', 'Ownership Class Current Owner', 'Next Steps Attendee'),
 ('Next Steps Attendee', 'Special Event Attendee', 'Next Steps Attendee'),
 ('Next Steps Volunteer', 'Baptism Volunteer', 'Next Steps Volunteer'),
+('Next Steps Volunteer', 'Budget Class Volunteer', 'Next Steps Volunteer'),
 ('Next Steps Volunteer', 'Care Office Team', 'Next Steps Volunteer'),
 ('Next Steps Volunteer', 'Care Visitation Team', 'Next Steps Volunteer'),
 ('Next Steps Volunteer', 'District Leader', 'Next Steps Volunteer'),
@@ -303,7 +308,7 @@ values
 ('Next Steps Volunteer', 'Group Training', 'Next Steps Volunteer'),
 ('Next Steps Volunteer', 'Groups Connector', 'Next Steps Volunteer'),
 ('Next Steps Volunteer', 'Groups Office Team', 'Next Steps Volunteer'),
-('Next Steps Volunteer', 'Load In / Load Out', 'Next Steps Volunteer'),
+('Next Steps Volunteer', 'Load In/Load Out', 'Next Steps Volunteer'),
 ('Next Steps Volunteer', 'New Serve Team', 'Next Steps Volunteer'),
 ('Next Steps Volunteer', 'Next Steps Area', 'Next Steps Volunteer'),
 ('Next Steps Volunteer', 'Ownership Class Volunteer', 'Next Steps Volunteer'),
@@ -336,8 +341,8 @@ values
 ('Preschool Vols', 'Fire Station Team Leader', 'Fire Station'),
 ('Preschool Vols', 'Lil'' Spring Volunteer', 'Lil'' Spring'),
 ('Preschool Vols', 'Lil'' Spring Team Leader', 'Lil'' Spring'),
-('Preschool Vols', 'Police Volunteer', 'Police'),
-('Preschool Vols', 'Police Team Leader', 'Police'),
+('Preschool Vols', 'Police Volunteer', 'SpringTown Police'),
+('Preschool Vols', 'Police Team Leader', 'SpringTown Police'),
 ('Preschool Vols', 'Pop''s Garage Volunteer', 'Pop''s Garage'),
 ('Preschool Vols', 'Pop''s Garage Team Leader', 'Pop''s Garage'),
 ('Preschool Vols', 'Early Bird Volunteer', 'Preschool Volunteer'),
@@ -345,8 +350,8 @@ values
 ('Preschool Vols', 'Preschool Area Leader', 'Preschool Volunteer'),
 ('Preschool Vols', 'Spring Fresh Volunteer', 'Spring Fresh'),
 ('Preschool Vols', 'Spring Fresh Team Leader', 'Spring Fresh'),
-('Preschool Vols', 'Toys Volunteer', 'Toys'),
-('Preschool Vols', 'Toys Team Leader', 'Toys'),
+('Preschool Vols', 'Toys Volunteer', 'SpringTown Toys'),
+('Preschool Vols', 'Toys Team Leader', 'SpringTown Toys'),
 ('Preschool Vols', 'Treehouse Volunteer', 'Treehouse'),
 ('Preschool Vols', 'Treehouse Team Leader', 'Treehouse'),
 ('Special Needs Vols', 'Spring Zone Jr. Volunteer', 'Spring Zone Jr.'),
@@ -452,6 +457,7 @@ values
 ('NewSpring College', 'Communication', 'Class Attendee'),
 ('NewSpring College', 'Ephesians', 'Class Attendee'),
 ('NewSpring College', 'Leadership Forum', 'Class Attendee'),
+('NewSpring College', 'Leadership I', 'Class Attendee'),
 ('NewSpring College', 'Small Group', 'Class Attendee'),
 ('NewSpring College', 'Working Group', 'Class Attendee')
 
@@ -1022,15 +1028,17 @@ where id = @campusAreaId
 -- create college grouptype
 /* ====================================================== */
 
-select @areaName = @collegeArea, @attendanceRule = @collegeAttendance, @inheritedTypeId = @collegeInheritedType
+select @areaName = @collegeArea, 
+	@attendanceRule = @collegeAttendance, 
+	@inheritedTypeId = @collegeInheritedType
 
 insert grouptype (IsSystem, Name, Description, GroupTerm, GroupMemberTerm,
 	DefaultGroupRoleId, AllowMultipleLocations, ShowInGroupList,
 	ShowInNavigation, TakesAttendance, AttendanceRule, AttendancePrintTo,
 	[Order], InheritedGroupTypeId, LocationSelectionMode, GroupTypePurposeValueId, [Guid],
 	AllowedScheduleTypes, SendAttendanceReminder)
-select 0, @campusCode + @delimiter + @areaName, @campusCode + @delimiter + @areaName + ' GroupType', 'Group', 'Member', NULL,
-	1, 1, 1, 1, @attendanceRule, 0, 0, @inheritedTypeId, 0, NULL, NEWID(), 0, 0
+select 0, @areaName, @areaName + ' GroupType', 'Group', 'Member', NULL,
+	1, 1, 1, 1, @attendanceRule, 0, 0, @inheritedTypeId, 0, NULL, NEWID(), 0, 0 
 
 select @currentAreaId = SCOPE_IDENTITY()
 
@@ -1061,7 +1069,7 @@ select @areaGroupId = 0, @areaLocationid = 0, @locationId = 0
 insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name,
 	Description, IsSecurityRole, IsActive, [Order], [Guid])
 select @isSystem, NULL, @currentAreaId, @campusId, @areaName,
-	@campusCode + @delimiter + @areaName + ' Group', 0, 1, 0, NEWID()
+	@areaName + ' Group', 0, 1, 0, NEWID()
 
 select @areaGroupId = SCOPE_IDENTITY()
 
