@@ -11,11 +11,6 @@ USE [Rock]
 -- Set the F1 database name
 DECLARE @F1 varchar(255) = 'newspring'
 
-
-
-
-
-
 -- Start value lookups
 declare @scopeIndex int, @numItems int, @rlcId int, @nameSearchValueId int, @personAliasId int,
 	@groupTypeId int, @groupId int, @locationId int, @campusId int, @True int, @False int
