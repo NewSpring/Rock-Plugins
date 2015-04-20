@@ -72,7 +72,12 @@ namespace cc.newspring.Apollos.Migrations
         private string syncAttributeGuid = "C166C5D7-FE59-45ED-B38A-5B7B08124CF2";
         private string tokenNameAttributeGuid = "3AF3C584-8687-495C-A474-8568AF5D44B4";
         private string tokenValueAttributeGuid = "8DF06A26-0544-436F-8034-BF86C465AD2B";
+        private string restUserAttributeGuid = "120B0006-D1C9-42FA-A4E4-4039D7AF2C5B";
         private string orderAttributeGuid = "B3B900AB-27A0-4573-8144-0CEC65C0C381";
+
+        private string restPersonGuid = "2A8F8AF4-C2A3-454C-B5C3-6482E255B89B";
+        private string restUserGuid = "206B766F-539D-47BB-8613-77B64256E09F";
+        private string restPersonAliasGuid = "F89F9ED9-E2D5-42D5-92F1-92C233FE61BB";
 
         private void DeleteTriggersByCategory( string guid )
         {
@@ -165,6 +170,7 @@ namespace cc.newspring.Apollos.Migrations
             RockMigrationHelper.AddActionTypeAttributeValue( actionGuid, tokenNameAttributeGuid, @".apollos" );
             RockMigrationHelper.AddActionTypeAttributeValue( actionGuid, orderAttributeGuid, @"" );
             RockMigrationHelper.AddActionTypeAttributeValue( actionGuid, activeAttributeGuid, @"False" );
+            RockMigrationHelper.AddActionTypeAttributeValue( actionGuid, restUserAttributeGuid, restPersonAliasGuid );
             RockMigrationHelper.AddActionTypeAttributeValue( actionGuid, actionAttributeGuid, actionName );
         }
 
@@ -194,6 +200,54 @@ namespace cc.newspring.Apollos.Migrations
         /// </summary>
         public override void Up()
         {
+            Sql( string.Format( @"
+                INSERT INTO [dbo].[Person] (
+                    [IsSystem]
+                   ,[RecordTypeValueId]
+                   ,[RecordStatusValueId]
+                   ,[IsDeceased]
+                   ,[LastName]
+                   ,[Gender]
+                   ,[Guid]
+                   ,[EmailPreference]
+                ) VALUES (
+                    0
+                   ,241
+                   ,3
+                   ,0
+                   ,'Apollos'
+                   ,0
+                   ,'{0}'
+                   ,0)", restPersonGuid ) );
+
+            Sql( string.Format( @"
+                INSERT INTO [dbo].[UserLogin] (
+                    [UserName]
+                   ,[IsConfirmed]
+                   ,[ApiKey]
+                   ,[PersonId]
+                   ,[Guid]
+                   ,[EntityTypeId]
+                ) VALUES (
+                    NEWID()
+                   ,1
+                   ,NEWID()
+                   ,(SELECT [Id] FROM [dbo].[Person] WHERE [Guid] = '{0}')
+                   ,'{1}'
+                   ,27)", restPersonGuid, restUserGuid ) );
+
+            Sql( string.Format( @"
+                INSERT INTO [dbo].[PersonAlias] (
+                    [PersonId]
+                   ,[AliasPersonId]
+                   ,[AliasPersonGuid]
+                   ,[Guid]
+                ) VALUES (
+                    (SELECT [Id] FROM [dbo].[Person] WHERE [Guid] = '{0}')
+                   ,(SELECT [Id] FROM [dbo].[Person] WHERE [Guid] = '{0}')
+                   ,'{0}'
+                   ,'{1}')", restPersonGuid, restPersonAliasGuid ) );
+
             RockMigrationHelper.UpdateEntityType( "cc.newspring.Apollos.Workflow.Action.APISync", apiSyncGuid, false, true );
             RockMigrationHelper.UpdateEntityType( "cc.newspring.Apollos.Security.Authentication.Apollos", apollosAuthGuid, false, true );
 
@@ -202,6 +256,7 @@ namespace cc.newspring.Apollos.Migrations
             RockMigrationHelper.UpdateWorkflowActionEntityAttribute( apiSyncGuid, "9C204CD0-1233-41C5-818A-C5DA439445AA", "Sync URL", "SyncURL", "The specific URL endpoint this related entity type should synchronize with", 0, @"", syncAttributeGuid ); // Sync URL
             RockMigrationHelper.UpdateWorkflowActionEntityAttribute( apiSyncGuid, "9C204CD0-1233-41C5-818A-C5DA439445AA", "Token Name", "TokenName", "The key by which the token should be identified in the header of HTTP requests", 0, @"", tokenNameAttributeGuid ); // Token Name
             RockMigrationHelper.UpdateWorkflowActionEntityAttribute( apiSyncGuid, "9C204CD0-1233-41C5-818A-C5DA439445AA", "Token Value", "TokenValue", "The value of the token to authenticate with the URL endpoint", 0, @"", tokenValueAttributeGuid ); // Token Value
+            RockMigrationHelper.UpdateWorkflowActionEntityAttribute( apiSyncGuid, "E4EAB7B2-0B76-429B-AFE4-AD86D7428C70", "Rest User", "RestUser", "The associated REST user that handles sync from the third party", 0, @"", restUserAttributeGuid ); // Rest User
             RockMigrationHelper.UpdateWorkflowActionEntityAttribute( apiSyncGuid, "A75DFC58-7A1B-4799-BF31-451B2BBE38FF", "Order", "Order", "The order that this service should be used (priority)", 0, @"", orderAttributeGuid ); // Order
 
             RockMigrationHelper.UpdateCategory( "C9F3C4A5-1526-474D-803F-D6C7A45CBBAE", "Apollos API Sync Category", "fa fa-connectdevelop", "", categoryGuid, 0 );
@@ -286,6 +341,9 @@ namespace cc.newspring.Apollos.Migrations
             DeleteAttributesByEntity( apiSyncGuid );
 
             RockMigrationHelper.DeleteEntityType( apiSyncGuid );
+
+            Sql( string.Format( @"DELETE FROM [dbo].[UserLogin] WHERE [Guid] = '{0}'", restUserGuid ) );
+            Sql( string.Format( @"DELETE FROM [dbo].[Person] WHERE [Guid] = '{0}'", restPersonGuid ) );
         }
     }
 }

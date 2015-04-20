@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using cc.newspring.Apollos.Utilities;
@@ -9,18 +10,32 @@ using Rock.Model;
 
 namespace cc.newspring.Apollos.Workflow.Action
 {
-    [Description( "Sync with API" )]
+    [Description( "Sync to a third party API" )]
     [Export( typeof( Rock.Workflow.ActionComponent ) )]
     [ExportMetadata( "ComponentName", "API Sync" )]
     [CustomDropdownListField( "Action", "The workflow that this action is under is triggered by what type of event", "Save,Delete", true )]
     [TextField( "Sync URL", "The specific URL endpoint this related entity type should synchronize with", true, "" )]
     [TextField( "Token Name", "The key by which the token should be identified in the header of HTTP requests", false, "" )]
     [TextField( "Token Value", "The value of the token to authenticate with the URL endpoint", false, "" )]
+    [PersonField( "Rest User", "The associated REST user that handles sync from the third party", false, "" )]
     public class APISync : Rock.Workflow.ActionComponent
     {
         public override bool Execute( Rock.Data.RockContext rockContext, WorkflowAction action, object entity, out List<string> errorMessages )
         {
             errorMessages = new List<string>();
+
+            var model = (IModel)entity;
+            var restUserGuid = GetAttributeValue( action, "RestUser" ).AsType<Guid?>();
+
+            if ( model.ModifiedByPersonAliasId.HasValue )
+            {
+                var modifier = new PersonAliasService( new RockContext() ).Get( model.ModifiedByPersonAliasId.Value );
+
+                if ( modifier.Guid == restUserGuid )
+                {
+                    return true;
+                }
+            }
 
             var isSave = GetAttributeValue( action, "Action" ) == "Save";
             var url = GetAttributeValue( action, "SyncURL" );
@@ -42,7 +57,6 @@ namespace cc.newspring.Apollos.Workflow.Action
             request.RequestFormat = DataFormat.Json;
             request.AddHeader( tokenName, tokenValue );
 
-            var model = (IModel)entity;
             var fullUrl = string.Format( "{0}{1}{2}", url, lastSlash, model.Id );
             var client = new RestClient( fullUrl );
 
