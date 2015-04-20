@@ -64,15 +64,15 @@ namespace cc.newspring.Apollos.Workflow.Action
             {
                 request.JsonSerializer = new NewtonsoftJsonSerializer( request.JsonSerializer );
 
-                if ( entity is UserLogin )
+                if ( !( entity is UserLogin ) )
+                {
+                    request.AddJsonBody( entity );
+                }
+                else
                 {
                     // Do this so the password hash is synced
                     var apollosUser = new ApollosUserLogin( (UserLogin)entity );
                     request.AddJsonBody( apollosUser );
-                }
-                else
-                {
-                    request.AddJsonBody( entity );
                 }
             }
 
