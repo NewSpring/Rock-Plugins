@@ -9,14 +9,14 @@ USE [Rock]
 /* ====================================================== */
 
 -- Set the F1 database name
-DECLARE @F1 varchar(255) = 'newspring'
+DECLARE @F1 varchar(255) = 'F1'
 
 -- Start value lookups
 declare @scopeIndex int, @numItems int, @rlcId int, @nameSearchValueId int, @personAliasId int,
 	@groupTypeId int, @groupId int, @locationId int, @campusId int, @True int, @False int
 declare @groupTypeName varchar(255), @groupName varchar(255), @groupLocation varchar(255)
-select @scopeIndex = min(ID) from newspring.._map
-select @numItems = count(1) + @scopeIndex from newspring.._map
+select @scopeIndex = min(ID) from F1.._map
+select @numItems = count(1) + @scopeIndex from F1.._map
 
 select @True = 1, @False = 0
 select @nameSearchValueId = Id 
@@ -27,7 +27,7 @@ where [Guid] = '071D6DAA-3063-463A-B8A1-7D9A1BE1BB31'
 select p.Id as 'PersonAliasId', a.Individual_ID
 into #personLookup
 from PersonAlias p
-inner join newspring..attendance a
+inner join F1..attendance a
 on a.Individual_ID = p.ForeignId
 
 while @scopeIndex <= @numItems
@@ -36,7 +36,7 @@ begin
 	select @rlcID = null, @groupTypeName = '', @groupName = '', @personAliasId = null,
 		@groupTypeId = null, @groupId = null, @locationId = null, @campusId = null
 	select @rlcId = RLC_ID, @groupTypeName = GroupType, @groupName = GroupName
-	from newspring.._map where ID = @scopeIndex
+	from F1.._map where ID = @scopeIndex
 		
 	select @groupTypeId = ID 
 	from Rock..[GroupType]
@@ -59,7 +59,7 @@ begin
 		select @locationId, @groupId, @nameSearchValueId, Start_Date_Time, @True,
 			 Tag_Comment, NEWID(), ISNULL(Check_In_Time, GETDATE()), @campusId, 
 			 p.PersonAliasId, @False
-		from newspring..Attendance a
+		from F1..Attendance a
 		inner join #personLookup p
 		on a.Individual_ID = p.Individual_ID
 		where RLC_ID = @rlcId
@@ -87,14 +87,14 @@ on p.id = pa.personid
 and p.foreignid is not null
 	
 -- double check all grouptypes/groups exist
-update newspring.._map
+update F1.._map
 set groupname = replace(groupname, 'Office Team', 'KS Office Team')
 where grouptype = 'cen - kidspring volunteer' 
 and groupname = 'Office Team'
 
 
 select *
-from newspring.._map
+from F1.._map
 where grouptype + groupname not in 
 (
 	select gt.name + g.name
@@ -103,10 +103,10 @@ where grouptype + groupname not in
 	on g.grouptypeid = gt.id
 )
 
-alter table newspring.._map 
+alter table F1.._map 
 add ID int identity(1,1)
 
-select * from newspring.._map
+select * from F1.._map
 
 select count(1) from Rock..attendance
 
