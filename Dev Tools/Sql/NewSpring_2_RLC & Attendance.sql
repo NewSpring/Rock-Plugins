@@ -2118,6 +2118,8 @@ declare @GroupTypeName varchar(255), @GroupName varchar(255), @GroupLocation var
 select @scopeIndex = min(ID) from #rlcMap
 select @numItems = count(1) + @scopeIndex from #rlcMap
 
+declare @rlcAssignments cursor
+
 while @scopeIndex <= @numItems
 begin
 	
@@ -2154,18 +2156,18 @@ begin
 		on a.Individual_ID = p.Individual_ID
 		where RLC_ID = @RLCID
 
-		declare assignments cursor fast_forward for
+		set @rlcAssignments = cursor fast_forward for
 		select Job_Title, Staffing_Schedule_Name, JobID, p.PersonId
 		from F1..Staffing_Assignment sa
 		inner join #personLookup p
 		on sa.Individual_ID = p.Individual_ID
 		where RLC_ID = @RLCID and Is_Active = 1
 		
-		open assignments 
+		open @rlcAssignments 
 		if @@CURSOR_ROWS > 0
 		begin
 
-			fetch next from assignments 
+			fetch next from @rlcAssignments 
 			into @JobTitle, @ScheduleName, @JobId, @PersonId
 
 			while @@FETCH_STATUS = 0
@@ -2196,7 +2198,7 @@ begin
 					select @IsSystem, @GroupId, @PersonId, @RoleId, NEWID(), @JobId	
 				end
 
-				fetch next from assignments 
+				fetch next from @rlcAssignments 
 				into @JobTitle, @ScheduleName, @JobId, @PersonId
 
 			end
@@ -2204,8 +2206,8 @@ begin
 		end
 		-- end cursor not empty
 
-		close assignments
-		deallocate assignments;
+		close @rlcAssignments
+		deallocate @rlcAssignments
 		
 	end
 	-- end groupId not null
