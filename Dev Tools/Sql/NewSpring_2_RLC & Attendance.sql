@@ -10,7 +10,7 @@
    ====================================================== */
 -- Make sure you're using the right Rock database:
 
-USE [Rock]
+USE develop
 
 /* ====================================================== */
 
@@ -422,7 +422,7 @@ values
 (1314404, 'CEN - Guest Services Volunteer', 'Special Event Volunteer'),
 (844951, 'CEN - Guest Services Volunteer', 'Special Event Volunteer'),
 (939370, 'CEN - KidSpring Volunteer', 'KS Office Team'),
-(1339332, 'CEN - KidSpring Volunteer', 'Office Team'),
+(1339332, 'CEN - KidSpring Volunteer', 'KS Office Team'),
 (1340553, 'CEN - Next Steps Volunteer', 'Groups Office Team'),
 (939376, 'CEN - Next Steps Volunteer', 'NS Office Team'),
 (1166489, 'CEN - Next Steps Volunteer', 'NS Office Team'),
@@ -962,7 +962,7 @@ values
 (1301530, 'FLO - Next Steps Volunteer', 'Load In/Load Out'),
 (1283769, 'FLO - Next Steps Volunteer', 'New Serve Team'),
 (1283459, 'FLO - Next Steps Volunteer', 'Next Steps Area'),
-(1232881, 'FLO - Next Steps Volunteer', 'Office Team'),
+(1232881, 'FLO - Next Steps Volunteer', 'Groups Office Team'),
 (1283449, 'FLO - Next Steps Volunteer', 'Ownership Class Volunteer'),
 (1283466, 'FLO - Next Steps Volunteer', 'Prayer Team'),
 (1283460, 'FLO - Next Steps Volunteer', 'Resource Center'),
@@ -2026,13 +2026,13 @@ values
 /* ====================================================== */
 -- Start value lookups
 /* ====================================================== */
-declare @IsSystem int = 0, @Order int = 0,  @TextFieldTypeId int = 1, @True int = 1, @False int = 0
-declare @ScheduleDefinedTypeId int, @GroupCategoryId int, @RLCID int, @NameSearchValueId int, 
-	@PersonAliasId int, @GroupTypeId int, @GroupId int, @LocationId int, @CampusId int
+declare @IsSystem int = 0, @Order int = 0,  @TextFieldTypeId float = 1, @True int = 1, @False int = 0
+declare @ScheduleDefinedTypeId float, @GroupCategoryId float, @RLCID float, @NameSearchValueId float, 
+	@PersonId float, @GroupTypeId float, @GroupId float, @LocationId float, @CampusId float
 
 select @GroupCategoryId = Id from Category where name = 'Group'
 select @ScheduleDefinedTypeId = Id from DefinedType where [Guid] = '26ECDD90-A2FA-4732-B3D1-32AC93953EFA'
-select @NameSearchValueId = Id from Rock..[DefinedValue] where [Guid] = '071D6DAA-3063-463A-B8A1-7D9A1BE1BB31'
+select @NameSearchValueId = Id from DefinedValue where [Guid] = '071D6DAA-3063-463A-B8A1-7D9A1BE1BB31'
 
 /* ====================================================== */
 -- Create schedule defined type
@@ -2056,7 +2056,7 @@ end
 create table #schedules (
 	scheduleF1 varchar(255),
 	scheduleRock varchar(255),
-	definedValueId int DEFAULT NULL
+	definedValueId float DEFAULT NULL
 )
 
 insert into #schedules (scheduleF1, scheduleRock)
@@ -2114,34 +2114,37 @@ on a.Individual_ID = p.ForeignId
 
 declare @scopeIndex int, @numItems int
 declare @GroupTypeName varchar(255), @GroupName varchar(255), @GroupLocation varchar(255)
+	, @JobTitle varchar(255), @ScheduleName varchar(255), @JobId float, @RoleId float
 select @scopeIndex = min(ID) from #rlcMap
 select @numItems = count(1) + @scopeIndex from #rlcMap
 
 while @scopeIndex <= @numItems
 begin
 	
-	select @RLCID = null, @GroupTypeName = '', @GroupName = '', @PersonAliasId = null,
-		@GroupTypeId = null, @GroupId = null, @LocationId = null, @CampusId = null
+	select @RLCID = null, @GroupTypeName = '', @GroupName = '', @GroupTypeId = null,
+		@GroupId = null, @LocationId = null, @CampusId = null, @JobTitle = null,
+		@ScheduleName = null, @JobId = null, @PersonId = null, @RoleId = null
 	select @RLCID = RLC_ID, @GroupTypeName = GroupType, @GroupName = GroupName
 	from #rlcMap where ID = @scopeIndex
 		
 	select @GroupTypeId = ID 
-	from Rock..[GroupType]
+	from [GroupType]
 	where name = @GroupTypeName
 
 	select @GroupId = ID, @CampusId = CampusId
-	from Rock..[Group]
+	from [Group]
 	where GroupTypeId = @GroupTypeId
 	and Name = @GroupName
 
 	select @LocationId = LocationID
-	from Rock..[GroupLocation]
+	from [GroupLocation]
 	where GroupId = @GroupId
 	
 	if @GroupId is not null
 	begin
 		
-		insert Rock..[Attendance] (LocationId, GroupId, SearchTypeValueId, StartDateTime, 
+		-- Create attendances that match this RLC
+		insert [Attendance] (LocationId, GroupId, SearchTypeValueId, StartDateTime, 
 			DidAttend, Note, [Guid], CreatedDateTime, CampusId, PersonAliasId, RSVP)
 		select @LocationId, @GroupId, @NameSearchValueId, Start_Date_Time, @True,
 			 Tag_Comment, NEWID(), ISNULL(Check_In_Time, GETDATE()), @CampusId, 
@@ -2151,36 +2154,59 @@ begin
 		on a.Individual_ID = p.Individual_ID
 		where RLC_ID = @RLCID
 
-		-- Create assignments lookup that match this RLC
-		if object_id('tempdb..#assignments') is not null
-		begin
-			drop table #assignments
-		end
-		select ROW_NUMBER() OVER (order by RLC_ID) as 'ID', 
-			Job_Title, Staffing_Schedule_Name, JobID
-		into #assignments
-		from F1..Staffing_Assignment
+		declare assignments cursor fast_forward for
+		select Job_Title, Staffing_Schedule_Name, JobID, p.PersonId
+		from F1..Staffing_Assignment sa
+		inner join #personLookup p
+		on sa.Individual_ID = p.Individual_ID
 		where RLC_ID = @RLCID and Is_Active = 1
-
-		declare @childIndex int, @childItems int
-		select @childIndex = min(ID) from #rlcMap
-		select @childItems = count(1) + @childIndex from #rlcMap
-
-
-		while @childIndex <= @childItems
+		
+		open assignments 
+		if @@CURSOR_ROWS > 0
 		begin
 
-			insert Rock..[GroupMember] (IsSystem, GroupId, PersonId, GroupRoleId, [Guid], ForeignId)
-			select @IsSystem, @GroupId, p.PersonId, NEWID(), sa.JobID
-			from F1..Staffing_Assignment sa
-			inner join #personLookup p
-			on sa.Individual_ID = p.Individual_ID
-			where RLC_ID = @RLCID
-			and sa.Is_Active = 1
+			fetch next from assignments 
+			into @JobTitle, @ScheduleName, @JobId, @PersonId
 
+			while @@FETCH_STATUS = 0
+			begin
+				-- lookup or create the title as a role 
+				select @RoleId = Id from [GroupTypeRole] where GroupTypeId = @GroupTypeId and Name = @JobTitle
+				if @RoleId is null 
+				begin				
+					-- title is empty, just use the default group role
+					if @JobTitle is null or @jobTitle = ''
+					begin
+						select @RoleId = Id from [GroupTypeRole] where GroupTypeId = @GroupTypeId and Name = 'Member'
+					end
+					else begin
+						insert GroupTypeRole ([IsSystem], [GroupTypeId], [Name], [Order], [IsLeader], 
+							[Guid], [ForeignId], [CanView], [CanEdit])
+						select @IsSystem, @GroupTypeId, @JobTitle, @Order, @False, NEWID(), @JobId, @True, @False
+
+						select @RoleId = SCOPE_IDENTITY()
+					end
+				end
+				-- end lookup/create role
+
+				if @RoleId is not null
+				begin
+					-- create assignment
+					insert GroupMember (IsSystem, GroupId, PersonId, GroupRoleId, [Guid], ForeignId)
+					select @IsSystem, @GroupId, @PersonId, @RoleId, NEWID(), @JobId	
+				end
+
+				fetch next from assignments 
+				into @JobTitle, @ScheduleName, @JobId, @PersonId
+
+			end
+			-- end while fetch
 		end
-		-- end assignments loop
+		-- end cursor not empty
 
+		close assignments
+		deallocate assignments;
+		
 	end
 	-- end groupId not null
 
@@ -2189,7 +2215,6 @@ end
 -- end rlc loop
 
 USE [master]
-
 
 
 
@@ -2203,13 +2228,13 @@ inner join personalias pa
 on p.id = pa.personid
 and p.foreignid is not null
 	
+
+-- get hard-coded rlcs to insert
+select '(' + ltrim(str(RLC_ID, 25, 0)) + ', ' + '''' + GroupType + ''', ''' + GroupName + '''),'
+from #importedMap
+order by grouptype, groupname
+
 -- double check all grouptypes/groups exist
-update #rlcMap
-set groupname = replace(groupname, 'Office Team', 'KS Office Team')
-where grouptype = 'cen - kidspring volunteer' 
-and groupname = 'Office Team'
-
-
 select *
 from #rlcMap
 where grouptype + groupname not in 
@@ -2220,8 +2245,6 @@ where grouptype + groupname not in
 	on g.grouptypeid = gt.id
 )
 
-alter table #rlcMap
-add ID int identity(1,1)
 
 select * from #rlcMap
 
