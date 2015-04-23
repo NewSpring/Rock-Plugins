@@ -9,7 +9,7 @@ USE [Rock]
 /* ====================================================== */
 
 declare @isSystem bit = 0
-declare @delimiter varchar(5) = ' - '
+declare @delimiter nvarchar(5) = ' - '
 
 update [group] set campusId = null
 delete from Campus where id = 1
@@ -50,7 +50,7 @@ begin
 end
 create table #campusAreas (
 	ID int IDENTITY(1,1),
-	name varchar(255),
+	name nvarchar(255),
 	attendanceRule int,
 	inheritedType int
 )
@@ -105,8 +105,8 @@ begin
 end
 create table #subCampusAreas (
 	ID int IDENTITY(1,1),
-	name varchar(255),
-	parentName varchar(255),
+	name nvarchar(255),
+	parentName nvarchar(255),
 	inheritedType int
 )
 
@@ -133,9 +133,9 @@ begin
 end
 create table #campusGroups (
 	ID int IDENTITY(1,1),
-	groupTypeName varchar(255),
-	groupName varchar(255),
-	locationName varchar(255),
+	groupTypeName nvarchar(255),
+	groupName nvarchar(255),
+	locationName nvarchar(255),
 )
 
 -- GroupType, Group, Location
@@ -374,7 +374,7 @@ begin
 end
 create table #centralAreas (
 	ID int IDENTITY(1,1),
-	name varchar(255),
+	name nvarchar(255),
 	attendanceRule int,
 	inheritedType int
 )
@@ -397,9 +397,9 @@ begin
 end
 create table #centralGroups (
 	ID int IDENTITY(1,1),
-	groupTypeName varchar(255),
-	groupName varchar(255),
-	locationName varchar(255),
+	groupTypeName nvarchar(255),
+	groupName nvarchar(255),
+	locationName nvarchar(255),
 )
 
 -- GroupType, Group, Location
@@ -432,8 +432,8 @@ values
 /* ====================================================== */
 -- college grouptype
 /* ====================================================== */
-declare @collegeArea varchar(255) = 'NewSpring College', 
-	@collegeLocation varchar(255) = 'Class Attendee',
+declare @collegeArea nvarchar(255) = 'NewSpring College', 
+	@collegeLocation nvarchar(255) = 'Class Attendee',
 	@collegeAttendance int = 2, @collegeInheritedType int = null
 
 /* ====================================================== */
@@ -445,9 +445,9 @@ begin
 end
 create table #collegeGroups (
 	ID int IDENTITY(1,1),
-	groupTypeName varchar(255),
-	groupName varchar(255),
-	locationName varchar(255),
+	groupTypeName nvarchar(255),
+	groupName nvarchar(255),
+	locationName nvarchar(255),
 )
 
 -- GroupType, Group, Location
@@ -503,7 +503,7 @@ select @typePurpose = 142  /* check-in template purpose type */
 select @campusId = min(Id) from Campus
 select @numCampuses = count(1) + @campusId from Campus
 
-declare @campusName varchar(30), @campusCode varchar(5)
+declare @campusName nvarchar(30), @campusCode nvarchar(5)
 
 /* ====================================================== */
 -- insert campus levels
@@ -564,9 +564,9 @@ begin
 		/* ====================================================== */
 		declare @scopeIndex int, @numItems int, @currentAreaId int,
 			@attendanceRule int, @inheritedTypeId int, @areaLocationId int
-		declare @areaName varchar(255), @areaLocation varchar(255)
-		declare @volunteer varchar(255) = 'Volunteer'
-		declare @attendee varchar(255) = 'Attendee'
+		declare @areaName nvarchar(255), @areaLocation nvarchar(255)
+		declare @volunteer nvarchar(255) = 'Volunteer'
+		declare @attendee nvarchar(255) = 'Attendee'
 
 		select @scopeIndex = min(Id) from #campusAreas
 		select @numItems = count(1) + @scopeIndex from #campusAreas
@@ -636,7 +636,7 @@ begin
 		/* ====================================================== */
 		-- set tri level grouptypes
 		/* ====================================================== */
-		declare @parentArea varchar(255), @parentAreaId int, @parentGroupId int
+		declare @parentArea nvarchar(255), @parentAreaId int, @parentGroupId int
 		select @scopeIndex = min(Id) from #subCampusAreas
 		select @numItems = @scopeIndex + count(1) from #subCampusAreas
 
@@ -705,7 +705,7 @@ begin
 		/* ====================================================== */
 		-- set group structure
 		/* ====================================================== */
-		declare @groupName varchar(255), @groupTypeName varchar(255), @locationName varchar(255)
+		declare @groupName nvarchar(255), @groupTypeName nvarchar(255), @locationName nvarchar(255)
 		declare @locationId int, @parentLocationId int, @groupTypeId int, @parentGroupTypeId int, @groupId int
 		select @scopeIndex = min(Id) from #campusGroups
 		select @numItems = @scopeIndex + count(1) from #campusGroups
@@ -753,7 +753,7 @@ begin
 				if @locationId is null
 				begin
 
-					declare @parentLocationName varchar(255)
+					declare @parentLocationName nvarchar(255)
 					-- KidSpring is the only one with a tri-level setup
 					if @groupTypeName like '%vols%'
 					begin
@@ -935,9 +935,9 @@ begin
 		end
 		create table #childGroups (
 			ID int IDENTITY(1,1),
-			groupTypeName varchar(255),
-			groupName varchar(255),
-			locationName varchar(255),
+			groupTypeName nvarchar(255),
+			groupName nvarchar(255),
+			locationName nvarchar(255),
 		)
 
 		insert #childGroups
@@ -952,7 +952,7 @@ begin
 		
 		while @childIndex < @childItems
 		begin
-			declare @childGroupType varchar(255), @childGroup varchar(255), @childLocation varchar(255)			
+			declare @childGroupType nvarchar(255), @childGroup nvarchar(255), @childLocation nvarchar(255)			
 			select @childGroupType = groupTypeName, @childGroup = groupName, @childLocation = locationName
 			from #childGroups where id = @childIndex
 
