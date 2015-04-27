@@ -8,6 +8,10 @@ USE [Rock]
 
 /* ====================================================== */
 
+-- Enable production mode for performance
+SET NOCOUNT ON
+
+-- Set common variables 
 declare @isSystem bit = 0
 declare @delimiter nvarchar(5) = ' - '
 
@@ -578,6 +582,10 @@ begin
 			select @areaName = name, @attendanceRule = attendanceRule, @inheritedTypeId = inheritedType
 			from #campusAreas where id = @scopeIndex
 
+			declare @msg nvarchar(500)
+			select @msg = 'Starting ' + @campusName + ' - ' + @areaName
+			RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
+
 			if @areaName <> ''
 			begin
 
@@ -815,6 +823,10 @@ WHERE g.Name = 'Spring Zone' or g.Name = 'Spring Zone Jr.'
 -- Add Central separately from campuses since groups and
 -- grouptypes are vastly different
 /* ====================================================== */
+
+-- inform progress
+RAISERROR ( 'Starting Central grouptypes & groups', 0, 0 ) WITH NOWAIT
+
 SELECT @campusCode = 'CEN', @campusName = 'Central', @campusId = 0,
 	@campusLocationId = 0, @defaultRoleId = 0, @campusGroupId = 0
 
@@ -992,6 +1004,9 @@ end
 /* ====================================================== */
 -- Add College separately from campuses and central
 /* ====================================================== */
+-- inform progress
+RAISERROR ( 'Starting NewSpring College grouptypes & groups', 0, 0 ) WITH NOWAIT
+
 SELECT @campusName = @collegeArea, @campusAreaId = 0, 
 	@defaultRoleId = 0, @campusGroupId = 0
 

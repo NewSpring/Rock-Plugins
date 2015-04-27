@@ -14,6 +14,9 @@ USE [Rock]
 
 /* ====================================================== */
 
+-- Enable production mode for performance
+SET NOCOUNT ON
+
 -- Set the F1 database name
 DECLARE @F1 nvarchar(255) = 'F1'
 
@@ -2091,8 +2094,6 @@ select distinct Staffing_Schedule_Name, case
 	end as 'schedule'
 from F1..Staffing_Assignment
 
-select * from #schedules
-
 -- Create defined values for all the schedules
 insert DefinedValue ([IsSystem], [DefinedTypeId], [Order], [Value], [Guid] )
 select @IsSystem, @ScheduleDefinedTypeId, @Order, s.scheduleRock, NEWID()
@@ -2107,17 +2108,32 @@ on dv.DefinedTypeId = @ScheduleDefinedTypeId
 and dv.Value = s.scheduleRock
 
 /* ====================================================== */
--- Create person lookup 
+-- Create assignments lookup 
 /* ====================================================== */
-if object_id('tempdb..#personLookup') is not null
+if object_id('tempdb..#assignments') is not null
 begin
-	drop table #personLookup
+	drop table #assignments
 end
-select p.Id as 'PersonAliasId', p.PersonId as 'PersonId', a.Individual_ID
-into #personLookup
-from Rock..PersonAlias p
-inner join F1..attendance a
-on a.Individual_ID = p.ForeignId
+create table #assignments (
+	ID int IDENTITY(1,1) NOT NULL,
+	JobID float,
+	JobTitle nvarchar(255),
+	PersonID float,
+	ScheduleName nvarchar(255)
+)
+
+/* ====================================================== */
+-- Create indexes on F1 tables for speedier lookups
+/* ====================================================== */
+if not exists (select top 1 object_id from F1.sys.indexes where name = 'IX_Assignments' )
+begin
+	CREATE INDEX IX_Assignments ON F1..Staffing_Assignment (Individual_ID, RLC_ID, JobID, Is_Active, Staffing_Schedule_Name)
+end
+
+if not exists (select top 1 object_id from F1.sys.indexes where name = 'IX_Attendance' )
+begin
+	CREATE INDEX IX_Attendance ON F1..Attendance (Individual_ID, RLC_ID, Start_Date_Time, Check_In_Time)
+end
 
 /* ====================================================== */
 -- Start RLC loop
@@ -2129,8 +2145,6 @@ declare @GroupTypeName nvarchar(255), @GroupName nvarchar(255), @GroupLocation n
 select @scopeIndex = min(ID) from #rlcMap
 select @numItems = count(1) + @scopeIndex from #rlcMap
 
-declare @rlcAssignments cursor
-
 while @scopeIndex <= @numItems
 begin
 	
@@ -2138,6 +2152,11 @@ begin
 		@GroupId = null, @CampusId = null, @LocationId = null
 	select @RLCID = RLC_ID, @GroupTypeName = GroupType, @GroupName = GroupName
 	from #rlcMap where ID = @scopeIndex
+	
+	declare @msg nvarchar(500)
+	select @msg = 'Starting ' + @GroupTypeName + ', ' + @GroupName + ', RLC_ID ' + ltrim(str(@RLCID, 25, 0))
+	RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
+	
 		
 	select @GroupTypeId = ID 
 	from [GroupType]
@@ -2155,9 +2174,6 @@ begin
 	if @GroupId is not null
 	begin
 
-		select @JobTitle = null, @JobId = null, @PersonId = null, @ScheduleName = null, 
-			@GroupRoleId = null, @GroupMemberId = null
-		
 		/* ====================================================== */
 		-- Create attendances that match this RLC
 		-- Note: Attendance is tied to Person Alias Id
@@ -2165,18 +2181,20 @@ begin
 		insert [Attendance] (LocationId, GroupId, SearchTypeValueId, StartDateTime, 
 			DidAttend, Note, [Guid], CreatedDateTime, CampusId, PersonAliasId, RSVP)
 		select @LocationId, @GroupId, @NameSearchValueId, Start_Date_Time, @True,
-			 Tag_Comment, NEWID(), ISNULL(Check_In_Time, GETDATE()), @CampusId, 
-			 p.PersonAliasId, @False
+			 Tag_Comment, NEWID(), Check_In_Time, @CampusId, p.Id, @False
 		from F1..Attendance a
-		inner join #personLookup p
-		on a.Individual_ID = p.Individual_ID
-		where RLC_ID = @RLCID
-
+		inner join PersonAlias p
+		on a.Individual_ID = p.ForeignId
+		and RLC_ID = @RLCID
+		
+		select @JobTitle = null, @JobId = null, @PersonId = null, @ScheduleName = null, 
+			@GroupRoleId = null, @GroupMemberId = null
 		
 		/* ====================================================== */
 		-- Create schedule attribute on grouptype
 		/* ====================================================== */
-		select @ScheduleAttributeId = Id from Attribute where EntityTypeId = @GroupMemberEntityId 
+		select @ScheduleAttributeId = Id from Attribute where EntityTypeId = @GroupMemberEntityId
+			and EntityQualifierQualifierColumn = 'GroupTypeId' 
 			and EntityTypeQualifierValue = @GroupTypeId and Name = 'Schedule'
 		if @ScheduleAttributeId is null
 		begin
@@ -2188,36 +2206,44 @@ begin
 			select @ScheduleAttributeId = SCOPE_IDENTITY()
 		end
 
+
 		/* ====================================================== */
 		-- Create group member roles from assignments
 		-- Note: Group member is tied to Person Id
 		/* ====================================================== */
-		set @rlcAssignments = cursor fast_forward for
+		insert into #assignments
 		select JobID, Job_Title, p.PersonId, Staffing_Schedule_Name
 		from F1..Staffing_Assignment sa
-		inner join #personLookup p
-		on sa.Individual_ID = p.Individual_ID
-		where RLC_ID = @RLCID and Is_Active = 1
+		inner join PersonAlias p
+		on sa.Individual_ID = p.ForeignId
+		and RLC_ID = @RLCID and Is_Active = 1
 		
-		open @rlcAssignments 
-		if @@CURSOR_ROWS > 0
+		declare @childIndex int, @childItems int
+		select @childIndex = min(ID) from #assignments
+		select @childItems = count(1) + @childIndex from #assignments		
+
+		while @childIndex <= @childItems
 		begin
+		
+			select @JobId = JobID, @JobTitle = JobTitle, @PersonId = PersonID, @ScheduleName = ScheduleName
+			from #assignments where ID = @childIndex
 
-			fetch next from @rlcAssignments 
-			into @JobId, @JobTitle, @PersonId, @ScheduleName 
-
-			while @@FETCH_STATUS = 0
+			if @PersonId is not null
 			begin
 				-- Lookup or create the title as a role 
 				select @GroupRoleId = Id from [GroupTypeRole] where GroupTypeId = @GroupTypeId and Name = @JobTitle
-				if @GroupRoleId is null 
-				begin				
+				if @GroupRoleId is null
+				begin
 					-- Title is empty, just use the default group role
 					if @JobTitle is null or @jobTitle = ''
 					begin
+						select @JobTitle = 'Member'
 						select @GroupRoleId = Id from [GroupTypeRole] where GroupTypeId = @GroupTypeId and Name = 'Member'
 					end
-					else begin
+
+					-- Create a new role with the job title
+					if @GroupRoleId is null
+					begin
 						insert GroupTypeRole ([IsSystem], [GroupTypeId], [Name], [Order], [IsLeader], 
 							[Guid], [ForeignId], [CanView], [CanEdit])
 						select @IsSystem, @GroupTypeId, @JobTitle, @Order, @False, NEWID(), @JobId, @True, @False
@@ -2227,11 +2253,14 @@ begin
 				end
 				-- end lookup/create role
 
-				if @GroupRoleId is not null
+				select @GroupMemberId = Id from GroupMember where GroupId = @GroupId 
+					and GroupRoleId = @GroupRoleId and PersonId = @PersonId
+
+				if @GroupMemberId is null and @GroupRoleId is not null
 				begin
 					-- Create group member with role
-					insert GroupMember (IsSystem, GroupId, PersonId, GroupRoleId, [Guid], ForeignId)
-					select @IsSystem, @GroupId, @PersonId, @GroupRoleId, NEWID(), @JobId
+					insert GroupMember (IsSystem, GroupId, PersonId, GroupRoleId, GroupMemberStatus, [Guid], ForeignId)
+					select @IsSystem, @GroupId, @PersonId, @GroupRoleId, @True, NEWID(), @JobId
 
 					select @GroupMemberId = SCOPE_IDENTITY()
 				end
@@ -2246,9 +2275,9 @@ begin
 					if @currentValue is not null and @currentValue <> ''
 					begin
 						update AttributeValue
-						set Value = @newValue + ',' + @currentValue
+						set Value = convert(nvarchar(50), @newValue) + ',' + convert(nvarchar(50), @currentValue)
 						from AttributeValue where AttributeId = @ScheduleAttributeId and EntityId = @GroupMemberId
-					end					
+					end
 					else
 					begin
 						insert AttributeValue ( [IsSystem], [AttributeId], [EntityId], [Value], [Guid] )
@@ -2256,20 +2285,16 @@ begin
 					end
 				end
 
-				select @JobTitle = null, @JobId = null, @PersonId = null, @ScheduleName = null, 
+				select @JobId = null, @JobTitle = null, @PersonId = null, @ScheduleName = null, 
 					@GroupRoleId = null, @GroupMemberId = null
 
-				fetch next from @rlcAssignments 
-				into @JobId, @JobTitle, @PersonId, @ScheduleName 
-
+				delete #assignments
 			end
-			-- end while fetch
-		end
-		-- end cursor not empty
+			-- end personId not null
 
-		close @rlcAssignments
-		deallocate @rlcAssignments
-		
+			set @childIndex = @childIndex + 1
+		end
+		-- end child items loop
 	end
 	-- end groupId not null
 
@@ -2308,6 +2333,9 @@ where grouptype + groupname not in
 	on g.grouptypeid = gt.id
 )
 
+declare @msg nvarchar(500)
+select @msg = '' + convert(varchar(30), @RLCID) + ', ' + @GroupTypeName + ', ' + @GroupName
+RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
 
 select * from #rlcMap
 
