@@ -23,6 +23,7 @@ using System.Web.UI;
 using Rock;
 using Rock.Attribute;
 using Rock.Model;
+using Rock.Reporting.Dashboard;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
@@ -37,7 +38,8 @@ namespace RockWeb.Plugins.cc_newspring.Dashboards
     [Description( "All Church Metrics Block" )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.CHART_STYLES, "Chart Style", Order = 3 )]
     [EntityField( "Series Partition", "Select the series partition entity (Campus, Group, etc) to be used to limit the metric values for the selected metrics.", "Either select a specific {0} or leave {0} blank to get it from the page context.", Key = "Entity", Order = 4 )]
-    [MetricCategoriesField( "Metrics", "Select the metrics to include in the pie chart.  Each Metric will be a section of the pie.", false, "", "", 5, "MetricCategories" )]
+    [MetricCategoriesField( "Pie Chart Metric", "Select the metrics to include in the pie chart.  Each Metric will be a section of the pie.", false, "", "", 4 )]
+    [MetricCategoriesField( "Line Chart Metric", "Select the metrics to include in the line chart.  Each Metric will be a line on the graph.", false, "", "", 5 )]
     [CustomRadioListField( "Metric Value Type", "Select which metric value type to display in the chart", "Goal,Measure", false, "Measure", Order = 6 )]
     [SlidingDateRangeField( "Date Range", Key = "SlidingDateRange", DefaultValue = "1||4||", Order = 7 )]
     [LinkedPage( "Detail Page", "Select the page to navigate to when the chart is clicked", Order = 8 )]
@@ -91,27 +93,35 @@ namespace RockWeb.Plugins.cc_newspring.Dashboards
             pieAttendance.ShowTooltip = true;
             pieAttendance.Options.SetChartStyle( this.GetAttributeValue( "ChartStyle" ).AsGuidOrNull() );
 
-            var metricIdList = this.GetMetricIds();
+            lineAttendance.ShowTooltip = true;
+            lineAttendance.Options.SetChartStyle( this.GetAttributeValue( "ChartStyle" ).AsGuidOrNull() );
 
-            string restApiUrl = string.Format( "~/api/MetricValues/GetSummary?metricIdList={0}", metricIdList.AsDelimited( "," ) );
+            var pieChartMetrics = GetMetricIds( "PieChartMetric" );
+            var lineChartMetrics = GetMetricIds( "LineChartMetric" );
+
+            string pieChartURL = string.Format( "~/api/MetricValues/GetSummary?metricIdList={0}", pieChartMetrics.AsDelimited( "," ) );
+            string lineChartURL = string.Format( "~/api/MetricValues/GetSummary?metricIdList={0}", lineChartMetrics.AsDelimited( "," ) );
 
             var dateRange = SlidingDateRangePicker.CalculateDateRangeFromDelimitedValues( this.GetAttributeValue( "SlidingDateRange" ) ?? string.Empty );
             if ( dateRange != null )
             {
                 if ( dateRange.Start.HasValue )
                 {
-                    restApiUrl += string.Format( "&startDate={0}", dateRange.Start.Value.ToString( "o" ) );
+                    pieChartURL += string.Format( "&startDate={0}", dateRange.Start.Value.ToString( "o" ) );
+                    lineChartURL += string.Format( "&startDate={0}", dateRange.Start.Value.ToString( "o" ) );
                 }
 
                 if ( dateRange.End.HasValue )
                 {
-                    restApiUrl += string.Format( "&endDate={0}", dateRange.End.Value.ToString( "o" ) );
+                    pieChartURL += string.Format( "&endDate={0}", dateRange.End.Value.ToString( "o" ) );
+                    lineChartURL += string.Format( "&endDate={0}", dateRange.End.Value.ToString( "o" ) );
                 }
             }
 
             var metricValueType = this.GetAttributeValue( "MetricValueTypes" ).ConvertToEnumOrNull<MetricValueType>() ?? Rock.Model.MetricValueType.Measure;
 
-            restApiUrl += string.Format( "&metricValueType={0}", metricValueType );
+            pieChartURL += string.Format( "&metricValueType={0}", metricValueType );
+            lineChartURL += string.Format( "&metricValueType={0}", metricValueType );
 
             string[] entityValues = ( GetAttributeValue( "Entity" ) ?? string.Empty ).Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries );
             EntityTypeCache entityType = null;
@@ -125,11 +135,13 @@ namespace RockWeb.Plugins.cc_newspring.Dashboards
                 // entity id specified by block setting
                 if ( entityType != null )
                 {
-                    restApiUrl += string.Format( "&entityTypeId={0}", entityType.Id );
+                    pieChartURL += string.Format( "&entityTypeId={0}", entityType.Id );
+                    lineChartURL += string.Format( "&entityTypeId={0}", entityType.Id );
                     int? entityId = entityValues[1].AsIntegerOrNull();
                     if ( entityId.HasValue )
                     {
-                        restApiUrl += string.Format( "&entityId={0}", entityId );
+                        pieChartURL += string.Format( "&entityId={0}", entityId );
+                        lineChartURL += string.Format( "&entityId={0}", entityId );
                     }
                 }
             }
@@ -148,24 +160,34 @@ namespace RockWeb.Plugins.cc_newspring.Dashboards
 
                 if ( contextEntity != null )
                 {
-                    restApiUrl += string.Format( "&entityTypeId={0}&entityId={1}", EntityTypeCache.GetId( contextEntity.GetType() ), contextEntity.Id );
+                    pieChartURL += string.Format( "&entityTypeId={0}&entityId={1}", EntityTypeCache.GetId( contextEntity.GetType() ), contextEntity.Id );
+                    lineChartURL += string.Format( "&entityTypeId={0}&entityId={1}", EntityTypeCache.GetId( contextEntity.GetType() ), contextEntity.Id );
                 }
             }
 
-            pieAttendance.DataSourceUrl = restApiUrl;
+            pieAttendance.DataSourceUrl = pieChartURL;
+            lineAttendance.DataSourceUrl = lineChartURL;
 
             //// pieAttendance.PieOptions.tilt = 0.5;
             //// pieAttendance.ChartHeight =
 
             pieAttendance.PieOptions.label = new PieLabel { show = true };
             pieAttendance.PieOptions.label.formatter = @"
-function labelFormatter(label, series) {
-	return ""<div style='font-size:8pt; text-align:center; padding:2px; '>"" + label + ""<br/>"" + Math.round(series.percent) + ""%</div>"";
-}
-".Trim();
+                    function labelFormatter(label, series) {
+                    	return ""<div style='font-size:8pt; text-align:center; padding:2px; '>"" + label + ""<br/>"" + Math.round(series.percent) + ""%</div>"";
+                    }
+                    ".Trim();
             pieAttendance.Legend.show = false;
 
-            nbMetricWarning.Visible = !metricIdList.Any();
+            lineAttendance.MetricId = lineChartMetrics.FirstOrDefault();
+
+            lineAttendance.MetricValueType = metricValueType;
+            lineAttendance.StartDate = dateRange.Start;
+            lineAttendance.EndDate = dateRange.End;
+            lineAttendance.CombineValues = false;
+
+            nbMetricWarning.Visible = !pieChartMetrics.Any();
+            lineMetricWarning.Visible = !lineChartMetrics.Any();
         }
 
         /// <summary>
@@ -176,9 +198,9 @@ function labelFormatter(label, series) {
         /// <value>
         /// The metrics.
         /// </value>
-        public List<int> GetMetricIds()
+        public List<int> GetMetricIds( string metricAttribute )
         {
-            var metricCategories = Rock.Attribute.MetricCategoriesFieldAttribute.GetValueAsGuidPairs( GetAttributeValue( "MetricCategories" ) );
+            var metricCategories = Rock.Attribute.MetricCategoriesFieldAttribute.GetValueAsGuidPairs( GetAttributeValue( metricAttribute ) );
 
             var metricGuids = metricCategories.Select( a => a.MetricGuid ).ToList();
             return new MetricService( new Rock.Data.RockContext() ).GetByGuids( metricGuids ).Select( a => a.Id ).ToList();
