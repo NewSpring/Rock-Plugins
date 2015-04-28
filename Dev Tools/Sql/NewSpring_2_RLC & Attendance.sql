@@ -2100,7 +2100,7 @@ from F1..Staffing_Assignment
 	from #schedules
 )
 insert DefinedValue ([IsSystem], [DefinedTypeId], [Order], [Value], [Guid] )
-select 0, 0, 0, s.scheduleRock, NEWID()
+select @IsSystem, @ScheduleDefinedTypeId, @Order, s.scheduleRock, NEWID()
 from distinctSchedules s
 where scheduleRock is not null
 
@@ -2278,21 +2278,24 @@ begin
 
 				if @ScheduleName is not null and @ScheduleName <> ''
 				begin
-					declare @currentValue nvarchar(250), @newValue nvarchar(250)
+					declare @currentValue nvarchar(250) = null, @newValue nvarchar(250) = null
 					select @newValue = dvGuid from #schedules where scheduleF1 = @ScheduleName
 
-					select @currentValue = Value from AttributeValue where AttributeId = @ScheduleAttributeId
-						and EntityId = @GroupMemberId
-					if @currentValue is not null and @currentValue <> ''
+					if @newValue is not null
 					begin
-						update AttributeValue
-						set Value = convert(nvarchar(50), @newValue) + ',' + convert(nvarchar(50), @currentValue)
-						from AttributeValue where AttributeId = @ScheduleAttributeId and EntityId = @GroupMemberId
-					end
-					else
-					begin
-						insert AttributeValue ( [IsSystem], [AttributeId], [EntityId], [Value], [Guid] )
-						select @IsSystem, @ScheduleAttributeId, @GroupMemberId, @newValue, NEWID()
+						select @currentValue = Value from AttributeValue where AttributeId = @ScheduleAttributeId
+							and EntityId = @GroupMemberId
+						if @currentValue is null
+						begin
+							insert AttributeValue ( [IsSystem], [AttributeId], [EntityId], [Value], [Guid] )
+							select @IsSystem, @ScheduleAttributeId, @GroupMemberId, @newValue, NEWID()
+						end
+						else 
+						begin
+							update AttributeValue
+							set Value = convert(nvarchar(50), @newValue) + ',' + convert(nvarchar(50), @currentValue)
+							from AttributeValue where AttributeId = @ScheduleAttributeId and EntityId = @GroupMemberId
+						end
 					end
 				end
 
