@@ -2050,7 +2050,7 @@ begin
 		'26ECDD90-A2FA-4732-B3D1-32AC93953EFA', @GroupCategoryId
 
 	select @ScheduleDefinedTypeId = SCOPE_IDENTITY()
-end 
+end
 
 /* ====================================================== */
 -- Create schedule lookup
@@ -2095,9 +2095,13 @@ select distinct Staffing_Schedule_Name, case
 from F1..Staffing_Assignment
 
 -- Create defined values for all the schedules
+;with distinctSchedules as (
+	select distinct scheduleRock 
+	from #schedules
+)
 insert DefinedValue ([IsSystem], [DefinedTypeId], [Order], [Value], [Guid] )
-select @IsSystem, @ScheduleDefinedTypeId, @Order, s.scheduleRock, NEWID()
-from #schedules s
+select 0, 0, 0, s.scheduleRock, NEWID()
+from distinctSchedules s
 where scheduleRock is not null
 
 update s
@@ -2188,24 +2192,31 @@ begin
 		and RLC_ID = @RLCID
 		
 		select @JobTitle = null, @JobId = null, @PersonId = null, @ScheduleName = null, 
-			@GroupRoleId = null, @GroupMemberId = null
+			@GroupRoleId = null, @GroupMemberId = null, @ScheduleAttributeId = null
 		
 		/* ====================================================== */
 		-- Create schedule attribute on grouptype
 		/* ====================================================== */
 		select @ScheduleAttributeId = Id from Attribute where EntityTypeId = @GroupMemberEntityId
-			and EntityQualifierQualifierColumn = 'GroupTypeId' 
 			and EntityTypeQualifierValue = @GroupTypeId and Name = 'Schedule'
 		if @ScheduleAttributeId is null
 		begin
 			insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
-				[Key], [Name], [Description], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
+				[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
 			select @IsSystem, @DefinedValueFieldTypeId, @GroupMemberEntityId, 'GroupTypeId',  @GroupTypeId, 'Schedule', 
-				'Schedule', 'The schedule(s) assigned to this group member.', @Order, @True, @True, @False, NEWID()
+				'Schedule', 'The schedule(s) assigned to this group member.', '', @Order, @True, @True, @False, NEWID()
 
 			select @ScheduleAttributeId = SCOPE_IDENTITY()
-		end
 
+			insert AttributeQualifier ( [IsSystem], [AttributeId], [Key], [Value], [Guid] )
+			select @IsSystem, @ScheduleAttributeId, 'definedtype', @ScheduleDefinedTypeId, NEWID()
+
+			insert AttributeQualifier ( [IsSystem], [AttributeId], [Key], [Value], [Guid] )
+			select @IsSystem, @ScheduleAttributeId, 'allowmultiple', 'True', NEWID()
+
+			insert AttributeQualifier ( [IsSystem], [AttributeId], [Key], [Value], [Guid] )
+			select @IsSystem, @ScheduleAttributeId, 'displaydescription', 'False', NEWID()
+		end
 
 		/* ====================================================== */
 		-- Create group member roles from assignments
