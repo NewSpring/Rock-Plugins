@@ -29,9 +29,8 @@ StyleCop.Cache
 
 #specific folders
 Applications
-cc.newspring.Apollos
-cc.newspring.CyberSource
-cc.newspring.AttendedCheckin
+/cc.newspring.*
+/cc.newspring.*/
 Checkin Labels
 database
 Design Assets

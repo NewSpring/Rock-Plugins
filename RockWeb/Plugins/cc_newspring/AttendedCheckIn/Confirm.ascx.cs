@@ -41,6 +41,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
     [Category( "Check-in > Attended" )]
     [Description( "Attended Check-In Confirmation Block" )]
     [LinkedPage( "Activity Select Page" )]
+    [CustomDropdownListField( "Location Column", "Choose whether to show the name of the group or the location in the location column of the grid", "Location,Group", true, "Location" )]
     [BooleanField( "Print Individual Labels", "Select this option to print one label per person's group, location, & schedule.", false )]
     [BinaryFileField( "DE0E5C50-234B-474C-940C-C571F385E65F", "Designated Single Label", "Select a label to print once per print job.  Unselect the label to print it with every print job.", false )]
     public partial class Confirm : CheckInBlock
@@ -126,7 +127,8 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                                 var checkIn = new Activity();
 
                                 checkIn.Name = person.Person.FullName;
-                                checkIn.Location = location.Location.Name;
+                                var showLocation = GetAttributeValue( "LocationColumn" ) == "Location";
+                                checkIn.Location = showLocation ? location.Location.Name : group.Group.Name;
                                 checkIn.Schedule = schedule.Schedule.Name;
                                 checkIn.PersonId = person.Person.Id;
                                 checkIn.GroupId = group.Group.Id;
@@ -594,9 +596,9 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
 
             public int GroupId { get; set; }
 
-            public int LocationId { get; set; }
-
             public string Location { get; set; }
+
+            public int LocationId { get; set; }
 
             public int ScheduleId { get; set; }
 
