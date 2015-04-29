@@ -29,12 +29,13 @@ StyleCop.Cache
 
 #specific folders
 Applications
-/cc.newspring.*
-/cc.newspring.*/
+cc.newspring.*
+cc.newspring.*/
 Checkin Labels
 database
 Design Assets
 /Dev Tools/*
+/Dev Tools/Sql
 Documentation
 DotLiquid
 Installers
@@ -58,3 +59,4 @@ RockWeb/App_Data/PackageStaging
 /scaffolding.config
 /Build/*
 *.StyleCop
+*.json
