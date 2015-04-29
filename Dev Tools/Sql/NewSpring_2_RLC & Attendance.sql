@@ -21,6 +21,119 @@ SET NOCOUNT ON
 DECLARE @F1 nvarchar(255) = 'F1'
 
 /* ====================================================== */
+-- Start value lookups
+/* ====================================================== */
+declare @IsSystem int = 0, @Order int = 0,  @TextFieldTypeId float = 1, @True int = 1, @False int = 0
+declare @ScheduleDefinedTypeId float, @GroupCategoryId float, @RLCID float, @NameSearchValueId float, 
+	@PersonId float, @GroupTypeId float, @GroupId float, @LocationId float, @CampusId float,
+	@GroupMemberEntityId float, @DefinedValueFieldTypeId float, @ScheduleAttributeId float
+
+select @GroupCategoryId = Id from Category where name = 'Group'
+select @GroupMemberEntityId = Id from EntityType where [Guid] = '49668B95-FEDC-43DD-8085-D2B0D6343C48'
+select @DefinedValueFieldTypeId = Id from FieldType where [Guid] = '59D5A94C-94A0-4630-B80A-BB25697D74C7'
+select @NameSearchValueId = Id from DefinedValue where [Guid] = '071D6DAA-3063-463A-B8A1-7D9A1BE1BB31'
+select @ScheduleDefinedTypeId = Id from DefinedType where [Guid] = '26ECDD90-A2FA-4732-B3D1-32AC93953EFA'
+
+/* ====================================================== */
+-- Create indexes on F1 tables for speedier lookups
+/* ====================================================== */
+if not exists (select top 1 object_id from F1.sys.indexes where name = 'IX_Assignments' )
+begin
+	CREATE INDEX IX_Assignments ON F1..Staffing_Assignment (Individual_ID, RLC_ID, JobID, Is_Active, Staffing_Schedule_Name)
+end
+
+if not exists (select top 1 object_id from F1.sys.indexes where name = 'IX_Attendance' )
+begin
+	CREATE INDEX IX_Attendance ON F1..Attendance (Individual_ID, RLC_ID, Start_Date_Time, Check_In_Time)
+end
+
+/* ====================================================== */
+-- Create schedule defined type
+/* ====================================================== */
+if @ScheduleDefinedTypeId is null
+begin
+	insert DefinedType ( [IsSystem], [FieldTypeId], [Order], [Name], [Description], [Guid], CategoryId )
+	select @IsSystem, @TextFieldTypeId, @Order, 'Schedules', 'The schedules that can be assigned to a group member.',
+		'26ECDD90-A2FA-4732-B3D1-32AC93953EFA', @GroupCategoryId
+
+	select @ScheduleDefinedTypeId = SCOPE_IDENTITY()
+end
+
+/* ====================================================== */
+-- Create schedule lookup
+/* ====================================================== */
+if object_id('tempdb..#schedules') is not null
+begin
+	drop table #schedules
+end
+create table #schedules (
+	scheduleF1 nvarchar(255),
+	scheduleRock nvarchar(255),
+	dvGuid uniqueidentifier DEFAULT NULL
+)
+
+insert into #schedules (scheduleF1, scheduleRock)
+select distinct Staffing_Schedule_Name, case 
+	when Staffing_Schedule_Name like '8:30%' 
+		then null
+	when Staffing_Schedule_Name = '9:15' 
+		or Staffing_Schedule_Name = '9:15 Schedule' 
+		then '9:15 AM'
+	when Staffing_Schedule_Name = '9:15 A' 
+		then '9:15 A Shift'
+	when Staffing_Schedule_Name like '10:00%' 
+		then null
+	when Staffing_Schedule_Name = '11:15'
+		or Staffing_Schedule_Name = '11:15 Schedule' 
+		then '11:15 AM'
+	when Staffing_Schedule_Name = '11:15 A' 
+		then '11:15 A Shift'
+	when Staffing_Schedule_Name like '11:30%' 
+		then null
+	when Staffing_Schedule_Name = '4:00' 
+		or Staffing_Schedule_Name = '4:15' 
+		then '4:00 PM'
+	when Staffing_Schedule_Name = '6:00' 
+		then '6:00 PM'
+	when Staffing_Schedule_Name = 'Base Schedule' 
+		then null
+	else Staffing_Schedule_Name
+	end as 'schedule'
+from F1..Staffing_Assignment
+
+-- Create defined values for all the schedules
+;with distinctSchedules as (
+	select distinct scheduleRock 
+	from #schedules
+)
+insert DefinedValue ([IsSystem], [DefinedTypeId], [Order], [Value], [Guid] )
+select @IsSystem, @ScheduleDefinedTypeId, @Order, s.scheduleRock, NEWID()
+from distinctSchedules s
+where scheduleRock is not null
+
+update s
+set dvGuid = dv.[Guid]
+from #schedules s
+inner join DefinedValue dv
+on dv.DefinedTypeId = @ScheduleDefinedTypeId
+and dv.Value = s.scheduleRock
+
+/* ====================================================== */
+-- Create assignments lookup 
+/* ====================================================== */
+if object_id('tempdb..#assignments') is not null
+begin
+	drop table #assignments
+end
+create table #assignments (
+	ID int IDENTITY(1,1) NOT NULL,
+	JobID float,
+	JobTitle nvarchar(255),
+	PersonID float,
+	ScheduleName nvarchar(255)
+)
+
+/* ====================================================== */
 -- Create RLC lookup
 /* ====================================================== */
 if object_id('tempdb..#rlcMap') is not null
@@ -2025,120 +2138,6 @@ values
 (930573, 'SPA - Special Needs Vols', 'Spring Zone Service Leader'),
 (872771, 'SPA - Special Needs Vols', 'Spring Zone Volunteer')
 
-
-/* ====================================================== */
--- Start value lookups
-/* ====================================================== */
-declare @IsSystem int = 0, @Order int = 0,  @TextFieldTypeId float = 1, @True int = 1, @False int = 0
-declare @ScheduleDefinedTypeId float, @GroupCategoryId float, @RLCID float, @NameSearchValueId float, 
-	@PersonId float, @GroupTypeId float, @GroupId float, @LocationId float, @CampusId float,
-	@GroupMemberEntityId float, @DefinedValueFieldTypeId float, @ScheduleAttributeId float
-
-select @GroupCategoryId = Id from Category where name = 'Group'
-select @GroupMemberEntityId = Id from EntityType where [Guid] = '49668B95-FEDC-43DD-8085-D2B0D6343C48'
-select @DefinedValueFieldTypeId = Id from FieldType where [Guid] = '59D5A94C-94A0-4630-B80A-BB25697D74C7'
-select @NameSearchValueId = Id from DefinedValue where [Guid] = '071D6DAA-3063-463A-B8A1-7D9A1BE1BB31'
-select @ScheduleDefinedTypeId = Id from DefinedType where [Guid] = '26ECDD90-A2FA-4732-B3D1-32AC93953EFA'
-
-/* ====================================================== */
--- Create schedule defined type
-/* ====================================================== */
-if @ScheduleDefinedTypeId is null
-begin
-	insert DefinedType ( [IsSystem], [FieldTypeId], [Order], [Name], [Description], [Guid], CategoryId )
-	select @IsSystem, @TextFieldTypeId, @Order, 'Schedules', 'The schedules that can be assigned to a group member.',
-		'26ECDD90-A2FA-4732-B3D1-32AC93953EFA', @GroupCategoryId
-
-	select @ScheduleDefinedTypeId = SCOPE_IDENTITY()
-end
-
-/* ====================================================== */
--- Create schedule lookup
-/* ====================================================== */
-if object_id('tempdb..#schedules') is not null
-begin
-	drop table #schedules
-end
-create table #schedules (
-	scheduleF1 nvarchar(255),
-	scheduleRock nvarchar(255),
-	dvGuid uniqueidentifier DEFAULT NULL
-)
-
-insert into #schedules (scheduleF1, scheduleRock)
-select distinct Staffing_Schedule_Name, case 
-	when Staffing_Schedule_Name like '8:30%' 
-		then null
-	when Staffing_Schedule_Name = '9:15' 
-		or Staffing_Schedule_Name = '9:15 Schedule' 
-		then '9:15 AM'
-	when Staffing_Schedule_Name = '9:15 A' 
-		then '9:15 A Shift'
-	when Staffing_Schedule_Name like '10:00%' 
-		then null
-	when Staffing_Schedule_Name = '11:15'
-		or Staffing_Schedule_Name = '11:15 Schedule' 
-		then '11:15 AM'
-	when Staffing_Schedule_Name = '11:15 A' 
-		then '11:15 A Shift'
-	when Staffing_Schedule_Name like '11:30%' 
-		then null
-	when Staffing_Schedule_Name = '4:00' 
-		or Staffing_Schedule_Name = '4:15' 
-		then '4:00 PM'
-	when Staffing_Schedule_Name = '6:00' 
-		then '6:00 PM'
-	when Staffing_Schedule_Name = 'Base Schedule' 
-		then null
-	else Staffing_Schedule_Name
-	end as 'schedule'
-from F1..Staffing_Assignment
-
--- Create defined values for all the schedules
-;with distinctSchedules as (
-	select distinct scheduleRock 
-	from #schedules
-)
-insert DefinedValue ([IsSystem], [DefinedTypeId], [Order], [Value], [Guid] )
-select @IsSystem, @ScheduleDefinedTypeId, @Order, s.scheduleRock, NEWID()
-from distinctSchedules s
-where scheduleRock is not null
-
-update s
-set dvGuid = dv.[Guid]
-from #schedules s
-inner join DefinedValue dv
-on dv.DefinedTypeId = @ScheduleDefinedTypeId
-and dv.Value = s.scheduleRock
-
-/* ====================================================== */
--- Create assignments lookup 
-/* ====================================================== */
-if object_id('tempdb..#assignments') is not null
-begin
-	drop table #assignments
-end
-create table #assignments (
-	ID int IDENTITY(1,1) NOT NULL,
-	JobID float,
-	JobTitle nvarchar(255),
-	PersonID float,
-	ScheduleName nvarchar(255)
-)
-
-/* ====================================================== */
--- Create indexes on F1 tables for speedier lookups
-/* ====================================================== */
-if not exists (select top 1 object_id from F1.sys.indexes where name = 'IX_Assignments' )
-begin
-	CREATE INDEX IX_Assignments ON F1..Staffing_Assignment (Individual_ID, RLC_ID, JobID, Is_Active, Staffing_Schedule_Name)
-end
-
-if not exists (select top 1 object_id from F1.sys.indexes where name = 'IX_Attendance' )
-begin
-	CREATE INDEX IX_Attendance ON F1..Attendance (Individual_ID, RLC_ID, Start_Date_Time, Check_In_Time)
-end
-
 /* ====================================================== */
 -- Start RLC loop
 /* ====================================================== */
@@ -2228,14 +2227,14 @@ begin
 		inner join PersonAlias p
 		on sa.Individual_ID = p.ForeignId
 		and RLC_ID = @RLCID and Is_Active = 1
-		
+
 		declare @childIndex int, @childItems int
 		select @childIndex = min(ID) from #assignments
 		select @childItems = count(1) + @childIndex from #assignments		
 
 		while @childIndex <= @childItems
 		begin
-		
+
 			select @JobId = JobID, @JobTitle = JobTitle, @PersonId = PersonID, @ScheduleName = ScheduleName
 			from #assignments where ID = @childIndex
 
@@ -2300,15 +2299,15 @@ begin
 				end
 
 				select @JobId = null, @JobTitle = null, @PersonId = null, @ScheduleName = null, 
-					@GroupRoleId = null, @GroupMemberId = null
-
-				delete #assignments
+					@GroupRoleId = null, @GroupMemberId = null				
 			end
 			-- end personId not null
 
 			set @childIndex = @childIndex + 1
 		end
 		-- end child items loop
+
+		delete from #assignments
 	end
 	-- end groupId not null
 
@@ -2348,8 +2347,9 @@ where grouptype + groupname not in
 )
 
 declare @msg nvarchar(500)
-select @msg = '' + convert(varchar(30), @RLCID) + ', ' + @GroupTypeName + ', ' + @GroupName
+select @msg = '' + ltrim(str(@GroupMemberId, 25, 0)) + ', ' + @GroupTypeName + ', ' + @GroupName
 RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
+
 
 select * from #rlcMap
 
