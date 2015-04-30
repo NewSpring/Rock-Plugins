@@ -43,10 +43,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Migrations\003_MyNextStepIsBaptism.cs" />
+    <Compile Include="Migrations\004_MyNextStepIsOwnershipClass.cs" />
+    <Compile Include="Migrations\005_MyNextStepIsServing.cs" />
+    <Compile Include="Migrations\002_SendAText.cs" />
     <Compile Include="Migrations\001_Wufoo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="ClassDiagram1.cd" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y /R "$(SolutionDir)cc.newspring.Workflows\bin\cc.newspring.Workflows.dll" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
