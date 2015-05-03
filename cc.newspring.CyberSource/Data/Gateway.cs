@@ -54,18 +54,15 @@ namespace Rock.CyberSource
         /// <value>
         /// The gateway URL.
         /// </value>
-        private string GatewayUrl
+        private string GetGatewayUrl( FinancialGateway financialGateway )
         {
-            get
+            if ( GetAttributeValue( financialGateway, "Mode" ).Equals( "Live", StringComparison.CurrentCultureIgnoreCase ) )
             {
-                if ( GetAttributeValue( "Mode" ).Equals( "Live", StringComparison.CurrentCultureIgnoreCase ) )
-                {
-                    return "https://ics2ws.ic3.com/commerce/1.x/transactionProcessor/CyberSourceTransaction_1.98.wsdl";
-                }
-                else
-                {
-                    return "https://ics2wstest.ic3.com/commerce/1.x/transactionProcessor/CyberSourceTransaction_1.98.wsdl";
-                }
+                return "https://ics2ws.ic3.com/commerce/1.x/transactionProcessor/CyberSourceTransaction_1.98.wsdl";
+            }
+            else
+            {
+                return "https://ics2wstest.ic3.com/commerce/1.x/transactionProcessor/CyberSourceTransaction_1.98.wsdl";
             }
         }
 
@@ -91,31 +88,15 @@ namespace Rock.CyberSource
         }
 
         /// <summary>
-        /// Gets the batch time offset.
-        /// </summary>
-        public override TimeSpan BatchTimeOffset
-        {
-            get
-            {
-                var timeValue = new TimeSpan( 0 );
-                if ( TimeSpan.TryParse( GetAttributeValue( "BatchProcessTime" ), out timeValue ) )
-                {
-                    return timeValue;
-                }
-                return base.BatchTimeOffset;
-            }
-        }
-
-        /// <summary>
         /// Charges the specified payment info.
         /// </summary>
         /// <param name="paymentInfo">The payment info.</param>
         /// <param name="errorMessage">The error message.</param>
         /// <returns></returns>
-        public override FinancialTransaction Charge( PaymentInfo paymentInfo, out string errorMessage )
+        public override FinancialTransaction Charge( FinancialGateway financialGateway, PaymentInfo paymentInfo, out string errorMessage )
         {
             errorMessage = string.Empty;
-            RequestMessage request = GetPaymentInfo( paymentInfo );
+            RequestMessage request = GetPaymentInfo( financialGateway, paymentInfo );
             if ( request == null )
             {
                 errorMessage = "Payment type not implemented";
@@ -141,7 +122,7 @@ namespace Rock.CyberSource
                 request.ccCaptureService.run = "true";
             }
 
-            ReplyMessage reply = SubmitTransaction( request );
+            ReplyMessage reply = SubmitTransaction( financialGateway, request );
             if ( reply != null )
             {
                 if ( reply.reasonCode.Equals( "100" ) )  // SUCCESS
@@ -171,10 +152,10 @@ namespace Rock.CyberSource
         /// <param name="paymentInfo">The payment info.</param>
         /// <param name="errorMessage">The error message.</param>
         /// <returns></returns>
-        public override FinancialScheduledTransaction AddScheduledPayment( PaymentSchedule schedule, PaymentInfo paymentInfo, out string errorMessage )
+        public override FinancialScheduledTransaction AddScheduledPayment( FinancialGateway financialGateway, PaymentSchedule schedule, PaymentInfo paymentInfo, out string errorMessage )
         {
             errorMessage = string.Empty;
-            RequestMessage request = GetPaymentInfo( paymentInfo );
+            RequestMessage request = GetPaymentInfo( financialGateway, paymentInfo );
             if ( request == null )
             {
                 errorMessage = "Payment type not implemented";
@@ -205,7 +186,7 @@ namespace Rock.CyberSource
                 request.paySubscriptionCreateService.paymentRequestID = ( (ReferencePaymentInfo)paymentInfo ).TransactionCode;
             }
 
-            ReplyMessage reply = SubmitTransaction( request );
+            ReplyMessage reply = SubmitTransaction( financialGateway, request );
             if ( reply != null )
             {
                 if ( reply.reasonCode.Equals( "100" ) ) // SUCCESS
@@ -252,7 +233,8 @@ namespace Rock.CyberSource
         public override bool UpdateScheduledPayment( FinancialScheduledTransaction transaction, PaymentInfo paymentInfo, out string errorMessage )
         {
             errorMessage = string.Empty;
-            RequestMessage request = GetPaymentInfo( paymentInfo );
+            var financialGateway = transaction.FinancialGateway;
+            RequestMessage request = GetPaymentInfo( financialGateway, paymentInfo );
             if ( request == null )
             {
                 errorMessage = "Payment type not implemented";
@@ -281,7 +263,7 @@ namespace Rock.CyberSource
                 request.subscription.paymentMethod = "credit card";
             }
 
-            ReplyMessage reply = SubmitTransaction( request );
+            ReplyMessage reply = SubmitTransaction( financialGateway, request );
             if ( reply != null )
             {
                 if ( reply.reasonCode.Equals( "100" ) ) // SUCCESS
@@ -310,13 +292,14 @@ namespace Rock.CyberSource
         public override bool CancelScheduledPayment( FinancialScheduledTransaction transaction, out string errorMessage )
         {
             errorMessage = string.Empty;
-            RequestMessage request = GetMerchantInfo();
+            var financialGateway = transaction.FinancialGateway;
+            RequestMessage request = GetMerchantInfo( transaction.FinancialGateway );
             request.recurringSubscriptionInfo = new RecurringSubscriptionInfo();
             request.recurringSubscriptionInfo.subscriptionID = transaction.TransactionCode;
             request.paySubscriptionDeleteService = new PaySubscriptionDeleteService();
             request.paySubscriptionDeleteService.run = "true";
 
-            ReplyMessage reply = SubmitTransaction( request );
+            ReplyMessage reply = SubmitTransaction( financialGateway, request );
             if ( reply != null )
             {
                 if ( reply.reasonCode.Equals( "100" ) ) // SUCCESS
@@ -345,13 +328,14 @@ namespace Rock.CyberSource
         public override bool GetScheduledPaymentStatus( FinancialScheduledTransaction transaction, out string errorMessage )
         {
             errorMessage = string.Empty;
-            RequestMessage verifyRequest = GetMerchantInfo();
+            var financialGateway = transaction.FinancialGateway;
+            RequestMessage verifyRequest = GetMerchantInfo( financialGateway );
             verifyRequest.paySubscriptionRetrieveService = new PaySubscriptionRetrieveService();
             verifyRequest.paySubscriptionRetrieveService.run = "true";
             verifyRequest.recurringSubscriptionInfo = new RecurringSubscriptionInfo();
             verifyRequest.recurringSubscriptionInfo.subscriptionID = transaction.TransactionCode;
 
-            ReplyMessage verifyReply = SubmitTransaction( verifyRequest );
+            ReplyMessage verifyReply = SubmitTransaction( financialGateway, verifyRequest );
             if ( verifyReply.reasonCode.Equals( "100" ) ) // SUCCESS
             {
                 transaction.IsActive = verifyReply.paySubscriptionRetrieveReply.status.ToUpper() == "CURRENT";
@@ -378,17 +362,17 @@ namespace Rock.CyberSource
         /// <param name="endDate">The end date.</param>
         /// <param name="errorMessage">The error message.</param>
         /// <returns></returns>
-        public override List<Payment> GetPayments( DateTime startDate, DateTime endDate, out string errorMessage )
+        public override List<Payment> GetPayments( FinancialGateway financialGateway, DateTime startDate, DateTime endDate, out string errorMessage )
         {
             errorMessage = string.Empty;
             List<Payment> paymentList = new List<Payment>();
             var reportParams = new Dictionary<string, string>();
             var reportingApi = new Reporting.Api(
-                GetAttributeValue( "MerchantID" ),
-                GetAttributeValue( "TransactionKey" ),
-                GetAttributeValue( "ReportUser" ),
-                GetAttributeValue( "ReportPassword" ),
-                GetAttributeValue( "Mode" ).Equals( "Live", StringComparison.CurrentCultureIgnoreCase )
+                GetAttributeValue( financialGateway, "MerchantID" ),
+                GetAttributeValue( financialGateway, "TransactionKey" ),
+                GetAttributeValue( financialGateway, "ReportUser" ),
+                GetAttributeValue( financialGateway, "ReportPassword" ),
+                GetAttributeValue( financialGateway, "Mode" ).Equals( "Live", StringComparison.CurrentCultureIgnoreCase )
             );
 
             TimeSpan timeDifference = endDate - startDate;
@@ -440,7 +424,8 @@ namespace Rock.CyberSource
         public override string GetReferenceNumber( FinancialTransaction transaction, out string errorMessage )
         {
             errorMessage = string.Empty;
-            RequestMessage request = GetMerchantInfo();
+            var financialGateway = transaction.FinancialGateway;
+            RequestMessage request = GetMerchantInfo( financialGateway );
             request.billTo = GetBillTo( transaction );
             request.recurringSubscriptionInfo = new RecurringSubscriptionInfo();
             request.recurringSubscriptionInfo.frequency = "ON-DEMAND";
@@ -449,7 +434,7 @@ namespace Rock.CyberSource
             request.paySubscriptionCreateService.run = "true";
             request.paySubscriptionCreateService.paymentRequestID = transaction.TransactionCode;
 
-            ReplyMessage reply = SubmitTransaction( request );
+            ReplyMessage reply = SubmitTransaction( financialGateway, request );
             if ( reply.reasonCode == "100" ) // SUCCESS
             {
                 return reply.paySubscriptionCreateReply.subscriptionID;
@@ -483,11 +468,11 @@ namespace Rock.CyberSource
         /// </summary>
         /// <param name="request">The request.</param>
         /// <returns></returns>
-        private ReplyMessage SubmitTransaction( RequestMessage request )
+        private ReplyMessage SubmitTransaction( FinancialGateway financialGateway, RequestMessage request )
         {
             ReplyMessage reply = new ReplyMessage();
-            string merchantID = GetAttributeValue( "MerchantID" );
-            string transactionkey = GetAttributeValue( "TransactionKey" );
+            string merchantID = GetAttributeValue( financialGateway, "MerchantID" );
+            string transactionkey = GetAttributeValue( financialGateway, "TransactionKey" );
 
             BasicHttpBinding binding = new BasicHttpBinding();
             binding.Name = "ITransactionProcessor";
@@ -499,7 +484,7 @@ namespace Rock.CyberSource
             binding.ReaderQuotas.MaxBytesPerRead = 2147483647;
             binding.ReaderQuotas.MaxStringContentLength = 2147483647;
             binding.Security.Mode = BasicHttpSecurityMode.TransportWithMessageCredential;
-            EndpointAddress address = new EndpointAddress( new Uri( GatewayUrl ) );
+            EndpointAddress address = new EndpointAddress( new Uri( GetGatewayUrl( financialGateway ) ) );
 
             var proxy = new TransactionProcessorClient( binding, address );
             proxy.ClientCredentials.UserName.UserName = merchantID;
@@ -625,16 +610,21 @@ namespace Rock.CyberSource
         /// Gets the merchant information.
         /// </summary>
         /// <returns></returns>
-        private RequestMessage GetMerchantInfo()
+        private RequestMessage GetMerchantInfo( FinancialGateway financialGateway )
         {
+            if ( financialGateway.Attributes == null )
+            {
+                financialGateway.LoadAttributes();
+            }
+
             RequestMessage request = new RequestMessage();
-            request.merchantID = GetAttributeValue( "MerchantID" );
+            request.merchantID = GetAttributeValue( financialGateway, "MerchantID" );
             request.merchantReferenceCode = Guid.NewGuid().ToString();
             request.clientLibraryVersion = Environment.Version.ToString();
 
             request.clientApplication = VersionInfo.VersionInfo.GetRockProductVersionFullName();
             request.clientApplicationVersion = VersionInfo.VersionInfo.GetRockProductVersionNumber();
-            request.clientApplicationUser = GetAttributeValue( "OrganizationName" );
+            request.clientApplicationUser = GetAttributeValue( financialGateway, "OrganizationName" );
             request.clientEnvironment =
                 Environment.OSVersion.Platform +
                 Environment.OSVersion.Version.ToString() + "-CLR" +
@@ -647,9 +637,9 @@ namespace Rock.CyberSource
         /// Gets the payment information.
         /// </summary>
         /// <returns></returns>
-        private RequestMessage GetPaymentInfo( PaymentInfo paymentInfo )
+        private RequestMessage GetPaymentInfo( FinancialGateway financialGateway, PaymentInfo paymentInfo )
         {
-            RequestMessage request = GetMerchantInfo();
+            RequestMessage request = GetMerchantInfo( financialGateway );
 
             if ( paymentInfo is CreditCardPaymentInfo )
             {

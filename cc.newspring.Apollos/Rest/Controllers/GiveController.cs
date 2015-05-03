@@ -153,11 +153,18 @@ namespace cc.newspring.Apollos.Rest.Controllers
                 totalAmount += accountAmount.Amount;
             }
 
-            var gateway = GatewayContainer.GetComponent( gatewayName );
+            var gatewayComponent = GatewayContainer.GetComponent( gatewayName );
 
-            if ( gateway == null )
+            if ( gatewayComponent == null )
             {
-                return GenerateResponse( HttpStatusCode.InternalServerError, "There was a problem creating the payment gateway information" );
+                return GenerateResponse( HttpStatusCode.InternalServerError, "There was a problem creating the gateway component" );
+            }
+
+            var financialGateway = new FinancialGatewayService( rockContext ).Queryable().FirstOrDefault( g => g.EntityTypeId == gatewayComponent.EntityType.Id );
+
+            if ( financialGateway == null )
+            {
+                return GenerateResponse( HttpStatusCode.InternalServerError, "There was a problem creating the financial gateway" );
             }
 
             Person person = null;
@@ -251,7 +258,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
             paymentInfo.Country = giveParameters.Country;
 
             string errorMessage;
-            var transaction = gateway.Charge( paymentInfo, out errorMessage );
+            var transaction = gatewayComponent.Charge( financialGateway, paymentInfo, out errorMessage );
 
             if ( transaction == null || !string.IsNullOrWhiteSpace( errorMessage ) )
             {
@@ -261,7 +268,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
             transaction.TransactionDateTime = RockDateTime.Now;
             transaction.AuthorizedPersonAliasId = person.PrimaryAliasId;
             transaction.AuthorizedPersonAlias = person.PrimaryAlias;
-            transaction.GatewayEntityTypeId = gateway.TypeId;
+            transaction.FinancialGatewayId = financialGateway.Id;
             transaction.TransactionTypeValueId = DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.TRANSACTION_TYPE_CONTRIBUTION ) ).Id;
             transaction.CurrencyTypeValueId = paymentInfo.CurrencyTypeValue.Id;
 
@@ -284,7 +291,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
             if ( !giveParameters.SourceAccountId.HasValue )
             {
                 // Get a reference number to allow "saving" this account for future use (don't throw errors here because the gateway already received the payment request)
-                var newReferenceNumber = gateway.GetReferenceNumber( transaction, out errorMessage );
+                var newReferenceNumber = gatewayComponent.GetReferenceNumber( transaction, out errorMessage );
 
                 // If we got a reference number and we can reference the person, save the account - skip if there was an error getting the reference number
                 if ( person.PrimaryAliasId.HasValue && !string.IsNullOrWhiteSpace( newReferenceNumber ) && string.IsNullOrWhiteSpace( errorMessage ) )
@@ -305,7 +312,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
                         savedAccount.PersonAliasId = person.PrimaryAliasId;
                         savedAccount.MaskedAccountNumber = maskedAccountNumber;
                         savedAccount.TransactionCode = transaction.TransactionCode;
-                        savedAccount.GatewayEntityTypeId = gateway.TypeId;
+                        savedAccount.FinancialGatewayId = financialGateway.Id;
                         savedAccount.CurrencyTypeValueId = transaction.CurrencyTypeValueId;
                         savedAccount.CreditCardTypeValueId = transaction.CreditCardTypeValueId;
                         savedAccount.ReferenceNumber = newReferenceNumber;
