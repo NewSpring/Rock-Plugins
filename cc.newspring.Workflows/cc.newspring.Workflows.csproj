@@ -43,11 +43,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Migrations\003_MyNextStepIsBaptism.cs" />
-    <Compile Include="Migrations\004_MyNextStepIsOwnershipClass.cs" />
-    <Compile Include="Migrations\005_MyNextStepIsServing.cs" />
-    <Compile Include="Migrations\002_SendAText.cs" />
-    <Compile Include="Migrations\001_Wufoo.cs" />
+    <Compile Include="Migrations\001_SendAText.cs" />
+    <Compile Include="Migrations\002_MyNextStepIsBaptism.cs" />
+    <Compile Include="Migrations\003_MyNextStepIsOwnershipClass.cs" />
+    <Compile Include="Migrations\004_MyNextStepIsServing.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

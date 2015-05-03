@@ -25,7 +25,7 @@ using Rock.Plugin;
 
 namespace cc.newspring.Workflows.Migrations
 {
-    [MigrationNumber( 3, "1.3.0" )]
+    [MigrationNumber( 2, "1.2.0" )]
     public class MyNextStepIsBaptism : Migration
     {
         /// <summary>

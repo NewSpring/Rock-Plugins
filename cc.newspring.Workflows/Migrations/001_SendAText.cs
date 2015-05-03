@@ -25,8 +25,8 @@ using Rock.Plugin;
 
 namespace cc.newspring.Workflows.Migrations
 {
-    [MigrationNumber( 2, "1.3.0" )]
-    public class SendAsText : Migration
+    [MigrationNumber( 1, "1.2.0" )]
+    public class SendAText : Migration
     {
         /// <summary>
         /// The commands to run to migrate plugin to the specific version
@@ -58,14 +58,12 @@ namespace cc.newspring.Workflows.Migrations
             RockMigrationHelper.UpdateWorkflowActionEntityAttribute( "F22FA171-B5E7-497F-9AE6-F7B98A377D0E", "A75DFC58-7A1B-4799-BF31-451B2BBE38FF", "Order", "Order", "The order that this service should be used (priority)", 0, @"", "05A85E0D-4860-4BFB-ACA9-C7B668B89500" ); // Rock.Workflow.Action.SendSms:Order
             RockMigrationHelper.UpdateCategory( "C9F3C4A5-1526-474D-803F-D6C7A45CBBAE", "Messaging", "fa fa-mobile", "", "D1AF4B37-FFFB-4A05-9A7B-7BCB7A866D0D", 0 ); // Messaging
             RockMigrationHelper.UpdateWorkflowType( false, true, "Send A Text Message", "Sends a text message to a user from their profile page.", "D1AF4B37-FFFB-4A05-9A7B-7BCB7A866D0D", "Work", "fa fa-mobile", 0, true, 0, "F3218F81-423F-46EA-B748-ED7AB365CD07" ); // Send A Text Message
-            RockMigrationHelper.UpdateWorkflowType( false, true, "Testing", "This is a test workflow", "78E38655-D951-41DB-A0FF-D6474775CFA1", "Work", "fa fa-list-ol", 0, true, 0, "C95EF41F-8054-4873-BC4B-E29E97F1540D" ); // Testing
             RockMigrationHelper.UpdateWorkflowTypeAttribute( "F3218F81-423F-46EA-B748-ED7AB365CD07", "C28C7BF3-A552-4D77-9408-DEDCF760CED0", "Message", "Message", "The message to send", 2, @"", "D4438B4B-8D7C-49F1-B025-F37BEC10E3D3" ); // Send A Text Message:Message
             RockMigrationHelper.UpdateWorkflowTypeAttribute( "F3218F81-423F-46EA-B748-ED7AB365CD07", "E4EAB7B2-0B76-429B-AFE4-AD86D7428C70", "Recipient", "recipient", "Sets the recipient of the message", 0, @"", "494280DA-D7BF-4523-9774-20B477062113" ); // Send A Text Message:Recipient
             RockMigrationHelper.UpdateWorkflowTypeAttribute( "F3218F81-423F-46EA-B748-ED7AB365CD07", "E4EAB7B2-0B76-429B-AFE4-AD86D7428C70", "Sender", "Sender", "Sets the sender", 1, @"", "3E27AC12-BE52-4CBA-AABE-F97D58523121" ); // Send A Text Message:Sender
             RockMigrationHelper.AddAttributeQualifier( "D4438B4B-8D7C-49F1-B025-F37BEC10E3D3", "allowhtml", @"False", "5DA52708-4152-416D-812D-969BFB1B6FE0" ); // Send A Text Message:Message:allowhtml
             RockMigrationHelper.AddAttributeQualifier( "D4438B4B-8D7C-49F1-B025-F37BEC10E3D3", "numberofrows", @"", "643FF567-279A-469C-94C2-ABE76BAFDA74" ); // Send A Text Message:Message:numberofrows
             RockMigrationHelper.UpdateWorkflowActivityType( "F3218F81-423F-46EA-B748-ED7AB365CD07", true, "Send The Text", "", false, 0, "9D5C50E2-9D67-4362-B398-7E9E2B488283" ); // Send A Text Message:Send The Text
-            RockMigrationHelper.UpdateWorkflowActivityType( "C95EF41F-8054-4873-BC4B-E29E97F1540D", true, "Test Action", "This is a test action", false, 0, "F31DBE63-796B-440B-BDE3-616D14736B7B" ); // Testing:Test Action
             RockMigrationHelper.UpdateWorkflowActionForm( @"Enter your message:", @"", "Send^fdc397cd-8b4a-436e-bea1-bce2e6717c03^^Your text has been sent!|", "88C7D1CC-3478-4562-A301-AE7D4D7FFF6D", true, "", "C961B02A-CD18-40F5-B323-DBBA067B4D8A" ); // Send A Text Message:Send The Text:Enter The Message
             RockMigrationHelper.UpdateWorkflowActionFormAttribute( "C961B02A-CD18-40F5-B323-DBBA067B4D8A", "494280DA-D7BF-4523-9774-20B477062113", 0, false, true, false, "78723B66-8B8D-4398-8859-8DA30153E54B" ); // Send A Text Message:Send The Text:Enter The Message:Recipient
             RockMigrationHelper.UpdateWorkflowActionFormAttribute( "C961B02A-CD18-40F5-B323-DBBA067B4D8A", "3E27AC12-BE52-4CBA-AABE-F97D58523121", 1, false, true, false, "5742591D-5D4A-40AC-91A8-A868DBACE1C9" ); // Send A Text Message:Send The Text:Enter The Message:Sender

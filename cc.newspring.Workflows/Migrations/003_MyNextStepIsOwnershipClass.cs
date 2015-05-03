@@ -25,7 +25,7 @@ using Rock.Plugin;
 
 namespace cc.newspring.Workflows.Migrations
 {
-    [MigrationNumber( 4, "1.3.0" )]
+    [MigrationNumber( 3, "1.2.0" )]
     public class MyNextStepIsOwnershipClass : Migration
     {
         /// <summary>
