@@ -47,6 +47,9 @@
     <Compile Include="Migrations\002_MyNextStepIsBaptism.cs" />
     <Compile Include="Migrations\003_MyNextStepIsOwnershipClass.cs" />
     <Compile Include="Migrations\004_MyNextStepIsServing.cs" />
+    <Compile Include="Migrations\005_RequestForCriminalRecords.cs" />
+    <Compile Include="Migrations\006_FinancialCoaching.cs" />
+    <Compile Include="Migrations\007_90DayTithingChallenge.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
