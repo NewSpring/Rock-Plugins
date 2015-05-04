@@ -25,12 +25,16 @@ using System.Net;
 using System.Net.Sockets;
 using System.ServiceModel;
 using System.Text.RegularExpressions;
+using cc.newspring.CyberSource.ITransactionProcessor;
+using Rock;
 using Rock.Attribute;
+using Rock.Extension;
 using Rock.Financial;
 using Rock.Model;
+using Rock.VersionInfo;
 using Rock.Web.Cache;
 
-namespace Rock.CyberSource
+namespace cc.newspring.CyberSource
 {
     /// <summary>
     /// CyberSource Payment Gateway
@@ -58,11 +62,11 @@ namespace Rock.CyberSource
         {
             if ( GetAttributeValue( financialGateway, "Mode" ).Equals( "Live", StringComparison.CurrentCultureIgnoreCase ) )
             {
-                return "https://ics2ws.ic3.com/commerce/1.x/transactionProcessor/CyberSourceTransaction_1.98.wsdl";
+                return "https://ics2ws.ic3.com/commerce/1.x/transactionProcessor/CyberSourceTransaction_1.112.wsdl";
             }
             else
             {
-                return "https://ics2wstest.ic3.com/commerce/1.x/transactionProcessor/CyberSourceTransaction_1.98.wsdl";
+                return "https://ics2wstest.ic3.com/commerce/1.x/transactionProcessor/CyberSourceTransaction_1.112.wsdl";
             }
         }
 
@@ -626,8 +630,8 @@ namespace Rock.CyberSource
             request.merchantReferenceCode = Guid.NewGuid().ToString();
             request.clientLibraryVersion = Environment.Version.ToString();
 
-            request.clientApplication = VersionInfo.VersionInfo.GetRockProductVersionFullName();
-            request.clientApplicationVersion = VersionInfo.VersionInfo.GetRockProductVersionNumber();
+            request.clientApplication = VersionInfo.GetRockProductVersionFullName();
+            request.clientApplicationVersion = VersionInfo.GetRockProductVersionNumber();
             request.clientApplicationUser = GetAttributeValue( financialGateway, "OrganizationName" );
             request.clientEnvironment =
                 Environment.OSVersion.Platform +

@@ -15,7 +15,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
 {
     public class GiveController : ApiControllerBase
     {
-        private static string gatewayName = "Rock.CyberSource.Gateway";
+        private static string gatewayName = "cc.newspring.CyberSource.Gateway";
 
         /// <summary>
         /// Schedules the giving.
