@@ -156,6 +156,7 @@ namespace Rock.CyberSource
         {
             errorMessage = string.Empty;
             RequestMessage request = GetPaymentInfo( financialGateway, paymentInfo );
+
             if ( request == null )
             {
                 errorMessage = "Payment type not implemented";
@@ -166,6 +167,7 @@ namespace Rock.CyberSource
             {
                 request.recurringSubscriptionInfo = new RecurringSubscriptionInfo();
             }
+
             request.recurringSubscriptionInfo.startDate = GetStartDate( schedule );
             request.recurringSubscriptionInfo.frequency = GetFrequency( schedule );
             request.recurringSubscriptionInfo.amount = paymentInfo.Amount.ToString();
@@ -195,6 +197,8 @@ namespace Rock.CyberSource
                     var scheduledTransaction = new FinancialScheduledTransaction { Guid = transactionGuid };
                     scheduledTransaction.TransactionCode = reply.paySubscriptionCreateReply.subscriptionID;
                     scheduledTransaction.GatewayScheduleId = reply.paySubscriptionCreateReply.subscriptionID;
+                    scheduledTransaction.FinancialGateway = financialGateway;
+                    scheduledTransaction.FinancialGatewayId = financialGateway.Id;
                     GetScheduledPaymentStatus( scheduledTransaction, out errorMessage );
                     return scheduledTransaction;
                 }
@@ -835,7 +839,7 @@ namespace Rock.CyberSource
         {
             string startDate = string.Empty;
 
-            if ( !schedule.TransactionFrequencyValue.Guid.Equals( Rock.SystemGuid.DefinedValue.TRANSACTION_FREQUENCY_TWICEMONTHLY ) )
+            if ( !schedule.TransactionFrequencyValue.Guid.ToString().Equals( Rock.SystemGuid.DefinedValue.TRANSACTION_FREQUENCY_TWICEMONTHLY, StringComparison.InvariantCultureIgnoreCase ) )
             {
                 startDate = schedule.StartDate.ToString( "yyyyMMdd" );
             }

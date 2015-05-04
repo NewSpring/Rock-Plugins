@@ -18,6 +18,18 @@ namespace cc.newspring.Apollos.Rest.Controllers
         private static string gatewayName = "Rock.CyberSource.Gateway";
 
         /// <summary>
+        /// Schedules the giving.
+        /// </summary>
+        /// <returns></returns>
+        [Authenticate, Secured]
+        [HttpPost]
+        [System.Web.Http.Route( "api/ScheduleGiving" )]
+        public HttpResponseMessage ScheduleGiving()
+        {
+            return GenerateResponse( HttpStatusCode.NotFound, "Coming Soon" );
+        }
+
+        /// <summary>
         /// Gives through CyberSource with the specified give parameters.
         /// </summary>
         /// <param name="giveParameters">The give parameters.</param>

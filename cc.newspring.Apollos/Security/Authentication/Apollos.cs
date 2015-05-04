@@ -32,8 +32,8 @@ namespace Rock.Security.Authentication
     /// Authenticates a username/password using the Rock database
     /// </summary>
     [Description( "Database Authentication Provider" )]
-    [Export(typeof(AuthenticationComponent))]
-    [ExportMetadata("ComponentName", "Database")]
+    [Export( typeof( AuthenticationComponent ) )]
+    [ExportMetadata( "ComponentName", "Database" )]
     public class Database : AuthenticationComponent
     {
         private static byte[] _encryptionKey;
@@ -48,8 +48,8 @@ namespace Rock.Security.Authentication
         public override AuthenticationServiceType ServiceType
         {
             get { return AuthenticationServiceType.Internal; }
-        }        
-        
+        }
+
         /// <summary>
         /// Determines if user is directed to another site (i.e. Facebook, Gmail, Twitter, etc) to confirm approval of using
         /// that site's credentials for authentication.
@@ -108,7 +108,7 @@ namespace Rock.Security.Authentication
             }
             catch { }
 
-            foreach( var encryptionKey in _oldEncryptionKeys )
+            foreach ( var encryptionKey in _oldEncryptionKeys )
             {
                 try
                 {
@@ -258,7 +258,7 @@ namespace Rock.Security.Authentication
         public static string GenerateUsername( string firstName, string lastName, int tryCount = 0 )
         {
             // create username
-            string username = (firstName.Substring( 0, 1 ) + lastName).ToLower();
+            string username = ( firstName.Substring( 0, 1 ) + lastName ).ToLower();
 
             if ( tryCount != 0 )
             {
@@ -274,9 +274,8 @@ namespace Rock.Security.Authentication
             }
             else
             {
-                return Database.GenerateUsername( firstName, lastName, tryCount + 1 );
+                return GenerateUsername( firstName, lastName, tryCount + 1 );
             }
         }
-
     }
 }
