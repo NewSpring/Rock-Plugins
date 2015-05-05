@@ -23,8 +23,10 @@ using System.Net;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using cc.newspring.CyberSource.ITransactionProcessor;
+using Rock.VersionInfo;
 
-namespace Rock.CyberSource.Reporting
+namespace cc.newspring.CyberSource.Reporting
 {
     /// <summary>
     /// Provides interaction with CyberSource XML reporting API
@@ -132,7 +134,7 @@ namespace Rock.CyberSource.Reporting
             XDocument response = null;
 
             HttpWebRequest webRequest = (HttpWebRequest)HttpWebRequest.Create( requestUrl );
-            webRequest.UserAgent = VersionInfo.VersionInfo.GetRockProductVersionFullName();
+            webRequest.UserAgent = VersionInfo.GetRockProductVersionFullName();
             webRequest.Credentials = new NetworkCredential( reportUser, reportPassword );
             webRequest.ContentType = "text/xml; encoding='utf-8'";
             webRequest.Method = "GET";
