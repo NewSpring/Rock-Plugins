@@ -50,6 +50,9 @@
     <Compile Include="Migrations\005_RequestForCriminalRecords.cs" />
     <Compile Include="Migrations\006_FinancialCoaching.cs" />
     <Compile Include="Migrations\007_90DayTithingChallenge.cs" />
+    <Compile Include="Migrations\008_CareRequest.cs" />
+    <Compile Include="Migrations\009_StepUpPledge.cs" />
+    <Compile Include="Migrations\010_WorshipAudition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
