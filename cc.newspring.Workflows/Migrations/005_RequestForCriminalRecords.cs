@@ -258,6 +258,7 @@ namespace cc.newspring.Workflows.Migrations
         /// </summary>
         public override void Down()
         {
+            RockMigrationHelper.DeleteWorkflowType( "9CA0354B-02D1-41CA-805D-1ADDF6B83A6B" );
         }
     }
 }

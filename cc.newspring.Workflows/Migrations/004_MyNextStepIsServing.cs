@@ -25,7 +25,7 @@ using Rock.Plugin;
 
 namespace cc.newspring.Workflows.Migrations
 {
-    [MigrationNumber( 4, "1.2.0" )]
+    [MigrationNumber( 4, "1.3.0" )]
     public class MyNextStepIsServing : Migration
     {
         /// <summary>
@@ -270,6 +270,7 @@ namespace cc.newspring.Workflows.Migrations
         /// </summary>
         public override void Down()
         {
+            RockMigrationHelper.DeleteWorkflowType( "6F5BA05C-24EE-494A-83AB-6F9FE1312461" );
         }
     }
 }

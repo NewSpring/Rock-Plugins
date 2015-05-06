@@ -25,7 +25,7 @@ using Rock.Plugin;
 
 namespace cc.newspring.Workflows.Migrations
 {
-    [MigrationNumber( 3, "1.2.0" )]
+    [MigrationNumber( 3, "1.3.0" )]
     public class MyNextStepIsOwnershipClass : Migration
     {
         /// <summary>
@@ -910,6 +910,7 @@ namespace cc.newspring.Workflows.Migrations
         /// </summary>
         public override void Down()
         {
+            RockMigrationHelper.DeleteWorkflowType( "8A57F52D-A706-405B-911D-E3A5ABF4AF22" );
         }
     }
 }

@@ -25,7 +25,7 @@ using Rock.Plugin;
 
 namespace cc.newspring.Workflows.Migrations
 {
-    [MigrationNumber( 1, "1.2.0" )]
+    [MigrationNumber( 1, "1.3.0" )]
     public class SendAText : Migration
     {
         /// <summary>
@@ -95,6 +95,7 @@ namespace cc.newspring.Workflows.Migrations
         /// </summary>
         public override void Down()
         {
+            RockMigrationHelper.DeleteWorkflowType( "F3218F81-423F-46EA-B748-ED7AB365CD07" );
         }
     }
 }
