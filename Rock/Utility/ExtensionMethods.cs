@@ -104,29 +104,45 @@ namespace Rock
         /// </summary>
         /// <param name="lavaObject">The liquid object.</param>
         /// <param name="rockContext">The rock context.</param>
+        /// <param name="preText">The pre text.</param>
+        /// <param name="postText">The post text.</param>
         /// <returns></returns>
-        public static string lavaDebugInfo( this object lavaObject, RockContext rockContext = null )
+        public static string lavaDebugInfo( this object lavaObject, RockContext rockContext = null, string preText = "", string postText = "" )
         {
             //return liquidObject.LiquidizeChildren( 0, rockContext ).ToJson();
             StringBuilder lavaDebugPanel = new StringBuilder();
             lavaDebugPanel.Append( "<div class='alert alert-info lava-debug'><h4>Lava Debug Info</h4>" );
+
+            lavaDebugPanel.Append( preText );
+
             lavaDebugPanel.Append( "<p>Below is a listing of available merge fields for this block. Find out more on Lava at <a href='http://www.rockrms.com/lava' target='_blank'>rockrms.com/lava</a>." );
 
             lavaDebugPanel.Append( formatLavaDebugInfo( lavaObject.LiquidizeChildren( 0, rockContext ) ) );
+
+            // Add a 'GlobalAttribute' entry if it wasn't part of the LavaObject
+            if ( !( lavaObject is Dictionary<string, object> ) || !( (Dictionary<string, object>)lavaObject ).Keys.Contains( "GlobalAttribute" ) )
+            {
+                var globalAttributes = new Dictionary<string, object>();
+                globalAttributes.Add( "GlobalAttribute", Rock.Web.Cache.GlobalAttributesCache.GetMergeFields( null ) );
+                lavaDebugPanel.Append( formatLavaDebugInfo( globalAttributes.LiquidizeChildren( 0, rockContext ) ) );
+            }
+
+            lavaDebugPanel.Append( postText );
+
             lavaDebugPanel.Append( "</div>" );
 
-            return lavaDebugPanel.ToString() ;
+            return lavaDebugPanel.ToString();
         }
 
         /// <summary>
         /// Liquidizes the child properties of an object for displaying debug information about fields available for lava templates
         /// </summary>
-        /// <param name="liquidObject">The liquid object.</param>
+        /// <param name="myObject">an object.</param>
         /// <param name="levelsDeep">The levels deep.</param>
         /// <param name="rockContext">The rock context.</param>
         /// <param name="parentElement">The parent element.</param>
         /// <returns></returns>
-        private static object LiquidizeChildren( this object liquidObject, int levelsDeep = 0, RockContext rockContext = null, string parentElement = "" )
+        private static object LiquidizeChildren( this object myObject, int levelsDeep = 0, RockContext rockContext = null, string parentElement = "" )
         {
             // Add protection for stack-overflow if property attributes are not set correctly resulting in child/parent objects being evaluated in loop
             levelsDeep++;
@@ -135,39 +151,50 @@ namespace Rock
                 return string.Empty;
             }
 
-            if ( liquidObject == null )
+            // If the object is liquidable, get the object return by it's ToLiquid() method.
+            if ( myObject is DotLiquid.ILiquidizable )
+            {
+                myObject = ( (DotLiquid.ILiquidizable)myObject ).ToLiquid();
+            }
+
+            // If the object is null, return an empty string
+            if ( myObject == null )
             {
                 return string.Empty;
             }
 
-            if ( liquidObject is string )
+            // If the object is a string, return it's value converted to HTML and truncated
+            if ( myObject is string )
             {
-                return liquidObject.ToString().Truncate( 50 ).EncodeHtml();
+                return myObject.ToString().Truncate( 50 ).EncodeHtml();
             }
 
-            if ( liquidObject is Guid )
+            // If the object is a guid, return it's string representation
+            if ( myObject is Guid )
             {
-                return liquidObject.ToString();
+                return myObject.ToString();
             }
 
-            Type entityType = liquidObject.GetType();
+            // Get the object's type ( checking for a proxy object )
+            Type entityType = myObject.GetType();
             if ( entityType.Namespace == "System.Data.Entity.DynamicProxies" )
                 entityType = entityType.BaseType;
 
-            if ( liquidObject is Drop )
+            // If the object is a Liquid Drop object, return a list of all of the object's properties
+            if ( myObject is Drop )
             {
                 var result = new Dictionary<string, object>();
 
-                foreach( var propInfo in entityType.GetProperties(
-                          BindingFlags.Public | 
-                          BindingFlags.Instance | 
+                foreach ( var propInfo in entityType.GetProperties(
+                          BindingFlags.Public |
+                          BindingFlags.Instance |
                           BindingFlags.DeclaredOnly ) )
                 {
                     if ( propInfo != null )
                     {
                         try
                         {
-                            result.Add( propInfo.Name, propInfo.GetValue( liquidObject, null ).LiquidizeChildren( levelsDeep, rockContext ) );
+                            result.Add( propInfo.Name, propInfo.GetValue( myObject, null ).LiquidizeChildren( levelsDeep, rockContext ) );
                         }
                         catch ( Exception ex )
                         {
@@ -179,6 +206,7 @@ namespace Rock
                 return result;
             }
 
+            // If the object has the [LiquidType] attribute, enumerate the allowed properties and return a list of those properties
             if ( entityType.GetCustomAttributes( typeof( LiquidTypeAttribute ), false ).Any() )
             {
                 var result = new Dictionary<string, object>();
@@ -192,7 +220,7 @@ namespace Rock
                         {
                             try
                             {
-                                result.Add( propInfo.Name, propInfo.GetValue( liquidObject, null ).LiquidizeChildren( levelsDeep, rockContext, parentElement + "." + propName ) );
+                                result.Add( propInfo.Name, propInfo.GetValue( myObject, null ).LiquidizeChildren( levelsDeep, rockContext, parentElement + "." + propName ) );
                             }
                             catch ( Exception ex )
                             {
@@ -205,28 +233,30 @@ namespace Rock
                 return result;
             }
 
-            if ( liquidObject is ILiquidizable )
+            // If the object is a Rock Liquidizable object, call the object's AvailableKeys method to determine the properties available.
+            if ( myObject is Lava.ILiquidizable )
             {
+                var liquidObject = (Lava.ILiquidizable)myObject;
+
                 var result = new Dictionary<string, object>();
 
-                bool isEntity = ( liquidObject is IEntity );
-                foreach ( var propInfo in entityType.GetProperties() )
+                foreach ( var key in liquidObject.AvailableKeys )
                 {
-                    if ( propInfo.Name != "Attributes" &&
-                        propInfo.Name != "AttributeValues" &&
-                        ( !isEntity ||
-                            propInfo.GetCustomAttributes( typeof( System.Runtime.Serialization.DataMemberAttribute ) ).Count() > 0 ||
-                            propInfo.GetCustomAttributes( typeof( Rock.Data.LavaIncludeAttribute ) ).Count() > 0 ) &&
-                        propInfo.GetCustomAttributes( typeof( Rock.Data.LavaIgnoreAttribute ) ).Count() <= 0 )
+                    try
                     {
-                        try
+                        object propValue = liquidObject[key];
+                        if ( propValue != null )
                         {
-                            result.Add( propInfo.Name, propInfo.GetValue( liquidObject, null ).LiquidizeChildren( levelsDeep, rockContext, parentElement + "." + propInfo.Name ) );
+                            result.Add( key, propValue.LiquidizeChildren( levelsDeep, rockContext, parentElement + "." + key ) );
                         }
-                        catch ( Exception ex )
+                        else
                         {
-                            result.Add( propInfo.Name, ex.ToString() );
+                            result.AddOrIgnore( key, string.Empty );
                         }
+                    }
+                    catch ( Exception ex )
+                    {
+                        result.AddOrIgnore( key, ex.ToString() );
                     }
                 }
 
@@ -250,18 +280,18 @@ namespace Rock
 
                     if ( objAttrs.Any() )
                     {
-                        result.Add( string.Format("Attributes <p class='attributes'>Below is a list of attributes that can be retrieved using <code>{{ {0} | Attribute:'[AttributeKey]' }}</code>.</p>", parentElement), objAttrs );
+                        result.Add( string.Format( "Attributes <p class='attributes'>Below is a list of attributes that can be retrieved using <code>{{ {0} | Attribute:'[AttributeKey]' }}</code>.</p>", parentElement ), objAttrs );
                     }
                 }
 
                 return result;
             }
 
-            if ( liquidObject is IDictionary<string, object> )
+            if ( myObject is IDictionary<string, object> )
             {
                 var result = new Dictionary<string, object>();
 
-                foreach ( var keyValue in ( (IDictionary<string, object>)liquidObject ) )
+                foreach ( var keyValue in ( (IDictionary<string, object>)myObject ) )
                 {
                     try
                     {
@@ -276,11 +306,11 @@ namespace Rock
                 return result;
             }
 
-            if ( liquidObject is IEnumerable )
+            if ( myObject is IEnumerable )
             {
                 var result = new List<object>();
 
-                foreach ( var value in ( (IEnumerable)liquidObject ) )
+                foreach ( var value in ( (IEnumerable)myObject ) )
                 {
                     try
                     {
@@ -292,9 +322,9 @@ namespace Rock
                 return result;
             }
 
-            return liquidObject.ToStringSafe();
+            return myObject.ToStringSafe();
         }
-        
+
         private static string formatLavaDebugInfo( object liquidizedObject, int levelsDeep = 0, string parents = "" )
         {
             if ( liquidizedObject is string )
@@ -308,7 +338,8 @@ namespace Rock
 
                 bool isTopLevel = levelsDeep == 0;
 
-                if ( !isTopLevel ) { 
+                if ( !isTopLevel )
+                {
                     sb.AppendFormat( "{0}<ul>{0}", Environment.NewLine );
                 }
 
@@ -319,18 +350,19 @@ namespace Rock
                         if ( keyVal.Value is string )
                         {
                             // item is a root level property
-                            sb.Append( string.Format("<ul><li><span class='lava-debug-key'>{0}</span> - {1}</li></ul>{2}", keyVal.Key, keyVal.Value.ToString(), Environment.NewLine ));
+                            sb.Append( string.Format( "<ul><li><span class='lava-debug-key'>{0}</span> - {1}</li></ul>{2}", keyVal.Key, keyVal.Value.ToString(), Environment.NewLine ) );
                         }
-                        else { 
-                            // item is a root level object                
+                        else
+                        {
+                            // item is a root level object
 
                             string panelId = Guid.NewGuid().ToString();
 
                             sb.Append( "<div class='panel panel-default panel-lavadebug'>" );
 
                             sb.Append( string.Format( "<div class='panel-heading clearfix collapsed' data-toggle='collapse' data-target='#collapse-{0}'>", panelId ) );
-                            sb.Append( string.Format("<h5 class='panel-title pull-left'>{0}</h5> <div class='pull-right'><i class='fa fa-chevron-up'></i></div>", keyVal.Key ));
-                            sb.Append( "</div>");
+                            sb.Append( string.Format( "<h5 class='panel-title pull-left'>{0}</h5> <div class='pull-right'><i class='fa fa-chevron-up'></i></div>", keyVal.Key.SplitCase() ) );
+                            sb.Append( "</div>" );
 
                             sb.Append( string.Format( "<div id='collapse-{0}' class='panel-collapse collapse'>", panelId ) );
                             sb.Append( "<div class='panel-body'>" );
@@ -339,25 +371,17 @@ namespace Rock
                             {
                                 sb.Append( "<p>Global attributes should be accessed using <code>{{ 'Global' | Attribute:'[AttributeKey]' }}</code>. Find out more about using Global Attributes in Lava at <a href='http://www.rockrms.com/lava/globalattributes' target='_blank'>rockrms.com/lava/globalattributes</a>.</p>" );
                             }
+                            else if ( keyVal.Value is List<object> )
+                            {
+                                sb.Append( string.Format( "<p>{0} properties can be accessed by <code>{{% for {2} in {1} %}}{{{{ {2}.[PropertyKey] }}}}{{% endfor %}}</code>.</p>", char.ToUpper( keyVal.Key[0] ) + keyVal.Key.Substring( 1 ), keyVal.Key, keyVal.Key.Singularize().ToLower() ) );
+                            }
+                            else if ( keyVal.Key == "CurrentPerson" )
+                            {
+                                sb.Append( string.Format( "<p>{0} properties can be accessed by <code>{{{{ {1}.[PropertyKey] }}}}</code>. Find out more about using 'Person' fields in Lava at <a href='http://www.rockrms.com/lava/person' target='_blank'>rockrms.com/lava/person</a>.</p>", char.ToUpper( keyVal.Key[0] ) + keyVal.Key.Substring( 1 ), keyVal.Key ) );
+                            }
                             else
                             {
-                                if ( keyVal.Value is List<object> )
-                                {
-                                    sb.Append( string.Format( "<p>{0} properties can be accessed by <code>{{% for {2} in {1} %}}{{{{ {2}.[PropertyKey] }}}}{{% endfor %}}</code>.</p>", char.ToUpper( keyVal.Key[0] ) + keyVal.Key.Substring( 1 ), keyVal.Key, keyVal.Key.Singularize() ) );
-                                }
-                                else
-                                {
-                                    if ( keyVal.Key == "CurrentPerson" )
-                                    {
-                                        sb.Append( string.Format( "<p>{0} properties can be accessed by <code>{{{{ {1}.[PropertyKey] }}}}</code>. Find out more about using 'Person' fields in Lava at <a href='http://www.rockrms.com/lava/person' target='_blank'>rockrms.com/lava/person</a>.</p>", char.ToUpper( keyVal.Key[0] ) + keyVal.Key.Substring( 1 ), keyVal.Key ) );
-                                    }
-                                    else
-                                    {
-                                        sb.Append( string.Format( "<p>{0} properties can be accessed by <code>{{{{ {1}.[PropertyKey] }}}}</code>.</p>", char.ToUpper( keyVal.Key[0] ) + keyVal.Key.Substring( 1 ), keyVal.Key ) );
-                                    }
-                                    
-                                    
-                                }
+                                sb.Append( string.Format( "<p>{0} properties can be accessed by <code>{{{{ {1}.[PropertyKey] }}}}</code>.</p>", char.ToUpper( keyVal.Key[0] ) + keyVal.Key.Substring( 1 ), keyVal.Key ) );
                             }
 
                             string value = formatLavaDebugInfo( keyVal.Value, 1, keyVal.Key );
@@ -370,12 +394,10 @@ namespace Rock
                     }
                     else
                     {
-                        string section = (keyVal.Value is string) ? "" : string.Format( " lava-debug-section level-{0}", levelsDeep );
-
+                        string section = ( keyVal.Value is string ) ? "" : string.Format( " lava-debug-section level-{0}", levelsDeep );
                         string value = formatLavaDebugInfo( keyVal.Value, levelsDeep + 1, parents + "." + keyVal.Key );
                         sb.AppendFormat( "<li><span class='lava-debug-key{0}'>{1}</span> {2}</li>{3}", section, keyVal.Key, value, Environment.NewLine );
                     }
-
                 }
 
                 if ( !isTopLevel )
@@ -397,7 +419,7 @@ namespace Rock
                 {
                     string value = formatLavaDebugInfo( obj, 1, parents );
                     sb.AppendFormat( "<li>[{0}] {1}</li>{2}", i.ToString(), value, Environment.NewLine );
-                    i ++;
+                    i++;
                 }
                 sb.AppendLine( "</ul>}" );
                 return sb.ToString();
@@ -406,7 +428,7 @@ namespace Rock
             return string.Empty;
         }
 
-        #endregion
+        #endregion Object Extensions
 
         #region Type Extensions
 
@@ -446,7 +468,7 @@ namespace Rock
             }
         }
 
-        #endregion
+        #endregion Type Extensions
 
         #region String Extensions
 
@@ -482,7 +504,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// Returns a string array that contains the substrings in this string that are delimited by any combination of whitespace, comma, semi-colon, or pipe characters
+        /// Returns a string array that contains the substrings in this string that are delimited by any combination of whitespace, comma, semi-colon, or pipe characters.
         /// </summary>
         /// <param name="str">The string.</param>
         /// <param name="whitespace">if set to <c>true</c> whitespace will be treated as a delimiter</param>
@@ -499,7 +521,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// Returns a List of ListItems that contains the values/text in this string that are formatted as either 'value1,value2,value3,...' or 'value1^text1,value2^text2,value3^text3,...'
+        /// Returns a List of ListItems that contains the values/text in this string that are formatted as either 'value1,value2,value3,...' or 'value1^text1,value2^text2,value3^text3,...'.
         /// </summary>
         /// <param name="str">The string.</param>
         /// <returns></returns>
@@ -523,7 +545,7 @@ namespace Rock
 
         /// <summary>
         /// Replaces every instance of oldValue (regardless of case) with the newValue.
-        /// from http://www.codeproject.com/Articles/10890/Fastest-C-Case-Insenstive-String-Replace
+        /// (from http://www.codeproject.com/Articles/10890/Fastest-C-Case-Insenstive-String-Replace)
         /// </summary>
         /// <param name="str">The source string.</param>
         /// <param name="oldValue">The value to replace.</param>
@@ -580,7 +602,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// Adds escape character for quotes in a string
+        /// Adds escape character for quotes in a string.
         /// </summary>
         /// <param name="str"></param>
         /// <returns></returns>
@@ -593,7 +615,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// Adds Quotes around the specified string and escapes any quotes that are already in the string
+        /// Adds Quotes around the specified string and escapes any quotes that are already in the string.
         /// </summary>
         /// <param name="str">The string.</param>
         /// <param name="QuoteChar">The quote character.</param>
@@ -623,7 +645,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// Truncates a string after a max length and adds ellipsis.  Truncation will occur at first space prior to maxLength
+        /// Truncates a string after a max length and adds ellipsis.  Truncation will occur at first space prior to maxLength.
         /// </summary>
         /// <param name="str"></param>
         /// <param name="maxLength"></param>
@@ -680,7 +702,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// Removes any non-numeric characters
+        /// Removes any non-numeric characters.
         /// </summary>
         /// <param name="str"></param>
         /// <returns></returns>
@@ -690,12 +712,12 @@ namespace Rock
         }
 
         /// <summary>
-        /// The true strings for AsBoolean and AsBooleanOrNull
+        /// The true strings for AsBoolean and AsBooleanOrNull.
         /// </summary>
         private static string[] trueStrings = new string[] { "true", "yes", "t", "y", "1" };
 
         /// <summary>
-        /// Returns True for 'True', 'Yes', 'T', 'Y', '1' (case-insensitive)
+        /// Returns True for 'True', 'Yes', 'T', 'Y', '1' (case-insensitive).
         /// </summary>
         /// <param name="str">The string.</param>
         /// <param name="resultIfNullOrEmpty">if set to <c>true</c> [result if null or empty].</param>
@@ -711,7 +733,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// Returns True for 'True', 'Yes', 'T', 'Y', '1' (case-insensitive), null for emptystring/null
+        /// Returns True for 'True', 'Yes', 'T', 'Y', '1' (case-insensitive), null for emptystring/null.
         /// </summary>
         /// <param name="str">The string.</param>
         /// <returns></returns>
@@ -903,12 +925,39 @@ namespace Rock
         /// </summary>
         /// <param name="content">The content.</param>
         /// <param name="mergeObjects">The merge objects.</param>
+        /// <param name="currentPersonOverride">The current person override.</param>
+        /// <returns></returns>
+        public static string ResolveMergeFields( this string content, IDictionary<string, object> mergeObjects, Person currentPersonOverride )
+        {
+            try
+            {
+                if ( !content.HasMergeFields() )
+                {
+                    return content ?? string.Empty;
+                }
+
+                Template template = Template.Parse( content );
+                template.InstanceAssigns.Add( "CurrentPerson", currentPersonOverride );
+                return template.Render( Hash.FromDictionary( mergeObjects ) );
+            }
+            catch ( Exception ex )
+            {
+                return "Error resolving Lava merge fields: " + ex.Message;
+            }
+        }
+
+        /// <summary>
+        /// Use DotLiquid to resolve any merge codes within the content using the values
+        /// in the mergeObjects.
+        /// </summary>
+        /// <param name="content">The content.</param>
+        /// <param name="mergeObjects">The merge objects.</param>
         /// <returns></returns>
         public static string ResolveMergeFields( this string content, IDictionary<string, object> mergeObjects )
         {
             try
             {
-                if (!content.HasMergeFields())
+                if ( !content.HasMergeFields() )
                 {
                     return content ?? string.Empty;
                 }
@@ -923,11 +972,22 @@ namespace Rock
         }
 
         /// <summary>
-        /// Determines whether [has merge fields] [the specified content].
+        /// Resolve any client ids in the string. This is used with Lava when writing out postback commands.
+        /// </summary>
+        /// <param name="content">The content.</param>
+        /// <param name="clientId">The client identifier.</param>
+        /// <returns></returns>
+        public static string ResolveClientIds( this string content, string clientId )
+        {
+            return content.Replace( "[ClientId]", clientId );
+        }
+
+        /// <summary>
+        /// Determines whether string has merge fields in it.
         /// </summary>
         /// <param name="content">The content.</param>
         /// <returns></returns>
-        public static bool HasMergeFields( this string content)
+        public static bool HasMergeFields( this string content )
         {
             if ( content == null )
                 return false;
@@ -940,22 +1000,31 @@ namespace Rock
         }
 
         /// <summary>
-        /// Converts string to a HTML title "<span class='first-word'>first-word</span> rest of string"
+        /// Converts string to a HTML title "<span class='first-word'>first-word</span> rest of string".
         /// </summary>
         /// <param name="str">The STR.</param>
         /// <returns></returns>
         public static string FormatAsHtmlTitle( this string str )
         {
-            // Remove any HTML
-            string encodedStr = System.Web.HttpUtility.HtmlEncode( str );
+            if ( !string.IsNullOrWhiteSpace( str ) )
+            {
+                // Remove any HTML
+                string encodedStr = System.Web.HttpUtility.HtmlEncode( str );
 
-            // split first word from rest of string
-            int endOfFirstWord = encodedStr.IndexOf( " " );
+                // split first word from rest of string
+                int endOfFirstWord = encodedStr.IndexOf( " " );
 
-            if ( endOfFirstWord != -1 )
-                return "<span class='first-word'>" + encodedStr.Substring( 0, endOfFirstWord ) + " </span> " + encodedStr.Substring( endOfFirstWord, encodedStr.Length - endOfFirstWord );
-            else
-                return "<span class='first-word'>" + encodedStr + " </span>";
+                if ( endOfFirstWord != -1 )
+                {
+                    return "<span class='first-word'>" + encodedStr.Substring( 0, endOfFirstWord ) + " </span> " + encodedStr.Substring( endOfFirstWord, encodedStr.Length - endOfFirstWord );
+                }
+                else
+                {
+                    return "<span class='first-word'>" + encodedStr + " </span>";
+                }
+            }
+
+            return string.Empty;
         }
 
         /// <summary>
@@ -987,9 +1056,9 @@ namespace Rock
 
             return str.Replace( "<br/>", Environment.NewLine ).Replace( "<br>", Environment.NewLine );
         }
-        
+
         /// <summary>
-        /// HTML Encodes the string
+        /// HTML Encodes the string.
         /// </summary>
         /// <param name="str">The string.</param>
         /// <returns></returns>
@@ -999,7 +1068,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// Sanitizes the HTML by removing tags.  If Scrict is true, all html tags will be removed, if false, only a blacklist of specific XSS dangerous tags and attribute values are removed.
+        /// Sanitizes the HTML by removing tags.  If strict is true, all html tags will be removed, if false, only a blacklist of specific XSS dangerous tags and attribute values are removed.
         /// </summary>
         /// <param name="html">The HTML.</param>
         /// <param name="strict">if set to <c>true</c> [strict].</param>
@@ -1008,9 +1077,10 @@ namespace Rock
         {
             if ( strict )
             {
-                var allowedElements = new Dictionary<string, string[]>();
-                var allowedAttributes = new Dictionary<string, string[]>();
-                return new AjaxControlToolkit.Sanitizer.HtmlAgilityPackSanitizerProvider().GetSafeHtmlFragment( html, allowedElements, allowedAttributes );
+                // from http://stackoverflow.com/a/18154152/
+                HtmlAgilityPack.HtmlDocument doc = new HtmlAgilityPack.HtmlDocument();
+                doc.LoadHtml( html );
+                return doc.DocumentNode.InnerText;
             }
             else
             {
@@ -1065,7 +1135,8 @@ namespace Rock
         }
 
         /// <summary>
-        /// Maskeds the specified value.
+        /// Masks the specified value if greater than 4 characters (such as a credit card number).
+        /// For example, the return string becomes "************6789".
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns></returns>
@@ -1102,7 +1173,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// Evaluates string and if null or empty returns nullValue instead
+        /// Evaluates string, and if null or empty, returns nullValue instead.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <param name="nullValue">The null value.</param>
@@ -1113,7 +1184,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// Compares to.
+        /// Compares to the given value returning true if comparable.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <param name="compareValue">The compare value.</param>
@@ -1182,11 +1253,9 @@ namespace Rock
             }
 
             return false;
-
         }
 
-
-        #endregion
+        #endregion String Extensions
 
         #region Int Extensions
 
@@ -1207,12 +1276,12 @@ namespace Rock
                 return string.Empty;
         }
 
-        #endregion
+        #endregion Int Extensions
 
         #region Boolean Extensions
 
         /// <summary>
-        /// A numeric 1 or 0
+        /// Returns a numeric 1 (if true) or 0 (if false).
         /// </summary>
         /// <param name="field"></param>
         /// <returns></returns>
@@ -1222,7 +1291,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// To the yes no.
+        /// Returns either "Yes" or "No".
         /// </summary>
         /// <param name="value">if set to <c>true</c> [value].</param>
         /// <returns></returns>
@@ -1232,7 +1301,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// To the true false.
+        /// Returns the string "True" or "False".
         /// </summary>
         /// <param name="value">if set to <c>true</c> [value].</param>
         /// <returns></returns>
@@ -1242,7 +1311,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// Froms the true false.
+        /// Use AsBoolean() instead.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns></returns>
@@ -1252,12 +1321,12 @@ namespace Rock
             return value.Equals( "True" );
         }
 
-        #endregion
+        #endregion Boolean Extensions
 
         #region DateTime Extensions
 
         /// <summary>
-        /// Returns the age at the current date
+        /// Returns the age at the current date.
         /// </summary>
         /// <param name="start"></param>
         /// <returns></returns>
@@ -1270,7 +1339,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// Returns the age at the current date
+        /// Returns the age at the current date.
         /// </summary>
         /// <param name="start"></param>
         /// <returns></returns>
@@ -1384,7 +1453,7 @@ namespace Rock
 
         /// <summary>
         /// Returns a string in FB style relative format (x seconds ago, x minutes ago, about an hour ago, etc.).
-        /// or if max days has already passed in FB datetime format (February 13 at 11:28am or November 5, 2011 at 1:57pm)
+        /// or if max days has already passed in FB datetime format (February 13 at 11:28am or November 5, 2011 at 1:57pm).
         /// </summary>
         /// <param name="dateTime">the datetime to convert to relative time.</param>
         /// <param name="maxDays">maximum number of days before formatting in FB date-time format (ex. November 5, 2011 at 1:57pm)</param>
@@ -1404,7 +1473,7 @@ namespace Rock
         /// <summary>
         /// Returns a string in relative format (x seconds ago, x minutes ago, about an hour ago, in x seconds,
         /// in x minutes, in about an hour, etc.) or if time difference is greater than max days in long format (February
-        /// 13 at 11:28am or November 5, 2011 at 1:57pm)
+        /// 13 at 11:28am or November 5, 2011 at 1:57pm).
         /// </summary>
         /// <param name="dateTime">the datetime to convert to relative time.</param>
         /// <param name="maxDays">maximum number of days before formatting in long format (ex. November 5, 2011 at 1:57pm) </param>
@@ -1506,7 +1575,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// Converts the date to an Epoch of milliseconds since 1970/1/1
+        /// Converts the date to an Epoch of milliseconds since 1970/1/1.
         /// </summary>
         /// <param name="dateTime">The date time.</param>
         /// <returns></returns>
@@ -1528,22 +1597,23 @@ namespace Rock
             return dateTime.ToString( mdp );
         }
 
-        #endregion
+        #endregion DateTime Extensions
 
         #region TimeSpan Extensions
 
         /// <summary>
-        /// Returns a TimeSpan to HH:MM AM/PM.
+        /// Returns a TimeSpan as h:mm AM/PM (culture invariant)
         /// Examples: 1:45 PM, 12:01 AM
         /// </summary>
         /// <param name="timespan">The timespan.</param>
         /// <returns></returns>
         public static string ToTimeString( this TimeSpan timespan )
         {
-            return RockDateTime.Today.Add( timespan ).ToShortTimeString();
+            // since the comments on this say HH:MM AM/PM, make sure to return the time in that format
+            return RockDateTime.Today.Add( timespan ).ToString("h:mm tt", System.Globalization.CultureInfo.InvariantCulture);
         }
 
-        #endregion
+        #endregion TimeSpan Extensions
 
         #region Control Extensions
 
@@ -1592,7 +1662,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// Parents the update panel.
+        /// Returns the parent update panel for the given control (or null if none is found).
         /// </summary>
         /// <param name="control">The control.</param>
         /// <returns></returns>
@@ -1611,7 +1681,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// Gets all controls of Type recursively
+        /// Gets all controls of Type recursively.
         /// http://stackoverflow.com/questions/7362482/c-sharp-get-all-web-controls-on-page
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -1634,7 +1704,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// Gets all controls of Type recursively
+        /// Gets all controls of Type recursively.
         /// http://stackoverflow.com/questions/7362482/c-sharp-get-all-web-controls-on-page
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -1647,16 +1717,16 @@ namespace Rock
             return result;
         }
 
-        #endregion
+        #endregion Control Extensions
 
         #region WebControl Extensions
 
         /// <summary>
-        /// Adds a CSS class name to a web control
+        /// Adds a CSS class name to a web control.
         /// </summary>
         /// <param name="webControl">The web control.</param>
         /// <param name="className">Name of the class.</param>
-        public static void AddCssClass( this System.Web.UI.WebControls.WebControl webControl, string className )
+        public static WebControl AddCssClass( this WebControl webControl, string className )
         {
             string match = @"(^|\s+)" + className + @"($|\s+)";
             string css = webControl.CssClass;
@@ -1665,7 +1735,10 @@ namespace Rock
             {
                 css += " " + className;
             }
+
             webControl.CssClass = css.Trim();
+
+            return webControl;
         }
 
         /// <summary>
@@ -1673,7 +1746,7 @@ namespace Rock
         /// </summary>
         /// <param name="webControl">The web control.</param>
         /// <param name="className">Name of the class.</param>
-        public static void RemoveCssClass( this System.Web.UI.WebControls.WebControl webControl, string className )
+        public static WebControl RemoveCssClass( this WebControl webControl, string className )
         {
             string match = @"(^|\s+)" + className + @"($|\s+)";
             string css = webControl.CssClass;
@@ -1684,14 +1757,16 @@ namespace Rock
             }
 
             webControl.CssClass = css.Trim();
+
+            return webControl;
         }
 
-        #endregion
+        #endregion WebControl Extensions
 
         #region HtmlControl Extensions
 
         /// <summary>
-        /// Adds a CSS class name to an html control
+        /// Adds a CSS class name to an html control.
         /// </summary>
         /// <param name="htmlControl">The html control.</param>
         /// <param name="className">Name of the class.</param>
@@ -1718,12 +1793,12 @@ namespace Rock
                 htmlControl.Attributes["class"] = Regex.Replace( css, match, "", RegexOptions.IgnoreCase );
         }
 
-        #endregion
+        #endregion HtmlControl Extensions
 
         #region CheckBoxList Extensions
 
         /// <summary>
-        /// Sets the values.
+        /// Sets the Selected property of each item to true for each given matching string values.
         /// </summary>
         /// <param name="checkBoxList">The check box list.</param>
         /// <param name="values">The values.</param>
@@ -1736,7 +1811,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// Sets the values.
+        /// Sets the Selected property of each item to true for each given matching int values.
         /// </summary>
         /// <param name="checkBoxList">The check box list.</param>
         /// <param name="values">The values.</param>
@@ -1749,25 +1824,45 @@ namespace Rock
             }
         }
 
-        #endregion
+        #endregion CheckBoxList Extensions
 
         #region ListControl Extensions
 
         /// <summary>
-        /// Try's to set the selected value, if the value does not exist, will set the first item in the list
+        /// Tries to set the selected value, if the value does not exist, it will attempt to set the value to defaultValue (if specified), 
+        /// otherwise it will set the first item in the list.
         /// </summary>
         /// <param name="listControl">The list control.</param>
         /// <param name="value">The value.</param>
-        public static void SetValue( this ListControl listControl, string value )
+        /// <param name="defaultValue">The default value.</param>
+        public static void SetValue( this ListControl listControl, string value, string defaultValue = null )
         {
             try
             {
-                listControl.SelectedValue = value;
+                var valueItem = listControl.Items.FindByValue( value );
+                if (valueItem == null && defaultValue != null)
+                {
+                    valueItem = listControl.Items.FindByValue( defaultValue );
+                }
+
+                if ( valueItem != null )
+                {
+                    listControl.SelectedValue = valueItem.Value;
+                }
+                else
+                {
+                    if ( listControl.Items.Count > 0 )
+                    {
+                        listControl.SelectedIndex = 0;
+                    }
+                }
             }
             catch
             {
                 if ( listControl.Items.Count > 0 )
+                {
                     listControl.SelectedIndex = 0;
+                }
             }
         }
 
@@ -1783,7 +1878,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// Try's to set the selected value. If the value does not exist, will set the first item in the list
+        /// Tries to set the selected value. If the value does not exist, will set the first item in the list.
         /// </summary>
         /// <param name="listControl">The list control.</param>
         /// <param name="value">The value.</param>
@@ -1793,7 +1888,17 @@ namespace Rock
         }
 
         /// <summary>
-        /// Sets the value to the entity's id value. If the value does not exist, will set the first item in the list
+        /// Tries to set the selected value. If the value does not exist, will set the first item in the list.
+        /// </summary>
+        /// <param name="listControl">The list control.</param>
+        /// <param name="value">The value.</param>
+        public static void SetValue( this ListControl listControl, Guid? value )
+        {
+            listControl.SetValue( value == null ? "" : value.ToString() );
+        }
+
+        /// <summary>
+        /// Sets the value to the entity's id value. If the value does not exist, will set the first item in the list.
         /// </summary>
         /// <param name="listControl">The list control.</param>
         /// <param name="entity">The entity.</param>
@@ -1829,7 +1934,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// Binds to the values of a definedType
+        /// Binds to the values of a definedType.
         /// </summary>
         /// <param name="listControl">The list control.</param>
         /// <param name="definedType">Type of the defined.</param>
@@ -1858,7 +1963,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// Returns the Value as Int or null if Value is <see cref="T:Rock.Constants.None"/>
+        /// Returns the Value as Int or null if Value is <see cref="T:Rock.Constants.None"/>.
         /// </summary>
         /// <param name="listControl">The list control.</param>
         /// <param name="NoneAsNull">if set to <c>true</c>, will return Null if SelectedValue = <see cref="T:Rock.Constants.None" /> </param>
@@ -1927,7 +2032,7 @@ namespace Rock
         {
             return listControl.SelectedValue.ConvertToEnumOrNull<T>( defaultValue );
         }
-        
+
         /// <summary>
         /// Selecteds the value as unique identifier.
         /// </summary>
@@ -1945,12 +2050,12 @@ namespace Rock
             }
         }
 
-        #endregion
+        #endregion ListControl Extensions
 
         #region Enum Extensions
 
         /// <summary>
-        /// Converts to the enum value to it's string value
+        /// Converts to the enum value to it's string value.
         /// </summary>
         /// <param name="eff">The eff.</param>
         /// <param name="SplitCase">if set to <c>true</c> [split case].</param>
@@ -2011,8 +2116,8 @@ namespace Rock
         /// <returns></returns>
         public static T ConvertToEnum<T>( this string enumValue, T? defaultValue = null ) where T : struct // actually limited to enum, but struct is the closest we can do
         {
-            T? result = ConvertToEnumOrNull<T>(enumValue, defaultValue);
-            if (result.HasValue)
+            T? result = ConvertToEnumOrNull<T>( enumValue, defaultValue );
+            if ( result.HasValue )
             {
                 return result.Value;
             }
@@ -2032,7 +2137,7 @@ namespace Rock
         public static T? ConvertToEnumOrNull<T>( this string enumValue, T? defaultValue = null ) where T : struct // actually limited to enum, but struct is the closest we can do
         {
             T result;
-            if ( Enum.TryParse<T>( (enumValue ?? "").Replace( " ", "" ), out result ) && Enum.IsDefined( typeof( T ), result ) )
+            if ( Enum.TryParse<T>( ( enumValue ?? "" ).Replace( " ", "" ), out result ) && Enum.IsDefined( typeof( T ), result ) )
             {
                 return result;
             }
@@ -2049,12 +2154,12 @@ namespace Rock
             }
         }
 
-        #endregion
+        #endregion Enum Extensions
 
         #region GenericCollection Extensions
 
         /// <summary>
-        /// Concatonate the items
+        /// Concatonate the items.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="items">The items.</param>
@@ -2069,17 +2174,27 @@ namespace Rock
         }
 
         /// <summary>
-        /// Converts a List&lt;string&gt; to List&lt;guid&gt; only returning items that could be converted to a guid
+        /// Converts a List&lt;string&gt; to List&lt;guid&gt; only returning items that could be converted to a guid.
         /// </summary>
         /// <param name="items">The items.</param>
         /// <returns></returns>
-        public static List<Guid> AsGuidList( this IEnumerable<string> items)
+        public static List<Guid> AsGuidList( this IEnumerable<string> items )
         {
             return items.Select( a => a.AsGuidOrNull() ).Where( a => a.HasValue ).Select( a => a.Value ).ToList();
         }
 
         /// <summary>
-        /// Converts a List&lt;string&gt; to List&lt;int&gt; only returning items that could be converted to a int
+        /// Converts a List&lt;string&gt; to List&lt;guid&gt; return a null for items that could not be converted to a guid
+        /// </summary>
+        /// <param name="items">The items.</param>
+        /// <returns></returns>
+        public static List<Guid?> AsGuidOrNullList( this IEnumerable<string> items )
+        {
+            return items.Select( a => a.AsGuidOrNull() ).ToList();
+        }
+
+        /// <summary>
+        /// Converts a List&lt;string&gt; to List&lt;int&gt; only returning items that could be converted to a int.
         /// </summary>
         /// <param name="items">The items.</param>
         /// <returns></returns>
@@ -2089,7 +2204,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// Joins a dictionary of items
+        /// Joins a dictionary of items.
         /// </summary>
         /// <param name="items">The items.</param>
         /// <param name="delimter">The delimter.</param>
@@ -2102,7 +2217,31 @@ namespace Rock
             return string.Join( delimter, parms.ToArray() );
         }
 
-        #endregion
+        /// <summary>
+        /// Recursively flattens the specified source.
+        /// http://stackoverflow.com/questions/5422735/how-do-i-select-recursive-nested-entities-using-linq-to-entity/5423024#5423024
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source">The source.</param>
+        /// <param name="childSelector">The child selector.</param>
+        /// <returns></returns>
+        public static IEnumerable<T> Flatten<T>( this IEnumerable<T> source, Func<T, IEnumerable<T>> childSelector )
+        {
+            // Flatten all the items without recursion or potential memory overflow
+            var itemStack = new Stack<T>( source );
+            while ( itemStack.Count > 0 )
+            {
+                T item = itemStack.Pop();
+                yield return item;
+
+                foreach ( T child in childSelector( item ) )
+                {
+                    itemStack.Push( child );
+                }
+            }
+        }
+
+        #endregion GenericCollection Extensions
 
         #region IQueryable extensions
 
@@ -2166,7 +2305,7 @@ namespace Rock
             return queryable;
         }
 
-        #endregion
+        #endregion Where
 
         /// <summary>
         /// Orders the list by the name of a property.
@@ -2181,7 +2320,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// Orders the list by the name of a property in descending order
+        /// Orders the list by the name of a property in descending order.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="source">The type of object.</param>
@@ -2205,7 +2344,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// Then Orders the list by a a property in descending order
+        /// Then Orders the list by a a property in descending order.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="source">The type of object.</param>
@@ -2283,7 +2422,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// Filters a Query to rows that have matching attribute value
+        /// Filters a Query to rows that have matching attribute value.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="source">The source.</param>
@@ -2308,16 +2447,25 @@ namespace Rock
             return result;
         }
 
-        #endregion
+        #endregion IQueryable extensions
 
         #region IHasAttributes extensions
+
+        /// <summary>
+        /// Loads the attribute.
+        /// </summary>
+        /// <param name="entity">The entity.</param>
+        public static void LoadAttributes( this Rock.Attribute.IHasAttributes entity )
+        {
+            Rock.Attribute.Helper.LoadAttributes( entity );
+        }
 
         /// <summary>
         /// Loads the attributes.
         /// </summary>
         /// <param name="entity">The entity.</param>
         /// <param name="rockContext">The rock context.</param>
-        public static void LoadAttributes( this Rock.Attribute.IHasAttributes entity, RockContext rockContext = null )
+        public static void LoadAttributes( this Rock.Attribute.IHasAttributes entity, RockContext rockContext )
         {
             Rock.Attribute.Helper.LoadAttributes( entity, rockContext );
         }
@@ -2342,27 +2490,27 @@ namespace Rock
             Rock.Attribute.Helper.CopyAttributes( source, entity );
         }
 
-        #endregion
+        #endregion IHasAttributes extensions
 
         #region Route Extensions
 
         /// <summary>
-        /// Pages the id.
+        /// Returns the page Id of the route or -1 if not found.
         /// </summary>
         /// <param name="route">The route.</param>
         /// <returns></returns>
         public static int PageId( this Route route )
         {
-            if ( route.DataTokens != null )
+            if ( route.DataTokens != null && route.DataTokens["PageId"] != null  )
             {
-                return int.Parse( route.DataTokens["PageId"] as string );
+                return ( route.DataTokens["PageId"] as string ).AsIntegerOrNull() ?? -1;
             }
 
             return -1;
         }
 
         /// <summary>
-        /// Routes the id.
+        /// Returns the route Id of the route or -1 if not found.
         /// </summary>
         /// <param name="route">The route.</param>
         /// <returns></returns>
@@ -2370,7 +2518,7 @@ namespace Rock
         {
             if ( route.DataTokens != null && route.DataTokens["RouteId"] != null )
             {
-                return int.Parse( route.DataTokens["RouteId"] as string );
+                return ( route.DataTokens["RouteId"] as string ).AsIntegerOrNull() ?? -1;
             }
 
             return -1;
@@ -2390,7 +2538,7 @@ namespace Rock
             routes.Add( route );
         }
 
-        #endregion
+        #endregion Route Extensions
 
         #region IEntity extensions
 
@@ -2424,12 +2572,12 @@ namespace Rock
             }
         }
 
-        #endregion
+        #endregion IEntity extensions
 
         #region HiddenField Extensions
 
         /// <summary>
-        /// Values as int.
+        /// Returns the values as an int or 0 if not found or not an int.
         /// </summary>
         /// <param name="hiddenField">The hidden field.</param>
         /// <returns></returns>
@@ -2466,7 +2614,7 @@ namespace Rock
             return hiddenField.Value.Equals( "0" );
         }
 
-        #endregion
+        #endregion HiddenField Extensions
 
         #region Dictionary<string, object> (liquid) extension methods
 
@@ -2491,12 +2639,12 @@ namespace Rock
             }
         }
 
-        #endregion
+        #endregion Dictionary<string, object> (liquid) extension methods
 
         #region Dictionary<TKey, TValue> extension methods
 
         /// <summary>
-        /// Adds or Replaces an item in a Dictionary
+        /// Adds or replaces an item in a Dictionary.
         /// </summary>
         /// <typeparam name="TKey">The type of the key.</typeparam>
         /// <typeparam name="TValue">The type of the value.</typeparam>
@@ -2516,7 +2664,7 @@ namespace Rock
         }
 
         /// <summary>
-        /// Adds an item to a Dictionary if it doesn't already exist in Dictionary
+        /// Adds an item to a Dictionary if it doesn't already exist in Dictionary.
         /// </summary>
         /// <typeparam name="TKey">The type of the key.</typeparam>
         /// <typeparam name="TValue">The type of the value.</typeparam>
@@ -2531,7 +2679,46 @@ namespace Rock
             }
         }
 
-        #endregion
+        /// <summary>
+        /// Gets value for the specified key, or null if the dictionary doesn't contain the key
+        /// </summary>
+        /// <typeparam name="TKey">The type of the key.</typeparam>
+        /// <typeparam name="TValue">The type of the value.</typeparam>
+        /// <param name="dictionary">The dictionary.</param>
+        /// <param name="key">The key.</param>
+        /// <returns></returns>
+        public static TValue GetValueOrNull<TKey, TValue>( this Dictionary<TKey, TValue> dictionary, TKey key)
+        {
+            if ( dictionary.ContainsKey( key ) )
+            {
+                return dictionary[key];
+            }
+            else
+            {
+                return default(TValue);
+            }
+        }
+
+        /// <summary>
+        /// Gets ConfigurationValue's Value for the specified key, or null if the dictionary doesn't contain the key or the ConfigurationValue is null
+        /// </summary>
+        /// <typeparam name="TKey">The type of the key.</typeparam>
+        /// <param name="dictionary">The dictionary.</param>
+        /// <param name="key">The key.</param>
+        /// <returns></returns>
+        public static string GetValueOrNull<TKey>( this Dictionary<TKey, Rock.Field.ConfigurationValue> dictionary, TKey key )
+        {
+            if ( dictionary.ContainsKey( key ) && dictionary[key] != null )
+            {
+                return dictionary[key].Value;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        #endregion Dictionary<TKey, TValue> extension methods
 
         #region Geography extension methods
 
@@ -2540,12 +2727,12 @@ namespace Rock
         /// </summary>
         /// <param name="geography">The geography.</param>
         /// <returns></returns>
-        public static List<MapCoordinate> Coordinates (this System.Data.Entity.Spatial.DbGeography geography)
+        public static List<MapCoordinate> Coordinates( this System.Data.Entity.Spatial.DbGeography geography )
         {
             var coordinates = new List<MapCoordinate>();
 
             var match = Regex.Match( geography.AsText(), @"(?<=POLYGON \(\()[^\)]*(?=\)\))" );
-            if (match.Success)
+            if ( match.Success )
             {
                 string[] longSpaceLat = match.ToString().Split( ',' );
 
@@ -2562,14 +2749,72 @@ namespace Rock
                         }
                     }
                 }
-
             }
 
             return coordinates;
-
         }
 
-        #endregion
+        #endregion Geography extension methods
 
+        #region Stream extension methods
+
+        /// <summary>
+        /// Reads entire stream and converts to byte array.
+        /// </summary>
+        /// <param name="stream">The stream.</param>
+        /// <returns></returns>
+        public static byte[] ReadBytesToEnd( this System.IO.Stream stream )
+        {
+            long originalPosition = 0;
+
+            if ( stream.CanSeek )
+            {
+                originalPosition = stream.Position;
+                stream.Position = 0;
+            }
+
+            try
+            {
+                byte[] readBuffer = new byte[4096];
+
+                int totalBytesRead = 0;
+                int bytesRead;
+
+                while ( ( bytesRead = stream.Read( readBuffer, totalBytesRead, readBuffer.Length - totalBytesRead ) ) > 0 )
+                {
+                    totalBytesRead += bytesRead;
+
+                    if ( totalBytesRead == readBuffer.Length )
+                    {
+                        int nextByte = stream.ReadByte();
+                        if ( nextByte != -1 )
+                        {
+                            byte[] temp = new byte[readBuffer.Length * 2];
+                            Buffer.BlockCopy( readBuffer, 0, temp, 0, readBuffer.Length );
+                            Buffer.SetByte( temp, totalBytesRead, (byte)nextByte );
+                            readBuffer = temp;
+                            totalBytesRead++;
+                        }
+                    }
+                }
+
+                byte[] buffer = readBuffer;
+                if ( readBuffer.Length != totalBytesRead )
+                {
+                    buffer = new byte[totalBytesRead];
+                    Buffer.BlockCopy( readBuffer, 0, buffer, 0, totalBytesRead );
+                }
+                return buffer;
+            }
+            finally
+            {
+                if ( stream.CanSeek )
+                {
+                    stream.Position = originalPosition;
+                }
+            }
+        }
+
+        #endregion Stream extension methods
     }
 }

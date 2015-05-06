@@ -12,7 +12,7 @@
 
     <div id="divBio" runat="server" class="rollover-container">
         <div class="actions rollover-item">
-            <asp:LinkButton ID="lbEditPerson" runat="server" CssClass="edit btn btn-action btn-xs" OnClick="lbEditPerson_Click"><i class="fa fa-pencil"></i> Edit Individual</asp:LinkButton>
+            <asp:LinkButton ID="lbEditPerson" runat="server" AccessKey="I" CssClass="edit btn btn-action btn-xs" OnClick="lbEditPerson_Click"><i class="fa fa-pencil"></i> Edit Individual</asp:LinkButton>
         </div>
 
         <div class="row">
@@ -67,8 +67,8 @@
                                 <asp:Literal ID="lGender" runat="server" /><br />
                                 <asp:Literal ID="lMaritalStatus" runat="server" />
                                 <asp:Literal ID="lAnniversary" runat="server" /><br />
-                                <asp:Literal ID="lGraduation" runat="server" />
                                 <asp:Literal ID="lGrade" runat="server" />
+                                <asp:Literal ID="lGraduation" runat="server" />
                             </div>
                         </div>
                     </div>

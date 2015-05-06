@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,13 +32,13 @@ namespace Rock.Client
     public partial class AttendanceCode
     {
         /// <summary />
-        public DateTime IssueDateTime { get; set; }
+        public int Id { get; set; }
 
         /// <summary />
         public string Code { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
+        public DateTime IssueDateTime { get; set; }
 
         /// <summary />
         public Guid Guid { get; set; }

@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,22 +32,31 @@ namespace Rock.Client
     public partial class GroupMember
     {
         /// <summary />
-        public bool IsSystem { get; set; }
+        public int Id { get; set; }
 
         /// <summary />
         public int GroupId { get; set; }
 
         /// <summary />
-        public int PersonId { get; set; }
+        public int /* GroupMemberStatus*/ GroupMemberStatus { get; set; }
+
+        /// <summary />
+        public GroupTypeRole GroupRole { get; set; }
 
         /// <summary />
         public int GroupRoleId { get; set; }
 
         /// <summary />
-        public int /* GroupMemberStatus*/ GroupMemberStatus { get; set; }
+        public int? GuestCount { get; set; }
 
         /// <summary />
-        public int? GuestCount { get; set; }
+        public bool IsSystem { get; set; }
+
+        /// <summary />
+        public Person Person { get; set; }
+
+        /// <summary />
+        public int PersonId { get; set; }
 
         /// <summary />
         public DateTime? CreatedDateTime { get; set; }
@@ -61,13 +71,17 @@ namespace Rock.Client
         public int? ModifiedByPersonAliasId { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
-
-        /// <summary />
         public Guid Guid { get; set; }
 
         /// <summary />
         public string ForeignId { get; set; }
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.Attribute> Attributes { get; set; }
+
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.AttributeValue> AttributeValues { get; set; }
 
     }
 }

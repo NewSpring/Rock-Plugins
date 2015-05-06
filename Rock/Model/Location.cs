@@ -387,6 +387,7 @@ namespace Rock.Model
         /// <value>
         /// The formatted address.
         /// </value>
+        [LavaInclude]
         public virtual string FormattedAddress
         {
             get { return GetFullStreetAddress(); }
@@ -398,9 +399,63 @@ namespace Rock.Model
         /// <value>
         /// The formatted HTML address.
         /// </value>
+        [LavaInclude]
         public virtual string FormattedHtmlAddress
         {
             get { return FormattedAddress.ConvertCrLfToHtmlBr(); }
+        }
+
+        /// <summary>
+        /// Gets the latitude ( use GeoPoint to set a latitude/longitude values ).
+        /// </summary>
+        /// <value>
+        /// The latitude.
+        /// </value>
+        [DataMember]
+        public virtual double? Latitude
+        {
+            get
+            {
+                return GeoPoint != null ? GeoPoint.Latitude : null;
+            }
+        }
+
+        /// <summary>
+        /// Gets the longitude ( use GeoPoint to set a latitude/longitude values ).
+        /// </summary>
+        /// <value>
+        /// The longitude.
+        /// </value>
+        [DataMember]
+        public virtual double? Longitude
+        {
+            get
+            {
+                return GeoPoint != null ? GeoPoint.Longitude : null;
+            }
+        }
+
+        /// <summary>
+        /// Gets the GeoFence coordinates.
+        /// </summary>
+        /// <value>
+        /// The geo fence coordinates.
+        /// </value>
+        [DataMember]
+        public virtual List<Double[]> GeoFenceCoordinates
+        {
+            get
+            {
+                if ( GeoFence != null )
+                {
+                    return GeoFence.Coordinates()
+                        .Where( c => c.Latitude.HasValue && c.Longitude.HasValue )
+                        .Select( c => new Double[] { c.Latitude.Value, c.Longitude.Value } )
+                        .ToList();
+                }
+
+                return null;
+            }
         }
 
         #endregion
@@ -579,6 +634,49 @@ namespace Rock.Model
             return str.ToString();
         }
 
+        /// <summary>
+        /// Gets the <see cref="System.Object"/> with the specified key.
+        /// </summary>
+        /// <value>
+        /// The <see cref="System.Object"/>.
+        /// </value>
+        /// <param name="key">The key.</param>
+        /// <returns></returns>
+        public override object this[object key]
+        {
+            get
+            {
+                string keyName = key.ToStringSafe();
+                switch ( keyName )
+                {
+                    case "GeoPoint":
+                        {
+                            if ( GeoPoint != null && GeoPoint.Latitude.HasValue && GeoPoint.Longitude.HasValue )
+                            {
+                                return string.Format( "{0},{1}", GeoPoint.Latitude.Value, GeoPoint.Longitude.Value );
+                            }
+                            break;
+                        }
+                    case "GeoFence":
+                        {
+                            if ( GeoFence != null )
+                            {
+                                return GeoFence.Coordinates()
+                                    .Select( c => c.Latitude.ToString() + "," + c.Longitude.ToString() )
+                                    .ToList()
+                                    .AsDelimited("|");
+                            }
+                            break;
+                        }
+                    default:
+                        {
+                            return base[key];
+                        }
+                }
+
+                return string.Empty;
+            }
+        }
         #endregion
 
     }

@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,31 +32,37 @@ namespace Rock.Client
     public partial class Workflow
     {
         /// <summary />
-        public int WorkflowTypeId { get; set; }
-
-        /// <summary />
-        public string Name { get; set; }
-
-        /// <summary />
-        public string Description { get; set; }
-
-        /// <summary />
-        public string Status { get; set; }
-
-        /// <summary />
-        public bool IsProcessing { get; set; }
+        public int Id { get; set; }
 
         /// <summary />
         public DateTime? ActivatedDateTime { get; set; }
 
         /// <summary />
-        public DateTime? LastProcessedDateTime { get; set; }
+        public ICollection<WorkflowActivity> Activities { get; set; }
 
         /// <summary />
         public DateTime? CompletedDateTime { get; set; }
 
         /// <summary />
+        public string Description { get; set; }
+
+        /// <summary />
         public int? InitiatorPersonAliasId { get; set; }
+
+        /// <summary />
+        public bool IsProcessing { get; set; }
+
+        /// <summary />
+        public DateTime? LastProcessedDateTime { get; set; }
+
+        /// <summary />
+        public string Name { get; set; }
+
+        /// <summary />
+        public string Status { get; set; }
+
+        /// <summary />
+        public int WorkflowTypeId { get; set; }
 
         /// <summary />
         public DateTime? CreatedDateTime { get; set; }
@@ -70,13 +77,17 @@ namespace Rock.Client
         public int? ModifiedByPersonAliasId { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
-
-        /// <summary />
         public Guid Guid { get; set; }
 
         /// <summary />
         public string ForeignId { get; set; }
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.Attribute> Attributes { get; set; }
+
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.AttributeValue> AttributeValues { get; set; }
 
     }
 }

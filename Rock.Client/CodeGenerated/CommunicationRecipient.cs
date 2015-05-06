@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,10 +32,34 @@ namespace Rock.Client
     public partial class CommunicationRecipient
     {
         /// <summary />
-        public int PersonAliasId { get; set; }
+        public int Id { get; set; }
+
+        /// <summary />
+        public ICollection<CommunicationRecipientActivity> Activities { get; set; }
+
+        /// <summary />
+        public Dictionary<string, string> AdditionalMergeValues { get; set; }
+
+        /// <summary />
+        public string AdditionalMergeValuesJson { get; set; }
 
         /// <summary />
         public int CommunicationId { get; set; }
+
+        /// <summary />
+        public string OpenedClient { get; set; }
+
+        /// <summary />
+        public DateTime? OpenedDateTime { get; set; }
+
+        /// <summary />
+        public PersonAlias PersonAlias { get; set; }
+
+        /// <summary />
+        public int PersonAliasId { get; set; }
+
+        /// <summary />
+        public string ResponseCode { get; set; }
 
         /// <summary />
         public int /* CommunicationRecipientStatus*/ Status { get; set; }
@@ -43,22 +68,10 @@ namespace Rock.Client
         public string StatusNote { get; set; }
 
         /// <summary />
-        public DateTime? OpenedDateTime { get; set; }
-
-        /// <summary />
-        public string OpenedClient { get; set; }
-
-        /// <summary />
         public string TransportEntityTypeName { get; set; }
 
         /// <summary />
         public string UniqueMessageId { get; set; }
-
-        /// <summary />
-        public string ResponseCode { get; set; }
-
-        /// <summary />
-        public string AdditionalMergeValuesJson { get; set; }
 
         /// <summary />
         public DateTime? CreatedDateTime { get; set; }
@@ -73,13 +86,17 @@ namespace Rock.Client
         public int? ModifiedByPersonAliasId { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
-
-        /// <summary />
         public Guid Guid { get; set; }
 
         /// <summary />
         public string ForeignId { get; set; }
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.Attribute> Attributes { get; set; }
+
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.AttributeValue> AttributeValues { get; set; }
 
     }
 }

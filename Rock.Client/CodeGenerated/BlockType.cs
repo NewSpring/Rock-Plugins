@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,19 +32,22 @@ namespace Rock.Client
     public partial class BlockType
     {
         /// <summary />
-        public bool IsSystem { get; set; }
-
-        /// <summary />
-        public string Path { get; set; }
-
-        /// <summary />
-        public string Name { get; set; }
+        public int Id { get; set; }
 
         /// <summary />
         public string Category { get; set; }
 
         /// <summary />
         public string Description { get; set; }
+
+        /// <summary />
+        public bool IsSystem { get; set; }
+
+        /// <summary />
+        public string Name { get; set; }
+
+        /// <summary />
+        public string Path { get; set; }
 
         /// <summary />
         public DateTime? CreatedDateTime { get; set; }
@@ -58,13 +62,17 @@ namespace Rock.Client
         public int? ModifiedByPersonAliasId { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
-
-        /// <summary />
         public Guid Guid { get; set; }
 
         /// <summary />
         public string ForeignId { get; set; }
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.Attribute> Attributes { get; set; }
+
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.AttributeValue> AttributeValues { get; set; }
 
     }
 }

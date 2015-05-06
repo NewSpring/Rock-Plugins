@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,19 +32,22 @@ namespace Rock.Client
     public partial class PersonAlias
     {
         /// <summary />
-        public string Name { get; set; }
-
-        /// <summary />
-        public int PersonId { get; set; }
-
-        /// <summary />
-        public int AliasPersonId { get; set; }
+        public int Id { get; set; }
 
         /// <summary />
         public Guid AliasPersonGuid { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
+        public int AliasPersonId { get; set; }
+
+        /// <summary />
+        public string Name { get; set; }
+
+        /// <summary />
+        public Person Person { get; set; }
+
+        /// <summary />
+        public int PersonId { get; set; }
 
         /// <summary />
         public Guid Guid { get; set; }

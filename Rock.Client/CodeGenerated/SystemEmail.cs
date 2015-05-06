@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,13 +32,22 @@ namespace Rock.Client
     public partial class SystemEmail
     {
         /// <summary />
-        public bool IsSystem { get; set; }
+        public int Id { get; set; }
+
+        /// <summary />
+        public string Bcc { get; set; }
+
+        /// <summary />
+        public string Body { get; set; }
+
+        /// <summary />
+        public Category Category { get; set; }
 
         /// <summary />
         public int? CategoryId { get; set; }
 
         /// <summary />
-        public string Title { get; set; }
+        public string Cc { get; set; }
 
         /// <summary />
         public string From { get; set; }
@@ -46,19 +56,16 @@ namespace Rock.Client
         public string FromName { get; set; }
 
         /// <summary />
-        public string To { get; set; }
-
-        /// <summary />
-        public string Cc { get; set; }
-
-        /// <summary />
-        public string Bcc { get; set; }
+        public bool IsSystem { get; set; }
 
         /// <summary />
         public string Subject { get; set; }
 
         /// <summary />
-        public string Body { get; set; }
+        public string Title { get; set; }
+
+        /// <summary />
+        public string To { get; set; }
 
         /// <summary />
         public DateTime? CreatedDateTime { get; set; }
@@ -73,13 +80,17 @@ namespace Rock.Client
         public int? ModifiedByPersonAliasId { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
-
-        /// <summary />
         public Guid Guid { get; set; }
 
         /// <summary />
         public string ForeignId { get; set; }
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.Attribute> Attributes { get; set; }
+
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.AttributeValue> AttributeValues { get; set; }
 
     }
 }

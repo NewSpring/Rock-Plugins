@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,19 +32,7 @@ namespace Rock.Client
     public partial class HtmlContent
     {
         /// <summary />
-        public int BlockId { get; set; }
-
-        /// <summary />
-        public string EntityValue { get; set; }
-
-        /// <summary />
-        public int Version { get; set; }
-
-        /// <summary />
-        public string Content { get; set; }
-
-        /// <summary />
-        public bool IsApproved { get; set; }
+        public int Id { get; set; }
 
         /// <summary />
         public int? ApprovedByPersonAliasId { get; set; }
@@ -52,10 +41,25 @@ namespace Rock.Client
         public DateTime? ApprovedDateTime { get; set; }
 
         /// <summary />
-        public DateTime? StartDateTime { get; set; }
+        public int BlockId { get; set; }
+
+        /// <summary />
+        public string Content { get; set; }
+
+        /// <summary />
+        public string EntityValue { get; set; }
 
         /// <summary />
         public DateTime? ExpireDateTime { get; set; }
+
+        /// <summary />
+        public bool IsApproved { get; set; }
+
+        /// <summary />
+        public DateTime? StartDateTime { get; set; }
+
+        /// <summary />
+        public int Version { get; set; }
 
         /// <summary />
         public DateTime? CreatedDateTime { get; set; }
@@ -70,13 +74,17 @@ namespace Rock.Client
         public int? ModifiedByPersonAliasId { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
-
-        /// <summary />
         public Guid Guid { get; set; }
 
         /// <summary />
         public string ForeignId { get; set; }
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.Attribute> Attributes { get; set; }
+
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.AttributeValue> AttributeValues { get; set; }
 
     }
 }

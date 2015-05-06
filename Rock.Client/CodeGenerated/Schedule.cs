@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,22 +32,40 @@ namespace Rock.Client
     public partial class Schedule
     {
         /// <summary />
-        public string Name { get; set; }
+        public int Id { get; set; }
 
         /// <summary />
-        public string Description { get; set; }
+        public Category Category { get; set; }
 
         /// <summary />
-        public string iCalendarContent { get; set; }
-
-        /// <summary />
-        public int? CheckInStartOffsetMinutes { get; set; }
+        public int? CategoryId { get; set; }
 
         /// <summary />
         public int? CheckInEndOffsetMinutes { get; set; }
 
         /// <summary />
-        public int? CategoryId { get; set; }
+        public int? CheckInStartOffsetMinutes { get; set; }
+
+        /// <summary />
+        public string Description { get; set; }
+
+        /// <summary />
+        public DateTime? EffectiveEndDate { get; set; }
+
+        /// <summary />
+        public DateTime? EffectiveStartDate { get; set; }
+
+        /// <summary />
+        public string iCalendarContent { get; set; }
+
+        /// <summary />
+        public string Name { get; set; }
+
+        /// <summary />
+        public int /* DayOfWeek*/? WeeklyDayOfWeek { get; set; }
+
+        /// <summary />
+        public TimeSpan? WeeklyTimeOfDay { get; set; }
 
         /// <summary />
         public DateTime? CreatedDateTime { get; set; }
@@ -61,13 +80,17 @@ namespace Rock.Client
         public int? ModifiedByPersonAliasId { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
-
-        /// <summary />
         public Guid Guid { get; set; }
 
         /// <summary />
         public string ForeignId { get; set; }
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.Attribute> Attributes { get; set; }
+
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.AttributeValue> AttributeValues { get; set; }
 
     }
 }

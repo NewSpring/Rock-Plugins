@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,16 +32,22 @@ namespace Rock.Client
     public partial class MetricCategory
     {
         /// <summary />
-        public int MetricId { get; set; }
+        public int Id { get; set; }
+
+        /// <summary />
+        public Category Category { get; set; }
 
         /// <summary />
         public int CategoryId { get; set; }
 
         /// <summary />
-        public int Order { get; set; }
+        public Metric Metric { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
+        public int MetricId { get; set; }
+
+        /// <summary />
+        public int Order { get; set; }
 
         /// <summary />
         public Guid Guid { get; set; }

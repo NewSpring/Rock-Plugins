@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,52 +32,97 @@ namespace Rock.Client
     public partial class Site
     {
         /// <summary />
-        public bool IsSystem { get; set; }
+        public int Id { get; set; }
 
         /// <summary />
-        public string Name { get; set; }
+        public Page CommunicationPage { get; set; }
 
         /// <summary />
-        public string Description { get; set; }
+        public int? CommunicationPageId { get; set; }
 
         /// <summary />
-        public string Theme { get; set; }
+        public PageRoute CommunicationPageRoute { get; set; }
+
+        /// <summary />
+        public int? CommunicationPageRouteId { get; set; }
+
+        /// <summary />
+        public Page DefaultPage { get; set; }
 
         /// <summary />
         public int? DefaultPageId { get; set; }
 
         /// <summary />
+        public PageRoute DefaultPageRoute { get; set; }
+
+        /// <summary />
         public int? DefaultPageRouteId { get; set; }
 
         /// <summary />
-        public int? LoginPageId { get; set; }
-
-        /// <summary />
-        public int? LoginPageRouteId { get; set; }
-
-        /// <summary />
-        public int? RegistrationPageId { get; set; }
-
-        /// <summary />
-        public int? RegistrationPageRouteId { get; set; }
-
-        /// <summary />
-        public int? PageNotFoundPageId { get; set; }
-
-        /// <summary />
-        public int? PageNotFoundPageRouteId { get; set; }
+        public string Description { get; set; }
 
         /// <summary />
         public string ErrorPage { get; set; }
-
-        /// <summary />
-        public string GoogleAnalyticsCode { get; set; }
 
         /// <summary />
         public string FacebookAppId { get; set; }
 
         /// <summary />
         public string FacebookAppSecret { get; set; }
+
+        /// <summary />
+        public string GoogleAnalyticsCode { get; set; }
+
+        /// <summary />
+        public bool IsSystem { get; set; }
+
+        /// <summary />
+        public ICollection<Layout> Layouts { get; set; }
+
+        /// <summary />
+        public Page LoginPage { get; set; }
+
+        /// <summary />
+        public int? LoginPageId { get; set; }
+
+        /// <summary />
+        public PageRoute LoginPageRoute { get; set; }
+
+        /// <summary />
+        public int? LoginPageRouteId { get; set; }
+
+        /// <summary />
+        public string Name { get; set; }
+
+        /// <summary />
+        public Page PageNotFoundPage { get; set; }
+
+        /// <summary />
+        public int? PageNotFoundPageId { get; set; }
+
+        /// <summary />
+        public PageRoute PageNotFoundPageRoute { get; set; }
+
+        /// <summary />
+        public int? PageNotFoundPageRouteId { get; set; }
+
+        /// <summary />
+        public Page RegistrationPage { get; set; }
+
+        /// <summary />
+        public int? RegistrationPageId { get; set; }
+
+        /// <summary />
+        public PageRoute RegistrationPageRoute { get; set; }
+
+        /// <summary />
+        public int? RegistrationPageRouteId { get; set; }
+
+        /// <summary />
+        public ICollection<SiteDomain> SiteDomains { get; set; }
+
+        /// <summary />
+        public string Theme { get; set; }
 
         /// <summary />
         public DateTime? CreatedDateTime { get; set; }
@@ -91,13 +137,17 @@ namespace Rock.Client
         public int? ModifiedByPersonAliasId { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
-
-        /// <summary />
         public Guid Guid { get; set; }
 
         /// <summary />
         public string ForeignId { get; set; }
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.Attribute> Attributes { get; set; }
+
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.AttributeValue> AttributeValues { get; set; }
 
     }
 }

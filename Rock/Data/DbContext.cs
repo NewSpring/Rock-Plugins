@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Reflection;
 using System.Web;
@@ -179,6 +180,8 @@ namespace Rock.Data
                 personAliasId = personAlias.Id;
             }
 
+            var preSavedEntities = new List<Guid>();
+
             // First loop through all models calling the PreSaveChanges
             foreach ( var entry in dbContext.ChangeTracker.Entries()
                 .Where( c =>
@@ -188,7 +191,12 @@ namespace Rock.Data
                 if ( entry.Entity is IModel )
                 {
                     var model = entry.Entity as IModel;
-                    model.PreSaveChanges( this, entry.State );
+                    model.PreSaveChanges( this, entry );
+
+                    if ( !preSavedEntities.Contains( model.Guid ) )
+                    {
+                        preSavedEntities.Add( model.Guid );
+                    }
                 }
             }
 
@@ -203,9 +211,9 @@ namespace Rock.Data
                 var entity = entry.Entity as IEntity;
 
                 // Get the context item to track audits
-                var contextItem = new ContextItem( entity, entry.State );
+                var contextItem = new ContextItem( entity, entry );
 
-                // If entity was added or modifed, update the Created/Modified fields
+                // If entity was added or modified, update the Created/Modified fields
                 if ( entry.State == EntityState.Added || entry.State == EntityState.Modified )
                 {
                     if ( !TriggerWorkflows( entity, WorkflowTriggerType.PreSave, personAlias ) )
@@ -217,7 +225,10 @@ namespace Rock.Data
                     {
                         var model = entry.Entity as IModel;
 
-                        model.PreSaveChanges( this, entry.State );
+                        if ( !preSavedEntities.Contains( model.Guid ) )
+                        {
+                            model.PreSaveChanges( this, entry );
+                        }
 
                         // Update Guid/Created/Modified person and times
                         if ( entry.State == EntityState.Added )
@@ -309,66 +320,69 @@ namespace Rock.Data
         {
             Dictionary<string, PropertyInfo> properties = null;
 
-            var rockContext = new RockContext();
-            var workflowTypeService = new WorkflowTypeService( rockContext );
-            var workflowService = new WorkflowService( rockContext );
-
-            foreach ( var trigger in TriggerCache.Triggers( entity.TypeName, triggerType ).Where( t => t.IsActive == true ) )
+            using ( var rockContext = new RockContext() )
             {
-                bool match = true;
+                var workflowTypeService = new WorkflowTypeService( rockContext );
+                var workflowService = new WorkflowService( rockContext );
 
-                if ( !string.IsNullOrWhiteSpace( trigger.EntityTypeQualifierColumn ) )
+                foreach ( var trigger in TriggerCache.Triggers( entity.TypeName, triggerType ).Where( t => t.IsActive == true ) )
                 {
-                    if ( properties == null )
+                    bool match = true;
+
+                    if ( !string.IsNullOrWhiteSpace( trigger.EntityTypeQualifierColumn ) )
                     {
-                        properties = new Dictionary<string, PropertyInfo>();
-                        foreach ( PropertyInfo propertyInfo in entity.GetType().GetProperties() )
+                        if ( properties == null )
                         {
-                            properties.Add( propertyInfo.Name.ToLower(), propertyInfo );
+                            properties = new Dictionary<string, PropertyInfo>();
+                            foreach ( PropertyInfo propertyInfo in entity.GetType().GetProperties() )
+                            {
+                                properties.Add( propertyInfo.Name.ToLower(), propertyInfo );
+                            }
                         }
+
+                        match = ( properties.ContainsKey( trigger.EntityTypeQualifierColumn.ToLower() ) &&
+                            properties[trigger.EntityTypeQualifierColumn.ToLower()].GetValue( entity, null ).ToString()
+                                == trigger.EntityTypeQualifierValue );
                     }
 
-                    match = ( properties.ContainsKey( trigger.EntityTypeQualifierColumn.ToLower() ) &&
-                        properties[trigger.EntityTypeQualifierColumn.ToLower()].GetValue( entity, null ).ToString()
-                            == trigger.EntityTypeQualifierValue );
-                }
-
-                if ( match )
-                {
-                    if ( triggerType == WorkflowTriggerType.PreSave || triggerType == WorkflowTriggerType.PreDelete )
+                    if ( match )
                     {
-                        var workflowType = workflowTypeService.Get( trigger.WorkflowTypeId );
-
-                        if ( workflowType != null )
+                        if ( triggerType == WorkflowTriggerType.PreSave || triggerType == WorkflowTriggerType.PreDelete )
                         {
-                            var workflow = Rock.Model.Workflow.Activate( workflowType, trigger.WorkflowName );
+                            var workflowType = workflowTypeService.Get( trigger.WorkflowTypeId );
 
-                            List<string> workflowErrors;
-                            if ( !workflow.Process( rockContext, entity, out workflowErrors ) )
+                            if ( workflowType != null )
                             {
-                                SaveErrorMessages.AddRange( workflowErrors );
-                                return false;
-                            }
-                            else
-                            {
-                                if ( workflow.IsPersisted || workflowType.IsPersisted )
+                                var workflow = Rock.Model.Workflow.Activate( workflowType, trigger.WorkflowName );
+
+                                List<string> workflowErrors;
+                                if ( !workflow.Process( rockContext, entity, out workflowErrors ) )
                                 {
-                                    workflowService.Add( workflow );
-                                    rockContext.SaveChanges();
+                                    SaveErrorMessages.AddRange( workflowErrors );
+                                    return false;
+                                }
+                                else
+                                {
+                                    if ( workflow.IsPersisted || workflowType.IsPersisted )
+                                    {
+                                        workflowService.Add( workflow );
+                                        rockContext.SaveChanges();
+                                    }
                                 }
                             }
                         }
-                    }
-                    else
-                    {
-                        var transaction = new Rock.Transactions.WorkflowTriggerTransaction();
-                        transaction.Trigger = trigger;
-                        transaction.Entity = entity.Clone();
-                        transaction.PersonAlias = personAlias;
-                        Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
+                        else
+                        {
+                            var transaction = new Rock.Transactions.WorkflowTriggerTransaction();
+                            transaction.Trigger = trigger;
+                            transaction.Entity = entity.Clone();
+                            transaction.PersonAlias = personAlias;
+                            Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
+                        }
                     }
                 }
             }
+
             return true;
         }
 
@@ -384,7 +398,7 @@ namespace Rock.Data
             // Check to make sure class does not have [NotAudited] attribute
             if ( AuditClass( rockEntityType ) )
             {
-                var dbEntity = dbContext.Entry( item.Entity );
+                var dbEntity = item.DbEntityEntry;
                 var audit = item.Audit;
 
                 PropertyInfo[] properties = rockEntityType.GetProperties();
@@ -482,7 +496,21 @@ namespace Rock.Data
             /// <value>
             /// The state.
             /// </value>
-            public EntityState State { get; set; }
+            public EntityState State
+            {
+                get
+                {
+                    return this.DbEntityEntry.State;
+                }
+            }
+
+            /// <summary>
+            /// Gets or sets the database entity entry.
+            /// </summary>
+            /// <value>
+            /// The database entity entry.
+            /// </value>
+            public DbEntityEntry DbEntityEntry { get; set; }
 
             /// <summary>
             /// Gets or sets the audit.
@@ -493,17 +521,17 @@ namespace Rock.Data
             public Audit Audit { get; set; }
 
             /// <summary>
-            /// Initializes a new instance of the <see cref="ContextItem"/> class.
+            /// Initializes a new instance of the <see cref="ContextItem" /> class.
             /// </summary>
             /// <param name="entity">The entity.</param>
-            /// <param name="state">The state.</param>
-            public ContextItem( IEntity entity, EntityState state )
+            /// <param name="dbEntityEntry">The database entity entry.</param>
+            public ContextItem( IEntity entity, DbEntityEntry dbEntityEntry )
             {
                 Entity = entity;
-                State = state;
+                DbEntityEntry = dbEntityEntry;
                 Audit = new Audit();
 
-                switch ( state )
+                switch ( dbEntityEntry.State )
                 {
                     case EntityState.Added:
                         {

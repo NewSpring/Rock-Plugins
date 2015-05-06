@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,13 +32,7 @@ namespace Rock.Client
     public partial class PersonViewed
     {
         /// <summary />
-        public int? ViewerPersonAliasId { get; set; }
-
-        /// <summary />
-        public int? TargetPersonAliasId { get; set; }
-
-        /// <summary />
-        public DateTime? ViewDateTime { get; set; }
+        public int Id { get; set; }
 
         /// <summary />
         public string IpAddress { get; set; }
@@ -46,7 +41,13 @@ namespace Rock.Client
         public string Source { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
+        public int? TargetPersonAliasId { get; set; }
+
+        /// <summary />
+        public DateTime? ViewDateTime { get; set; }
+
+        /// <summary />
+        public int? ViewerPersonAliasId { get; set; }
 
         /// <summary />
         public Guid Guid { get; set; }

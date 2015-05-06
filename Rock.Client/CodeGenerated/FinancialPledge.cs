@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,13 +32,19 @@ namespace Rock.Client
     public partial class FinancialPledge
     {
         /// <summary />
-        public int? PersonAliasId { get; set; }
+        public int Id { get; set; }
 
         /// <summary />
         public int? AccountId { get; set; }
 
         /// <summary />
-        public decimal TotalAmount { get; set; }
+        public DateTime EndDate { get; set; }
+
+        /// <summary />
+        public int? PersonAliasId { get; set; }
+
+        /// <summary />
+        public DefinedValue PledgeFrequencyValue { get; set; }
 
         /// <summary />
         public int? PledgeFrequencyValueId { get; set; }
@@ -46,7 +53,7 @@ namespace Rock.Client
         public DateTime StartDate { get; set; }
 
         /// <summary />
-        public DateTime EndDate { get; set; }
+        public decimal TotalAmount { get; set; }
 
         /// <summary />
         public DateTime? CreatedDateTime { get; set; }
@@ -61,13 +68,17 @@ namespace Rock.Client
         public int? ModifiedByPersonAliasId { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
-
-        /// <summary />
         public Guid Guid { get; set; }
 
         /// <summary />
         public string ForeignId { get; set; }
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.Attribute> Attributes { get; set; }
+
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.AttributeValue> AttributeValues { get; set; }
 
     }
 }

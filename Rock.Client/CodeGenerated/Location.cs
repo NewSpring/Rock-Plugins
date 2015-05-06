@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,76 +32,100 @@ namespace Rock.Client
     public partial class Location
     {
         /// <summary />
-        public int? ParentLocationId { get; set; }
+        public int Id { get; set; }
 
         /// <summary />
-        public string Name { get; set; }
+        public string AssessorParcelId { get; set; }
 
         /// <summary />
-        public bool IsActive { get; set; }
+        public ICollection<Location> ChildLocations { get; set; }
 
         /// <summary />
-        public int? LocationTypeValueId { get; set; }
+        public string City { get; set; }
+
+        /// <summary />
+        public string Country { get; set; }
+
+        /// <summary />
+        public DateTime? GeocodeAttemptedDateTime { get; set; }
+
+        /// <summary />
+        public string GeocodeAttemptedResult { get; set; }
+
+        /// <summary />
+        public string GeocodeAttemptedServiceType { get; set; }
+
+        /// <summary />
+        public DateTime? GeocodedDateTime { get; set; }
+
+        /// <summary />
+        public object GeoFence { get; set; }
+
+        /// <summary />
+        public List<Double[]> GeoFenceCoordinates { get; set; }
 
         /// <summary />
         public object GeoPoint { get; set; }
 
         /// <summary />
-        public object GeoFence { get; set; }
+        public BinaryFile Image { get; set; }
+
+        /// <summary />
+        public int? ImageId { get; set; }
+
+        /// <summary />
+        public bool IsActive { get; set; }
+
+        /// <summary />
+        public bool? IsGeoPointLocked { get; set; }
+
+        /// <summary />
+        public double? Latitude { get; set; }
+
+        /// <summary />
+        public DefinedValue LocationTypeValue { get; set; }
+
+        /// <summary />
+        public int? LocationTypeValueId { get; set; }
+
+        /// <summary />
+        public double? Longitude { get; set; }
+
+        /// <summary />
+        public string Name { get; set; }
+
+        /// <summary />
+        public int? ParentLocationId { get; set; }
+
+        /// <summary />
+        public string PostalCode { get; set; }
+
+        /// <summary />
+        public Device PrinterDevice { get; set; }
+
+        /// <summary />
+        public int? PrinterDeviceId { get; set; }
+
+        /// <summary />
+        public DateTime? StandardizeAttemptedDateTime { get; set; }
+
+        /// <summary />
+        public string StandardizeAttemptedResult { get; set; }
+
+        /// <summary />
+        public string StandardizeAttemptedServiceType { get; set; }
+
+        /// <summary />
+        public DateTime? StandardizedDateTime { get; set; }
+
+        /// <summary />
+        public string State { get; set; }
 
         /// <summary />
         public string Street1 { get; set; }
 
         /// <summary />
         public string Street2 { get; set; }
-
-        /// <summary />
-        public string City { get; set; }
-
-        /// <summary />
-        public string State { get; set; }
-
-        /// <summary />
-        public string Country { get; set; }
-
-        /// <summary />
-        public string PostalCode { get; set; }
-
-        /// <summary />
-        public string AssessorParcelId { get; set; }
-
-        /// <summary />
-        public DateTime? StandardizeAttemptedDateTime { get; set; }
-
-        /// <summary />
-        public string StandardizeAttemptedServiceType { get; set; }
-
-        /// <summary />
-        public string StandardizeAttemptedResult { get; set; }
-
-        /// <summary />
-        public DateTime? StandardizedDateTime { get; set; }
-
-        /// <summary />
-        public DateTime? GeocodeAttemptedDateTime { get; set; }
-
-        /// <summary />
-        public string GeocodeAttemptedServiceType { get; set; }
-
-        /// <summary />
-        public string GeocodeAttemptedResult { get; set; }
-
-        /// <summary />
-        public DateTime? GeocodedDateTime { get; set; }
-
-        /// <summary />
-        public bool? IsGeoPointLocked { get; set; }
-
-        /// <summary />
-        public int? PrinterDeviceId { get; set; }
-
-        /// <summary />
-        public int? ImageId { get; set; }
 
         /// <summary />
         public DateTime? CreatedDateTime { get; set; }
@@ -115,13 +140,17 @@ namespace Rock.Client
         public int? ModifiedByPersonAliasId { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
-
-        /// <summary />
         public Guid Guid { get; set; }
 
         /// <summary />
         public string ForeignId { get; set; }
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.Attribute> Attributes { get; set; }
+
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.AttributeValue> AttributeValues { get; set; }
 
     }
 }

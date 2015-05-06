@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,16 +32,22 @@ namespace Rock.Client
     public partial class TaggedItem
     {
         /// <summary />
-        public bool IsSystem { get; set; }
-
-        /// <summary />
-        public int TagId { get; set; }
+        public int Id { get; set; }
 
         /// <summary />
         public Guid EntityGuid { get; set; }
 
         /// <summary />
+        public bool IsSystem { get; set; }
+
+        /// <summary />
         public int Quantity { get; set; }
+
+        /// <summary />
+        public Tag Tag { get; set; }
+
+        /// <summary />
+        public int TagId { get; set; }
 
         /// <summary />
         public DateTime? CreatedDateTime { get; set; }
@@ -55,13 +62,17 @@ namespace Rock.Client
         public int? ModifiedByPersonAliasId { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
-
-        /// <summary />
         public Guid Guid { get; set; }
 
         /// <summary />
         public string ForeignId { get; set; }
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.Attribute> Attributes { get; set; }
+
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.AttributeValue> AttributeValues { get; set; }
 
     }
 }

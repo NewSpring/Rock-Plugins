@@ -47,6 +47,11 @@ namespace Rock.SystemGuid
         public const string COMMUNICATION_MEDIUM_SMS = "4BC02764-512A-4A10-ACDE-586F71D8A8BD";
 
         /// <summary>
+        /// The guid for the Rock.Model.Group entity.
+        /// </summary>
+        public const string GROUP = "9BBFDA11-0D22-40D5-902F-60ADFBC88987";
+
+        /// <summary>
         /// The guid for the Rock.Model.GroupMember entity.
         /// </summary>
         public const string GROUP_MEMBER = "49668B95-FEDC-43DD-8085-D2B0D6343C48";
@@ -60,6 +65,11 @@ namespace Rock.SystemGuid
         /// The guid for the Rock.Model.Person entity
         /// </summary>
         public const string PERSON = "72657ED8-D16E-492E-AC12-144C5E7567E7";
+
+        /// <summary>
+        /// The guid for the Rock.Model.PersonAlias entity
+        /// </summary>
+        public const string PERSON_ALIAS = "90F5E87B-F0D5-4617-8AE9-EB57E673F36F";
 
         /// <summary>
         /// The LiquidSelect DataSelect field for Reporting

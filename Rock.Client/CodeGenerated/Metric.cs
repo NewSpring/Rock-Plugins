@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,16 +32,22 @@ namespace Rock.Client
     public partial class Metric
     {
         /// <summary />
-        public bool IsSystem { get; set; }
+        public int Id { get; set; }
 
         /// <summary />
-        public string Title { get; set; }
+        public int? AdminPersonAliasId { get; set; }
 
         /// <summary />
-        public string Subtitle { get; set; }
+        public int? DataViewId { get; set; }
 
         /// <summary />
         public string Description { get; set; }
+
+        /// <summary />
+        public EntityType EntityType { get; set; }
+
+        /// <summary />
+        public int? EntityTypeId { get; set; }
 
         /// <summary />
         public string IconCssClass { get; set; }
@@ -49,34 +56,40 @@ namespace Rock.Client
         public bool IsCumulative { get; set; }
 
         /// <summary />
-        public int? SourceValueTypeId { get; set; }
+        public bool IsSystem { get; set; }
+
+        /// <summary />
+        public DateTime? LastRunDateTime { get; set; }
+
+        /// <summary />
+        public ICollection<MetricCategory> MetricCategories { get; set; }
+
+        /// <summary />
+        public int? MetricChampionPersonAliasId { get; set; }
+
+        /// <summary />
+        public int? ScheduleId { get; set; }
 
         /// <summary />
         public string SourceSql { get; set; }
 
         /// <summary />
-        public int? DataViewId { get; set; }
+        public DefinedValue SourceValueType { get; set; }
+
+        /// <summary />
+        public int? SourceValueTypeId { get; set; }
+
+        /// <summary />
+        public string Subtitle { get; set; }
+
+        /// <summary />
+        public string Title { get; set; }
 
         /// <summary />
         public string XAxisLabel { get; set; }
 
         /// <summary />
         public string YAxisLabel { get; set; }
-
-        /// <summary />
-        public int? MetricChampionPersonAliasId { get; set; }
-
-        /// <summary />
-        public int? AdminPersonAliasId { get; set; }
-
-        /// <summary />
-        public int? ScheduleId { get; set; }
-
-        /// <summary />
-        public DateTime? LastRunDateTime { get; set; }
-
-        /// <summary />
-        public int? EntityTypeId { get; set; }
 
         /// <summary />
         public DateTime? CreatedDateTime { get; set; }
@@ -91,13 +104,17 @@ namespace Rock.Client
         public int? ModifiedByPersonAliasId { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
-
-        /// <summary />
         public Guid Guid { get; set; }
 
         /// <summary />
         public string ForeignId { get; set; }
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.Attribute> Attributes { get; set; }
+
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.AttributeValue> AttributeValues { get; set; }
 
     }
 }

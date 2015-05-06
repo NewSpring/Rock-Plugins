@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,25 +32,37 @@ namespace Rock.Client
     public partial class BinaryFile
     {
         /// <summary />
-        public bool IsTemporary { get; set; }
+        public int Id { get; set; }
 
         /// <summary />
-        public bool IsSystem { get; set; }
+        public BinaryFileType BinaryFileType { get; set; }
 
         /// <summary />
         public int? BinaryFileTypeId { get; set; }
 
         /// <summary />
-        public string Url { get; set; }
+        public DateTime? ContentLastModified { get; set; }
+
+        /// <summary />
+        public string Description { get; set; }
 
         /// <summary />
         public string FileName { get; set; }
 
         /// <summary />
+        public bool IsSystem { get; set; }
+
+        /// <summary />
+        public bool IsTemporary { get; set; }
+
+        /// <summary />
         public string MimeType { get; set; }
 
         /// <summary />
-        public string Description { get; set; }
+        public string Path { get; set; }
+
+        /// <summary />
+        public int? StorageEntityTypeId { get; set; }
 
         /// <summary />
         public DateTime? CreatedDateTime { get; set; }
@@ -64,13 +77,17 @@ namespace Rock.Client
         public int? ModifiedByPersonAliasId { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
-
-        /// <summary />
         public Guid Guid { get; set; }
 
         /// <summary />
         public string ForeignId { get; set; }
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.Attribute> Attributes { get; set; }
+
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.AttributeValue> AttributeValues { get; set; }
 
     }
 }

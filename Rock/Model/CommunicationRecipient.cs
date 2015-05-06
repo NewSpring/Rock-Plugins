@@ -227,6 +227,33 @@ namespace Rock.Model
             }
         }
 
+        /// <summary>
+        /// Gets a list of activities.
+        /// </summary>
+        /// <value>
+        /// The activity list.
+        /// </value>
+        [NotMapped]
+        public virtual string ActivityListHtml
+        {
+            get
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.Append( "<ul>" );
+                foreach ( var activity in Activities )
+                {
+                    sb.AppendFormat( "<li>{0} <small>({1} {2})</small>: {3}</li>",
+                        activity.ActivityType,
+                        activity.ActivityDateTime.ToShortDateString(),
+                        activity.ActivityDateTime.ToShortTimeString(),
+                        activity.ActivityDetail );
+                }
+                sb.Append( "</ul>" );
+
+                return sb.ToString();
+            }
+        }
+
         #endregion
 
         #region Public Methods
@@ -341,7 +368,12 @@ namespace Rock.Model
         /// <summary>
         /// Communication was sent and opened (viewed) by the recipient
         /// </summary>
-        Opened = 4
+        Opened = 4,
+
+        /// <summary>
+        /// Temporary status used while sending ( to prevent transaction and job sending same record )
+        /// </summary>
+        Sending = 5
     }
 }
 

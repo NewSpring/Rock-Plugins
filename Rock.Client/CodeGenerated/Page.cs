@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,70 +32,28 @@ namespace Rock.Client
     public partial class Page
     {
         /// <summary />
-        public string InternalName { get; set; }
+        public int Id { get; set; }
 
         /// <summary />
-        public string PageTitle { get; set; }
-
-        /// <summary />
-        public string BrowserTitle { get; set; }
-
-        /// <summary />
-        public int? ParentPageId { get; set; }
-
-        /// <summary />
-        public bool IsSystem { get; set; }
-
-        /// <summary />
-        public int LayoutId { get; set; }
-
-        /// <summary />
-        public bool RequiresEncryption { get; set; }
-
-        /// <summary />
-        public bool EnableViewState { get; set; }
-
-        /// <summary />
-        public bool PageDisplayTitle { get; set; }
-
-        /// <summary />
-        public bool PageDisplayBreadCrumb { get; set; }
-
-        /// <summary />
-        public bool PageDisplayIcon { get; set; }
-
-        /// <summary />
-        public bool PageDisplayDescription { get; set; }
-
-        /// <summary />
-        public int /* DisplayInNavWhen*/ DisplayInNavWhen { get; set; }
-
-        /// <summary />
-        public bool MenuDisplayDescription { get; set; }
-
-        /// <summary />
-        public bool MenuDisplayIcon { get; set; }
-
-        /// <summary />
-        public bool MenuDisplayChildPages { get; set; }
-
-        /// <summary />
-        public bool BreadCrumbDisplayName { get; set; }
+        public ICollection<Block> Blocks { get; set; }
 
         /// <summary />
         public bool BreadCrumbDisplayIcon { get; set; }
 
         /// <summary />
-        public int Order { get; set; }
+        public bool BreadCrumbDisplayName { get; set; }
 
         /// <summary />
-        public int OutputCacheDuration { get; set; }
+        public string BrowserTitle { get; set; }
 
         /// <summary />
         public string Description { get; set; }
 
         /// <summary />
-        public string KeyWords { get; set; }
+        public int /* DisplayInNavWhen*/ DisplayInNavWhen { get; set; }
+
+        /// <summary />
+        public bool EnableViewState { get; set; }
 
         /// <summary />
         public string HeaderContent { get; set; }
@@ -104,6 +63,63 @@ namespace Rock.Client
 
         /// <summary />
         public bool IncludeAdminFooter { get; set; }
+
+        /// <summary />
+        public string InternalName { get; set; }
+
+        /// <summary />
+        public bool IsSystem { get; set; }
+
+        /// <summary />
+        public string KeyWords { get; set; }
+
+        /// <summary />
+        public int LayoutId { get; set; }
+
+        /// <summary />
+        public bool MenuDisplayChildPages { get; set; }
+
+        /// <summary />
+        public bool MenuDisplayDescription { get; set; }
+
+        /// <summary />
+        public bool MenuDisplayIcon { get; set; }
+
+        /// <summary />
+        public int Order { get; set; }
+
+        /// <summary />
+        public int OutputCacheDuration { get; set; }
+
+        /// <summary />
+        public ICollection<PageContext> PageContexts { get; set; }
+
+        /// <summary />
+        public bool PageDisplayBreadCrumb { get; set; }
+
+        /// <summary />
+        public bool PageDisplayDescription { get; set; }
+
+        /// <summary />
+        public bool PageDisplayIcon { get; set; }
+
+        /// <summary />
+        public bool PageDisplayTitle { get; set; }
+
+        /// <summary />
+        public ICollection<PageRoute> PageRoutes { get; set; }
+
+        /// <summary />
+        public ICollection<Page> Pages { get; set; }
+
+        /// <summary />
+        public string PageTitle { get; set; }
+
+        /// <summary />
+        public int? ParentPageId { get; set; }
+
+        /// <summary />
+        public bool RequiresEncryption { get; set; }
 
         /// <summary />
         public DateTime? CreatedDateTime { get; set; }
@@ -118,13 +134,17 @@ namespace Rock.Client
         public int? ModifiedByPersonAliasId { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
-
-        /// <summary />
         public Guid Guid { get; set; }
 
         /// <summary />
         public string ForeignId { get; set; }
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.Attribute> Attributes { get; set; }
+
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.AttributeValue> AttributeValues { get; set; }
 
     }
 }

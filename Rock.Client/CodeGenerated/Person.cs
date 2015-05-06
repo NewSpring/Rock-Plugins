@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,46 +32,13 @@ namespace Rock.Client
     public partial class Person
     {
         /// <summary />
-        public bool IsSystem { get; set; }
+        public int Id { get; set; }
 
         /// <summary />
-        public int? RecordTypeValueId { get; set; }
+        public DateTime? AnniversaryDate { get; set; }
 
         /// <summary />
-        public int? RecordStatusValueId { get; set; }
-
-        /// <summary />
-        public int? RecordStatusReasonValueId { get; set; }
-
-        /// <summary />
-        public int? ConnectionStatusValueId { get; set; }
-
-        /// <summary />
-        public int? ReviewReasonValueId { get; set; }
-
-        /// <summary />
-        public bool? IsDeceased { get; set; }
-
-        /// <summary />
-        public int? TitleValueId { get; set; }
-
-        /// <summary />
-        public string FirstName { get; set; }
-
-        /// <summary />
-        public string NickName { get; set; }
-
-        /// <summary />
-        public string MiddleName { get; set; }
-
-        /// <summary />
-        public string LastName { get; set; }
-
-        /// <summary />
-        public int? SuffixValueId { get; set; }
-
-        /// <summary />
-        public int? PhotoId { get; set; }
+        public DateTime? BirthDate { get; set; }
 
         /// <summary />
         public int? BirthDay { get; set; }
@@ -82,25 +50,13 @@ namespace Rock.Client
         public int? BirthYear { get; set; }
 
         /// <summary />
-        public int /* Gender*/ Gender { get; set; }
+        public DefinedValue ConnectionStatusValue { get; set; }
 
         /// <summary />
-        public int? MaritalStatusValueId { get; set; }
-
-        /// <summary />
-        public DateTime? AnniversaryDate { get; set; }
-
-        /// <summary />
-        public DateTime? GraduationDate { get; set; }
-
-        /// <summary />
-        public int? GivingGroupId { get; set; }
+        public int? ConnectionStatusValueId { get; set; }
 
         /// <summary />
         public string Email { get; set; }
-
-        /// <summary />
-        public bool? IsEmailActive { get; set; }
 
         /// <summary />
         public string EmailNote { get; set; }
@@ -109,13 +65,97 @@ namespace Rock.Client
         public int /* EmailPreference*/ EmailPreference { get; set; }
 
         /// <summary />
-        public string ReviewReasonNote { get; set; }
+        public string FirstName { get; set; }
+
+        /// <summary />
+        public int /* Gender*/ Gender { get; set; }
+
+        /// <summary />
+        public int? GivingGroupId { get; set; }
+
+        /// <summary />
+        public int? GraduationYear { get; set; }
 
         /// <summary />
         public string InactiveReasonNote { get; set; }
 
         /// <summary />
+        public bool? IsDeceased { get; set; }
+
+        /// <summary />
+        public bool? IsEmailActive { get; set; }
+
+        /// <summary />
+        public bool IsSystem { get; set; }
+
+        /// <summary />
+        public string LastName { get; set; }
+
+        /// <summary />
+        public DefinedValue MaritalStatusValue { get; set; }
+
+        /// <summary />
+        public int? MaritalStatusValueId { get; set; }
+
+        /// <summary />
+        public string MiddleName { get; set; }
+
+        /// <summary />
+        public string NickName { get; set; }
+
+        /// <summary />
+        public ICollection<PhoneNumber> PhoneNumbers { get; set; }
+
+        /// <summary />
+        public BinaryFile Photo { get; set; }
+
+        /// <summary />
+        public int? PhotoId { get; set; }
+
+        /// <summary />
+        public DefinedValue RecordStatusReasonValue { get; set; }
+
+        /// <summary />
+        public int? RecordStatusReasonValueId { get; set; }
+
+        /// <summary />
+        public DefinedValue RecordStatusValue { get; set; }
+
+        /// <summary />
+        public int? RecordStatusValueId { get; set; }
+
+        /// <summary />
+        public DefinedValue RecordTypeValue { get; set; }
+
+        /// <summary />
+        public int? RecordTypeValueId { get; set; }
+
+        /// <summary />
+        public string ReviewReasonNote { get; set; }
+
+        /// <summary />
+        public DefinedValue ReviewReasonValue { get; set; }
+
+        /// <summary />
+        public int? ReviewReasonValueId { get; set; }
+
+        /// <summary />
+        public DefinedValue SuffixValue { get; set; }
+
+        /// <summary />
+        public int? SuffixValueId { get; set; }
+
+        /// <summary />
         public string SystemNote { get; set; }
+
+        /// <summary />
+        public DefinedValue TitleValue { get; set; }
+
+        /// <summary />
+        public int? TitleValueId { get; set; }
+
+        /// <summary />
+        public ICollection<UserLogin> Users { get; set; }
 
         /// <summary />
         public int? ViewedCount { get; set; }
@@ -133,13 +173,17 @@ namespace Rock.Client
         public int? ModifiedByPersonAliasId { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
-
-        /// <summary />
         public Guid Guid { get; set; }
 
         /// <summary />
         public string ForeignId { get; set; }
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.Attribute> Attributes { get; set; }
+
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.AttributeValue> AttributeValues { get; set; }
 
     }
 }

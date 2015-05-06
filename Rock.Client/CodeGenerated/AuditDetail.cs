@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,19 +32,19 @@ namespace Rock.Client
     public partial class AuditDetail
     {
         /// <summary />
+        public int Id { get; set; }
+
+        /// <summary />
         public int AuditId { get; set; }
-
-        /// <summary />
-        public string Property { get; set; }
-
-        /// <summary />
-        public string OriginalValue { get; set; }
 
         /// <summary />
         public string CurrentValue { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
+        public string OriginalValue { get; set; }
+
+        /// <summary />
+        public string Property { get; set; }
 
         /// <summary />
         public Guid Guid { get; set; }

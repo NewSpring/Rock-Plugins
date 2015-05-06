@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,34 +32,13 @@ namespace Rock.Client
     public partial class FinancialTransaction
     {
         /// <summary />
+        public int Id { get; set; }
+
+        /// <summary />
         public int? AuthorizedPersonAliasId { get; set; }
 
         /// <summary />
         public int? BatchId { get; set; }
-
-        /// <summary />
-        public int? GatewayEntityTypeId { get; set; }
-
-        /// <summary />
-        public DateTime? TransactionDateTime { get; set; }
-
-        /// <summary />
-        public string TransactionCode { get; set; }
-
-        /// <summary />
-        public string Summary { get; set; }
-
-        /// <summary />
-        public int TransactionTypeValueId { get; set; }
-
-        /// <summary />
-        public int? CurrencyTypeValueId { get; set; }
-
-        /// <summary />
-        public int? CreditCardTypeValueId { get; set; }
-
-        /// <summary />
-        public int? SourceTypeValueId { get; set; }
 
         /// <summary />
         public string CheckMicrEncrypted { get; set; }
@@ -67,13 +47,52 @@ namespace Rock.Client
         public string CheckMicrHash { get; set; }
 
         /// <summary />
+        public DefinedValue CreditCardTypeValue { get; set; }
+
+        /// <summary />
+        public int? CreditCardTypeValueId { get; set; }
+
+        /// <summary />
+        public DefinedValue CurrencyTypeValue { get; set; }
+
+        /// <summary />
+        public int? CurrencyTypeValueId { get; set; }
+
+        /// <summary />
+        public EntityType GatewayEntityType { get; set; }
+
+        /// <summary />
+        public int? GatewayEntityTypeId { get; set; }
+
+        /// <summary />
+        public ICollection<FinancialTransactionImage> Images { get; set; }
+
+        /// <summary />
         public int? ScheduledTransactionId { get; set; }
 
         /// <summary />
-        public int? ProcessedByPersonAliasId { get; set; }
+        public DefinedValue SourceTypeValue { get; set; }
 
         /// <summary />
-        public DateTime? ProcessedDateTime { get; set; }
+        public int? SourceTypeValueId { get; set; }
+
+        /// <summary />
+        public string Summary { get; set; }
+
+        /// <summary />
+        public string TransactionCode { get; set; }
+
+        /// <summary />
+        public DateTime? TransactionDateTime { get; set; }
+
+        /// <summary />
+        public ICollection<FinancialTransactionDetail> TransactionDetails { get; set; }
+
+        /// <summary />
+        public DefinedValue TransactionTypeValue { get; set; }
+
+        /// <summary />
+        public int TransactionTypeValueId { get; set; }
 
         /// <summary />
         public DateTime? CreatedDateTime { get; set; }
@@ -88,13 +107,17 @@ namespace Rock.Client
         public int? ModifiedByPersonAliasId { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
-
-        /// <summary />
         public Guid Guid { get; set; }
 
         /// <summary />
         public string ForeignId { get; set; }
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.Attribute> Attributes { get; set; }
+
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.AttributeValue> AttributeValues { get; set; }
 
     }
 }

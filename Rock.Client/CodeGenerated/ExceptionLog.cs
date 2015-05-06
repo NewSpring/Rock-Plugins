@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,25 +32,40 @@ namespace Rock.Client
     public partial class ExceptionLog
     {
         /// <summary />
-        public int? ParentId { get; set; }
+        public int Id { get; set; }
 
         /// <summary />
-        public int? SiteId { get; set; }
+        public string Cookies { get; set; }
 
         /// <summary />
-        public int? PageId { get; set; }
-
-        /// <summary />
-        public bool? HasInnerException { get; set; }
-
-        /// <summary />
-        public string StatusCode { get; set; }
+        public string Description { get; set; }
 
         /// <summary />
         public string ExceptionType { get; set; }
 
         /// <summary />
-        public string Description { get; set; }
+        public string Form { get; set; }
+
+        /// <summary />
+        public bool? HasInnerException { get; set; }
+
+        /// <summary />
+        public int? PageId { get; set; }
+
+        /// <summary />
+        public string PageUrl { get; set; }
+
+        /// <summary />
+        public int? ParentId { get; set; }
+
+        /// <summary />
+        public string QueryString { get; set; }
+
+        /// <summary />
+        public string ServerVariables { get; set; }
+
+        /// <summary />
+        public int? SiteId { get; set; }
 
         /// <summary />
         public string Source { get; set; }
@@ -58,19 +74,7 @@ namespace Rock.Client
         public string StackTrace { get; set; }
 
         /// <summary />
-        public string PageUrl { get; set; }
-
-        /// <summary />
-        public string ServerVariables { get; set; }
-
-        /// <summary />
-        public string QueryString { get; set; }
-
-        /// <summary />
-        public string Form { get; set; }
-
-        /// <summary />
-        public string Cookies { get; set; }
+        public string StatusCode { get; set; }
 
         /// <summary />
         public DateTime? CreatedDateTime { get; set; }
@@ -85,13 +89,17 @@ namespace Rock.Client
         public int? ModifiedByPersonAliasId { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
-
-        /// <summary />
         public Guid Guid { get; set; }
 
         /// <summary />
         public string ForeignId { get; set; }
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.Attribute> Attributes { get; set; }
+
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.AttributeValue> AttributeValues { get; set; }
 
     }
 }

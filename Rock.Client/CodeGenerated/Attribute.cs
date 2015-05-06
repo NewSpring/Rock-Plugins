@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,10 +32,22 @@ namespace Rock.Client
     public partial class Attribute
     {
         /// <summary />
-        public bool IsSystem { get; set; }
+        public int Id { get; set; }
 
         /// <summary />
-        public int FieldTypeId { get; set; }
+        public ICollection<AttributeQualifier> AttributeQualifiers { get; set; }
+
+        /// <summary />
+        public ICollection<Category> Categories { get; set; }
+
+        /// <summary />
+        public string DefaultValue { get; set; }
+
+        /// <summary />
+        public string Description { get; set; }
+
+        /// <summary />
+        public EntityType EntityType { get; set; }
 
         /// <summary />
         public int? EntityTypeId { get; set; }
@@ -46,22 +59,16 @@ namespace Rock.Client
         public string EntityTypeQualifierValue { get; set; }
 
         /// <summary />
-        public string Key { get; set; }
+        public FieldType FieldType { get; set; }
 
         /// <summary />
-        public string Name { get; set; }
+        public int FieldTypeId { get; set; }
 
         /// <summary />
-        public string Description { get; set; }
-
-        /// <summary />
-        public int Order { get; set; }
+        public string IconCssClass { get; set; }
 
         /// <summary />
         public bool IsGridColumn { get; set; }
-
-        /// <summary />
-        public string DefaultValue { get; set; }
 
         /// <summary />
         public bool IsMultiValue { get; set; }
@@ -70,7 +77,16 @@ namespace Rock.Client
         public bool IsRequired { get; set; }
 
         /// <summary />
-        public string IconCssClass { get; set; }
+        public bool IsSystem { get; set; }
+
+        /// <summary />
+        public string Key { get; set; }
+
+        /// <summary />
+        public string Name { get; set; }
+
+        /// <summary />
+        public int Order { get; set; }
 
         /// <summary />
         public DateTime? CreatedDateTime { get; set; }
@@ -85,13 +101,17 @@ namespace Rock.Client
         public int? ModifiedByPersonAliasId { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
-
-        /// <summary />
         public Guid Guid { get; set; }
 
         /// <summary />
         public string ForeignId { get; set; }
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.Attribute> Attributes { get; set; }
+
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.AttributeValue> AttributeValues { get; set; }
 
     }
 }

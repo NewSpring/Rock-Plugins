@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,22 +32,31 @@ namespace Rock.Client
     public partial class CommunicationTemplate
     {
         /// <summary />
-        public string Name { get; set; }
+        public int Id { get; set; }
 
         /// <summary />
         public string Description { get; set; }
+
+        /// <summary />
+        public Dictionary<string, string> MediumData { get; set; }
+
+        /// <summary />
+        public EntityType MediumEntityType { get; set; }
+
+        /// <summary />
+        public int? MediumEntityTypeId { get; set; }
+
+        /// <summary />
+        public string Name { get; set; }
+
+        /// <summary />
+        public PersonAlias SenderPersonAlias { get; set; }
 
         /// <summary />
         public int? SenderPersonAliasId { get; set; }
 
         /// <summary />
         public string Subject { get; set; }
-
-        /// <summary />
-        public int? MediumEntityTypeId { get; set; }
-
-        /// <summary />
-        public string MediumDataJson { get; set; }
 
         /// <summary />
         public DateTime? CreatedDateTime { get; set; }
@@ -61,13 +71,17 @@ namespace Rock.Client
         public int? ModifiedByPersonAliasId { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
-
-        /// <summary />
         public Guid Guid { get; set; }
 
         /// <summary />
         public string ForeignId { get; set; }
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.Attribute> Attributes { get; set; }
+
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.AttributeValue> AttributeValues { get; set; }
 
     }
 }

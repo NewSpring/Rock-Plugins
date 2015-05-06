@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,10 +32,7 @@ namespace Rock.Client
     public partial class Campus
     {
         /// <summary />
-        public bool IsSystem { get; set; }
-
-        /// <summary />
-        public string Name { get; set; }
+        public int Id { get; set; }
 
         /// <summary />
         public string Description { get; set; }
@@ -43,22 +41,34 @@ namespace Rock.Client
         public bool? IsActive { get; set; }
 
         /// <summary />
-        public string ShortCode { get; set; }
+        public bool IsSystem { get; set; }
 
         /// <summary />
-        public string Url { get; set; }
-
-        /// <summary />
-        public int? LocationId { get; set; }
-
-        /// <summary />
-        public string PhoneNumber { get; set; }
+        public PersonAlias LeaderPersonAlias { get; set; }
 
         /// <summary />
         public int? LeaderPersonAliasId { get; set; }
 
         /// <summary />
+        public Location Location { get; set; }
+
+        /// <summary />
+        public int? LocationId { get; set; }
+
+        /// <summary />
+        public string Name { get; set; }
+
+        /// <summary />
+        public string PhoneNumber { get; set; }
+
+        /// <summary />
         public string ServiceTimes { get; set; }
+
+        /// <summary />
+        public string ShortCode { get; set; }
+
+        /// <summary />
+        public string Url { get; set; }
 
         /// <summary />
         public DateTime? CreatedDateTime { get; set; }
@@ -73,13 +83,17 @@ namespace Rock.Client
         public int? ModifiedByPersonAliasId { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
-
-        /// <summary />
         public Guid Guid { get; set; }
 
         /// <summary />
         public string ForeignId { get; set; }
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.Attribute> Attributes { get; set; }
+
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.AttributeValue> AttributeValues { get; set; }
 
     }
 }

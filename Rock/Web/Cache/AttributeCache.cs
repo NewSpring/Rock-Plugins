@@ -17,12 +17,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Caching;
 using System.Runtime.Serialization;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
-
+using Newtonsoft.Json;
 using Rock.Data;
 using Rock.Field;
 using Rock.Model;
@@ -41,7 +42,8 @@ namespace Rock.Web.Cache
     /// </summary>
     [Serializable]
     [DataContract]
-    public class AttributeCache : ISecured
+    [JsonConverter( typeof( Rock.Utility.AttributeCacheJsonConverter ) )]
+    public class AttributeCache : ISecured, Lava.ILiquidizable
     {
         #region constructors
 
@@ -491,13 +493,12 @@ namespace Rock.Web.Cache
         /// </summary>
         /// <param name="action">The action.</param>
         /// <param name="person">The person.</param>
-        /// <param name="rockContext">The rock context.</param>
         /// <returns>
         ///   <c>true</c> if the specified action is authorized; otherwise, <c>false</c>.
         /// </returns>
-        public virtual bool IsAuthorized( string action, Person person, RockContext rockContext = null )
+        public virtual bool IsAuthorized( string action, Person person )
         {
-            return Security.Authorization.Authorized( this, action, person, rockContext );
+            return Security.Authorization.Authorized( this, action, person );
         }
 
         /// <summary>
@@ -516,13 +517,12 @@ namespace Rock.Web.Cache
         /// </summary>
         /// <param name="action">The action.</param>
         /// <param name="person">The person.</param>
-        /// <param name="rockContext">The rock context.</param>
         /// <returns>
         ///   <c>true</c> if the specified action is private; otherwise, <c>false</c>.
         /// </returns>
-        public virtual bool IsPrivate( string action, Person person, RockContext rockContext = null )
+        public virtual bool IsPrivate( string action, Person person)
         {
-            return Security.Authorization.IsPrivate( this, action, person, rockContext );
+            return Security.Authorization.IsPrivate( this, action, person );
         }
 
         /// <summary>
@@ -533,7 +533,14 @@ namespace Rock.Web.Cache
         /// <param name="rockContext">The rock context.</param>
         public virtual void MakePrivate( string action, Person person, RockContext rockContext = null )
         {
-            Security.Authorization.MakePrivate( this, action, person, rockContext );
+            if ( rockContext != null )
+            {
+                Security.Authorization.MakePrivate( this, action, person, rockContext );
+            }
+            else
+            {
+                Security.Authorization.MakePrivate( this, action, person );
+            }
         }
 
         /// <summary>
@@ -544,7 +551,14 @@ namespace Rock.Web.Cache
         /// <param name="rockContext">The rock context.</param>
         public virtual void MakeUnPrivate( string action, Person person, RockContext rockContext = null )
         {
-            Security.Authorization.MakePrivate( this, action, person, rockContext );
+            if ( rockContext != null )
+            {
+                Security.Authorization.MakeUnPrivate( this, action, person, rockContext );
+            }
+            else
+            {
+                Security.Authorization.MakeUnPrivate( this, action, person );
+            }
         }
 
         #endregion
@@ -572,13 +586,20 @@ namespace Rock.Web.Cache
 
             if ( attribute == null )
             {
-                rockContext = rockContext ?? new RockContext();
-                var attributeService = new Rock.Model.AttributeService( rockContext );
-                var attributeModel = attributeService.Get( id );
-                if ( attributeModel != null )
+                if ( rockContext != null )
                 {
-                    attribute = new AttributeCache( attributeModel );
+                    attribute = LoadById( id, rockContext );
+                }
+                else
+                {
+                    using ( var myRockContext = new RockContext() )
+                    {
+                        attribute = LoadById( id, myRockContext );
+                    }
+                }
 
+                if ( attribute != null )
+                {
                     var cachePolicy = new CacheItemPolicy();
                     cache.Set( cacheKey, attribute, cachePolicy );
                     cache.Set( attribute.Guid.ToString(), attribute.Id, cachePolicy );
@@ -586,6 +607,18 @@ namespace Rock.Web.Cache
             }
 
             return attribute;
+        }
+
+        private static AttributeCache LoadById( int id, RockContext rockContext )
+        {
+            var attributeService = new Rock.Model.AttributeService( rockContext );
+            var attributeModel = attributeService.Get( id );
+            if ( attributeModel != null )
+            {
+                return new AttributeCache( attributeModel );
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -607,13 +640,20 @@ namespace Rock.Web.Cache
 
             if ( attribute == null )
             {
-                rockContext = rockContext ?? new RockContext();
-                var attributeService = new AttributeService( rockContext );
-                var attributeModel = attributeService.Get( guid );
-                if ( attributeModel != null )
+                if ( rockContext != null )
                 {
-                    attribute = new AttributeCache( attributeModel );
+                    attribute = LoadByGuid( guid, rockContext );
+                }
+                else
+                {
+                    using ( var myRockContext = new RockContext() )
+                    {
+                        attribute = LoadByGuid( guid, myRockContext );
+                    }
+                }
 
+                if ( attribute != null )
+                {
                     var cachePolicy = new CacheItemPolicy();
                     cache.Set( AttributeCache.CacheKey( attribute.Id ), attribute, cachePolicy );
                     cache.Set( attribute.Guid.ToString(), attribute.Id, cachePolicy );
@@ -621,6 +661,18 @@ namespace Rock.Web.Cache
             }
 
             return attribute;
+        }
+
+        private static AttributeCache LoadByGuid( Guid guid, RockContext rockContext )
+        {
+            var attributeService = new AttributeService( rockContext );
+            var attributeModel = attributeService.Get( guid );
+            if ( attributeModel != null )
+            {
+                return new AttributeCache( attributeModel );
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -683,6 +735,92 @@ namespace Rock.Web.Cache
 
         #endregion
 
+        #region ILiquidizable Implementation
+
+        /// <summary>
+        /// To the liquid.
+        /// </summary>
+        /// <returns></returns>
+        public object ToLiquid()
+        {
+            return this;
+        }
+
+        /// <summary>
+        /// Gets the available keys (for debuging info).
+        /// </summary>
+        /// <value>
+        /// The available keys.
+        /// </value>
+        [LavaIgnore]
+        public List<string> AvailableKeys
+        {
+            get
+            {
+                var availableKeys = new List<string>();
+
+                foreach ( var propInfo in GetType().GetProperties() )
+                {
+                    if ( propInfo != null && propInfo.GetCustomAttributes( typeof( Rock.Data.LavaIgnoreAttribute ) ).Count() <= 0 )
+                    {
+                        availableKeys.Add( propInfo.Name );
+                    }
+                }
+
+                return availableKeys;
+            }
+        }
+
+        /// <summary>
+        /// Gets the <see cref="System.Object"/> with the specified key.
+        /// </summary>
+        /// <value>
+        /// The <see cref="System.Object"/>.
+        /// </value>
+        /// <param name="key">The key.</param>
+        /// <returns></returns>
+        [LavaIgnore]
+        public object this[object key]
+        {
+            get
+            {
+                var propInfo = GetType().GetProperty( key.ToStringSafe() );
+                if ( propInfo != null && propInfo.GetCustomAttributes( typeof( Rock.Data.LavaIgnoreAttribute ) ).Count() <= 0 )
+                {
+                    object propValue = propInfo.GetValue( this, null );
+                    if ( propValue is Guid )
+                    {
+                        return ( (Guid)propValue ).ToString();
+                    }
+                    else
+                    {
+                        return propValue;
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Determines whether the specified key contains key.
+        /// </summary>
+        /// <remarks>
+        /// </remarks>
+        /// <param name="key">The key.</param>
+        /// <returns></returns>
+        public bool ContainsKey( object key )
+        {
+            var propInfo = GetType().GetProperty( key.ToStringSafe() );
+            if ( propInfo != null && propInfo.GetCustomAttributes( typeof( Rock.Data.LavaIgnoreAttribute ) ).Count() <= 0 )
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        #endregion
 
     }
 }

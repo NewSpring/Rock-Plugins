@@ -87,6 +87,68 @@ namespace Rock.PayFlowPro
         }
 
         /// <summary>
+        /// Authorizes the specified payment info.
+        /// </summary>
+        /// <param name="paymentInfo">The payment info.</param>
+        /// <param name="errorMessage">The error message.</param>
+        /// <returns></returns>
+        public override FinancialTransaction Authorize( PaymentInfo paymentInfo, out string errorMessage )
+        {
+            errorMessage = string.Empty;
+            Response ppResponse = null;
+
+            var invoice = GetInvoice( paymentInfo );
+            var tender = GetTender( paymentInfo );
+
+            if ( tender != null )
+            {
+                if ( paymentInfo is ReferencePaymentInfo )
+                {
+                    var reference = paymentInfo as ReferencePaymentInfo;
+                    var ppTransaction = new ReferenceTransaction( "Authorization", reference.TransactionCode, GetUserInfo(), GetConnection(), invoice, tender, PayflowUtility.RequestId );
+                    ppResponse = ppTransaction.SubmitTransaction();
+                }
+                else
+                {
+                    var ppTransaction = new AuthorizationTransaction( GetUserInfo(), GetConnection(), invoice, tender, PayflowUtility.RequestId );
+                    ppResponse = ppTransaction.SubmitTransaction();
+                }
+            }
+            else
+            {
+                errorMessage = "Could not create tender from PaymentInfo";
+            }
+
+            if ( ppResponse != null )
+            {
+                TransactionResponse txnResponse = ppResponse.TransactionResponse;
+                if ( txnResponse != null )
+                {
+                    if ( txnResponse.Result == 0 ) // Success
+                    {
+                        var transaction = new FinancialTransaction();
+                        transaction.TransactionCode = txnResponse.Pnref;
+                        return transaction;
+                    }
+                    else
+                    {
+                        errorMessage = string.Format( "[{0}] {1}", txnResponse.Result, txnResponse.RespMsg );
+                    }
+                }
+                else
+                {
+                    errorMessage = "Invalid transaction response from the financial gateway";
+                }
+            }
+            else
+            {
+                errorMessage = "Invalid response from the financial gateway.";
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Charges the specified payment info.
         /// </summary>
         /// <param name="paymentInfo">The payment info.</param>
@@ -440,6 +502,7 @@ namespace Rock.PayFlowPro
             var recurringBillingParams = new Dictionary<string, string>();
             recurringBillingParams.Add( "start_date", startDate.ToString( "yyyy-MM-dd HH:mm:ss" ) );
             recurringBillingParams.Add( "end_date", endDate.ToString( "yyyy-MM-dd HH:mm:ss" ) );
+            recurringBillingParams.Add( "include_declines", "false" );
             DataTable recurringBillingTable = reportingApi.GetReport( "RecurringBillingReport", recurringBillingParams, out errorMessage );
             if ( recurringBillingTable != null )
             {
@@ -450,6 +513,7 @@ namespace Rock.PayFlowPro
                 customParams.Add( "start_date", startDate.ToString( "yyyy-MM-dd HH:mm:ss" ) );
                 customParams.Add( "end_date", endDate.ToString( "yyyy-MM-dd HH:mm:ss" ) );
                 customParams.Add( "maximum_amount", "1000000" );
+                customParams.Add( "results", "Approvals Only" );
                 customParams.Add( "recurring_only", "true" );
                 customParams.Add( "show_order_id", "false" );
                 customParams.Add( "show_transaction_id", "true" );
@@ -458,15 +522,15 @@ namespace Rock.PayFlowPro
                 customParams.Add( "show_tender_type", "true" );
                 customParams.Add( "show_account_number", "false" );
                 customParams.Add( "show_expires", "false" );
-                customParams.Add( "show_aba_routing_num", "false" );
+                customParams.Add( "show_aba_routing_number", "false" );
                 customParams.Add( "show_amount", "true" );
-                customParams.Add( "show_result_code", "false" );
+                customParams.Add( "show_result_code", "true" );
                 customParams.Add( "show_response_msg", "false" );
                 customParams.Add( "show_comment1", "false" );
                 customParams.Add( "show_comment2", "false" );
                 customParams.Add( "show_tax_amount", "false" );
                 customParams.Add( "show_purchase_order", "false" );
-                customParams.Add( "show_original_transactio", "false" );
+                customParams.Add( "show_original_transaction_id", "false" );
                 customParams.Add( "show_avs_street_match", "false" );
                 customParams.Add( "show_avs_zip_match", "false" );
                 customParams.Add( "show_invoice_number", "false" );
@@ -475,15 +539,15 @@ namespace Rock.PayFlowPro
                 customParams.Add( "show_csc_match", "false" );
                 customParams.Add( "show_billing_first_name", "false" );
                 customParams.Add( "show_billing_last_name", "false" );
-                customParams.Add( "show_billing_company_", "false" );
+                customParams.Add( "show_billing_company_name", "false" );
                 customParams.Add( "show_billing_address", "false" );
                 customParams.Add( "show_billing_city", "false" );
                 customParams.Add( "show_billing_state", "false" );
                 customParams.Add( "show_billing_zip", "false" );
                 customParams.Add( "show_billing_email", "false" );
                 customParams.Add( "show_billing_country", "false" );
-                customParams.Add( "show_shipping_first_na", "false" );
-                customParams.Add( "show_shipping_last_na", "false" );
+                customParams.Add( "show_shipping_first_name", "false" );
+                customParams.Add( "show_shipping_last_name", "false" );
                 customParams.Add( "show_shipping_address", "false" );
                 customParams.Add( "show_shipping_city", "false" );
                 customParams.Add( "show_shipping_state", "false" );
@@ -652,7 +716,7 @@ namespace Rock.PayFlowPro
             var ppInvoice = new Invoice();
             ppInvoice.Amt = ppAmount;
             ppInvoice.BillTo = ppBillingInfo;
-
+            ppInvoice.Desc = paymentInfo.Description;
             return ppInvoice;
         }
 

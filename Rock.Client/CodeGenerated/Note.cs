@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,22 +32,31 @@ namespace Rock.Client
     public partial class Note
     {
         /// <summary />
-        public bool IsSystem { get; set; }
-
-        /// <summary />
-        public int NoteTypeId { get; set; }
-
-        /// <summary />
-        public int? EntityId { get; set; }
-
-        /// <summary />
-        public int? SourceTypeValueId { get; set; }
+        public int Id { get; set; }
 
         /// <summary />
         public string Caption { get; set; }
 
         /// <summary />
+        public int? EntityId { get; set; }
+
+        /// <summary />
         public bool? IsAlert { get; set; }
+
+        /// <summary />
+        public bool IsSystem { get; set; }
+
+        /// <summary />
+        public NoteType NoteType { get; set; }
+
+        /// <summary />
+        public int NoteTypeId { get; set; }
+
+        /// <summary />
+        public DefinedValue SourceType { get; set; }
+
+        /// <summary />
+        public int? SourceTypeValueId { get; set; }
 
         /// <summary />
         public string Text { get; set; }
@@ -64,13 +74,17 @@ namespace Rock.Client
         public int? ModifiedByPersonAliasId { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
-
-        /// <summary />
         public Guid Guid { get; set; }
 
         /// <summary />
         public string ForeignId { get; set; }
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.Attribute> Attributes { get; set; }
+
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.AttributeValue> AttributeValues { get; set; }
 
     }
 }

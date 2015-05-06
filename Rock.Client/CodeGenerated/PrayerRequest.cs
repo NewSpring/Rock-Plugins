@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,25 +32,31 @@ namespace Rock.Client
     public partial class PrayerRequest
     {
         /// <summary />
-        public string FirstName { get; set; }
+        public int Id { get; set; }
 
         /// <summary />
-        public string LastName { get; set; }
+        public bool? AllowComments { get; set; }
 
         /// <summary />
-        public string Email { get; set; }
+        public string Answer { get; set; }
 
         /// <summary />
-        public int? RequestedByPersonAliasId { get; set; }
+        public PersonAlias ApprovedByPersonAlias { get; set; }
+
+        /// <summary />
+        public int? ApprovedByPersonAliasId { get; set; }
+
+        /// <summary />
+        public DateTime? ApprovedOnDateTime { get; set; }
+
+        /// <summary />
+        public Category Category { get; set; }
 
         /// <summary />
         public int? CategoryId { get; set; }
 
         /// <summary />
-        public string Text { get; set; }
-
-        /// <summary />
-        public string Answer { get; set; }
+        public string Email { get; set; }
 
         /// <summary />
         public DateTime EnteredDateTime { get; set; }
@@ -58,16 +65,13 @@ namespace Rock.Client
         public DateTime? ExpirationDate { get; set; }
 
         /// <summary />
+        public string FirstName { get; set; }
+
+        /// <summary />
+        public int? FlagCount { get; set; }
+
+        /// <summary />
         public int? GroupId { get; set; }
-
-        /// <summary />
-        public bool? AllowComments { get; set; }
-
-        /// <summary />
-        public bool? IsUrgent { get; set; }
-
-        /// <summary />
-        public bool? IsPublic { get; set; }
 
         /// <summary />
         public bool? IsActive { get; set; }
@@ -76,16 +80,25 @@ namespace Rock.Client
         public bool? IsApproved { get; set; }
 
         /// <summary />
-        public int? FlagCount { get; set; }
+        public bool? IsPublic { get; set; }
+
+        /// <summary />
+        public bool? IsUrgent { get; set; }
+
+        /// <summary />
+        public string LastName { get; set; }
 
         /// <summary />
         public int? PrayerCount { get; set; }
 
         /// <summary />
-        public int? ApprovedByPersonAliasId { get; set; }
+        public PersonAlias RequestedByPersonAlias { get; set; }
 
         /// <summary />
-        public DateTime? ApprovedOnDateTime { get; set; }
+        public int? RequestedByPersonAliasId { get; set; }
+
+        /// <summary />
+        public string Text { get; set; }
 
         /// <summary />
         public DateTime? CreatedDateTime { get; set; }
@@ -100,13 +113,17 @@ namespace Rock.Client
         public int? ModifiedByPersonAliasId { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
-
-        /// <summary />
         public Guid Guid { get; set; }
 
         /// <summary />
         public string ForeignId { get; set; }
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.Attribute> Attributes { get; set; }
+
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.AttributeValue> AttributeValues { get; set; }
 
     }
 }

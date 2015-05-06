@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,13 +32,7 @@ namespace Rock.Client
     public partial class Audit
     {
         /// <summary />
-        public int EntityTypeId { get; set; }
-
-        /// <summary />
-        public int EntityId { get; set; }
-
-        /// <summary />
-        public string Title { get; set; }
+        public int Id { get; set; }
 
         /// <summary />
         public int /* AuditType*/ AuditType { get; set; }
@@ -46,10 +41,22 @@ namespace Rock.Client
         public DateTime? DateTime { get; set; }
 
         /// <summary />
+        public ICollection<AuditDetail> Details { get; set; }
+
+        /// <summary />
+        public int EntityId { get; set; }
+
+        /// <summary />
+        public EntityType EntityType { get; set; }
+
+        /// <summary />
+        public int EntityTypeId { get; set; }
+
+        /// <summary />
         public int? PersonAliasId { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
+        public string Title { get; set; }
 
         /// <summary />
         public Guid Guid { get; set; }

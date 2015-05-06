@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,7 +32,7 @@ namespace Rock.Client
     public partial class EntityType
     {
         /// <summary />
-        public string Name { get; set; }
+        public int Id { get; set; }
 
         /// <summary />
         public string AssemblyName { get; set; }
@@ -40,22 +41,22 @@ namespace Rock.Client
         public string FriendlyName { get; set; }
 
         /// <summary />
+        public bool IsCommon { get; set; }
+
+        /// <summary />
         public bool IsEntity { get; set; }
 
         /// <summary />
         public bool IsSecured { get; set; }
 
         /// <summary />
-        public bool IsCommon { get; set; }
-
-        /// <summary />
-        public int? SingleValueFieldTypeId { get; set; }
-
-        /// <summary />
         public int? MultiValueFieldTypeId { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
+        public string Name { get; set; }
+
+        /// <summary />
+        public int? SingleValueFieldTypeId { get; set; }
 
         /// <summary />
         public Guid Guid { get; set; }

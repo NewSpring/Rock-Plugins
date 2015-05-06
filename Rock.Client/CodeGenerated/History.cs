@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,28 +32,40 @@ namespace Rock.Client
     public partial class History
     {
         /// <summary />
-        public bool IsSystem { get; set; }
-
-        /// <summary />
-        public int CategoryId { get; set; }
-
-        /// <summary />
-        public int EntityTypeId { get; set; }
-
-        /// <summary />
-        public int EntityId { get; set; }
+        public int Id { get; set; }
 
         /// <summary />
         public string Caption { get; set; }
 
         /// <summary />
-        public string Summary { get; set; }
+        public Category Category { get; set; }
+
+        /// <summary />
+        public int CategoryId { get; set; }
+
+        /// <summary />
+        public int EntityId { get; set; }
+
+        /// <summary />
+        public EntityType EntityType { get; set; }
+
+        /// <summary />
+        public int EntityTypeId { get; set; }
+
+        /// <summary />
+        public bool IsSystem { get; set; }
+
+        /// <summary />
+        public int? RelatedEntityId { get; set; }
+
+        /// <summary />
+        public EntityType RelatedEntityType { get; set; }
 
         /// <summary />
         public int? RelatedEntityTypeId { get; set; }
 
         /// <summary />
-        public int? RelatedEntityId { get; set; }
+        public string Summary { get; set; }
 
         /// <summary />
         public DateTime? CreatedDateTime { get; set; }
@@ -67,13 +80,17 @@ namespace Rock.Client
         public int? ModifiedByPersonAliasId { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
-
-        /// <summary />
         public Guid Guid { get; set; }
 
         /// <summary />
         public string ForeignId { get; set; }
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.Attribute> Attributes { get; set; }
+
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.AttributeValue> AttributeValues { get; set; }
 
     }
 }

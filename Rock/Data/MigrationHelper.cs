@@ -766,6 +766,52 @@ namespace Rock.Data
         }
 
         /// <summary>
+        /// Updates the name of the category by.
+        /// </summary>
+        /// <param name="entityTypeGuid">The entity type unique identifier.</param>
+        /// <param name="name">The name.</param>
+        /// <param name="iconCssClass">The icon CSS class.</param>
+        /// <param name="description">The description.</param>
+        /// <param name="guid">The unique identifier.</param>
+        /// <param name="order">The order.</param>
+        public void UpdateCategoryByName( string entityTypeGuid, string name, string iconCssClass, string description, string guid, int order = 0 )
+        {
+            Migration.Sql( string.Format( @"
+                
+                DECLARE @EntityTypeId int
+                SET @EntityTypeId = (SELECT [Id] FROM [EntityType] WHERE [Guid] = '{0}')
+
+                IF EXISTS (
+                    SELECT [Id] 
+                    FROM [Category] 
+                    WHERE [EntityTypeId] = @EntityTypeId
+                    AND [Name] = '{1}' )
+                BEGIN
+                    UPDATE [Category] SET
+                        [IsSystem] = 1,
+                        [IconCssClass] = '{2}',
+                        [Description] = '{3}',
+                        [Order] = {5},
+                        [Guid] = '{4}'
+                    WHERE [EntityTypeId] = @EntityTypeId
+                    AND [Name] = '{1}'
+                END
+                ELSE
+                BEGIN
+                    INSERT INTO [Category] ( [IsSystem],[EntityTypeId],[Name],[IconCssClass],[Description],[Order],[Guid] )
+                    VALUES( 1,@EntityTypeId,'{1}','{2}','{3}',{5},'{4}' )  
+                END
+",
+                    entityTypeGuid,
+                    name,
+                    iconCssClass,
+                    description.Replace( "'", "''" ),
+                    guid,
+                    order )
+            );
+        }
+
+        /// <summary>
         /// Deletes the category.
         /// </summary>
         /// <param name="guid">The unique identifier.</param>
@@ -824,6 +870,7 @@ namespace Rock.Data
                     AND [Key] = '{2}' )
                 BEGIN
                     UPDATE [Attribute] SET
+                        [IsSystem] = 1,
                         [Name] = '{3}',
                         [Description] = '{4}',
                         [Order] = {5},
@@ -943,11 +990,17 @@ namespace Rock.Data
         /// <param name="order">The order.</param>
         /// <param name="defaultValue">The default value.</param>
         /// <param name="guid">The GUID.</param>
-        public void AddEntityAttribute( string entityTypeName, string fieldTypeGuid, string entityTypeQualifierColumn, string entityTypeQualifierValue, string name, string category, string description, int order, string defaultValue, string guid )
+        /// <param name="key">The key.  Defaults to Name without Spaces. If this is a core global attribute, specify the key with a 'core.' prefix</param>
+        public void AddEntityAttribute( string entityTypeName, string fieldTypeGuid, string entityTypeQualifierColumn, string entityTypeQualifierValue, string name, string category, string description, int order, string defaultValue, string guid, string key = null )
         {
             if ( !string.IsNullOrWhiteSpace( category ) )
             {
                 throw new Exception( "Attribute Category no longer supported by this helper function. You'll have to write special migration code yourself. Sorry!" );
+            }
+
+            if ( string.IsNullOrWhiteSpace( key ) )
+            {
+                key = name.Replace( " ", string.Empty );
             }
 
             EnsureEntityTypeExists( entityTypeName );
@@ -980,7 +1033,7 @@ namespace Rock.Data
 ",
                     entityTypeName,
                     fieldTypeGuid,
-                    name.Replace( " ", string.Empty ),
+                    key,
                     name,
                     description.Replace( "'", "''" ),
                     order,
@@ -1139,9 +1192,15 @@ namespace Rock.Data
         /// <param name="order">The order.</param>
         /// <param name="defaultValue">The default value.</param>
         /// <param name="guid">The unique identifier.</param>
-        public void UpdateEntityAttribute( string entityTypeName, string fieldTypeGuid, string entityTypeQualifierColumn, string entityTypeQualifierValue, string name, string description, int order, string defaultValue, string guid )
+        /// <param name="key">The key.  Defaults to Name without Spaces. If this is a core attribute for the entity, specify the key with a 'core.' prefix</param>
+        public void UpdateEntityAttribute( string entityTypeName, string fieldTypeGuid, string entityTypeQualifierColumn, string entityTypeQualifierValue, string name, string description, int order, string defaultValue, string guid, string key = null )
         {
             EnsureEntityTypeExists( entityTypeName );
+
+            if ( string.IsNullOrWhiteSpace( key ) )
+            {
+                key = name.Replace( " ", string.Empty );
+            }
 
             Migration.Sql( string.Format( @"
                  
@@ -1186,7 +1245,7 @@ namespace Rock.Data
 ",
                     entityTypeName,
                     fieldTypeGuid,
-                    name.Replace( " ", string.Empty ),
+                    key,
                     name,
                     description.Replace( "'", "''" ),
                     order,
@@ -1209,8 +1268,14 @@ namespace Rock.Data
         /// <param name="order">The order.</param>
         /// <param name="defaultValue">The default value.</param>
         /// <param name="guid">The GUID.</param>
-        public void AddGlobalAttribute( string fieldTypeGuid, string entityTypeQualifierColumn, string entityTypeQualifierValue, string name, string description, int order, string defaultValue, string guid )
+        /// <param name="key">The key.  Defaults to Name without Spaces. If this is a core global attribute, specify the key with a 'core.' prefix</param>
+        public void AddGlobalAttribute( string fieldTypeGuid, string entityTypeQualifierColumn, string entityTypeQualifierValue, string name, string description, int order, string defaultValue, string guid, string key = null )
         {
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                key = name.Replace( " ", string.Empty );
+            }
+            
             Migration.Sql( string.Format( @"
                  
                 DECLARE @FieldTypeId int
@@ -1236,7 +1301,7 @@ namespace Rock.Data
 ",
                     "", // no entity; keeps {#} the same as AddEntityAttribute()
                     fieldTypeGuid,
-                    name.Replace( " ", string.Empty ),
+                    key,
                     name,
                     description.Replace( "'", "''" ),
                     order,
@@ -1741,6 +1806,17 @@ namespace Rock.Data
         /// <param name="definedValueGuid">The defined value unique identifier.</param>
         /// <param name="attributeGuid">The attribute unique identifier.</param>
         /// <param name="value">The value.</param>
+        public void UpdateDefinedValueAttributeValue( string definedValueGuid, string attributeGuid, string value )
+        {
+            this.AddDefinedValueAttributeValue( definedValueGuid, attributeGuid, value);
+        }
+
+        /// <summary>
+        /// Adds the defined value attribute value.
+        /// </summary>
+        /// <param name="definedValueGuid">The defined value unique identifier.</param>
+        /// <param name="attributeGuid">The attribute unique identifier.</param>
+        /// <param name="value">The value.</param>
         public void AddDefinedValueAttributeValue( string definedValueGuid, string attributeGuid, string value )
         {
             Migration.Sql( string.Format( @"
@@ -1911,7 +1987,10 @@ INSERT INTO [dbo].[Group]
            ,'{2}'
            ,0)
 ";
-            Migration.Sql( string.Format( sql, name, description, guid ) );
+            Migration.Sql( string.Format( sql,
+                name.Replace( "'", "''" ),
+                description.Replace( "'", "''" ), 
+                guid ) );
         }
 
         /// <summary>
@@ -1984,24 +2063,34 @@ SET @groupId = (SELECT [Id] FROM [Group] WHERE [Guid] = '{0}')
 DECLARE @entityTypeId int
 SET @entityTypeId = (SELECT [Id] FROM [EntityType] WHERE [name] = '{1}')
 
-INSERT INTO [dbo].[Auth]
-           ([EntityTypeId]
-           ,[EntityId]
-           ,[Order]
-           ,[Action]
-           ,[AllowOrDeny]
-           ,[SpecialRole]
-           ,[GroupId]
-           ,[Guid])
-     VALUES
-           (@entityTypeId
-           ,0
-           ,{2}
-           ,'{3}'
-           ,'{4}'
-           ,{5}
-           ,@groupId
-           ,'{6}')
+IF NOT EXISTS ( 
+    SELECT [Id] FROM [dbo].[Auth]
+    WHERE [EntityTypeId] = @entityTypeId
+    AND [EntityId] = 0
+    AND [Action] = '{3}'
+    AND [SpecialRole] = {5}
+    AND [GroupId] = @groupId
+)
+BEGIN
+    INSERT INTO [dbo].[Auth]
+               ([EntityTypeId]
+               ,[EntityId]
+               ,[Order]
+               ,[Action]
+               ,[AllowOrDeny]
+               ,[SpecialRole]
+               ,[GroupId]
+               ,[Guid])
+         VALUES
+               (@entityTypeId
+               ,0
+               ,{2}
+               ,'{3}'
+               ,'{4}'
+               ,{5}
+               ,@groupId
+               ,'{6}')
+END
 ";
             Migration.Sql( string.Format( sql, 
                 groupGuid ?? Guid.Empty.ToString(), // {0}
@@ -2060,24 +2149,35 @@ SET @entityTypeId = (SELECT [Id] FROM [EntityType] WHERE [name] = '{1}')
 DECLARE @pageId int
 SET @pageId = (SELECT [Id] FROM [Page] WHERE [Guid] = '{2}')
 
-INSERT INTO [dbo].[Auth]
-           ([EntityTypeId]
-           ,[EntityId]
-           ,[Order]
-           ,[Action]
-           ,[AllowOrDeny]
-           ,[SpecialRole]
-           ,[GroupId]
-           ,[Guid])
-     VALUES
-           (@entityTypeId
-           ,@pageId
-           ,{6}
-           ,'{3}'
-           ,'{7}'
-           ,{4}
-           ,@groupId
-           ,'{5}')
+IF NOT EXISTS ( 
+    SELECT [Id] FROM [Auth]
+    WHERE [EntityTypeId] = @entityTypeId
+    AND [EntityId] = @pageId
+    AND [Action] = '{3}'
+    AND [SpecialRole] = {4}
+    AND [GroupId] = @groupId 
+)
+BEGIN
+    INSERT INTO [dbo].[Auth]
+               ([EntityTypeId]
+               ,[EntityId]
+               ,[Order]
+               ,[Action]
+               ,[AllowOrDeny]
+               ,[SpecialRole]
+               ,[GroupId]
+               ,[Guid])
+         VALUES
+               (@entityTypeId
+               ,@pageId
+               ,{6}
+               ,'{3}'
+               ,'{7}'
+               ,{4}
+               ,@groupId
+               ,'{5}')
+END
+
 ";
             Migration.Sql( string.Format( sql, groupGuid ?? Guid.Empty.ToString(), entityTypeName, pageGuid, action, specialRole, authGuid, order,
                 ( allow ? "A" : "D" ) ) );
@@ -2187,24 +2287,34 @@ SET @entityTypeId = (SELECT [Id] FROM [EntityType] WHERE [name] = '{1}')
 DECLARE @binaryFileTypeId int
 SET @binaryFileTypeId = (SELECT [Id] FROM [BinaryFileType] WHERE [Guid] = '{2}')
 
-INSERT INTO [dbo].[Auth]
-           ([EntityTypeId]
-           ,[EntityId]
-           ,[Order]
-           ,[Action]
-           ,[AllowOrDeny]
-           ,[SpecialRole]
-           ,[GroupId]
-           ,[Guid])
-     VALUES
-           (@entityTypeId
-           ,@binaryFileTypeId
-           ,{6}
-           ,'{3}'
-           ,'{7}'
-           ,{4}
-           ,@groupId
-           ,'{5}')
+IF NOT EXISTS ( 
+    SELECT [Id] FROM [dbo].[Auth]
+    WHERE [EntityTypeId] = @entityTypeId
+    AND [EntityId] = @binaryFileTypeId
+    AND [Action] = '{3}'
+    AND [SpecialRole] = {4}
+    AND [GroupId] = @groupId
+)
+BEGIN
+    INSERT INTO [dbo].[Auth]
+               ([EntityTypeId]
+               ,[EntityId]
+               ,[Order]
+               ,[Action]
+               ,[AllowOrDeny]
+               ,[SpecialRole]
+               ,[GroupId]
+               ,[Guid])
+         VALUES
+               (@entityTypeId
+               ,@binaryFileTypeId
+               ,{6}
+               ,'{3}'
+               ,'{7}'
+               ,{4}
+               ,@groupId
+               ,'{5}')
+END
 ";
             Migration.Sql( string.Format( sql, groupGuid ?? Guid.Empty.ToString(), entityTypeName, binaryFileTypeGuid, action, specialRole.ConvertToInt(), authGuid, order,
                 ( allow ? "A" : "D" ) ) );
@@ -2255,24 +2365,35 @@ SET @entityTypeId = (SELECT [Id] FROM [EntityType] WHERE [name] = '{1}')
 DECLARE @groupTypeId int
 SET @groupTypeId = (SELECT [Id] FROM [GroupType] WHERE [Guid] = '{2}')
 
-INSERT INTO [dbo].[Auth]
-           ([EntityTypeId]
-           ,[EntityId]
-           ,[Order]
-           ,[Action]
-           ,[AllowOrDeny]
-           ,[SpecialRole]
-           ,[GroupId]
-           ,[Guid])
-     VALUES
-           (@entityTypeId
-           ,@groupTypeId
-           ,{6}
-           ,'{3}'
-           ,'{7}'
-           ,{4}
-           ,@groupId
-           ,'{5}')
+
+IF NOT EXISTS ( 
+    SELECT [Id] FROM [dbo].[Auth]
+    WHERE [EntityTypeId] = @entityTypeId
+    AND [EntityId] = @groupTypeId
+    AND [Action] = '{3}'
+    AND [SpecialRole] = {4}
+    AND [GroupId] = @groupId
+)
+BEGIN
+    INSERT INTO [dbo].[Auth]
+               ([EntityTypeId]
+               ,[EntityId]
+               ,[Order]
+               ,[Action]
+               ,[AllowOrDeny]
+               ,[SpecialRole]
+               ,[GroupId]
+               ,[Guid])
+         VALUES
+               (@entityTypeId
+               ,@groupTypeId
+               ,{6}
+               ,'{3}'
+               ,'{7}'
+               ,{4}
+               ,@groupId
+               ,'{5}')
+END
 ";
             Migration.Sql( string.Format( sql, groupGuid ?? Guid.Empty.ToString(), entityTypeName, groupTypeGuid, action, specialRole.ConvertToInt(), authGuid, order,
                 ( allow ? "A" : "D" ) ) );
@@ -2324,24 +2445,34 @@ SET @entityTypeId = (SELECT [Id] FROM [EntityType] WHERE [name] = '{1}')
 DECLARE @attributeId int
 SET @attributeId = (SELECT [Id] FROM [Attribute] WHERE [Guid] = '{2}')
 
-INSERT INTO [dbo].[Auth]
-           ([EntityTypeId]
-           ,[EntityId]
-           ,[Order]
-           ,[Action]
-           ,[AllowOrDeny]
-           ,[SpecialRole]
-           ,[GroupId]
-           ,[Guid])
-     VALUES
-           (@entityTypeId
-           ,@attributeId
-           ,{6}
-           ,'{3}'
-           ,'{7}'
-           ,{4}
-           ,@groupId
-           ,'{5}')
+IF NOT EXISTS ( 
+    SELECT [Id] FROM [dbo].[Auth]
+    WHERE [EntityTypeId] = @entityTypeId
+    AND [EntityId] = @attributeId
+    AND [Action] = '{3}'
+    AND [SpecialRole] = {4}
+    AND [GroupId] = @groupId
+)
+BEGIN
+    INSERT INTO [dbo].[Auth]
+               ([EntityTypeId]
+               ,[EntityId]
+               ,[Order]
+               ,[Action]
+               ,[AllowOrDeny]
+               ,[SpecialRole]
+               ,[GroupId]
+               ,[Guid])
+         VALUES
+               (@entityTypeId
+               ,@attributeId
+               ,{6}
+               ,'{3}'
+               ,'{7}'
+               ,{4}
+               ,@groupId
+               ,'{5}')
+END
 ";
             Migration.Sql( string.Format( sql, groupGuid ?? Guid.Empty.ToString(), entityTypeName, attributeGuid, action, specialRole, authGuid, order,
                 ( allow ? "A" : "D" ) ) );
@@ -2393,24 +2524,34 @@ SET @entityTypeId = (SELECT [Id] FROM [EntityType] WHERE [name] = '{1}')
 DECLARE @categoryId int
 SET @categoryId = (SELECT [Id] FROM [Category] WHERE [Guid] = '{2}')
 
-INSERT INTO [dbo].[Auth]
-           ([EntityTypeId]
-           ,[EntityId]
-           ,[Order]
-           ,[Action]
-           ,[AllowOrDeny]
-           ,[SpecialRole]
-           ,[GroupId]
-           ,[Guid])
-     VALUES
-           (@entityTypeId
-           ,@categoryId
-           ,{6}
-           ,'{3}'
-           ,'{7}'
-           ,{4}
-           ,@groupId
-           ,'{5}')
+IF NOT EXISTS ( 
+    SELECT [Id] FROM [dbo].[Auth]
+    WHERE [EntityTypeId] = @entityTypeId
+    AND [EntityId] = @categoryId
+    AND [Action] = '{3}'
+    AND [SpecialRole] = {4}
+    AND [GroupId] = @groupId
+)
+BEGIN
+    INSERT INTO [dbo].[Auth]
+               ([EntityTypeId]
+               ,[EntityId]
+               ,[Order]
+               ,[Action]
+               ,[AllowOrDeny]
+               ,[SpecialRole]
+               ,[GroupId]
+               ,[Guid])
+         VALUES
+               (@entityTypeId
+               ,@categoryId
+               ,{6}
+               ,'{3}'
+               ,'{7}'
+               ,{4}
+               ,@groupId
+               ,'{5}')
+END
 ";
             Migration.Sql( string.Format( sql, groupGuid ?? Guid.Empty.ToString(), entityTypeName, categoryGuid, action, specialRole, authGuid, order,
                 ( allow ? "A" : "D" ) ) );
@@ -2423,6 +2564,139 @@ INSERT INTO [dbo].[Auth]
         public void DeleteSecurityAuth( string guid )
         {
             Migration.Sql( string.Format( "DELETE FROM [dbo].[Auth] where [Guid] = '{0}'", guid ) );
+        }
+
+        /// <summary>
+        /// Adds the security authentication for rest controller.
+        /// </summary>
+        /// <param name="restControllerClass">The rest controller class.</param>
+        /// <param name="order">The order.</param>
+        /// <param name="action">The action.</param>
+        /// <param name="allow">if set to <c>true</c> [allow].</param>
+        /// <param name="groupGuid">The group unique identifier.</param>
+        /// <param name="specialRole">The special role.</param>
+        /// <param name="authGuid">The authentication unique identifier.</param>
+        public void AddSecurityAuthForRestController( string restControllerClass, int order, string action, bool allow, string groupGuid, Rock.Model.SpecialRole specialRole, string authGuid )
+        {
+            string entityTypeName = "Rock.Model.RestController";
+            EnsureEntityTypeExists( entityTypeName );
+
+            string sql = @"
+    DECLARE @EntityTypeId int = ( SELECT TOP 1 [Id] FROM [EntityType] WHERE [name] = '{0}')
+    DECLARE @ControllerId int = ( SELECT TOP 1 [Id] FROM [RestController] WHERE [ClassName] = '{1}')
+
+    IF @EntityTypeId IS NOT NULL AND @ControllerId IS NOT NULL
+    BEGIN
+
+        DECLARE @groupId int = ( SELECT TOP 1 [Id] FROM [Group] WHERE [Guid] = '{5}')
+
+        IF NOT EXISTS ( 
+            SELECT [Id] FROM [dbo].[Auth]
+            WHERE [EntityTypeId] = @entityTypeId
+            AND [EntityId] = @ControllerId
+            AND [Action] = '{3}'
+            AND [SpecialRole] = {6}
+            AND [GroupId] = @groupId
+        )
+        BEGIN
+            INSERT INTO [dbo].[Auth]
+                   ([EntityTypeId]
+                   ,[EntityId]
+                   ,[Order]
+                   ,[Action]
+                   ,[AllowOrDeny]
+                   ,[SpecialRole]
+                   ,[GroupId]
+                   ,[Guid])
+             VALUES
+                   (@EntityTypeId
+                   ,@ControllerId
+                   ,{2}
+                   ,'{3}'
+                   ,'{4}'
+                   ,{6}
+                   ,@groupId
+                   ,'{7}')
+        END
+    END
+";
+            Migration.Sql( string.Format( sql,
+                entityTypeName,                 // 0
+                restControllerClass,            // 1
+                order,                          // 2
+                action,                         // 3
+                ( allow ? "A" : "D" ),          // 4
+                groupGuid,                      // 5
+                specialRole.ConvertToInt(),     // 6
+                authGuid ) );                   // 7
+        }
+
+
+        /// <summary>
+        /// Adds the security authentication for rest action.
+        /// </summary>
+        /// <param name="restActionMethod">The rest action method.</param>
+        /// <param name="restActionPath">The rest action path.</param>
+        /// <param name="order">The order.</param>
+        /// <param name="action">The action.</param>
+        /// <param name="allow">if set to <c>true</c> [allow].</param>
+        /// <param name="groupGuid">The group unique identifier.</param>
+        /// <param name="specialRole">The special role.</param>
+        /// <param name="authGuid">The authentication unique identifier.</param>
+        public void AddSecurityAuthForRestAction( string restActionMethod, string restActionPath, int order, string action, bool allow, string groupGuid, Rock.Model.SpecialRole specialRole, string authGuid )
+        {
+            string entityTypeName = "Rock.Model.RestAction";
+            EnsureEntityTypeExists( entityTypeName );
+
+            string sql = @"
+    DECLARE @EntityTypeId int = ( SELECT TOP 1 [Id] FROM [EntityType] WHERE [name] = '{0}')
+    DECLARE @ActionId int = ( SELECT TOP 1 [Id] FROM [RestAction] WHERE [ApiId] = '{1}{2}')
+
+    IF @EntityTypeId IS NOT NULL AND @ActionId IS NOT NULL
+    BEGIN
+
+        DECLARE @groupId int = ( SELECT TOP 1 [Id] FROM [Group] WHERE [Guid] = '{6}')
+
+        IF NOT EXISTS ( 
+            SELECT [Id] FROM [dbo].[Auth]
+            WHERE [EntityTypeId] = @entityTypeId
+            AND [EntityId] = @ActionId
+            AND [Action] = '{4}'
+            AND [SpecialRole] = {7}
+            AND [GroupId] = @groupId
+        )
+        BEGIN
+            INSERT INTO [dbo].[Auth]
+                   ([EntityTypeId]
+                   ,[EntityId]
+                   ,[Order]
+                   ,[Action]
+                   ,[AllowOrDeny]
+                   ,[SpecialRole]
+                   ,[GroupId]
+                   ,[Guid])
+             VALUES
+                   (@EntityTypeId
+                   ,@ActionId
+                   ,{3}
+                   ,'{4}'
+                   ,'{5}'
+                   ,{7}
+                   ,@groupId
+                   ,'{8}')
+        END
+    END
+";
+            Migration.Sql( string.Format( sql,
+                entityTypeName,                 // 0
+                restActionMethod,               // 1
+                restActionPath,                 // 2
+                order,                          // 3
+                action,                         // 4
+                ( allow ? "A" : "D" ),          // 5
+                groupGuid,                      // 6
+                specialRole.ConvertToInt(),     // 7
+                authGuid ) );                   // 8
         }
 
         #endregion
@@ -2759,6 +3033,7 @@ INSERT INTO [dbo].[Auth]
                 -- Delete the group type and any dangling bits
                 DECLARE @GroupTypeId int = (SELECT [Id] FROM [GroupType] WHERE [Guid] = '{0}')
                 UPDATE [GroupType] SET [InheritedGroupTypeId] = NULL, [DefaultGroupRoleId] = NULL WHERE [InheritedGroupTypeId] = @GroupTypeId
+                DELETE [GroupTypeAssociation] WHERE [ChildGroupTypeId] = @GroupTypeId OR [GroupTypeId] = @GroupTypeId
                 DELETE [GroupTypeRole] WHERE [GroupTypeId] = @GroupTypeId
                 DELETE [GroupType] WHERE [Guid] = '{0}'
 ",
@@ -2948,7 +3223,7 @@ INSERT INTO [dbo].[Auth]
         /// <param name="fieldTypeGuid">The field type unique identifier.</param>
         /// <param name="categoryGuid">The category unique identifier.</param>
         /// <param name="name">The name.</param>
-        /// <param name="key">The key.</param>
+        /// <param name="key">The key.  Defaults to Name without Spaces. If this is a core person attribute, specify the key with a 'core.' prefix</param>
         /// <param name="iconCssClass">The icon CSS class.</param>
         /// <param name="description">The description.</param>
         /// <param name="order">The order.</param>
@@ -2956,7 +3231,6 @@ INSERT INTO [dbo].[Auth]
         /// <param name="guid">The unique identifier.</param>
         public void UpdatePersonAttribute( string fieldTypeGuid, string categoryGuid, string name, string key, string iconCssClass, string description, int order, string defaultValue, string guid )
         {
-
             Migration.Sql( string.Format( @"
                 
                 DECLARE @FieldTypeId int
@@ -3745,8 +4019,9 @@ INSERT INTO [dbo].[Auth]
         }
 
         /// <summary>
-        /// Adds an action type person attribute value.  Because there's not way to link to another person in target database, person attribute values
-        /// are just set to the first person alias record in target database which will most likely be the Admin, Admin record.
+        /// Adds an action type person attribute value.  Because there's not a way to link to another person in the
+        /// target database, person attribute values are just set to the first person alias record in the target
+        /// database which will most likely be the Admin, Admin record.
         /// </summary>
         /// <param name="actionTypeGuid">The action type unique identifier.</param>
         /// <param name="attributeGuid">The attribute unique identifier.</param>
@@ -3798,6 +4073,65 @@ INSERT INTO [dbo].[Auth]
             );
         }
 
+
+        #endregion
+
+        #region REST Methods
+
+        /// <summary>
+        /// Adds the rest controller.
+        /// </summary>
+        /// <param name="controllerName">Name of the controller.</param>
+        /// <param name="controllerClass">The controller class.</param>
+        public void AddRestController( string controllerName, string controllerClass )
+        {
+            Migration.Sql( string.Format( @"
+               
+    DECLARE @ControllerId int = ( SELECT TOP 1 [Id] FROM [RestController] WHERE [ClassName] = '{1}' )
+    IF @ControllerId IS NULL
+    BEGIN
+        
+        INSERT INTO [RestController] ( [Name], [ClassName], [Guid] )
+	    VALUES ( '{0}', '{1}', NEWID() )
+
+	    SET @ControllerId = SCOPE_IDENTITY()
+
+    END
+",
+                    controllerName,
+                    controllerClass
+                    ) );
+        }
+
+        /// <summary>
+        /// Adds the rest action.
+        /// </summary>
+        /// <param name="controllerName">Name of the controller.</param>
+        /// <param name="controllerClass">The controller class.</param>
+        /// <param name="actionMethod">The action method.</param>
+        /// <param name="actionPath">The action path.</param>
+        public void AddRestAction( string controllerName, string controllerClass, string actionMethod, string actionPath )
+        {
+            AddRestController( controllerName, controllerClass );
+
+            Migration.Sql( string.Format( @"
+               
+    DECLARE @ControllerId int = ( SELECT TOP 1 [Id] FROM [RestController] WHERE [ClassName] = '{0}' )
+    DECLARE @ActionId int = ( SELECT TOP 1 [Id] FROM [RestAction] WHERE [ApiId] = '{1}{2}' )
+    IF @ActionId IS NULL
+    BEGIN
+	
+	    INSERT INTO [RestAction] ( [ControllerId], [Method], [ApiId], [Path], [Guid] )
+	    VALUES ( @ControllerId, '{1}', '{1}{2}', '{2}', NEWID() )
+
+    END
+
+",
+                    controllerClass,
+                    actionMethod,
+                    actionPath
+                    ) );
+        }
 
         #endregion
 

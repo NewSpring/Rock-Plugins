@@ -118,9 +118,12 @@ namespace RockWeb.Blocks.Finance
         {
             FinancialAccount account = null;
 
+            bool editAllowed = UserCanEdit;
+
             if ( !accountId.Equals( 0 ) )
             {
                 account = new FinancialAccountService( new RockContext() ).Get( accountId );
+                editAllowed = editAllowed || account.IsAuthorized( Authorization.EDIT, CurrentPerson );
             }
 
             if ( account == null )
@@ -128,14 +131,12 @@ namespace RockWeb.Blocks.Finance
                 account = new FinancialAccount { Id = 0, IsActive = true };
             }
 
-            bool editAllowed = account.IsAuthorized( Authorization.EDIT, CurrentPerson );
-
             hfAccountId.Value = account.Id.ToString();
 
             bool readOnly = false;
 
             nbEditModeMessage.Text = string.Empty;
-            if ( !editAllowed || !IsUserAuthorized( Authorization.EDIT ) )
+            if ( !editAllowed || !editAllowed )
             {
                 readOnly = true;
                 nbEditModeMessage.Text = EditModeMessage.ReadOnlyEditActionNotAllowed( FinancialAccount.FriendlyTypeName );

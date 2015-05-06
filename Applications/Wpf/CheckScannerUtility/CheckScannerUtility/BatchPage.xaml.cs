@@ -409,7 +409,7 @@ namespace Rock.Apps.CheckScannerUtility
                     scannedDoc.AccountNumber = accountNumber;
                     scannedDoc.CheckNumber = checkNumber;
 
-                    if ( routingNumber.Length != 9 || string.IsNullOrEmpty( accountNumber ) || checkMicr.Contains('!') )
+                    if ( routingNumber.Length != 9 || string.IsNullOrEmpty( accountNumber ) || checkMicr.Contains('!') || string.IsNullOrEmpty(checkNumber) )
                     {
                         scannedDoc.BadMicr = true;
                         rangerScanner.StopFeeding();
@@ -701,56 +701,24 @@ namespace Rock.Apps.CheckScannerUtility
             foreach ( ScannedDocInfo scannedDocInfo in ScannedDocList.Where( a => !a.Uploaded ) )
             {
                 // upload image of front of doc
-                BinaryFile binaryFileFront = new BinaryFile();
-                binaryFileFront.Guid = Guid.NewGuid();
-                binaryFileFront.FileName = string.Format( "image1_{0}.png", RockDateTime.Now.ToString( "o" ).RemoveSpecialCharacters() );
-                binaryFileFront.BinaryFileTypeId = binaryFileTypeContribution.Id;
-                binaryFileFront.IsSystem = false;
-                binaryFileFront.MimeType = "image/png";
-                client.PostData<BinaryFile>( "api/BinaryFiles/", binaryFileFront );
-
-                // upload image data content of front of doc
-                binaryFileFront.Data = new BinaryFileData();
-                binaryFileFront.Data.Content = scannedDocInfo.FrontImagePngBytes;
-                binaryFileFront.Data.Id = client.GetDataByGuid<BinaryFile>( "api/BinaryFiles/", binaryFileFront.Guid ).Id;
-                client.PostData<BinaryFileData>( "api/BinaryFileDatas/", binaryFileFront.Data );
+                string frontImageFileName = string.Format( "image1_{0}.png", RockDateTime.Now.ToString( "o" ).RemoveSpecialCharacters() );
+                int frontImageBinaryFileId = client.UploadBinaryFile( frontImageFileName, Rock.SystemGuid.BinaryFiletype.CONTRIBUTION_IMAGE.AsGuid(), scannedDocInfo.FrontImagePngBytes, false );
 
                 // upload image of back of doc (if it exists)
-                BinaryFile binaryFileBack = null;
-
+                int? backImageBinaryFileId = null;
                 if ( scannedDocInfo.BackImageData != null )
                 {
-                    binaryFileBack = new BinaryFile();
-                    binaryFileBack.Guid = Guid.NewGuid();
-                    binaryFileBack.FileName = string.Format( "image2_{0}.png", RockDateTime.Now.ToString( "o" ).RemoveSpecialCharacters() );
-
                     // upload image of back of doc
-                    binaryFileBack.BinaryFileTypeId = binaryFileTypeContribution.Id;
-                    binaryFileBack.IsSystem = false;
-                    binaryFileBack.MimeType = "image/png";
-                    client.PostData<BinaryFile>( "api/BinaryFiles/", binaryFileBack );
-
-                    // upload image data content of back of doc
-                    binaryFileBack.Data = new BinaryFileData();
-                    binaryFileBack.Data.Content = scannedDocInfo.BackImagePngBytes;
-                    binaryFileBack.Data.Id = client.GetDataByGuid<BinaryFile>( "api/BinaryFiles/", binaryFileBack.Guid ).Id;
-                    client.PostData<BinaryFileData>( "api/BinaryFileDatas/", binaryFileBack.Data );
+                    string backImageFileName = string.Format( "image2_{0}.png", RockDateTime.Now.ToString( "o" ).RemoveSpecialCharacters() );
+                    backImageBinaryFileId = client.UploadBinaryFile( backImageFileName, Rock.SystemGuid.BinaryFiletype.CONTRIBUTION_IMAGE.AsGuid(), scannedDocInfo.BackImagePngBytes, false );
                 }
 
                 int percentComplete = position++ * 100 / totalCount;
                 bw.ReportProgress( percentComplete );
 
-                FinancialTransaction financialTransactionScanned;
+                FinancialTransaction financialTransactionScanned = new FinancialTransaction();
 
                 Guid transactionGuid = Guid.NewGuid();
-                if ( scannedDocInfo.IsCheck )
-                {
-                    financialTransactionScanned = new FinancialTransactionScannedCheck();
-                }
-                else
-                {
-                    financialTransactionScanned = new FinancialTransaction();
-                }
 
                 financialTransactionScanned.BatchId = SelectedFinancialBatch.Id;
                 financialTransactionScanned.TransactionCode = string.Empty;
@@ -766,10 +734,10 @@ namespace Rock.Apps.CheckScannerUtility
 
                 if ( scannedDocInfo.IsCheck )
                 {
-                    FinancialTransactionScannedCheck financialTransactionScannedCheck = financialTransactionScanned as FinancialTransactionScannedCheck;
+                    FinancialTransactionScannedCheck financialTransactionScannedCheck = new FinancialTransactionScannedCheck();
 
                     // Rock server will encrypt CheckMicrPlainText to this since we can't have the DataEncryptionKey in a RestClient
-                    financialTransactionScannedCheck.CheckMicrEncrypted = null;
+                    financialTransactionScannedCheck.FinancialTransaction = financialTransactionScanned;
                     financialTransactionScannedCheck.ScannedCheckMicr = scannedDocInfo.ScannedCheckMicr;
 
                     client.PostData<FinancialTransactionScannedCheck>( "api/FinancialTransactions/PostScanned", financialTransactionScannedCheck );
@@ -780,24 +748,20 @@ namespace Rock.Apps.CheckScannerUtility
                 }
 
                 // get the FinancialTransaction back from server so that we can get it's Id
-                int transactionId = client.GetDataByGuid<FinancialTransaction>( "api/FinancialTransactions", transactionGuid ).Id;
-
-                // get the BinaryFiles back so that we can get their Ids
-                binaryFileFront.Id = client.GetDataByGuid<BinaryFile>( "api/BinaryFiles", binaryFileFront.Guid ).Id;
+                int transactionId = client.GetIdFromGuid( "api/FinancialTransactions/", transactionGuid );
+                
 
                 // upload FinancialTransactionImage records for front/back
                 FinancialTransactionImage financialTransactionImageFront = new FinancialTransactionImage();
-                financialTransactionImageFront.BinaryFileId = binaryFileFront.Id;
+                financialTransactionImageFront.BinaryFileId = frontImageBinaryFileId;
                 financialTransactionImageFront.TransactionId = transactionId;
                 financialTransactionImageFront.Order = 0;
                 client.PostData<FinancialTransactionImage>( "api/FinancialTransactionImages", financialTransactionImageFront );
 
-                if ( binaryFileBack != null )
+                if ( backImageBinaryFileId.HasValue )
                 {
-                    // get the BinaryFiles back so that we can get their Ids
-                    binaryFileBack.Id = client.GetDataByGuid<BinaryFile>( "api/BinaryFiles", binaryFileBack.Guid ).Id;
                     FinancialTransactionImage financialTransactionImageBack = new FinancialTransactionImage();
-                    financialTransactionImageBack.BinaryFileId = binaryFileBack.Id;
+                    financialTransactionImageBack.BinaryFileId = backImageBinaryFileId.Value;
                     financialTransactionImageBack.TransactionId = transactionId;
                     financialTransactionImageBack.Order = 1;
                     client.PostData<FinancialTransactionImage>( "api/FinancialTransactionImages", financialTransactionImageBack );
@@ -1335,24 +1299,8 @@ namespace Rock.Apps.CheckScannerUtility
                     RockRestClient client = new RockRestClient( config.RockBaseUrl );
                     client.Login( config.Username, config.Password );
                     financialTransaction.Images = client.GetData<List<FinancialTransactionImage>>( "api/FinancialTransactionImages", string.Format( "TransactionId eq {0}", financialTransaction.Id ) );
-                    foreach ( var image in financialTransaction.Images )
-                    {
-                        image.BinaryFile = client.GetData<BinaryFile>( string.Format( "api/BinaryFiles/{0}", image.BinaryFileId ) );
-                        try
-                        {
-                            image.BinaryFile.Data = client.GetData<BinaryFileData>( string.Format( "api/BinaryFileDatas/{0}", image.BinaryFileId ) );
-                            if ( image.BinaryFile.Data == null || image.BinaryFile.Data.Content == null )
-                            {
-                                throw new Exception( "Image Content is empty" );
-                            }
-                        }
-                        catch ( Exception ex )
-                        {
-                            throw new Exception( "Error getting doc image data: " + ex.Message );
-                        }
-                    }
 
-                    BatchItemDetailPage.FinancialTransaction = financialTransaction;
+                    BatchItemDetailPage.FinancialTransactionImages = financialTransaction.Images;
                     this.NavigationService.Navigate( BatchItemDetailPage );
                 }
             }

@@ -21,6 +21,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 
 
 namespace Rock.Client
@@ -31,22 +32,31 @@ namespace Rock.Client
     public partial class WorkflowActionForm
     {
         /// <summary />
-        public int? NotificationSystemEmailId { get; set; }
+        public int Id { get; set; }
 
         /// <summary />
-        public bool IncludeActionsInNotification { get; set; }
-
-        /// <summary />
-        public string Header { get; set; }
-
-        /// <summary />
-        public string Footer { get; set; }
+        public Guid? ActionAttributeGuid { get; set; }
 
         /// <summary />
         public string Actions { get; set; }
 
         /// <summary />
-        public Guid? ActionAttributeGuid { get; set; }
+        public bool? AllowNotes { get; set; }
+
+        /// <summary />
+        public string Footer { get; set; }
+
+        /// <summary />
+        public ICollection<WorkflowActionFormAttribute> FormAttributes { get; set; }
+
+        /// <summary />
+        public string Header { get; set; }
+
+        /// <summary />
+        public bool IncludeActionsInNotification { get; set; }
+
+        /// <summary />
+        public int? NotificationSystemEmailId { get; set; }
 
         /// <summary />
         public DateTime? CreatedDateTime { get; set; }
@@ -61,13 +71,17 @@ namespace Rock.Client
         public int? ModifiedByPersonAliasId { get; set; }
 
         /// <summary />
-        public int Id { get; set; }
-
-        /// <summary />
         public Guid Guid { get; set; }
 
         /// <summary />
         public string ForeignId { get; set; }
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.Attribute> Attributes { get; set; }
+
+
+        /// <summary />
+        public Dictionary<string, Rock.Client.AttributeValue> AttributeValues { get; set; }
 
     }
 }
