@@ -6,7 +6,7 @@ deployment:
   production:
     branch: develop
     codedeploy:
-      StagingRock:
+      StagingIIS:
         deployment_group: Develop
         revision_location:
           revision_type: S3
