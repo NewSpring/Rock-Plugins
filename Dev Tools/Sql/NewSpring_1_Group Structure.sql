@@ -484,7 +484,7 @@ where id in (
 	and g.GroupTypeId in (14, 18, 19, 20, 21, 22)
 )
 
-delete from location where id > 1
+--delete from location where id > 1
 
 delete from GroupTypeAssociation
 where GroupTypeId in (14, 18, 19, 20, 21, 22)
