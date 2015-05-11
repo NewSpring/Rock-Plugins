@@ -21,6 +21,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -41,7 +42,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
     [Category( "Check-in > Attended" )]
     [Description( "Attended Check-In Confirmation Block" )]
     [LinkedPage( "Activity Select Page" )]
-    [CustomDropdownListField( "Location Column", "Choose whether to show the name of the group or the location in the location column of the grid", "Location,Group", true, "Location" )]
+	[BooleanField( "Display Group Names", "By default location names are shown in the grid.  Check this option to show the group names instead.", false )]    
     [BooleanField( "Print Individual Labels", "Select this option to print one label per person's group, location, & schedule.", false )]
     [BinaryFileField( "DE0E5C50-234B-474C-940C-C571F385E65F", "Designated Single Label", "Select a label to print once per print job.  Unselect the label to print it with every print job.", false )]
     public partial class Confirm : CheckInBlock
@@ -127,8 +128,8 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                                 var checkIn = new Activity();
 
                                 checkIn.Name = person.Person.FullName;
-                                var showLocation = GetAttributeValue( "LocationColumn" ) == "Location";
-                                checkIn.Location = showLocation ? location.Location.Name : group.Group.Name;
+								var showGroup = GetAttributeValue( "DisplayGroupNames" ).AsBoolean();
+                                checkIn.Location = showGroup ? group.Group.Name : location.Location.Name;
                                 checkIn.Schedule = schedule.Schedule.Name;
                                 checkIn.PersonId = person.Person.Id;
                                 checkIn.GroupId = group.Group.Id;
@@ -423,6 +424,9 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                 return;
             }
 
+            var printerIp = string.Empty;
+            var printContent = new StringBuilder();
+
             foreach ( var family in CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ) )
             {
                 foreach ( var person in family.People.Where( p => p.Selected ) )
@@ -455,9 +459,6 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
 
                             if ( printFromServer.Any() )
                             {
-                                Socket socket = null;
-                                string currentIp = string.Empty;
-
                                 foreach ( var label in printFromServer )
                                 {
                                     var labelCache = KioskLabel.Read( label.FileGuid );
@@ -465,66 +466,48 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                                     {
                                         if ( !string.IsNullOrWhiteSpace( label.PrinterAddress ) )
                                         {
-                                            if ( label.PrinterAddress != currentIp )
-                                            {
-                                                if ( socket != null && socket.Connected )
-                                                {
-                                                    socket.Shutdown( SocketShutdown.Both );
-                                                    socket.Close();
-                                                }
+                                            printerIp = label.PrinterAddress;
+                                            var currentPrintContent = labelCache.FileContent;
 
-                                                currentIp = label.PrinterAddress;
-                                                var printerIp = new IPEndPoint( IPAddress.Parse( currentIp ), 9100 );
-
-                                                socket = new Socket( AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp );
-                                                IAsyncResult result = socket.BeginConnect( printerIp, null, null );
-                                                bool success = result.AsyncWaitHandle.WaitOne( 5000, true );
-                                            }
-
-                                            string printContent = labelCache.FileContent;
                                             foreach ( var mergeField in label.MergeFields )
                                             {
-                                                printContent = Regex.Replace( printContent, string.Format( @"(?<=\^FD){0}(?=\^FS)", mergeField.Key ), mergeField.Value );
-
-                                                // don't print empty field content
-                                                //if ( !string.IsNullOrWhiteSpace( mergeField.Value ) )
-                                                //{
-                                                //    printContent = Regex.Replace( printContent, string.Format( @"(?<=\^FD){0}(?=\^FS)", mergeField.Key ), mergeField.Value );
-                                                //}
-                                                //else
-                                                //{
-                                                //    // Remove the box preceding merge field
-                                                //    printContent = Regex.Replace( printContent, string.Format( @"\^FO.*\^FS\s*(?=\^FT.*\^FD{0}\^FS)", mergeField.Key ), string.Empty );
-                                                //    // Remove the merge field
-                                                //    printContent = Regex.Replace( printContent, string.Format( @"\^FD{0}\^FS", mergeField.Key ), "^FD^FS" );
-                                                //}
+                                                currentPrintContent = Regex.Replace( currentPrintContent, string.Format( @"(?<=\^FD){0}(?=\^FS)", mergeField.Key ), mergeField.Value );
                                             }
 
-                                            if ( socket.Connected )
-                                            {
-                                                var ns = new NetworkStream( socket );
-                                                byte[] toSend = System.Text.Encoding.ASCII.GetBytes( printContent );
-                                                ns.Write( toSend, 0, toSend.Length );
-
-                                                // Remove from future server queue
-                                                RemoveLabelFromServerQueue = RemoveLabelFromServerQueue || label.FileGuid == designatedLabelGuid;
-                                            }
-                                            else
-                                            {
-                                                maWarning.Show( "Could not connect to printer.", ModalAlertType.Warning );
-                                            }
+                                            printContent.Append( currentPrintContent );
+                                            RemoveLabelFromServerQueue = RemoveLabelFromServerQueue || label.FileGuid == designatedLabelGuid;
                                         }
                                     }
-                                }
-
-                                if ( socket != null && socket.Connected )
-                                {
-                                    socket.Shutdown( SocketShutdown.Both );
-                                    socket.Close();
                                 }
                             }
                         }
                     }
+                }
+            }
+
+            if ( !string.IsNullOrWhiteSpace( printerIp ) )
+            {
+                var socket = new Socket( AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp );
+                var printerIpEndPoint = new IPEndPoint( IPAddress.Parse( printerIp ), 9100 );
+                var result = socket.BeginConnect( printerIpEndPoint, null, null );
+                bool success = result.AsyncWaitHandle.WaitOne( 5000, true );
+
+                if ( socket.Connected )
+                {
+                    var ns = new NetworkStream( socket );
+                    printContent.Append( "~JK" );
+                    byte[] toSend = System.Text.Encoding.ASCII.GetBytes( printContent.ToString() );
+                    ns.Write( toSend, 0, toSend.Length );
+                }
+                else
+                {
+                    maWarning.Show( "Could not connect to printer.", ModalAlertType.Warning );
+                }
+
+                if ( socket != null && socket.Connected )
+                {
+                    socket.Shutdown( SocketShutdown.Both );
+                    socket.Close();
                 }
             }
         }
