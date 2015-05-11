@@ -30,12 +30,18 @@ StyleCop.Cache
 #specific folders
 Applications
 cc.newspring.*
+cc.newspring.Apollos
+cc.newspring.CyberSource
+cc.newspring.Workflows
+cc.newspring.AttendedCheckIn
 cc.newspring.*/
 Checkin Labels
 database
 Design Assets
+RockWeb/Readme.txt
 /Dev Tools/*
 /Dev Tools/Sql
+Dev Tools
 Documentation
 DotLiquid
 Installers
