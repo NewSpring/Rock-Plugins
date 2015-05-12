@@ -24,15 +24,21 @@ DECLARE @F1 nvarchar(255) = 'F1'
 -- Start value lookups
 /* ====================================================== */
 declare @IsSystem int = 0, @Order int = 0,  @TextFieldTypeId float = 1, @True int = 1, @False int = 0
-declare @ScheduleDefinedTypeId float, @GroupCategoryId float, @RLCID float, @NameSearchValueId float, 
-	@PersonId float, @GroupTypeId float, @GroupId float, @LocationId float, @CampusId float,
-	@GroupMemberEntityId float, @DefinedValueFieldTypeId float, @ScheduleAttributeId float
+declare @ScheduleDefinedTypeId float, @GroupCategoryId float, @ChildCategoryId float, @RLCID float, 
+	@NameSearchValueId float, @PersonId float, @GroupTypeId float, @GroupId float, @LocationId float, 
+	@CampusId float,@GroupMemberEntityId float, @PersonEntityTypeId float, @DefinedValueFieldTypeId float, 
+	@ScheduleAttributeId float, @BreakoutGroupAttributeId float, @TeamConnectorTypeId float, 
+	@TeamConnectorAttributeId float
 
-select @GroupCategoryId = Id from Category where name = 'Group'
+select @GroupCategoryId = Id from Category where [Guid] = '56B3C72A-6CE7-4CAE-8105-9F16EE772530'
+select @ChildCategoryId = Id from Category where [Guid] = '752DC692-836E-4A3E-B670-4325CD7724BF'
 select @GroupMemberEntityId = Id from EntityType where [Guid] = '49668B95-FEDC-43DD-8085-D2B0D6343C48'
+select @PersonEntityTypeId = Id from EntityType where [Guid] = '72657ED8-D16E-492E-AC12-144C5E7567E7' 
 select @DefinedValueFieldTypeId = Id from FieldType where [Guid] = '59D5A94C-94A0-4630-B80A-BB25697D74C7'
 select @NameSearchValueId = Id from DefinedValue where [Guid] = '071D6DAA-3063-463A-B8A1-7D9A1BE1BB31'
 select @ScheduleDefinedTypeId = Id from DefinedType where [Guid] = '26ECDD90-A2FA-4732-B3D1-32AC93953EFA'
+select @BreakoutGroupAttributeId = Id from Attribute where [Guid] = 'BF976365-01E7-4C98-9BE2-4D5B78EDBF48'
+select @TeamConnectorTypeId = Id from DefinedType where [Guid] = '418C4656-6A85-4642-B8BA-BEEB1A0FF869'
 
 /* ====================================================== */
 -- Create indexes on F1 tables for speedier lookups
@@ -48,6 +54,33 @@ begin
 end
 
 /* ====================================================== */
+-- Create Breakout Group attribute for attendees
+/* ====================================================== */
+if @BreakoutGroupAttributeId is null
+begin
+	insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], [Key], [Name], [Description], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [AllowSearch], [Guid] )
+	select @IsSystem, @TextFieldTypeId, @PersonEntityTypeId, '', '', 'BreakoutGroup', 'Breakout Group', 'The normal KidSpring small group that this person goes to.',
+		@Order, @True, @False, @False, @True, 'BF976365-01E7-4C98-9BE2-4D5B78EDBF48'
+
+	select @BreakoutGroupAttributeId = SCOPE_IDENTITY()
+
+	insert AttributeCategory
+	select @BreakoutGroupAttributeId, @ChildCategoryId
+end
+
+/* ====================================================== */
+-- Create team connector defined type
+/* ====================================================== */
+if @TeamConnectorTypeId is null
+begin
+	insert DefinedType ( [IsSystem], [FieldTypeId], [Order], [Name], [Description], [Guid], CategoryId )
+	select @IsSystem, @TextFieldTypeId, @Order, 'Team Connector', 'The team connector for this group member.',
+		'418C4656-6A85-4642-B8BA-BEEB1A0FF869', @GroupCategoryId
+
+	select @TeamConnectorTypeId = SCOPE_IDENTITY()
+end
+
+/* ====================================================== */
 -- Create schedule defined type
 /* ====================================================== */
 if @ScheduleDefinedTypeId is null
@@ -58,6 +91,24 @@ begin
 
 	select @ScheduleDefinedTypeId = SCOPE_IDENTITY()
 end
+
+-- Insert 25 team connectors into the defined type
+if not exists (select Id from DefinedValue where DefinedTypeId = @ScheduleDefinedTypeId )
+begin 
+	;with maxTeamConnectorValue as (
+		(
+			SELECT 1 AS teamNumber
+			UNION ALL
+			SELECT teamNumber + 1 AS teamNumber
+			FROM maxTeamConnectorValue
+			WHERE maxTeamConnectorValue.teamNumber < 25
+		)
+	)
+	insert DefinedValue ([IsSystem], [DefinedTypeId], [Order], [Value], [Guid] )
+	select @IsSystem, @ScheduleDefinedTypeId, @Order, 'TC ' + convert(varchar(10), teamNumber), NEWID()
+	from maxTeamConnectorValue	
+end
+
 
 /* ====================================================== */
 -- Create schedule lookup
@@ -2192,9 +2243,34 @@ begin
 		
 		select @JobTitle = null, @JobId = null, @PersonId = null, @ScheduleName = null, 
 			@GroupRoleId = null, @GroupMemberId = null, @ScheduleAttributeId = null
+
+
+		/* ====================================================== */
+		-- Create team connector group member attribute
+		/* ====================================================== */
+		select @TeamConnectorAttributeId = Id from Attribute where EntityTypeId = @GroupMemberEntityId
+			and EntityTypeQualifierValue = @GroupTypeId and Name = 'Team Connector'
+		if @TeamConnectorAttributeId is null
+		begin
+			insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
+				[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
+			select @IsSystem, @DefinedValueFieldTypeId, @GroupMemberEntityId, 'GroupTypeId',  @GroupTypeId, 'Team Connector', 
+				'Schedule', 'The schedule(s) assigned to this group member.', '', @Order, @True, @True, @False, NEWID()
+
+			select @TeamConnectorAttributeId = SCOPE_IDENTITY()
+
+			insert AttributeQualifier ( [IsSystem], [AttributeId], [Key], [Value], [Guid] )
+			select @IsSystem, @TeamConnectorAttributeId, 'definedtype', @TeamConnectorTypeId, NEWID()
+
+			insert AttributeQualifier ( [IsSystem], [AttributeId], [Key], [Value], [Guid] )
+			select @IsSystem, @TeamConnectorAttributeId, 'allowmultiple', 'True', NEWID()
+
+			insert AttributeQualifier ( [IsSystem], [AttributeId], [Key], [Value], [Guid] )
+			select @IsSystem, @TeamConnectorAttributeId, 'displaydescription', 'False', NEWID()
+		end
 		
 		/* ====================================================== */
-		-- Create schedule attribute on grouptype
+		-- Create schedule group member attribute
 		/* ====================================================== */
 		select @ScheduleAttributeId = Id from Attribute where EntityTypeId = @GroupMemberEntityId
 			and EntityTypeQualifierValue = @GroupTypeId and Name = 'Schedule'
@@ -2315,8 +2391,9 @@ begin
 end
 -- end rlc loop
 
-USE [master]
+RAISERROR ( N'Completed successfully.', 0, 0 ) WITH NOWAIT
 
+USE [master]
 
 
 /* ====================================================== 
