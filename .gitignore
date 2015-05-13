@@ -34,14 +34,19 @@ cc.newspring.Apollos
 cc.newspring.CyberSource
 cc.newspring.Workflows
 cc.newspring.AttendedCheckIn
-cc.newspring.*/
+cc.newspring.AttendedCheckIn/
+cc.newspring.AttendedCheckIn/*
+cc.newspring.AttendedCheckIn/Workflow/Action/Checkin/
+cc.newspring.AttendedCheckIn/Workflow/Action/Checkin/*
+cc.newspring.*/*
 Checkin Labels
 database
 Design Assets
 RockWeb/Readme.txt
+Dev Tools
 /Dev Tools/*
 /Dev Tools/Sql
-Dev Tools
+/Dev Tools/Sql/*
 Documentation
 DotLiquid
 Installers
@@ -51,6 +56,8 @@ packages
 Quartz
 [Oo]bj/
 Rock
+Rock/*
+Rock/Web/*
 Rock.Client
 Rock.CodeGeneration
 Rock.PayFlowPro
