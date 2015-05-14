@@ -401,7 +401,7 @@ values
 (1344518, 'AND - Special Needs Vols', 'Spring Zone Area Leader'),
 (1102965, 'AND - Special Needs Vols', 'Spring Zone Jr. Volunteer'),
 (1297084, 'AND - Special Needs Vols', 'Spring Zone Service Leader'),
-(800900, 'AND - Special Needs Vols', 'Spring Zone Volunteer')--,
+(800900, 'AND - Special Needs Vols', 'Spring Zone Volunteer'),
 (1290761, 'BSP - Creativity & Tech Volunteer', 'Band'),
 (1211162, 'BSP - Creativity & Tech Volunteer', 'Band Green Room'),
 (1258668, 'BSP - Creativity & Tech Volunteer', 'Load In/Load Out'),
