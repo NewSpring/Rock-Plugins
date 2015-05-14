@@ -4,7 +4,7 @@
 
 -- Make sure you're using the right Rock database:
 
-USE [Rock]
+USE Rock
 
 /* ====================================================== */
 
@@ -515,7 +515,7 @@ begin
 
 	select @campusName = '', @campusAreaId = 0
 	select @campusName = name, @campusCode = ShortCode
-	from Campus where Id = @campusId
+	from Campus where Id = @campusId and IsActive = @True
 
 	if @campusName <> ''
 	begin
@@ -978,7 +978,7 @@ begin
 				insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name,
 					Description, IsSecurityRole, IsActive, [Order], [Guid])
 				select @isSystem, @areaGroupid, @currentAreaId, @campusId,  @childGroup,
-					@childGroup + @delimiter + 'Group', 0, 1, 10, NEWID()
+					@childGroup + ' Group', 0, 1, 10, NEWID()
 
 				select @childGroupId = SCOPE_IDENTITY()
 
@@ -1126,7 +1126,7 @@ begin
 		insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name,
 			Description, IsSecurityRole, IsActive, [Order], [Guid])
 		select @isSystem, @areaGroupid, @currentAreaId, @campusId,  @groupName,
-			@groupName + 'Group', 0, 1, 10, NEWID()
+			@groupName + ' Group', 0, 1, 10, NEWID()
 
 		select @groupId = SCOPE_IDENTITY()
 
