@@ -14,35 +14,42 @@ SET NOCOUNT ON
 -- Set common variables 
 declare @isSystem bit = 0
 declare @delimiter nvarchar(5) = ' - '
+declare @True bit = 1
+declare @False bit = 0
+declare @BooleanFieldTypeId int
+declare @GroupEntityTypeId int
 
-update [group] set campusId = null
-delete from Campus where id = 1
+select @BooleanFieldTypeId = [Id] FROM [FieldType] WHERE [Name] = 'Boolean'
+select @GroupEntityTypeId = [Id] FROM [EntityType] WHERE [Name] = 'Rock.Model.Group'
+
+--update [group] set campusId = null
+--delete from Campus where id = 1
 
 /* ====================================================== */
 -- create campuses
 /* ====================================================== */
 
-insert Campus (IsSystem, Name, ShortCode, [Guid], IsActive)
-values
-(@isSystem, 'Aiken', 'AKN', NEWID(), 1),
-(@isSystem, 'Anderson', 'AND', NEWID(), 1),
-(@isSystem, 'Boiling Springs', 'BSP', NEWID(), 1),
-(@isSystem, 'Charleston', 'CHS', NEWID(), 1),
-(@isSystem, 'Clemson', 'CLE', NEWID(), 1),
-(@isSystem, 'Columbia', 'COL', NEWID(), 1),
-(@isSystem, 'Florence', 'FLO', NEWID(), 1),
-(@isSystem, 'Greenville', 'GVL', NEWID(), 1),
-(@isSystem, 'Greenwood', 'GWD', NEWID(), 1),
-(@isSystem, 'Greer', 'GRR', NEWID(), 1),
-(@isSystem, 'Hilton Head', 'HHD', NEWID(), 1),
-(@isSystem, 'Lexington', 'LEX', NEWID(), 1),
-(@isSystem, 'Myrtle Beach', 'MYR', NEWID(), 1),
-(@isSystem, 'Northeast Columbia', 'NEC', NEWID(), 1),
-(@isSystem, 'Powdersville', 'POW', NEWID(), 1),
-(@isSystem, 'Rock Hill', 'RKH', NEWID(), 1),
-(@isSystem, 'Simpsonville', 'SIM', NEWID(), 1),
-(@isSystem, 'Spartanburg', 'SPA', NEWID(), 1),
-(@isSystem, 'Sumter', 'SUM', NEWID(), 1)
+--insert Campus (IsSystem, Name, ShortCode, [Guid], IsActive)
+--values
+--(@isSystem, 'Aiken', 'AKN', NEWID(), 1),
+--(@isSystem, 'Anderson', 'AND', NEWID(), 1),
+--(@isSystem, 'Boiling Springs', 'BSP', NEWID(), 1),
+--(@isSystem, 'Charleston', 'CHS', NEWID(), 1),
+--(@isSystem, 'Clemson', 'CLE', NEWID(), 1),
+--(@isSystem, 'Columbia', 'COL', NEWID(), 1),
+--(@isSystem, 'Florence', 'FLO', NEWID(), 1),
+--(@isSystem, 'Greenville', 'GVL', NEWID(), 1),
+--(@isSystem, 'Greenwood', 'GWD', NEWID(), 1),
+--(@isSystem, 'Greer', 'GRR', NEWID(), 1),
+--(@isSystem, 'Hilton Head', 'HHD', NEWID(), 1),
+--(@isSystem, 'Lexington', 'LEX', NEWID(), 1),
+--(@isSystem, 'Myrtle Beach', 'MYR', NEWID(), 1),
+--(@isSystem, 'Northeast Columbia', 'NEC', NEWID(), 1),
+--(@isSystem, 'Powdersville', 'POW', NEWID(), 1),
+--(@isSystem, 'Rock Hill', 'RKH', NEWID(), 1),
+--(@isSystem, 'Simpsonville', 'SIM', NEWID(), 1),
+--(@isSystem, 'Spartanburg', 'SPA', NEWID(), 1),
+--(@isSystem, 'Sumter', 'SUM', NEWID(), 1)
 
 
 /* ====================================================== */
@@ -84,24 +91,17 @@ SELECT @SpecialNeedsGroupTypeId = (
 	WHERE [Name] = 'Check in By Special Needs'	
 );
 
-INSERT [Attribute] ( [IsSystem],[FieldTypeId],[EntityTypeId],[EntityTypeQualifierColumn],[EntityTypeQualifierValue],[Key],[Name],[Description],[Order],[IsGridColumn],[DefaultValue],[IsMultiValue],[IsRequired],[Guid]) 
-VALUES ( 0,
-	(SELECT [Id] FROM [FieldType] WHERE [Name] = 'Boolean'),
-	(SELECT [Id] FROM [EntityType] WHERE [Name] = 'Rock.Model.Group'),
-	'GroupTypeId',
-	@SpecialNeedsGroupTypeId,
-	'IsSpecialNeeds',
-	'Is Special Needs',
-	'Indicates if this group caters to those who have special needs.',
-	0,
-	0,
-	'True',
-	0,
-	0,
-	NEWID()
-);
+select @SpecialNeedsGroupId = Id from [Attribute] where [Key] = 'IsSpecialNeeds'
+if @SpecialNeedsGroupId is null or @SpecialNeedsGroupId = ''
+begin
 
-SET @SpecialNeedsGroupId = SCOPE_IDENTITY()
+	INSERT [Attribute] ( [IsSystem],[FieldTypeId],[EntityTypeId],[EntityTypeQualifierColumn],[EntityTypeQualifierValue],[Key],[Name],[Description],[Order],[IsGridColumn],[DefaultValue],[IsMultiValue],[IsRequired],[Guid]) 
+	VALUES ( @IsSystem, @BooleanFieldTypeId, @GroupEntityTypeId, 'GroupTypeId', @SpecialNeedsGroupTypeId, 'IsSpecialNeeds', 'Is Special Needs',
+		'Indicates if this group caters to those who have special needs.', @False, @False, 'True', @False, @False, NEWID()
+	);
+
+	SET @SpecialNeedsGroupId = SCOPE_IDENTITY()
+end
 
 if object_id('tempdb..#subCampusAreas') is not null
 begin
@@ -484,8 +484,6 @@ where id in (
 	and g.GroupTypeId in (14, 18, 19, 20, 21, 22)
 )
 
---delete from location where id > 1
-
 delete from GroupTypeAssociation
 where GroupTypeId in (14, 18, 19, 20, 21, 22)
 or ChildGroupTypeId in (14, 18, 19, 20, 21, 22)
@@ -505,7 +503,7 @@ declare @campusId int, @numCampuses int, @campusAreaId int, @defaultRoleId int,
 	@typePurpose int, @campusLocationId int, @campusGroupId int
 select @typePurpose = 142  /* check-in template purpose type */
 select @campusId = min(Id) from Campus
-select @numCampuses = count(1) + @campusId from Campus
+select @numCampuses = count(1) + @campusId from Campus where IsActive = @True
 
 declare @campusName nvarchar(30), @campusCode nvarchar(5)
 
@@ -830,10 +828,11 @@ RAISERROR ( 'Starting Central grouptypes & groups', 0, 0 ) WITH NOWAIT
 SELECT @campusCode = 'CEN', @campusName = 'Central', @campusId = 0,
 	@campusLocationId = 0, @defaultRoleId = 0, @campusGroupId = 0
 
-insert Campus (IsSystem, Name, ShortCode, [Guid], IsActive)
-values (@isSystem, @campusName, 'CEN', NEWID(), 1)
+--insert Campus (IsSystem, Name, ShortCode, [Guid], IsActive)
+--values (@isSystem, @campusName, 'CEN', NEWID(), 1)
+--select @campusId = SCOPE_IDENTITY()
 
-select @campusId = SCOPE_IDENTITY()
+select @campusId = Id from Campus where name = @campusName
 
 insert location (ParentLocationId, Name, IsActive, [Guid])
 select NULL, @campusName, 1, NEWID()
