@@ -10,7 +10,7 @@
    ====================================================== */
 -- Make sure you're using the right Rock database:
 
-USE [Rock]
+USE Rock
 
 /* ====================================================== */
 
@@ -23,12 +23,12 @@ DECLARE @F1 nvarchar(255) = 'F1'
 /* ====================================================== */
 -- Start value lookups
 /* ====================================================== */
-declare @IsSystem int = 0, @Order int = 0,  @TextFieldTypeId float = 1, @True int = 1, @False int = 0
-declare @ScheduleDefinedTypeId float, @GroupCategoryId float, @ChildCategoryId float, @RLCID float, 
-	@NameSearchValueId float, @PersonId float, @GroupTypeId float, @GroupId float, @LocationId float, 
-	@CampusId float,@GroupMemberEntityId float, @PersonEntityTypeId float, @DefinedValueFieldTypeId float, 
-	@ScheduleAttributeId float, @BreakoutGroupAttributeId float, @TeamConnectorTypeId float, 
-	@TeamConnectorAttributeId float
+declare @IsSystem int = 0, @Order int = 0,  @TextFieldTypeId int = 1, @True int = 1, @False int = 0
+declare @ScheduleDefinedTypeId decimal, @GroupCategoryId bigint, @ChildCategoryId bigint, @RLCID bigint, 
+	@NameSearchValueId bigint, @PersonId bigint, @GroupTypeId bigint, @GroupId bigint, @LocationId bigint, 
+	@CampusId bigint,@GroupMemberEntityId bigint, @PersonEntityTypeId bigint, @DefinedValueFieldTypeId bigint, 
+	@ScheduleAttributeId bigint, @BreakoutGroupAttributeId bigint, @TeamConnectorTypeId bigint, 
+	@TeamConnectorAttributeId bigint
 
 select @GroupCategoryId = Id from Category where [Guid] = '56B3C72A-6CE7-4CAE-8105-9F16EE772530'
 select @ChildCategoryId = Id from Category where [Guid] = '752DC692-836E-4A3E-B670-4325CD7724BF'
@@ -54,7 +54,7 @@ begin
 end
 
 /* ====================================================== */
--- Create Breakout Group attribute for attendees
+-- Create person Breakout Group attribute for attendees
 /* ====================================================== */
 if @BreakoutGroupAttributeId is null
 begin
@@ -83,18 +83,18 @@ end
 -- Insert 25 team connectors into the defined type
 if not exists (select Id from DefinedValue where DefinedTypeId = @TeamConnectorTypeId )
 begin 
-	;with maxTeamConnectorValue as (
+	;with teamConnectorValues as (
 		(
 			SELECT 1 AS teamNumber
 			UNION ALL
 			SELECT teamNumber + 1 AS teamNumber
-			FROM maxTeamConnectorValue
-			WHERE maxTeamConnectorValue.teamNumber < 25
+			FROM teamConnectorValues
+			WHERE teamConnectorValues.teamNumber < 25
 		)
 	)
 	insert DefinedValue ([IsSystem], [DefinedTypeId], [Order], [Value], [Guid] )
 	select @IsSystem, @TeamConnectorTypeId, @Order, 'TC ' + convert(varchar(10), teamNumber), NEWID()
-	from maxTeamConnectorValue	
+	from teamConnectorValues	
 end
 
 /* ====================================================== */
@@ -108,9 +108,6 @@ begin
 
 	select @ScheduleDefinedTypeId = SCOPE_IDENTITY()
 end
-
-
-
 
 /* ====================================================== */
 -- Create schedule lookup
@@ -180,11 +177,12 @@ begin
 end
 create table #assignments (
 	ID int IDENTITY(1,1) NOT NULL,
-	JobID float,
+	JobID bigint,
 	JobTitle nvarchar(255),
-	PersonID float,
+	PersonID bigint,
 	ScheduleName nvarchar(255),
-	BreakoutGroup nvarchar(255)
+	BreakoutGroup nvarchar(255),
+	IsBreakoutTag bit
 )
 
 /* ====================================================== */
@@ -196,7 +194,7 @@ begin
 end
 create table #rlcMap (
 	ID int IDENTITY(1,1),
-	RLC_ID float,
+	RLC_ID bigint,
 	GroupType nvarchar(255),
 	GroupName nvarchar(255)
 )
@@ -403,7 +401,7 @@ values
 (1344518, 'AND - Special Needs Vols', 'Spring Zone Area Leader'),
 (1102965, 'AND - Special Needs Vols', 'Spring Zone Jr. Volunteer'),
 (1297084, 'AND - Special Needs Vols', 'Spring Zone Service Leader'),
-(800900, 'AND - Special Needs Vols', 'Spring Zone Volunteer'),
+(800900, 'AND - Special Needs Vols', 'Spring Zone Volunteer')--,
 (1290761, 'BSP - Creativity & Tech Volunteer', 'Band'),
 (1211162, 'BSP - Creativity & Tech Volunteer', 'Band Green Room'),
 (1258668, 'BSP - Creativity & Tech Volunteer', 'Load In/Load Out'),
@@ -2197,8 +2195,8 @@ values
 /* ====================================================== */
 
 declare @scopeIndex int, @numItems int
-declare @GroupTypeName nvarchar(255), @GroupName nvarchar(255), @GroupLocation nvarchar(255), @GroupMemberId float,
-	@JobTitle nvarchar(255), @ScheduleName nvarchar(255), @JobId float, @GroupRoleId float, @BreakoutGroup nvarchar(255)
+declare @GroupTypeName nvarchar(255), @GroupName nvarchar(255), @GroupLocation nvarchar(255), @GroupMemberId bigint, @IsBreakoutTag bit,
+	@JobTitle nvarchar(255), @ScheduleName nvarchar(255), @JobId bigint, @GroupRoleId bigint, @BreakoutGroup nvarchar(255)
 select @scopeIndex = min(ID) from #rlcMap
 select @numItems = count(1) + @scopeIndex from #rlcMap
 
@@ -2301,14 +2299,14 @@ begin
 		-- Note: Group member is tied to Person Id
 		/* ====================================================== */
 		insert into #assignments
-		select JobID, Job_Title, p.PersonId, Staffing_Schedule_Name, BreakoutGroupName
+		select JobID, Job_Title, p.PersonId, Staffing_Schedule_Name, 'TC ' + ltrim(rtrim(right(BreakoutGroupName, len(BreakoutGroupName) - charindex('TC', BreakoutGroupName) - 1))), @False
 		from F1..Staffing_Assignment sa
 		inner join PersonAlias p
 		on sa.Individual_ID = p.ForeignId
-		and RLC_ID = @RLCID and Is_Active = 1
+		and RLC_ID = @RLCID and Is_Active = @True
 
 		insert into #assignments
-		select 0, '', p.PersonId, '', BreakoutGroupName
+		select NULL, '', p.PersonId, '', BreakoutGroupName, @True
 		from F1..ActivityAssignment aa
 		inner join PersonAlias p
 		on aa.Individual_ID = p.ForeignId
@@ -2321,7 +2319,7 @@ begin
 		while @childIndex <= @childItems
 		begin
 
-			select @JobId = JobID, @JobTitle = JobTitle, @PersonId = PersonID, @ScheduleName = ScheduleName, @BreakoutGroup = BreakoutGroupName
+			select @JobId = JobID, @JobTitle = JobTitle, @PersonId = PersonID, @ScheduleName = ScheduleName, @BreakoutGroup = BreakoutGroup, @IsBreakoutTag = IsBreakoutTag
 			from #assignments where ID = @childIndex
 
 			if @PersonId is not null
@@ -2386,24 +2384,52 @@ begin
 
 				if @BreakoutGroup is not null and @BreakoutGroup <> ''
 				begin
-					declare @currentGroup nvarchar(250) = null
-					if @BreakoutGroup is not null
+					-- this is an attendee breakout, create it as a person attribute
+					if @IsBreakoutTag = @True
 					begin
-						select @currentGroup = Value from AttributeValue where AttributeId = @BreakoutGroupAttributeId
-							and EntityId = @GroupMemberId
-						if @currentGroup is null
+
+						declare @currentTag nvarchar(250) = null
+						select @currentTag = Value from AttributeValue where AttributeId = @BreakoutGroupAttributeId
+							and EntityId = @PersonId
+
+						if @currentTag is null
 						begin
 							insert AttributeValue ( [IsSystem], [AttributeId], [EntityId], [Value], [Guid] )
-							select @IsSystem, @BreakoutGroupAttributeId, @GroupMemberId, @BreakoutGroup, NEWID()
+							select @IsSystem, @BreakoutGroupAttributeId, @PersonId, @BreakoutGroup, NEWID()
 						end
 						else 
 						begin
 							update AttributeValue
-							set Value = convert(nvarchar(50), @BreakoutGroup) + ',' + convert(nvarchar(50), @currentGroup)
-							from AttributeValue where AttributeId = @BreakoutGroupAttributeId and EntityId = @GroupMemberId
+							set Value = convert(nvarchar(50), @BreakoutGroup) + ',' + convert(nvarchar(50), @currentTag)
+							from AttributeValue where AttributeId = @BreakoutGroupAttributeId and EntityId = @PersonId
+						end
+					end
+					-- this is a volunteer breakout, assign them a team connector
+					else 
+					begin
+						declare @currentConnector nvarchar(250) = null, @newConnector nvarchar(250) = null
+						select @newConnector = [Guid] from DefinedValue where DefinedTypeId = @TeamConnectorTypeId 
+							and Value = @BreakoutGroup
+
+						if @newConnector is not null
+						begin
+							select @currentConnector = Value from AttributeValue where AttributeId = @TeamConnectorAttributeId
+								and EntityId = @GroupMemberId
+							if @currentConnector is null
+							begin
+								insert AttributeValue ( [IsSystem], [AttributeId], [EntityId], [Value], [Guid] )
+								select @IsSystem, @TeamConnectorAttributeId, @GroupMemberId, @newConnector, NEWID()
+							end
+							else 
+							begin
+								update AttributeValue
+								set Value = convert(nvarchar(50), @newConnector) + ',' + convert(nvarchar(50), @currentConnector)
+								from AttributeValue where AttributeId = @TeamConnectorAttributeId and EntityId = @GroupMemberId
+							end
 						end
 					end
 				end
+				-- end breakout group 
 
 				select @JobId = null, @JobTitle = null, @PersonId = null, @ScheduleName = null, 
 					@GroupRoleId = null, @GroupMemberId = null, @BreakoutGroup = null
