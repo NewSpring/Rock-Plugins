@@ -533,7 +533,7 @@ begin
 			ShowInNavigation, TakesAttendance, AttendanceRule, AttendancePrintTo,
 			[Order], InheritedGroupTypeId, LocationSelectionMode, GroupTypePurposeValueId, [Guid],
 			AllowedScheduleTypes, SendAttendanceReminder)
-		select 0, @campusName, @campusName + ' Campus', 'Group', 'Member',
+		select 0, @campusName, @campusName + ' Campus Check-in Area', 'Group', 'Member',
 			NULL, 0, 1, 1, 0, 0, 1, 0, NULL, 0, 142, NEWID(), 0, 0
 
 		select @campusAreaId = SCOPE_IDENTITY()
@@ -851,7 +851,7 @@ insert grouptype (IsSystem, Name, Description, GroupTerm, GroupMemberTerm,
 	ShowInNavigation, TakesAttendance, AttendanceRule, AttendancePrintTo,
 	[Order], InheritedGroupTypeId, LocationSelectionMode, GroupTypePurposeValueId, [Guid],
 	AllowedScheduleTypes, SendAttendanceReminder)
-select 0, @campusName, @campusName + ' Campus', 'Group', 'Member',
+select 0, @campusName, @campusName + ' Campus Check-in Area', 'Group', 'Member',
 	NULL, 0, 1, 1, 0, 0, 1, 0, NULL, 0, 142, NEWID(), 0, 0
 
 select @campusAreaId = SCOPE_IDENTITY()
@@ -1020,7 +1020,7 @@ insert grouptype (IsSystem, Name, Description, GroupTerm, GroupMemberTerm,
 	ShowInNavigation, TakesAttendance, AttendanceRule, AttendancePrintTo,
 	[Order], InheritedGroupTypeId, LocationSelectionMode, GroupTypePurposeValueId, [Guid],
 	AllowedScheduleTypes, SendAttendanceReminder)
-select 0, @campusName, @campusName, 'Group', 'Member',
+select 0, @campusName, @campusName + ' Check-in Area', 'Group', 'Member',
 	NULL, 0, 1, 1, 0, 0, 1, 0, NULL, 0, 142, NEWID(), 0, 0
 
 select @campusAreaId = SCOPE_IDENTITY()
