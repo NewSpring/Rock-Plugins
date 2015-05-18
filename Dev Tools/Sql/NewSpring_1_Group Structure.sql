@@ -22,34 +22,34 @@ declare @GroupEntityTypeId int
 select @BooleanFieldTypeId = [Id] FROM [FieldType] WHERE [Name] = 'Boolean'
 select @GroupEntityTypeId = [Id] FROM [EntityType] WHERE [Name] = 'Rock.Model.Group'
 
---update [group] set campusId = null
---delete from Campus where id = 1
+update [group] set campusId = null
+delete from Campus where id = 1
 
 /* ====================================================== */
 -- create campuses
 /* ====================================================== */
 
---insert Campus (IsSystem, Name, ShortCode, [Guid], IsActive)
---values
---(@isSystem, 'Aiken', 'AKN', NEWID(), 1),
---(@isSystem, 'Anderson', 'AND', NEWID(), 1),
---(@isSystem, 'Boiling Springs', 'BSP', NEWID(), 1),
---(@isSystem, 'Charleston', 'CHS', NEWID(), 1),
---(@isSystem, 'Clemson', 'CLE', NEWID(), 1),
---(@isSystem, 'Columbia', 'COL', NEWID(), 1),
---(@isSystem, 'Florence', 'FLO', NEWID(), 1),
---(@isSystem, 'Greenville', 'GVL', NEWID(), 1),
---(@isSystem, 'Greenwood', 'GWD', NEWID(), 1),
---(@isSystem, 'Greer', 'GRR', NEWID(), 1),
---(@isSystem, 'Hilton Head', 'HHD', NEWID(), 1),
---(@isSystem, 'Lexington', 'LEX', NEWID(), 1),
---(@isSystem, 'Myrtle Beach', 'MYR', NEWID(), 1),
---(@isSystem, 'Northeast Columbia', 'NEC', NEWID(), 1),
---(@isSystem, 'Powdersville', 'POW', NEWID(), 1),
---(@isSystem, 'Rock Hill', 'RKH', NEWID(), 1),
---(@isSystem, 'Simpsonville', 'SIM', NEWID(), 1),
---(@isSystem, 'Spartanburg', 'SPA', NEWID(), 1),
---(@isSystem, 'Sumter', 'SUM', NEWID(), 1)
+insert Campus (IsSystem, Name, ShortCode, [Guid], IsActive)
+values
+(@isSystem, 'Aiken', 'AKN', NEWID(), 1),
+(@isSystem, 'Anderson', 'AND', NEWID(), 1),
+(@isSystem, 'Boiling Springs', 'BSP', NEWID(), 1),
+(@isSystem, 'Charleston', 'CHS', NEWID(), 1),
+(@isSystem, 'Clemson', 'CLE', NEWID(), 1),
+(@isSystem, 'Columbia', 'COL', NEWID(), 1),
+(@isSystem, 'Florence', 'FLO', NEWID(), 1),
+(@isSystem, 'Greenville', 'GVL', NEWID(), 1),
+(@isSystem, 'Greenwood', 'GWD', NEWID(), 1),
+(@isSystem, 'Greer', 'GRR', NEWID(), 1),
+(@isSystem, 'Hilton Head', 'HHD', NEWID(), 1),
+(@isSystem, 'Lexington', 'LEX', NEWID(), 1),
+(@isSystem, 'Myrtle Beach', 'MYR', NEWID(), 1),
+(@isSystem, 'Northeast Columbia', 'NEC', NEWID(), 1),
+(@isSystem, 'Powdersville', 'POW', NEWID(), 1),
+(@isSystem, 'Rock Hill', 'RKH', NEWID(), 1),
+(@isSystem, 'Simpsonville', 'SIM', NEWID(), 1),
+(@isSystem, 'Spartanburg', 'SPA', NEWID(), 1),
+(@isSystem, 'Sumter', 'SUM', NEWID(), 1)
 
 
 /* ====================================================== */
@@ -828,11 +828,12 @@ RAISERROR ( 'Starting Central grouptypes & groups', 0, 0 ) WITH NOWAIT
 SELECT @campusCode = 'CEN', @campusName = 'Central', @campusId = 0,
 	@campusLocationId = 0, @defaultRoleId = 0, @campusGroupId = 0
 
---insert Campus (IsSystem, Name, ShortCode, [Guid], IsActive)
---values (@isSystem, @campusName, 'CEN', NEWID(), 1)
---select @campusId = SCOPE_IDENTITY()
+insert Campus (IsSystem, Name, ShortCode, [Guid], IsActive)
+values (@isSystem, @campusName, 'CEN', NEWID(), 1)
 
-select @campusId = Id from Campus where name = @campusName
+select @campusId = SCOPE_IDENTITY()
+
+--select @campusId = Id from Campus where name = @campusName
 
 insert location (ParentLocationId, Name, IsActive, [Guid])
 select NULL, @campusName, 1, NEWID()
@@ -1009,7 +1010,7 @@ RAISERROR ( 'Starting NewSpring College grouptypes & groups', 0, 0 ) WITH NOWAIT
 SELECT @campusName = @collegeArea, @campusAreaId = 0, 
 	@defaultRoleId = 0, @campusGroupId = 0
 
--- NOTE: @campusCode and @campusId set to Central
+-- NOTE: @campusCode and @campusId already set to Central
 
 /* ====================================================== */
 -- create initial college area
@@ -1037,12 +1038,12 @@ where id = @campusAreaId
 /* ====================================================== */
 -- create college group
 /* ====================================================== */
---insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name,
---	Description, IsSecurityRole, IsActive, [Order], [Guid])
---select @isSystem, NULL, @campusAreaId, @campusId, @campusName,
---	@campusName + ' Group', 0, 1, 0, NEWID()
+insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name,
+	Description, IsSecurityRole, IsActive, [Order], [Guid])
+select @isSystem, NULL, @campusAreaId, @campusId, @campusName,
+	@campusName + ' Group', 0, 1, 0, NEWID()
 
---select @campusGroupId = SCOPE_IDENTITY()
+select @campusGroupId = SCOPE_IDENTITY()
 
 /* ====================================================== */
 -- create college grouptype
