@@ -23,7 +23,7 @@ namespace cc.newspring.Apollos
 
         public int? PersonId { get; set; }
 
-        public int CampusId { get; set; }
+        public int? CampusId { get; set; }
 
         public string FirstName { get; set; }
 

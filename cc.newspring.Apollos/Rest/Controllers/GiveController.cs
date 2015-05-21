@@ -39,45 +39,21 @@ namespace cc.newspring.Apollos.Rest.Controllers
         [System.Web.Http.Route( "api/Give" )]
         public HttpResponseMessage Give( [FromBody]GiveParameters giveParameters )
         {
+            // Non-required fields should be empty strings to prevent null reference exceptions in the gateway
+            giveParameters.PhoneNumber = giveParameters.PhoneNumber ?? string.Empty;
+
             // Validate required fields for all cases
-            if ( string.IsNullOrWhiteSpace( giveParameters.PhoneNumber ) )
-            {
-                return GenerateResponse( HttpStatusCode.BadRequest, "PhoneNumber is required" );
-            }
-
-            if ( giveParameters.CampusId == 0 )
-            {
-                return GenerateResponse( HttpStatusCode.BadRequest, "CampusId is required" );
-            }
-
-            var rockContext = new RockContext();
-            var campus = new CampusService( rockContext ).Get( giveParameters.CampusId );
-
-            if ( campus == null )
-            {
-                return GenerateResponse( HttpStatusCode.BadRequest, "CampusId did not resolve to a valid campus" );
-            }
-
             if ( string.IsNullOrWhiteSpace( giveParameters.Email ) )
             {
                 return GenerateResponse( HttpStatusCode.BadRequest, "Email is required" );
             }
 
-            if ( string.IsNullOrWhiteSpace( giveParameters.FirstName ) ||
-                string.IsNullOrWhiteSpace( giveParameters.LastName ) )
+            if ( string.IsNullOrWhiteSpace( giveParameters.FirstName ) || string.IsNullOrWhiteSpace( giveParameters.LastName ) )
             {
                 return GenerateResponse( HttpStatusCode.BadRequest, "FirstName and LastName are required" );
             }
 
-            if ( string.IsNullOrWhiteSpace( giveParameters.Street1 ) ||
-                            string.IsNullOrWhiteSpace( giveParameters.City ) ||
-                            string.IsNullOrWhiteSpace( giveParameters.State ) ||
-                            string.IsNullOrWhiteSpace( giveParameters.PostalCode ) )
-            {
-                return GenerateResponse( HttpStatusCode.BadRequest, "Street1, City, State, and PostalCode are required for credit transactions" );
-            }
-
-            if ( giveParameters.State.Length != 2 )
+            if ( giveParameters.State != null && giveParameters.State.Length != 2 )
             {
                 return GenerateResponse( HttpStatusCode.BadRequest, "State must be a 2 letter string" );
             }
@@ -114,23 +90,33 @@ namespace cc.newspring.Apollos.Rest.Controllers
                         break;
 
                     case "credit":
-                        if ( string.IsNullOrWhiteSpace( giveParameters.CCV ) )
-                        {
-                            return GenerateResponse( HttpStatusCode.BadRequest, "CCV is required for credit transactions" );
-                        }
+                        // Non-required fields should be empty strings to prevent null reference exceptions in the gateway
+                        giveParameters.CCV = giveParameters.CCV ?? string.Empty;
+
                         if ( giveParameters.ExpirationMonth < 1 || giveParameters.ExpirationMonth > 12 )
                         {
                             return GenerateResponse( HttpStatusCode.BadRequest, "ExpirationMonth is required and must be between 1 and 12 for credit transactions" );
                         }
+
                         var currentDate = DateTime.Now;
                         var maxYear = currentDate.Year + 30;
+
                         if ( giveParameters.ExpirationYear < currentDate.Year || giveParameters.ExpirationYear > maxYear )
                         {
                             return GenerateResponse( HttpStatusCode.BadRequest, string.Format( "ExpirationYear is required and must be between {0} and {1} for credit transactions", currentDate.Year, maxYear ) );
                         }
+
                         if ( giveParameters.ExpirationYear <= currentDate.Year && giveParameters.ExpirationMonth < currentDate.Month )
                         {
                             return GenerateResponse( HttpStatusCode.BadRequest, "The ExpirationMonth and ExpirationYear combination must not have already elapsed for credit transactions" );
+                        }
+
+                        if ( string.IsNullOrWhiteSpace( giveParameters.Street1 ) ||
+                            string.IsNullOrWhiteSpace( giveParameters.City ) ||
+                            string.IsNullOrWhiteSpace( giveParameters.State ) ||
+                            string.IsNullOrWhiteSpace( giveParameters.PostalCode ) )
+                        {
+                            return GenerateResponse( HttpStatusCode.BadRequest, "Street1, City, State, and PostalCode are required for credit transactions" );
                         }
 
                         break;
@@ -146,6 +132,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
             }
 
             var totalAmount = 0m;
+            var rockContext = new RockContext();
 
             foreach ( var accountAmount in giveParameters.AmountDetails )
             {
@@ -195,7 +182,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
                     person.Email = giveParameters.Email;
                 }
 
-                if ( person.PhoneNumbers.Count() == 0 )
+                if ( !person.PhoneNumbers.Any() && !string.IsNullOrWhiteSpace( giveParameters.PhoneNumber ) )
                 {
                     person.PhoneNumbers.Add( new PhoneNumber()
                     {
