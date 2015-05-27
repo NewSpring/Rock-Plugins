@@ -411,7 +411,7 @@ namespace RockWeb.Blocks.Finance
                 } );
 
             // Row Limit
-            int? rowLimit = gfBatchFilter.GetUserPreference( "Row Limit" ).AsIntegerOrNull();
+            int? rowLimit = gfBatchFilter.GetUserPreference( "Row Limit" ).AsIntegerOrNull() ?? 1000;
             if ( rowLimit.HasValue )
             {
                 batchRowQry = batchRowQry.Take( rowLimit.Value );
