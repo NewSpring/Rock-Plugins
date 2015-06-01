@@ -1,4 +1,19 @@
-﻿USE [beta];
+﻿/* ====================================================== 
+-- NewSpring Script #3: 
+-- Inserts recurring giving from an Excel file -> SQL table
+  
+--  Assumptions:
+--  People are imported on the destination
+--  Cybersource Gateway is installed on the destination
+
+   ====================================================== */
+-- Make sure you're using the right Rock database:
+
+USE Rock
+
+/* ====================================================== */
+
+SET NOCOUNT ON;
 
 DECLARE @IsActive bit = 0;
 
