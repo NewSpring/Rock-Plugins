@@ -829,7 +829,7 @@ SELECT @campusCode = 'CEN', @campusName = 'Central', @campusId = 0,
 	@campusLocationId = 0, @defaultRoleId = 0, @campusGroupId = 0
 
 insert Campus (IsSystem, Name, ShortCode, [Guid], IsActive)
-values (@isSystem, @campusName, 'CEN', NEWID(), 1)
+values (@isSystem, @campusName, @campusCode, NEWID(), 1)
 
 select @campusId = SCOPE_IDENTITY()
 
@@ -1141,6 +1141,19 @@ begin
 end
 -- end child groups		
 
+/* ====================================================== */
+-- Insert a campus to track WEB
+/* ====================================================== */
+
+-- inform progress
+RAISERROR ( 'Adding WEB as a campus', 0, 0 ) WITH NOWAIT
+
+SELECT @campusCode = 'WEB', @campusName = 'Web', @campusId = 0,
+	@campusLocationId = 0, @defaultRoleId = 0, @campusGroupId = 0
+
+insert Campus (IsSystem, Name, ShortCode, [Guid], IsActive)
+values (@isSystem, @campusName, @campusCode, NEWID(), 1)
+-- end WEB insert
 
 use master
 go
