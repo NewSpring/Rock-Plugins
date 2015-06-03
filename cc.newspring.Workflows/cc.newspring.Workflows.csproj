@@ -52,6 +52,10 @@
     <Compile Include="Migrations\007_90DayTithingChallenge.cs" />
     <Compile Include="Migrations\008_CareRequest.cs" />
     <Compile Include="Migrations\009_StepUpPledge.cs" />
+    <Compile Include="Migrations\015_ShareYourStory.cs" />
+    <Compile Include="Migrations\014_CantFindTheRightGroup.cs" />
+    <Compile Include="Migrations\013_GauntletScholarship.cs" />
+    <Compile Include="Migrations\012_GauntletVolunteerSignUp.cs" />
     <Compile Include="Migrations\011_IncidentReport.cs" />
     <Compile Include="Migrations\010_WorshipAudition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

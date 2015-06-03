@@ -78,7 +78,7 @@ namespace cc.newspring.Workflows.Migrations
             RockMigrationHelper.UpdateWorkflowActionEntityAttribute( "F1A39347-6FE0-43D4-89FB-544195088ECF", "1EDAFDED-DFE6-4334-B019-6EECBA89E05A", "Active", "Active", "Should Service be used?", 0, @"False", "50B01639-4938-40D2-A791-AA0EB4F86847" ); // Rock.Workflow.Action.PersistWorkflow:Active
             RockMigrationHelper.UpdateWorkflowActionEntityAttribute( "F1A39347-6FE0-43D4-89FB-544195088ECF", "1EDAFDED-DFE6-4334-B019-6EECBA89E05A", "Persist Immediately", "PersistImmediately", "This action will normally cause the workflow to be persisted (saved) once all the current activites/actions have completed processing. Set this flag to true, if the workflow should be persisted immediately. This is only required if a subsequent action needs a persisted workflow with a valid id.", 0, @"False", "CB7BF538-99A2-4BAE-B848-D96269FB541C" ); // Rock.Workflow.Action.PersistWorkflow:Persist Immediately
             RockMigrationHelper.UpdateWorkflowActionEntityAttribute( "F1A39347-6FE0-43D4-89FB-544195088ECF", "A75DFC58-7A1B-4799-BF31-451B2BBE38FF", "Order", "Order", "The order that this service should be used (priority)", 0, @"", "86F795B0-0CB6-4DA4-9CE4-B11D0922F361" ); // Rock.Workflow.Action.PersistWorkflow:Order
-            RockMigrationHelper.UpdateWorkflowType( false, true, "Incident Report", "Please fill this out to report an incident.", "78E38655-D951-41DB-A0FF-D6474775CFA1", "IncidentReport", "fa fa-user", 0, false, 0, "54C51F65-7467-48DF-9617-8406C50CBE39" ); // Incident Report
+            RockMigrationHelper.UpdateWorkflowType( false, true, "Incident Report", "Please fill this out to report an incident.", "78E38655-D951-41DB-A0FF-D6474775CFA1", "Incident Report", "fa fa-user", 0, false, 0, "54C51F65-7467-48DF-9617-8406C50CBE39" ); // Incident Report
             RockMigrationHelper.UpdateWorkflowTypeAttribute( "54C51F65-7467-48DF-9617-8406C50CBE39", "9C204CD0-1233-41C5-818A-C5DA439445AA", "Age", "Age", "", 5, @"", "D21DD539-7293-483F-839D-D34CEBD7AE4D" ); // Incident Report:Age
             RockMigrationHelper.UpdateWorkflowTypeAttribute( "54C51F65-7467-48DF-9617-8406C50CBE39", "6F9E2DD0-E39E-4602-ADF9-EB710A75304A", "Attach a 2nd screenshot", "Attacha2ndscreenshot", "", 17, @"", "9DF54DD0-455D-4187-9F2F-AC419DD29574" ); // Incident Report:Attach a 2nd screenshot
             RockMigrationHelper.UpdateWorkflowTypeAttribute( "54C51F65-7467-48DF-9617-8406C50CBE39", "6F9E2DD0-E39E-4602-ADF9-EB710A75304A", "Attach a 3rd screenshot", "Attacha3rdscreenshot", "", 18, @"", "1CCDB448-A33B-4213-BD8F-B0212FD35C20" ); // Incident Report:Attach a 3rd screenshot
@@ -1300,7 +1300,7 @@ namespace cc.newspring.Workflows.Migrations
         /// </summary>
         public override void Down()
         {
-            RockMigrationHelper.DeleteWorkflowType( "E2DBDD4F-1704-474A-ACC6-07E2405951A7" );
+            RockMigrationHelper.DeleteWorkflowType( "54C51F65-7467-48DF-9617-8406C50CBE39" );
         }
     }
 }
