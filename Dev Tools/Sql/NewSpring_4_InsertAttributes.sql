@@ -655,22 +655,22 @@ select @IsSystem, attributeId, personId, value, NEWID()
 from #attributeAssignment
 
 -- clear the assignments for this attribute
-truncate table #attributeAssignment	
+--truncate table #attributeAssignment	
+
+select attributeid, personid from #attributeAssignment where attributeid = 906 and personid = 188
+
+select * from Rock..AttributeValue where entityid = 188
+select * from rock..attributevalue where attributeid = 906
+
+
+-- insert attendance for attribute of type Financial Coaching
+/*
+ 
+#TODO
+
+*/
 
 -- completed successfully
 RAISERROR ( N'Completed successfully.', 0, 0 ) WITH NOWAIT
 
 use master
-
--- insert attendance for attribute of type Financial Coaching
-
-/* ================================================
-
-select * from person where firstname = 'kristin' and lastname = 'sindorf'
-
-select * from attributevalue where entityid = 77412
-
-
-
-
-*/
