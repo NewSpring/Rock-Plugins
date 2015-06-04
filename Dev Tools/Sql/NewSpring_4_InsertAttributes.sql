@@ -3,7 +3,7 @@
 -- Inserts attributes.
   
 --  Assumptions:
---  We only import attributes from the following group name:
+--  We only import attributes from the following group names:
     90 Day Tithing Challenge
     Discipleship - Grow
     Discipleship - Ownership
@@ -80,7 +80,8 @@ end
 create table #attributeAssignment (
 	personId bigint,
 	attributeId int,
-	value nvarchar(255)
+	value nvarchar(255), 
+	filterDate date
 )
 
 declare @scopeIndex int, @numItems int
@@ -96,7 +97,7 @@ begin
 		@CampusAttributeId = campusAttributeId, @BooleanAttributeId = booleanAttributeId
 	from #attributes where ID = @scopeIndex
 
-	declare @msg nvarchar(max) = 'Starting ' + @AttributeGroup + ' & ' + @AttributeName 
+	declare @msg nvarchar(max) = 'Starting ' + @AttributeGroup + ' / ' + @AttributeName 
 	RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
 
 	if @AttributeGroup is not null
@@ -597,8 +598,8 @@ begin
 		-- insert attribute values for dates
 		if @DateAttributeId is not null
 		begin
-			insert into #attributeAssignment ( personId, attributeId, value )			
-			select personId, @DateAttributeId, a.start_date, NEWID()
+			insert into #attributeAssignment ( personId, attributeId, value, filterDate )
+			select personId, @DateAttributeId, convert(nvarchar(50), a.start_date, 126), a.start_date
 			from F1..Attribute a
 			inner join PersonAlias pa
 				on a.Individual_Id = pa.ForeignId
@@ -609,8 +610,8 @@ begin
 		-- insert attribute values for campuses
 		if @CampusAttributeId is not null
 		begin
-			insert into #attributeAssignment ( personId, attributeId, value )			
-			select personId, @CampusAttributeId, @campusGuid, NEWID()
+			insert into #attributeAssignment ( personId, attributeId, value, filterDate )			
+			select personId, @CampusAttributeId, @campusGuid, a.start_date
 			from F1..Attribute a
 			inner join PersonAlias pa
 				on a.Individual_Id = pa.ForeignId
@@ -621,8 +622,8 @@ begin
 		-- insert attribute values for booleans
 		if @BooleanAttributeId is not null
 		begin
-			insert into #attributeAssignment ( personId, attributeId, value )			
-			select personId, @BooleanAttributeId, 'True', NEWID()
+			insert into #attributeAssignment ( personId, attributeId, value, filterDate )
+			select personId, @BooleanAttributeId, 'True', a.start_date
 			from F1..Attribute a
 			inner join PersonAlias pa
 				on a.Individual_Id = pa.ForeignId
@@ -636,13 +637,22 @@ begin
 end
 -- end while attribute loop
 
-
+-- remove duplicate attributes and values
+;WITH duplicates (personId, attributeId, id) 
+AS (
+    SELECT personId, attributeId, ROW_NUMBER() OVER (
+		PARTITION BY personId, attributeId
+		ORDER BY filterDate desc
+    ) AS id
+    FROM #attributeAssignment
+)
+delete from duplicates
+where id > 1
 
 -- insert attribute values
 insert AttributeValue ( [IsSystem], [AttributeId], [EntityId], [Value], [Guid] )
-select @IsSystem, @BooleanAttributeId, personId, value, NEWID()
+select @IsSystem, attributeId, personId, value, NEWID()
 from #attributeAssignment
-
 
 -- clear the assignments for this attribute
 truncate table #attributeAssignment	
@@ -656,7 +666,9 @@ use master
 
 /* ================================================
 
-select * from attribute where 
+select * from person where firstname = 'kristin' and lastname = 'sindorf'
+
+select * from attributevalue where entityid = 77412
 
 
 
