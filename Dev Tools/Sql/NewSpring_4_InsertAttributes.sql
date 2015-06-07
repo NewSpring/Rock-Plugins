@@ -90,27 +90,29 @@ select @numItems = count(1) + @scopeIndex from #attributes
 
 while @scopeIndex < @numItems
 begin
-	declare @AttributeGroup nvarchar(255), @AttributeName nvarchar(255), @AttributeCategoryId int, @DateAttributeId int, 
-		@CampusAttributeId int, @BooleanAttributeId int, @campusGuid uniqueidentifier, @msg nvarchar(max)
-	
+	declare @AttributeGroup nvarchar(255), @AttributeName nvarchar(255), @AttributeCategoryId int, @DateAttributeId int, @CampusAttributeId int, 
+		@BooleanAttributeId int, @IsProcessed bit, @campusGuid uniqueidentifier, @campusId int, @msg nvarchar(max)
+
 	select @AttributeGroup = attributeGroupName, @AttributeName = attributeName, @DateAttributeId = dateAttributeId, 
-		@CampusAttributeId = campusAttributeId, @BooleanAttributeId = booleanAttributeId
+		@CampusAttributeId = campusAttributeId, @BooleanAttributeId = booleanAttributeId, 
+		@IsProcessed = CASE WHEN dateAttributeId is null THEN 0 ELSE 1 END
 	from #attributes where ID = @scopeIndex
 
 	if @AttributeGroup is not null
 	begin
-		
+
+		select @msg = 'Creating ' + @AttributeGroup + ' / ' + @AttributeName 
+		RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
+
 		-- set campus based on the attribute name
-		select @campusGuid = [Guid] from Campus
+		select @campusGuid = [Guid], @campusId = [Id] from Campus
 		where shortcode = left(ltrim(@AttributeName), 3)
 		or shortcode = right(rtrim(@AttributeName), 3) 
 
 		-- depending on what attribute this is, take different actions
 		-- Spring Zone is weird because it spans two GroupNames
-		if @AttributeName = 'Spring Zone' and @DateAttributeId is null
+		if @AttributeName = 'Spring Zone' and @IsProcessed = 0
 		begin
-			select @msg = 'Creating ' + @AttributeGroup + ' / ' + @AttributeName 
-			RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
 
 			-- get or create the attribute category
 			select @AttributeCategoryId = [Id] from Category
@@ -124,7 +126,7 @@ begin
 
 				select @AttributeCategoryId = SCOPE_IDENTITY()
 			end
-			
+
 			select @DateAttributeId = [Id] from Attribute 
 			where EntityTypeId = @PersonEntityTypeId and name = 'Is Special Needs'
 
@@ -145,14 +147,12 @@ begin
 				select @IsSystem, @DateAttributeId, 'falsetext', 'No', NEWID()
 
 				insert AttributeCategory (AttributeId, CategoryId)
-				select @DateAttributeId, @AttributeCategoryId				
+				select @DateAttributeId, @AttributeCategoryId
 			end
 		end
 		-- end Spring Zone
-		else if @AttributeGroup = '90 Day Tithing Challenge' and @DateAttributeId is null
+		else if @AttributeGroup = '90 Day Tithing Challenge' and @IsProcessed = 0
 		begin
-			select @msg = 'Creating ' + @AttributeGroup + ' / ' + @AttributeName 
-			RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
 
 			-- get or create the attribute category
 			select @AttributeCategoryId = [Id] from Category
@@ -166,7 +166,7 @@ begin
 
 				select @AttributeCategoryId = SCOPE_IDENTITY()
 			end
-				
+
 			-- create attributes if they don't exist
 			select @DateAttributeId = [Id] from Attribute 
 			where EntityTypeId = @PersonEntityTypeId and name = '90 DTC Date'
@@ -177,7 +177,7 @@ begin
 					[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
 				select @IsSystem, @DateFieldTypeId, @PersonEntityTypeId, '', '', '90DTCDate', '90 DTC Date', 
 					'The date this person signed up for the 90 Day Tithe Challenge.', '', @Order, @False, @False, @False, NEWID()
-				
+
 				select @DateAttributeId = SCOPE_IDENTITY()
 
 				insert AttributeCategory (AttributeId, CategoryId)
@@ -193,7 +193,7 @@ begin
 					[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
 				select @IsSystem, @CampusFieldTypeId, @PersonEntityTypeId, '', '', '90DTCCampus', '90 DTC Campus', 
 					'The campus where this person signed up for the 90 Day Tithe Challenge.', '', @Order, @False, @False, @False, NEWID()
-			
+
 				select @CampusAttributeId = SCOPE_IDENTITY()
 
 				insert AttributeCategory (AttributeId, CategoryId)
@@ -201,10 +201,8 @@ begin
 			end
 		end	
 		-- end 90 DTC
-		else if @AttributeGroup = 'Discipleship - Grow' and @DateAttributeId is null
+		else if @AttributeGroup = 'Discipleship - Grow' and @IsProcessed = 0
 		begin
-			select @msg = 'Creating ' + @AttributeGroup + ' / ' + @AttributeName 
-			RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
 
 			-- get or create the attribute category
 			select @AttributeCategoryId = [Id] from Category
@@ -245,19 +243,17 @@ begin
 					[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
 				select @IsSystem, @CampusFieldTypeId, @PersonEntityTypeId, '', '', 'BaptismCampus', 'Baptism Campus', 
 					'The campus where this person was baptized.', '', @Order, @False, @False, @False, NEWID()
-			
-				select @CampusAttributeId = SCOPE_IDENTITY()			
+
+				select @CampusAttributeId = SCOPE_IDENTITY()
 
 				insert AttributeCategory (AttributeId, CategoryId)
 				select @CampusAttributeId, @AttributeCategoryId
-			end	
+			end
 		end 
 		-- end Discipleship
-		else if @AttributeGroup = 'Discipleship - Ownership' and @DateAttributeId is null
+		else if @AttributeGroup = 'Discipleship - Ownership' and @IsProcessed = 0
 		begin
-			select @msg = 'Creating ' + @AttributeGroup + ' / ' + @AttributeName 
-			RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
-			
+
 			-- get or create the attribute category
 			select @AttributeCategoryId = [Id] from Category
 			where EntityTypeId = @AttributeEntityTypeId 
@@ -288,13 +284,11 @@ begin
 
 				insert AttributeCategory (AttributeId, CategoryId)
 				select @DateAttributeId, @AttributeCategoryId
-			end		
+			end
 		end 
 		-- end Ownership
-		else if @AttributeGroup = 'Fuse' and @DateAttributeId is null
+		else if @AttributeGroup = 'Fuse' and @IsProcessed = 0
 		begin
-			select @msg = 'Creating ' + @AttributeGroup + ' / ' + @AttributeName 
-			RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
 
 			-- get or create the attribute category
 			select @AttributeCategoryId = [Id] from Category
@@ -337,8 +331,8 @@ begin
 						[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
 					select @IsSystem, @CampusFieldTypeId, @PersonEntityTypeId, '', '', 'SalvationCampus', 'Salvation Campus', 
 						'The campus where this person was saved.', '', @Order, @False, @False, @False, NEWID()
-			
-					select @CampusAttributeId = SCOPE_IDENTITY()			
+
+					select @CampusAttributeId = SCOPE_IDENTITY()
 
 					insert AttributeCategory (AttributeId, CategoryId)
 					select @CampusAttributeId, @AttributeCategoryId
@@ -353,8 +347,8 @@ begin
 						[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
 					select @IsSystem, @BooleanFieldTypeId, @PersonEntityTypeId, '', '', 'FuseSalvation', 'Fuse Salvation', 
 						'The salvation happened at Fuse.', '', @Order, @False, @False, @False, NEWID()
-			
-					select @BooleanAttributeId = SCOPE_IDENTITY()			
+
+					select @BooleanAttributeId = SCOPE_IDENTITY()
 
 					-- set additional attribute fields
 					insert AttributeQualifier (IsSystem, AttributeId, [Key], Value, [Guid])
@@ -365,7 +359,7 @@ begin
 
 					insert AttributeCategory (AttributeId, CategoryId)
 					select @BooleanAttributeId, @AttributeCategoryId
-				end				
+				end
 			end
 			-- end fuse salvation
 			else if @AttributeName like '%Baptism'
@@ -395,21 +389,19 @@ begin
 						[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
 					select @IsSystem, @CampusFieldTypeId, @PersonEntityTypeId, '', '', 'BaptismCampus', 'Baptism Campus', 
 						'The campus where this person was baptized.', '', @Order, @False, @False, @False, NEWID()
-			
-					select @CampusAttributeId = SCOPE_IDENTITY()			
+
+					select @CampusAttributeId = SCOPE_IDENTITY()
 
 					insert AttributeCategory (AttributeId, CategoryId)
 					select @CampusAttributeId, @AttributeCategoryId
-				end				
+				end
 			end
 			-- end fuse baptism
 		end 
 		-- end fuse
-		else if @AttributeGroup = 'Salvation' and @DateAttributeId is null
+		else if @AttributeGroup = 'Salvation' and @IsProcessed = 0
 		begin
-			select @msg = 'Creating ' + @AttributeGroup + ' / ' + @AttributeName 
-			RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
-			
+
 			-- get or create the attribute category
 			select @AttributeCategoryId = [Id] from Category
 			where EntityTypeId = @AttributeEntityTypeId 
@@ -448,19 +440,17 @@ begin
 					[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
 				select @IsSystem, @CampusFieldTypeId, @PersonEntityTypeId, '', '', 'SalvationCampus', 'Salvation Campus', 
 					'The campus where this person was saved.', '', @Order, @False, @False, @False, NEWID()
-			
-				select @CampusAttributeId = SCOPE_IDENTITY()			
+
+				select @CampusAttributeId = SCOPE_IDENTITY()
 
 				insert AttributeCategory (AttributeId, CategoryId)
 				select @CampusAttributeId, @AttributeCategoryId
 			end
 		end 
 		-- end Salvation		
-		else if @AttributeGroup = 'Volunteer' and @DateAttributeId is null
+		else if @AttributeGroup = 'Volunteer' and @IsProcessed = 0
 		begin
-			select @msg = 'Creating ' + @AttributeGroup + ' / ' + @AttributeName 
-			RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
-			
+
 			-- get or create the attribute category
 			select @AttributeCategoryId = [Id] from Category
 			where EntityTypeId = @AttributeEntityTypeId
@@ -503,8 +493,8 @@ begin
 						[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
 					select @IsSystem, @CampusFieldTypeId, @PersonEntityTypeId, '', '', 'NewServeStartCampus', 'New Serve Start Campus', 
 						'The campus the person started the new serve process.', '', @Order, @False, @False, @False, NEWID()
-			
-					select @CampusAttributeId = SCOPE_IDENTITY()			
+
+					select @CampusAttributeId = SCOPE_IDENTITY()
 
 					insert AttributeCategory (AttributeId, CategoryId)
 					select @CampusAttributeId, @AttributeCategoryId
@@ -538,8 +528,8 @@ begin
 						[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
 					select @IsSystem, @CampusFieldTypeId, @PersonEntityTypeId, '', '', 'NewServeRedirectCampus', 'New Serve Redirect Campus', 
 						'The campus where the person redirected the New Serve process.', '', @Order, @False, @False, @False, NEWID()
-			
-					select @CampusAttributeId = SCOPE_IDENTITY()			
+
+					select @CampusAttributeId = SCOPE_IDENTITY()
 
 					insert AttributeCategory (AttributeId, CategoryId)
 					select @CampusAttributeId, @AttributeCategoryId
@@ -548,7 +538,32 @@ begin
 			-- end new serve redirect
 		end 
 		-- end Salvation
+		else if @AttributeGroup = 'Financial Planning' and @IsProcessed = 0
+		begin
+			
+			-- insert attendance for Financial Coaching attribute
+			declare @groupId int, @locationId int
+			select @groupId = [Id] from [Group]
+			where CampusId = @campusId
+			and name = 'Financial Coaching Attendee'	
 
+			select @locationId = [LocationId] from [GroupLocation]
+			where GroupId = @groupId
+
+			if @groupId is not null and @locationId is not null
+			begin
+				-- make sure the start date is set				
+				insert Attendance ( LocationId, ScheduleId, GroupId, StartDateTime, DidAttend, [Guid], CampusId, PersonAliasId, RSVP )
+				select @locationId, NULL, @groupId, a.Start_Date, @True, NEWID(), @campusId, pa.Id, @False
+				from F1..Attribute a
+				inner join PersonAlias pa
+					on a.Individual_Id = pa.ForeignId
+					and a.Attribute_Group_Name = @AttributeGroup
+					and a.Attribute_Name = @AttributeName
+				where a.Start_Date is not null
+			end
+		end
+		-- end financial planning
 
 		-- set attributes for use next time
 		update #attributes 
@@ -566,7 +581,7 @@ begin
 			from F1..Attribute a
 			inner join PersonAlias pa
 				on a.Individual_Id = pa.ForeignId
-				and a.Attribute_Group_Name = @AttributeGroup 
+				and a.Attribute_Group_Name = @AttributeGroup
 				and a.Attribute_Name = @AttributeName
 		end
 
@@ -626,9 +641,6 @@ from #attributeAssignment
 
 -- clear the assignments for this attribute
 truncate table #attributeAssignment
-
--- insert attendance for attribute of type Financial Coaching
---select * from #attributes where attributename like '%redirect%'
 
 -- completed successfully
 RAISERROR ( N'Completed successfully.', 0, 0 ) WITH NOWAIT
