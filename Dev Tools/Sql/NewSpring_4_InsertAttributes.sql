@@ -611,6 +611,7 @@ begin
 	end
 	-- end attribute not empty
 
+	select @AttributeCategoryId = null
 	select @scopeIndex = @scopeIndex + 1
 end
 -- end while attribute loop
