@@ -52,6 +52,14 @@
     <Compile Include="Migrations\007_90DayTithingChallenge.cs" />
     <Compile Include="Migrations\008_CareRequest.cs" />
     <Compile Include="Migrations\009_StepUpPledge.cs" />
+    <Compile Include="Migrations\023_PerrySpeakingRequest.cs" />
+    <Compile Include="Migrations\022_PerryContact.cs" />
+    <Compile Include="Migrations\021_ScheduleATour.cs" />
+    <Compile Include="Migrations\020_LostNameTag.cs" />
+    <Compile Include="Migrations\019_FUSEGroupSignUp.cs" />
+    <Compile Include="Migrations\018_FUSEGroupLeaderSignUp.cs" />
+    <Compile Include="Migrations\017_MedicalIncidentReport.cs" />
+    <Compile Include="Migrations\016_LiveStreamTechSupport.cs" />
     <Compile Include="Migrations\015_ShareYourStory.cs" />
     <Compile Include="Migrations\014_CantFindTheRightGroup.cs" />
     <Compile Include="Migrations\013_GauntletScholarship.cs" />
