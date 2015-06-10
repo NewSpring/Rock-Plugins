@@ -12,15 +12,23 @@ USE Rock
 SET NOCOUNT ON
 
 -- Set common variables 
-declare @isSystem bit = 0
-declare @delimiter nvarchar(5) = ' - '
+declare @IsSystem bit = 0
+declare @Delimiter nvarchar(5) = ' - '
 declare @True bit = 1
 declare @False bit = 0
 declare @BooleanFieldTypeId int
 declare @GroupEntityTypeId int
+declare @CheckInAreaTypePurpose int
+declare @CampusLocationTypeId int
 
 select @BooleanFieldTypeId = [Id] FROM [FieldType] WHERE [Name] = 'Boolean'
 select @GroupEntityTypeId = [Id] FROM [EntityType] WHERE [Name] = 'Rock.Model.Group'
+
+/* Check-in Template Purpose Type */
+select @CheckInAreaTypePurpose = 142
+
+/* Location Type: Campus */
+select @CampusLocationTypeId = [Id] from DefinedValue where [Guid] = 'C0D7AE35-7901-4396-870E-3AAF472AAE88'
 
 update [group] set campusId = null
 delete from Campus where id = 1
@@ -31,59 +39,37 @@ delete from Campus where id = 1
 
 insert Campus (IsSystem, Name, ShortCode, [Guid], IsActive)
 values
-(@isSystem, 'Aiken', 'AKN', NEWID(), 1),
-(@isSystem, 'Anderson', 'AND', NEWID(), 1),
-(@isSystem, 'Boiling Springs', 'BSP', NEWID(), 1),
-(@isSystem, 'Charleston', 'CHS', NEWID(), 1),
-(@isSystem, 'Clemson', 'CLE', NEWID(), 1),
-(@isSystem, 'Columbia', 'COL', NEWID(), 1),
-(@isSystem, 'Florence', 'FLO', NEWID(), 1),
-(@isSystem, 'Greenville', 'GVL', NEWID(), 1),
-(@isSystem, 'Greenwood', 'GWD', NEWID(), 1),
-(@isSystem, 'Greer', 'GRR', NEWID(), 1),
-(@isSystem, 'Hilton Head', 'HHD', NEWID(), 1),
-(@isSystem, 'Lexington', 'LEX', NEWID(), 1),
-(@isSystem, 'Myrtle Beach', 'MYR', NEWID(), 1),
-(@isSystem, 'Northeast Columbia', 'NEC', NEWID(), 1),
-(@isSystem, 'Powdersville', 'POW', NEWID(), 1),
-(@isSystem, 'Rock Hill', 'RKH', NEWID(), 1),
-(@isSystem, 'Simpsonville', 'SIM', NEWID(), 1),
-(@isSystem, 'Spartanburg', 'SPA', NEWID(), 1),
-(@isSystem, 'Sumter', 'SUM', NEWID(), 1)
+(@IsSystem, 'Aiken', 'AKN', NEWID(), @True),
+(@IsSystem, 'Anderson', 'AND', NEWID(), @True),
+(@IsSystem, 'Boiling Springs', 'BSP', NEWID(), @True),
+(@IsSystem, 'Central', 'CEN', NEWID(), @False),
+(@IsSystem, 'Charleston', 'CHS', NEWID(), @True),
+(@IsSystem, 'Clemson', 'CLE', NEWID(), @True),
+(@IsSystem, 'Columbia', 'COL', NEWID(), @True),
+(@IsSystem, 'Florence', 'FLO', NEWID(), @True),
+(@IsSystem, 'Greenville', 'GVL', NEWID(), @True),
+(@IsSystem, 'Greenwood', 'GWD', NEWID(), @True),
+(@IsSystem, 'Greer', 'GRR', NEWID(), @True),
+(@IsSystem, 'Hilton Head', 'HHD', NEWID(), @True),
+(@IsSystem, 'Lexington', 'LEX', NEWID(), @True),
+(@IsSystem, 'Myrtle Beach', 'MYR', NEWID(), @True),
+(@IsSystem, 'Northeast Columbia', 'NEC', NEWID(), @True),
+(@IsSystem, 'Powdersville', 'POW', NEWID(), @True),
+(@IsSystem, 'Rock Hill', 'RKH', NEWID(), @True),
+(@IsSystem, 'Simpsonville', 'SIM', NEWID(), @True),
+(@IsSystem, 'Spartanburg', 'SPA', NEWID(), @True),
+(@IsSystem, 'Sumter', 'SUM', NEWID(), @True),
+(@IsSystem, 'Web', 'WEB', NEWID(), @False)
+
+-- create top-level campus locations
+insert Location (Name, IsActive, LocationTypeValueId, [Guid])
+select name, @True, @CampusLocationTypeId, NEWID() from Campus
 
 
 /* ====================================================== */
--- campus check-in areas
+-- Special Needs Structure
 /* ====================================================== */
-if object_id('tempdb..#campusAreas') is not null
-begin
-	drop table #campusAreas
-end
-create table #campusAreas (
-	ID int IDENTITY(1,1),
-	name nvarchar(255),
-	attendanceRule int,
-	inheritedType int
-)
-
-insert #campusAreas
-values
-('Creativity & Tech Attendee', 0, 15),
-('Creativity & Tech Volunteer', 2, 15),
-('Fuse Attendee', 1, 17),
-('Fuse Volunteer', 2, 15),
-('Guest Services Attendee', 0, 15),
-('Guest Services Volunteer', 2, 15),
-('KidSpring Attendee', 0, null),
-('KidSpring Volunteer', 2, null),
-('Next Steps Attendee', 0, 15),
-('Next Steps Volunteer', 2, 15)
-
-
-/* ====================================================== */
--- campus kids structure
-/* ====================================================== */
-DECLARE @SpecialNeedsGroupId INT
+DECLARE @SpecialNeedsAttributeId INT
 DECLARE @SpecialNeedsGroupTypeId INT
 SELECT @SpecialNeedsGroupTypeId = (
 	SELECT [Id]
@@ -91,8 +77,8 @@ SELECT @SpecialNeedsGroupTypeId = (
 	WHERE [Name] = 'Check in By Special Needs'	
 );
 
-select @SpecialNeedsGroupId = Id from [Attribute] where [Key] = 'IsSpecialNeeds'
-if @SpecialNeedsGroupId is null or @SpecialNeedsGroupId = ''
+select @SpecialNeedsAttributeId = Id from [Attribute] where [Key] = 'IsSpecialNeeds'
+if @SpecialNeedsAttributeId is null or @SpecialNeedsAttributeId = ''
 begin
 
 	INSERT [Attribute] ( [IsSystem],[FieldTypeId],[EntityTypeId],[EntityTypeQualifierColumn],[EntityTypeQualifierValue],[Key],[Name],[Description],[Order],[IsGridColumn],[DefaultValue],[IsMultiValue],[IsRequired],[Guid]) 
@@ -100,33 +86,47 @@ begin
 		'Indicates if this group caters to those who have special needs.', @False, @False, 'True', @False, @False, NEWID()
 	);
 
-	SET @SpecialNeedsGroupId = SCOPE_IDENTITY()
+	SET @SpecialNeedsAttributeId = SCOPE_IDENTITY()
 end
 
-if object_id('tempdb..#subCampusAreas') is not null
+
+/* ====================================================== */
+-- base check-in areas
+/* ====================================================== */
+if object_id('tempdb..#topAreas') is not null
 begin
-	drop table #subCampusAreas
+	drop table #topAreas
 end
-create table #subCampusAreas (
+create table #topAreas (
 	ID int IDENTITY(1,1),
-	name nvarchar(255),
-	parentName nvarchar(255),
+	parentArea nvarchar(255),
+	childArea nvarchar(255),
 	inheritedType int
 )
 
 -- Check-in Area, GroupType, Inherited Type
-insert #subCampusAreas
+insert #topAreas
 values
-('Nursery', 'KidSpring Attendee', 15),
-('Preschool', 'KidSpring Attendee', 15),
-('Elementary', 'KidSpring Attendee', 17),
-('Special Needs', 'KidSpring Attendee', @SpecialNeedsGroupTypeId),
-('Nursery Vols', 'KidSpring Volunteer', 15),
-('Preschool Vols', 'KidSpring Volunteer', 15),
-('Elementary Vols', 'KidSpring Volunteer', 15),
-('Special Needs Vols', 'KidSpring Volunteer', 15),
-('KS Support Vols', 'KidSpring Volunteer', 15),
-('KS Production Vols', 'KidSpring Volunteer', 15)
+('Creativity & Technology', 'Creativity & Tech Attendee', 15),
+('Creativity & Technology', 'Creativity & Tech Volunteer', 15),
+('Events', 'Event Attendee', 15),
+('Events', 'Event Volunteer', 15),
+('Fuse', 'Fuse Attendee', 17),
+('Fuse', 'Fuse Volunteer', 15),
+('Guest Services', 'Guest Services Attendee', 15),
+('Guest Services', 'Guest Services Volunteer', 15),
+('KidSpring', 'Nursery Attendee', 15),
+('KidSpring', 'Preschool Attendee', 15),
+('KidSpring', 'Elementary Attendee', 17),
+('KidSpring', 'Special Needs Attendee', @SpecialNeedsGroupTypeId),
+('KidSpring', 'Nursery Volunteer', 15),
+('KidSpring', 'Preschool Volunteer', 15),
+('KidSpring', 'Elementary Volunteer', 15),
+('KidSpring', 'Special Needs Volunteer', 15),
+('KidSpring', 'Support Volunteer', 15),
+('KidSpring', 'Production Volunteer', 15),
+('Next Steps', 'Next Steps Attendee', 15),
+('Next Steps', 'Next Steps Volunteer', 15)
 
 /* ====================================================== */
 -- campus group structure
@@ -145,252 +145,229 @@ create table #campusGroups (
 -- GroupType, Group, Location
 insert #campusGroups
 values
--- kid structure from AND
-('Elementary', 'Base Camp', 'Base Camp'),
-('Elementary', 'ImagiNation - 1st', 'ImagiNation'),
-('Elementary', 'ImagiNation - K', 'ImagiNation'),
-('Elementary', 'Jump Street - 2nd', 'Jump Street'),
-('Elementary', 'Jump Street - 3rd', 'Jump Street'),
-('Elementary', 'Shockwave - 4th', 'Shockwave'),
-('Elementary', 'Shockwave - 5th', 'Shockwave'),
-('Nursery', 'Wonder Way - 1', 'Wonder Way - 1'),
-('Nursery', 'Wonder Way - 2', 'Wonder Way - 2'),
-('Nursery', 'Wonder Way - 3', 'Wonder Way - 3'),
-('Nursery', 'Wonder Way - 4', 'Wonder Way - 4'),
-('Nursery', 'Wonder Way - 5', 'Wonder Way - 5'),
-('Nursery', 'Wonder Way - 6', 'Wonder Way - 6'),
-('Nursery', 'Wonder Way - 7', 'Wonder Way - 7'),
-('Nursery', 'Wonder Way - 8', 'Wonder Way - 8'),
-('Preschool', 'Base Camp Jr.', 'Base Camp Jr.'),
-('Preschool', 'Fire Station', 'Fire Station'),
-('Preschool', 'Lil'' Spring', 'Lil'' Spring'),
-('Preschool', 'SpringTown Police', 'SpringTown Police'),
-('Preschool', 'Pop''s Garage', 'Pop''s Garage'),
-('Preschool', 'Spring Fresh', 'Spring Fresh'),
-('Preschool', 'SpringTown Toys', 'SpringTown Toys'),
-('Preschool', 'Treehouse', 'Treehouse'),
-('Special Needs', 'Spring Zone Jr.', 'Spring Zone Jr.'),
-('Special Needs', 'Spring Zone', 'Spring Zone'),
+-- child attendee structure
+('Elementary Attendee', 'Base Camp', 'Base Camp'), 
+('Elementary Attendee', 'ImagiNation - 1st', 'ImagiNation - 1st'), 
+('Elementary Attendee', 'ImagiNation - K', 'ImagiNation - K'), 
+('Elementary Attendee', 'Jump Street - 2nd', 'Jump Street - 2nd'), 
+('Elementary Attendee', 'Jump Street - 3rd', 'Jump Street - 3rd'), 
+('Elementary Attendee', 'Shockwave - 4th', 'Shockwave - 4th'), 
+('Elementary Attendee', 'Shockwave - 5th', 'Shockwave - 5th'), 
+('Nursery Attendee', 'Wonder Way - 1', 'Wonder Way - 1'), 
+('Nursery Attendee', 'Wonder Way - 2', 'Wonder Way - 2'), 
+('Nursery Attendee', 'Wonder Way - 3', 'Wonder Way - 3'), 
+('Nursery Attendee', 'Wonder Way - 4', 'Wonder Way - 4'), 
+('Nursery Attendee', 'Wonder Way - 5', 'Wonder Way - 5'), 
+('Nursery Attendee', 'Wonder Way - 6', 'Wonder Way - 6'), 
+('Nursery Attendee', 'Wonder Way - 7', 'Wonder Way - 7'), 
+('Nursery Attendee', 'Wonder Way - 8', 'Wonder Way - 8'), 
+('Preschool Attendee', 'Base Camp Jr.', 'Base Camp Jr.'), 
+('Preschool Attendee', 'Fire Station', 'Fire Station'), 
+('Preschool Attendee', 'Lil'' Spring', 'Lil'' Spring'), 
+('Preschool Attendee', 'SpringTown Police', 'SpringTown Police'), 
+('Preschool Attendee', 'Pop''s Garage', 'Pop''s Garage'), 
+('Preschool Attendee', 'Spring Fresh', 'Spring Fresh'), 
+('Preschool Attendee', 'SpringTown Toys', 'SpringTown Toys'), 
+('Preschool Attendee', 'Treehouse', 'Treehouse'), 
+('Special Needs Attendee', 'Spring Zone Jr.', 'Spring Zone Jr.'), 
+('Special Needs Attendee', 'Spring Zone', 'Spring Zone'), 
 
--- vol structure from COL
-('Creativity & Tech Attendee', 'Choir', 'Creativity & Tech Attendee'),
-('Creativity & Tech Volunteer', 'Band', 'Creativity & Tech Volunteer'),
-('Creativity & Tech Volunteer', 'Band Green Room', 'Creativity & Tech Volunteer'),
-('Creativity & Tech Volunteer', 'IT Team', 'Creativity & Tech Volunteer'),
-('Creativity & Tech Volunteer', 'Load In/Load Out', 'Creativity & Tech Volunteer'),
-('Creativity & Tech Volunteer', 'New Serve Team', 'Creativity & Tech Volunteer'),
-('Creativity & Tech Volunteer', 'Office Team', 'Creativity & Tech Volunteer'),
-('Creativity & Tech Volunteer', 'Production Team', 'Creativity & Tech Volunteer'),
-('Creativity & Tech Volunteer', 'Social Media/PR Team', 'Creativity & Tech Volunteer'),
-('Creativity & Tech Attendee', 'Special Event Attendee', 'Creativity & Tech Attendee'),
-('Creativity & Tech Volunteer', 'Special Event Volunteer', 'Creativity & Tech Volunteer'),
-('Elementary Vols', 'Base Camp Volunteer', 'Base Camp'),
-('Elementary Vols', 'Base Camp Team Leader', 'Base Camp'),
-('Elementary Vols', 'Early Bird Volunteer', 'Elementary Volunteer'),
-('Elementary Vols', 'Elementary Service Leader', 'Elementary Volunteer'),
-('Elementary Vols', 'Elementary Area Leader', 'Elementary Volunteer'),
-('Elementary Vols', 'ImagiNation Volunteer', 'ImagiNation'),
-('Elementary Vols', 'ImagiNation Team Leader', 'ImagiNation'),
-('Elementary Vols', 'Jump Street Volunteer', 'Jump Street'),
-('Elementary Vols', 'Jump Street Team Leader', 'Jump Street'),
-('Elementary Vols', 'Shockwave Volunteer', 'Shockwave'),
-('Elementary Vols', 'Shockwave Team Leader', 'Shockwave'),
-('Fuse Attendee', '10th Grade Student', 'Fuse Attendee'),
-('Fuse Attendee', '11th Grade Student', 'Fuse Attendee'),
-('Fuse Attendee', '12th Grade Student', 'Fuse Attendee'),
-('Fuse Attendee', '6th Grade Student', 'Fuse Attendee'),
-('Fuse Attendee', '7th Grade Student', 'Fuse Attendee'),
-('Fuse Attendee', '8th Grade Student', 'Fuse Attendee'),
-('Fuse Attendee', '9th Grade Student', 'Fuse Attendee'),
-('Fuse Attendee', 'Special Event Attendee', 'Fuse Attendee'),
-('Fuse Volunteer', 'Atrium', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Campus Safety', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Care', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Check-In', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Fuse Group Leader', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Fuse Guest', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Game Room', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Greeter', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Jump Off', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Leadership Team', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Load In/Load Out', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Lounge', 'Fuse Volunteer'),
-('Fuse Volunteer', 'New Serve', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Next Steps', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Office Team', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Parking', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Pick-Up', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Production', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Snack Bar', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Special Event Volunteer', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Sports', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Spring Zone', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Student Leader', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Sunday Fuse Team', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Usher', 'Fuse Volunteer'),
-('Fuse Volunteer', 'VHQ', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Worship', 'Fuse Volunteer'),
-('Guest Services Attendee', 'VIP Room Attendee', 'Guest Services Attendee'),
-('Guest Services Attendee', 'Special Event Attendee', 'Guest Services Attendee'),
-('Guest Services Attendee', 'Auditorium Reset Team', 'Guest Services Attendee'),
-('Guest Services Attendee', 'Awake Team', 'Guest Services Attendee'),
-('Guest Services Attendee', 'Facility Cleaning Crew', 'Guest Services Attendee'),
-('Guest Services Attendee', 'Greeting Team', 'Guest Services Attendee'),
-('Guest Services Attendee', 'Load In/Load Out', 'Guest Services Attendee'),
-('Guest Services Attendee', 'Office Team', 'Guest Services Attendee'),
-('Guest Services Attendee', 'Parking Team', 'Guest Services Attendee'),
-('Guest Services Attendee', 'VHQ Team', 'Guest Services Attendee'),
-('Guest Services Volunteer', 'Campus Safety', 'Guest Services Volunteer'),
-('Guest Services Volunteer', 'Facilities Volunteer', 'Guest Services Volunteer'),
-('Guest Services Volunteer', 'Finance Team', 'Guest Services Volunteer'),
-('Guest Services Volunteer', 'VIP Room Volunteer', 'Guest Services Volunteer'),
-('Guest Services Volunteer', 'Guest Services Team', 'Guest Services Volunteer'),
-('Guest Services Volunteer', 'New Serve Team', 'Guest Services Volunteer'),
-('Guest Services Volunteer', 'Service Coordinator', 'Guest Services Volunteer'),
-('Guest Services Volunteer', 'Sign Language Team', 'Guest Services Volunteer'),
-('Guest Services Volunteer', 'Special Event Volunteer', 'Guest Services Volunteer'),
-('Guest Services Volunteer', 'Usher Team', 'Guest Services Volunteer'),
-('KS Production Vols', 'Elementary Actor', 'Production Volunteer'),
-('KS Production Vols', 'Elementary Media', 'Production Volunteer'),
-('KS Production Vols', 'Elementary Production Area Leader', 'Production Volunteer'),
-('KS Production Vols', 'Elementary Production Service Leader', 'Production Volunteer'),
-('KS Production Vols', 'Elementary Worship Leader', 'Production Volunteer'),
-('KS Production Vols', 'Preschool Actor', 'Production Volunteer'),
-('KS Production Vols', 'Preschool Media', 'Production Volunteer'),
-('KS Production Vols', 'Preschool Production Area Leader', 'Production Volunteer'),
-('KS Production Vols', 'Preschool Production Service Leader', 'Production Volunteer'),
-('KS Production Vols', 'Production Area Leader', 'Production Volunteer'),
-('KS Production Vols', 'Production Service Leader', 'Production Volunteer'),
-('KS Support Vols', 'Advocate', 'Support Volunteer'),
-('KS Support Vols', 'Advocate Team Leader', 'Support Volunteer'),
-('KS Support Vols', 'KidSpring Area Leader', 'Support Volunteer'),
-('KS Support Vols', 'Check-In Volunteer', 'Support Volunteer'),
-('KS Support Vols', 'Check-In Team Leader', 'Support Volunteer'),
-('KS Support Vols', 'First Time Team Volunteer', 'Support Volunteer'),
-('KS Support Vols', 'First Time Team Leader', 'Support Volunteer'),
-('KS Support Vols', 'Greeter', 'Support Volunteer'),
-('KS Support Vols', 'Greeter Team Leader', 'Support Volunteer'),
-('KS Support Vols', 'Guest Services Service Leader', 'Support Volunteer'),
-('KS Support Vols', 'Guest Services Area Leader', 'Support Volunteer'),
-('KS Support Vols', 'Office Team', 'Support Volunteer'),
-('KS Support Vols', 'Load In/Load Out', 'Support Volunteer'),
-('KS Support Vols', 'New Serve Volunteer', 'Support Volunteer'),
-('KS Support Vols', 'New Serve Area Leader', 'Support Volunteer'),
-('KS Support Vols', 'New Serve Service Leader', 'Support Volunteer'),
-('KS Support Vols', 'Trainer', 'Support Volunteer'),
-('Next Steps Attendee', '90 DTC Participant', 'Next Steps Attendee'),
-('Next Steps Attendee', 'Baptism Attendee', 'Next Steps Attendee'),
-('Next Steps Attendee', 'Budget Class Attendee', 'Next Steps Attendee'),
-('Next Steps Attendee', 'Connect Care Participant', 'Next Steps Attendee'),
-('Next Steps Attendee', 'Connect Event Attendee', 'Next Steps Attendee'),
-('Next Steps Attendee', 'Connect Group Participant', 'Next Steps Attendee'),
-('Next Steps Attendee', 'Creativity & Tech Basics', 'Next Steps Attendee'),
-('Next Steps Attendee', 'Creativity & Tech First Look', 'Next Steps Attendee'),
-('Next Steps Attendee', 'Creativity & Tech First Serve', 'Next Steps Attendee'),
-('Next Steps Attendee', 'Financial Coaching Attendee', 'Next Steps Attendee'),
-('Next Steps Attendee', 'Fuse Basics', 'Next Steps Attendee'),
-('Next Steps Attendee', 'Fuse First Look', 'Next Steps Attendee'),
-('Next Steps Attendee', 'Fuse First Serve', 'Next Steps Attendee'),
-('Next Steps Attendee', 'Guest Services Basics', 'Next Steps Attendee'),
-('Next Steps Attendee', 'Guest Services First Look', 'Next Steps Attendee'),
-('Next Steps Attendee', 'Guest Services First Serve', 'Next Steps Attendee'),
-('Next Steps Attendee', 'KidSpring Basics', 'Next Steps Attendee'),
-('Next Steps Attendee', 'KidSpring First Look', 'Next Steps Attendee'),
-('Next Steps Attendee', 'KidSpring First Serve', 'Next Steps Attendee'),
-('Next Steps Attendee', 'New Serve Participant', 'Next Steps Attendee'),
-('Next Steps Attendee', 'Next Steps Basics', 'Next Steps Attendee'),
-('Next Steps Attendee', 'Next Steps First Look', 'Next Steps Attendee'),
-('Next Steps Attendee', 'Next Steps First Serve', 'Next Steps Attendee'),
-('Next Steps Attendee', 'Opportunities Tour', 'Next Steps Attendee'),
-('Next Steps Attendee', 'Ownership Class Attendee', 'Next Steps Attendee'),
-('Next Steps Attendee', 'Ownership Class Current Owner', 'Next Steps Attendee'),
-('Next Steps Attendee', 'Special Event Attendee', 'Next Steps Attendee'),
-('Next Steps Attendee', 'Welcome & Wanted Participant', 'Next Steps Attendee'),
-('Next Steps Volunteer', 'Baptism Volunteer', 'Next Steps Volunteer'),
-('Next Steps Volunteer', 'Budget Class Volunteer', 'Next Steps Volunteer'),
-('Next Steps Volunteer', 'Care Office Team', 'Next Steps Volunteer'),
-('Next Steps Volunteer', 'Care Visitation Team', 'Next Steps Volunteer'),
-('Next Steps Volunteer', 'District Leader', 'Next Steps Volunteer'),
-('Next Steps Volunteer', 'Events Office Team', 'Next Steps Volunteer'),
-('Next Steps Volunteer', 'Financial Coaching Volunteer', 'Next Steps Volunteer'),
-('Next Steps Volunteer', 'Financial Planning Office Team', 'Next Steps Volunteer'),
-('Next Steps Volunteer', 'Group Leader', 'Next Steps Volunteer'),
-('Next Steps Volunteer', 'Group Training', 'Next Steps Volunteer'),
-('Next Steps Volunteer', 'Groups Connector', 'Next Steps Volunteer'),
-('Next Steps Volunteer', 'Groups Office Team', 'Next Steps Volunteer'),
-('Next Steps Volunteer', 'Load In/Load Out', 'Next Steps Volunteer'),
-('Next Steps Volunteer', 'New Serve Team', 'Next Steps Volunteer'),
-('Next Steps Volunteer', 'Next Steps Area', 'Next Steps Volunteer'),
-('Next Steps Volunteer', 'Ownership Class Volunteer', 'Next Steps Volunteer'),
-('Next Steps Volunteer', 'Prayer Team', 'Next Steps Volunteer'),
-('Next Steps Volunteer', 'Resource Center', 'Next Steps Volunteer'),
-('Next Steps Volunteer', 'Special Event Volunteer', 'Next Steps Volunteer'),
-('Next Steps Volunteer', 'Sunday Care Team', 'Next Steps Volunteer'),
-('Next Steps Volunteer', 'Writing Team', 'Next Steps Volunteer'),
-('Nursery Vols', 'Early Bird Volunteer', 'Nursery Volunteer'),
-('Nursery Vols', 'Wonder Way Service Leader', 'Nursery Volunteer'),
-('Nursery Vols', 'Wonder Way Area Leader', 'Nursery Volunteer'),
-('Nursery Vols', 'Wonder Way 1 Volunteer', 'Wonder Way - 1'),
-('Nursery Vols', 'Wonder Way 2 Volunteer', 'Wonder Way - 2'),
-('Nursery Vols', 'Wonder Way 3 Volunteer', 'Wonder Way - 3'),
-('Nursery Vols', 'Wonder Way 4 Volunteer', 'Wonder Way - 4'),
-('Nursery Vols', 'Wonder Way 5 Volunteer', 'Wonder Way - 5'),
-('Nursery Vols', 'Wonder Way 6 Volunteer', 'Wonder Way - 6'),
-('Nursery Vols', 'Wonder Way 7 Volunteer', 'Wonder Way - 7'),
-('Nursery Vols', 'Wonder Way 8 Volunteer', 'Wonder Way - 8'),
-('Nursery Vols', 'Wonder Way 1 Team Leader', 'Wonder Way - 1'),
-('Nursery Vols', 'Wonder Way 2 Team Leader', 'Wonder Way - 2'),
-('Nursery Vols', 'Wonder Way 3 Team Leader', 'Wonder Way - 3'),
-('Nursery Vols', 'Wonder Way 4 Team Leader', 'Wonder Way - 4'),
-('Nursery Vols', 'Wonder Way 5 Team Leader', 'Wonder Way - 5'),
-('Nursery Vols', 'Wonder Way 6 Team Leader', 'Wonder Way - 6'),
-('Nursery Vols', 'Wonder Way 7 Team Leader', 'Wonder Way - 7'),
-('Nursery Vols', 'Wonder Way 8 Team Leader', 'Wonder Way - 8'),
-('Preschool Vols', 'Base Camp Jr. Volunteer', 'Base Camp Jr.'),
-('Preschool Vols', 'Fire Station Volunteer', 'Fire Station'),
-('Preschool Vols', 'Fire Station Team Leader', 'Fire Station'),
-('Preschool Vols', 'Lil'' Spring Volunteer', 'Lil'' Spring'),
-('Preschool Vols', 'Lil'' Spring Team Leader', 'Lil'' Spring'),
-('Preschool Vols', 'Police Volunteer', 'SpringTown Police'),
-('Preschool Vols', 'Police Team Leader', 'SpringTown Police'),
-('Preschool Vols', 'Pop''s Garage Volunteer', 'Pop''s Garage'),
-('Preschool Vols', 'Pop''s Garage Team Leader', 'Pop''s Garage'),
-('Preschool Vols', 'Early Bird Volunteer', 'Preschool Volunteer'),
-('Preschool Vols', 'Preschool Service Leader', 'Preschool Volunteer'),
-('Preschool Vols', 'Preschool Area Leader', 'Preschool Volunteer'),
-('Preschool Vols', 'Spring Fresh Volunteer', 'Spring Fresh'),
-('Preschool Vols', 'Spring Fresh Team Leader', 'Spring Fresh'),
-('Preschool Vols', 'Toys Volunteer', 'SpringTown Toys'),
-('Preschool Vols', 'Toys Team Leader', 'SpringTown Toys'),
-('Preschool Vols', 'Treehouse Volunteer', 'Treehouse'),
-('Preschool Vols', 'Treehouse Team Leader', 'Treehouse'),
-('Special Needs Vols', 'Spring Zone Jr. Volunteer', 'Spring Zone Jr.'),
-('Special Needs Vols', 'Spring Zone Service Leader', 'Spring Zone'),
-('Special Needs Vols', 'Spring Zone Area Leader', 'Spring Zone'),
-('Special Needs Vols', 'Spring Zone Volunteer', 'Spring Zone')
-
-/* ====================================================== */
--- central grouptypes
-/* ====================================================== */
-if object_id('tempdb..#centralAreas') is not null
-begin
-	drop table #centralAreas
-end
-create table #centralAreas (
-	ID int IDENTITY(1,1),
-	name nvarchar(255),
-	attendanceRule int,
-	inheritedType int
-)
-
-insert #centralAreas
-values
-('Creativity & Tech Volunteer', 2, 15),
-('Events', 2, 15),
-('Fuse Volunteer', 2, 15),
-('Guest Services Volunteer', 2, 15),
-('KidSpring Volunteer', 2, 15),
-('Next Steps Volunteer', 2, 15)
+-- adult attendee/volunteer structure from COL
+('Creativity & Tech Attendee', 'Choir', 'Choir'), 
+('Creativity & Tech Attendee', 'Special Event Attendee', 'Special Event Attendee'), 
+('Creativity & Tech Volunteer', 'Band', 'Band'), 
+('Creativity & Tech Volunteer', 'Band Green Room', 'Band Green Room'), 
+('Creativity & Tech Volunteer', 'IT Team', 'IT Team'), 
+('Creativity & Tech Volunteer', 'Load In/Load Out', 'Load In/Load Out'), 
+('Creativity & Tech Volunteer', 'New Serve Team', 'New Serve Team'), 
+('Creativity & Tech Volunteer', 'Office Team', 'Office Team'), 
+('Creativity & Tech Volunteer', 'Production Team', 'Production Team'), 
+('Creativity & Tech Volunteer', 'Social Media/PR Team', 'Social Media/PR Team'), 
+('Creativity & Tech Volunteer', 'Special Event Volunteer', 'Special Event Volunteer'), 
+('Elementary Volunteer', 'Base Camp Volunteer', 'Base Camp Volunteer'), 
+('Elementary Volunteer', 'Base Camp Team Leader', 'Base Camp Team Leader'), 
+('Elementary Volunteer', 'Early Bird Volunteer', 'Early Bird Volunteer'), 
+('Elementary Volunteer', 'Elementary Service Leader', 'Elementary Service Leader'), 
+('Elementary Volunteer', 'Elementary Area Leader', 'Elementary Area Leader'), 
+('Elementary Volunteer', 'ImagiNation Volunteer', 'ImagiNation Volunteer'), 
+('Elementary Volunteer', 'ImagiNation Team Leader', 'ImagiNation Team Leader'), 
+('Elementary Volunteer', 'Jump Street Volunteer', 'Jump Street Volunteer'), 
+('Elementary Volunteer', 'Jump Street Team Leader', 'Jump Street Team Leader'), 
+('Elementary Volunteer', 'Shockwave Volunteer', 'Shockwave Volunteer'), 
+('Elementary Volunteer', 'Shockwave Team Leader', 'Shockwave Team Leader'), 
+('Fuse Attendee', '10th Grade Student', '10th Grade Student'), 
+('Fuse Attendee', '11th Grade Student', '11th Grade Student'), 
+('Fuse Attendee', '12th Grade Student', '12th Grade Student'), 
+('Fuse Attendee', '6th Grade Student', '6th Grade Student'), 
+('Fuse Attendee', '7th Grade Student', '7th Grade Student'), 
+('Fuse Attendee', '8th Grade Student', '8th Grade Student'), 
+('Fuse Attendee', '9th Grade Student', '9th Grade Student'), 
+('Fuse Attendee', 'Special Event Attendee', 'Special Event Attendee'), 
+('Fuse Volunteer', 'Atrium', 'Atrium'), 
+('Fuse Volunteer', 'Campus Safety', 'Campus Safety'), 
+('Fuse Volunteer', 'Care', 'Care'), 
+('Fuse Volunteer', 'Check-In', 'Check-In'), 
+('Fuse Volunteer', 'Fuse Group Leader', 'Fuse Group Leader'), 
+('Fuse Volunteer', 'Fuse Guest', 'Fuse Guest'), 
+('Fuse Volunteer', 'Game Room', 'Game Room'), 
+('Fuse Volunteer', 'Greeter', 'Greeter'), 
+('Fuse Volunteer', 'Jump Off', 'Jump Off'), 
+('Fuse Volunteer', 'Leadership Team', 'Leadership Team'), 
+('Fuse Volunteer', 'Load In/Load Out', 'Load In/Load Out'), 
+('Fuse Volunteer', 'Lounge', 'Lounge'), 
+('Fuse Volunteer', 'New Serve', 'New Serve'), 
+('Fuse Volunteer', 'Next Steps', 'Next Steps'), 
+('Fuse Volunteer', 'Office Team', 'Office Team'), 
+('Fuse Volunteer', 'Parking', 'Parking'), 
+('Fuse Volunteer', 'Pick-Up', 'Pick-Up'), 
+('Fuse Volunteer', 'Production', 'Production'), 
+('Fuse Volunteer', 'Snack Bar', 'Snack Bar'), 
+('Fuse Volunteer', 'Special Event Volunteer', 'Special Event Volunteer'), 
+('Fuse Volunteer', 'Sports', 'Sports'), 
+('Fuse Volunteer', 'Spring Zone', 'Spring Zone'), 
+('Fuse Volunteer', 'Student Leader', 'Student Leader'), 
+('Fuse Volunteer', 'Sunday Fuse Team', 'Sunday Fuse Team'), 
+('Fuse Volunteer', 'Usher', 'Usher'), 
+('Fuse Volunteer', 'VHQ', 'VHQ'), 
+('Fuse Volunteer', 'Worship', 'Worship'), 
+('Guest Services Attendee', 'VIP Room Attendee', 'VIP Room Attendee'), 
+('Guest Services Attendee', 'Special Event Attendee', 'Special Event Attendee'), 
+('Guest Services Attendee', 'Auditorium Reset Team', 'Auditorium Reset Team'), 
+('Guest Services Attendee', 'Awake Team', 'Awake Team'), 
+('Guest Services Attendee', 'Facility Cleaning Crew', 'Facility Cleaning Crew'), 
+('Guest Services Attendee', 'Greeting Team', 'Greeting Team'), 
+('Guest Services Attendee', 'Load In/Load Out', 'Load In/Load Out'), 
+('Guest Services Attendee', 'Office Team', 'Office Team'), 
+('Guest Services Attendee', 'Parking Team', 'Parking Team'), 
+('Guest Services Attendee', 'VHQ Team', 'VHQ Team'), 
+('Guest Services Volunteer', 'Campus Safety', 'Campus Safety'), 
+('Guest Services Volunteer', 'Facilities Volunteer', 'Facilities Volunteer'), 
+('Guest Services Volunteer', 'Finance Team', 'Finance Team'), 
+('Guest Services Volunteer', 'VIP Room Volunteer', 'VIP Room Volunteer'), 
+('Guest Services Volunteer', 'Guest Services Team', 'Guest Services Team'), 
+('Guest Services Volunteer', 'New Serve Team', 'New Serve Team'), 
+('Guest Services Volunteer', 'Service Coordinator', 'Service Coordinator'), 
+('Guest Services Volunteer', 'Sign Language Team', 'Sign Language Team'), 
+('Guest Services Volunteer', 'Special Event Volunteer', 'Special Event Volunteer'), 
+('Guest Services Volunteer', 'Usher Team', 'Usher Team'), 
+('Production Volunteer', 'Elementary Actor', 'Elementary Actor'), 
+('Production Volunteer', 'Elementary Media', 'Elementary Media'), 
+('Production Volunteer', 'Elementary Production Area Leader', 'Elementary Production Area Leader'), 
+('Production Volunteer', 'Elementary Production Service Leader', 'Elementary Production Service Leader'), 
+('Production Volunteer', 'Elementary Worship Leader', 'Elementary Worship Leader'), 
+('Production Volunteer', 'Preschool Actor', 'Preschool Actor'), 
+('Production Volunteer', 'Preschool Media', 'Preschool Media'), 
+('Production Volunteer', 'Preschool Production Area Leader', 'Preschool Production Area Leader'), 
+('Production Volunteer', 'Preschool Production Service Leader', 'Preschool Production Service Leader'), 
+('Production Volunteer', 'Production Area Leader', 'Production Area Leader'), 
+('Production Volunteer', 'Production Service Leader', 'Production Service Leader'), 
+('Support Volunteer', 'Advocate', 'Advocate'), 
+('Support Volunteer', 'Advocate Team Leader', 'Advocate Team Leader'), 
+('Support Volunteer', 'KidSpring Area Leader', 'KidSpring Area Leader'), 
+('Support Volunteer', 'Check-In Volunteer', 'Check-In Volunteer'), 
+('Support Volunteer', 'Check-In Team Leader', 'Check-In Team Leader'), 
+('Support Volunteer', 'First Time Team Volunteer', 'First Time Team Volunteer'), 
+('Support Volunteer', 'First Time Team Leader', 'First Time Team Leader'), 
+('Support Volunteer', 'Greeter', 'Greeter'), 
+('Support Volunteer', 'Greeter Team Leader', 'Greeter Team Leader'), 
+('Support Volunteer', 'Guest Services Service Leader', 'Guest Services Service Leader'), 
+('Support Volunteer', 'Guest Services Area Leader', 'Guest Services Area Leader'), 
+('Support Volunteer', 'Office Team', 'Office Team'), 
+('Support Volunteer', 'Load In/Load Out', 'Load In/Load Out'), 
+('Support Volunteer', 'New Serve Volunteer', 'New Serve Volunteer'), 
+('Support Volunteer', 'New Serve Area Leader', 'New Serve Area Leader'), 
+('Support Volunteer', 'New Serve Service Leader', 'New Serve Service Leader'), 
+('Support Volunteer', 'Trainer', 'Trainer'), 
+('Next Steps Attendee', '90 DTC Participant', '90 DTC Participant'), 
+('Next Steps Attendee', 'Baptism Attendee', 'Baptism Attendee'), 
+('Next Steps Attendee', 'Budget Class Attendee', 'Budget Class Attendee'), 
+('Next Steps Attendee', 'Connect Care Participant', 'Connect Care Participant'), 
+('Next Steps Attendee', 'Connect Event Attendee', 'Connect Event Attendee'), 
+('Next Steps Attendee', 'Connect Group Participant', 'Connect Group Participant'), 
+('Next Steps Attendee', 'Creativity & Tech Basics', 'Creativity & Tech Basics'), 
+('Next Steps Attendee', 'Creativity & Tech First Look', 'Creativity & Tech First Look'), 
+('Next Steps Attendee', 'Creativity & Tech First Serve', 'Creativity & Tech First Serve'), 
+('Next Steps Attendee', 'Financial Coaching Attendee', 'Financial Coaching Attendee'), 
+('Next Steps Attendee', 'Fuse Basics', 'Fuse Basics'), 
+('Next Steps Attendee', 'Fuse First Look', 'Fuse First Look'), 
+('Next Steps Attendee', 'Fuse First Serve', 'Fuse First Serve'), 
+('Next Steps Attendee', 'Guest Services Basics', 'Guest Services Basics'), 
+('Next Steps Attendee', 'Guest Services First Look', 'Guest Services First Look'), 
+('Next Steps Attendee', 'Guest Services First Serve', 'Guest Services First Serve'), 
+('Next Steps Attendee', 'KidSpring Basics', 'KidSpring Basics'), 
+('Next Steps Attendee', 'KidSpring First Look', 'KidSpring First Look'), 
+('Next Steps Attendee', 'KidSpring First Serve', 'KidSpring First Serve'), 
+('Next Steps Attendee', 'New Serve Participant', 'New Serve Participant'), 
+('Next Steps Attendee', 'Next Steps Basics', 'Next Steps Basics'), 
+('Next Steps Attendee', 'Next Steps First Look', 'Next Steps First Look'), 
+('Next Steps Attendee', 'Next Steps First Serve', 'Next Steps First Serve'), 
+('Next Steps Attendee', 'Opportunities Tour', 'Opportunities Tour'), 
+('Next Steps Attendee', 'Ownership Class Attendee', 'Ownership Class Attendee'), 
+('Next Steps Attendee', 'Ownership Class Current Owner', 'Ownership Class Current Owner'), 
+('Next Steps Attendee', 'Special Event Attendee', 'Special Event Attendee'), 
+('Next Steps Attendee', 'Welcome & Wanted Participant', 'Welcome & Wanted Participant'), 
+('Next Steps Volunteer', 'Baptism Volunteer', 'Baptism Volunteer'), 
+('Next Steps Volunteer', 'Budget Class Volunteer', 'Budget Class Volunteer'), 
+('Next Steps Volunteer', 'Care Office Team', 'Care Office Team'), 
+('Next Steps Volunteer', 'Care Visitation Team', 'Care Visitation Team'), 
+('Next Steps Volunteer', 'District Leader', 'District Leader'), 
+('Next Steps Volunteer', 'Events Office Team', 'Events Office Team'), 
+('Next Steps Volunteer', 'Financial Coaching Volunteer', 'Financial Coaching Volunteer'), 
+('Next Steps Volunteer', 'Financial Planning Office Team', 'Financial Planning Office Team'), 
+('Next Steps Volunteer', 'Group Leader', 'Group Leader'), 
+('Next Steps Volunteer', 'Group Training', 'Group Training'), 
+('Next Steps Volunteer', 'Groups Connector', 'Groups Connector'), 
+('Next Steps Volunteer', 'Groups Office Team', 'Groups Office Team'), 
+('Next Steps Volunteer', 'Load In/Load Out', 'Load In/Load Out'), 
+('Next Steps Volunteer', 'New Serve Team', 'New Serve Team'), 
+('Next Steps Volunteer', 'Next Steps Area', 'Next Steps Area'), 
+('Next Steps Volunteer', 'Ownership Class Volunteer', 'Ownership Class Volunteer'), 
+('Next Steps Volunteer', 'Prayer Team', 'Prayer Team'), 
+('Next Steps Volunteer', 'Resource Center', 'Resource Center'), 
+('Next Steps Volunteer', 'Special Event Volunteer', 'Special Event Volunteer'), 
+('Next Steps Volunteer', 'Sunday Care Team', 'Sunday Care Team'), 
+('Next Steps Volunteer', 'Writing Team', 'Writing Team'), 
+('Nursery Volunteer', 'Early Bird Volunteer', 'Early Bird Volunteer'), 
+('Nursery Volunteer', 'Wonder Way Service Leader', 'Wonder Way Service Leader'), 
+('Nursery Volunteer', 'Wonder Way Area Leader', 'Wonder Way Area Leader'), 
+('Nursery Volunteer', 'Wonder Way 1 Volunteer', 'Wonder Way 1 Volunteer'), 
+('Nursery Volunteer', 'Wonder Way 2 Volunteer', 'Wonder Way 2 Volunteer'), 
+('Nursery Volunteer', 'Wonder Way 3 Volunteer', 'Wonder Way 3 Volunteer'), 
+('Nursery Volunteer', 'Wonder Way 4 Volunteer', 'Wonder Way 4 Volunteer'), 
+('Nursery Volunteer', 'Wonder Way 5 Volunteer', 'Wonder Way 5 Volunteer'), 
+('Nursery Volunteer', 'Wonder Way 6 Volunteer', 'Wonder Way 6 Volunteer'), 
+('Nursery Volunteer', 'Wonder Way 7 Volunteer', 'Wonder Way 7 Volunteer'), 
+('Nursery Volunteer', 'Wonder Way 8 Volunteer', 'Wonder Way 8 Volunteer'), 
+('Nursery Volunteer', 'Wonder Way 1 Team Leader', 'Wonder Way 1 Team Leader'), 
+('Nursery Volunteer', 'Wonder Way 2 Team Leader', 'Wonder Way 2 Team Leader'), 
+('Nursery Volunteer', 'Wonder Way 3 Team Leader', 'Wonder Way 3 Team Leader'), 
+('Nursery Volunteer', 'Wonder Way 4 Team Leader', 'Wonder Way 4 Team Leader'), 
+('Nursery Volunteer', 'Wonder Way 5 Team Leader', 'Wonder Way 5 Team Leader'), 
+('Nursery Volunteer', 'Wonder Way 6 Team Leader', 'Wonder Way 6 Team Leader'), 
+('Nursery Volunteer', 'Wonder Way 7 Team Leader', 'Wonder Way 7 Team Leader'), 
+('Nursery Volunteer', 'Wonder Way 8 Team Leader', 'Wonder Way 8 Team Leader'), 
+('Preschool Volunteer', 'Base Camp Jr. Volunteer', 'Base Camp Jr. Volunteer'), 
+('Preschool Volunteer', 'Fire Station Volunteer', 'Fire Station Volunteer'), 
+('Preschool Volunteer', 'Fire Station Team Leader', 'Fire Station Team Leader'), 
+('Preschool Volunteer', 'Lil'' Spring Volunteer', 'Lil'' Spring Volunteer'), 
+('Preschool Volunteer', 'Lil'' Spring Team Leader', 'Lil'' Spring Team Leader'), 
+('Preschool Volunteer', 'Police Volunteer', 'Police Volunteer'), 
+('Preschool Volunteer', 'Police Team Leader', 'Police Team Leader'), 
+('Preschool Volunteer', 'Pop''s Garage Volunteer', 'Pop''s Garage Volunteer'), 
+('Preschool Volunteer', 'Pop''s Garage Team Leader', 'Pop''s Garage Team Leader'), 
+('Preschool Volunteer', 'Early Bird Volunteer', 'Early Bird Volunteer'), 
+('Preschool Volunteer', 'Preschool Service Leader', 'Preschool Service Leader'), 
+('Preschool Volunteer', 'Preschool Area Leader', 'Preschool Area Leader'), 
+('Preschool Volunteer', 'Spring Fresh Volunteer', 'Spring Fresh Volunteer'), 
+('Preschool Volunteer', 'Spring Fresh Team Leader', 'Spring Fresh Team Leader'), 
+('Preschool Volunteer', 'Toys Volunteer', 'Toys Volunteer'), 
+('Preschool Volunteer', 'Toys Team Leader', 'Toys Team Leader'), 
+('Preschool Volunteer', 'Treehouse Volunteer', 'Treehouse Volunteer'), 
+('Preschool Volunteer', 'Treehouse Team Leader', 'Treehouse Team Leader'), 
+('Special Needs Volunteer', 'Spring Zone Jr. Volunteer', 'Spring Zone Jr. Volunteer'), 
+('Special Needs Volunteer', 'Spring Zone Service Leader', 'Spring Zone Service Leader'), 
+('Special Needs Volunteer', 'Spring Zone Area Leader', 'Spring Zone Area Leader'), 
+('Special Needs Volunteer', 'Spring Zone Volunteer', 'Spring Zone Volunteer')
 
 /* ====================================================== */
 -- central group structure
@@ -409,29 +386,26 @@ create table #centralGroups (
 -- GroupType, Group, Location
 insert #centralGroups
 values
-('Creativity & Tech Volunteer', 'Design Team', 'Creativity & Tech Volunteer'),
-('Creativity & Tech Volunteer', 'IT Team', 'Creativity & Tech Volunteer'),
-('Creativity & Tech Volunteer', 'NewSpring Store Team', 'Creativity & Tech Volunteer'),
-('Creativity & Tech Volunteer', 'Social Media/PR Team', 'Creativity & Tech Volunteer'),
-('Creativity & Tech Volunteer', 'Video Production Team', 'Creativity & Tech Volunteer'),
-('Creativity & Tech Volunteer', 'Web Dev Team', 'Creativity & Tech Volunteer'),
-('Events', 'Event Attendee', 'Events'),
-('Events', 'Event Volunteer', 'Events'),
-('Fuse Volunteer', 'Fuse Office Team', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Special Event Attendee', 'Fuse Volunteer'),
-('Fuse Volunteer', 'Special Event Volunteer', 'Fuse Volunteer'),
-('Guest Services Volunteer', 'Events Team', 'Guest Services Volunteer'),
-('Guest Services Volunteer', 'Finance Office Team', 'Guest Services Volunteer'),
-('Guest Services Volunteer', 'GS Office Team', 'Guest Services Volunteer'),
-('Guest Services Volunteer', 'HR Team', 'Guest Services Volunteer'),
-('Guest Services Volunteer', 'Receptionist', 'Guest Services Volunteer'),
-('Guest Services Volunteer', 'Special Event Attendee', 'Guest Services Volunteer'),
-('Guest Services Volunteer', 'Special Event Volunteer', 'Guest Services Volunteer'),
-('KidSpring Volunteer', 'KS Office Team', 'KidSpring Volunteer'),
-('Next Steps Volunteer', 'Groups Office Team', 'Next Steps Volunteer'),
-('Next Steps Volunteer', 'NS Office Team', 'Next Steps Volunteer'),
-('Next Steps Volunteer', 'Writing Team', 'Next Steps Volunteer')
-
+('Creativity & Tech Volunteer', 'Design Team', 'Design Team'), 
+('Creativity & Tech Volunteer', 'IT Team', 'IT Team'), 
+('Creativity & Tech Volunteer', 'NewSpring Store Team', 'NewSpring Store Team'), 
+('Creativity & Tech Volunteer', 'Social Media/PR Team', 'Social Media/PR Team'), 
+('Creativity & Tech Volunteer', 'Video Production Team', 'Video Production Team'), 
+('Creativity & Tech Volunteer', 'Web Dev Team', 'Web Dev Team'), 
+('Fuse Volunteer', 'Fuse Office Team', 'Fuse Office Team'), 
+('Fuse Volunteer', 'Special Event Attendee', 'Special Event Attendee'), 
+('Fuse Volunteer', 'Special Event Volunteer', 'Special Event Volunteer'), 
+('Guest Services Volunteer', 'Events Team', 'Events Team'), 
+('Guest Services Volunteer', 'Finance Office Team', 'Finance Office Team'), 
+('Guest Services Volunteer', 'GS Office Team', 'GS Office Team'), 
+('Guest Services Volunteer', 'HR Team', 'HR Team'), 
+('Guest Services Volunteer', 'Receptionist', 'Receptionist'), 
+('Guest Services Volunteer', 'Special Event Attendee', 'Special Event Attendee'), 
+('Guest Services Volunteer', 'Special Event Volunteer', 'Special Event Volunteer'), 
+('KidSpring Volunteer', 'KS Office Team', 'KS Office Team'), 
+('Next Steps Volunteer', 'Groups Office Team', 'Groups Office Team'), 
+('Next Steps Volunteer', 'NS Office Team', 'NS Office Team'), 
+('Next Steps Volunteer', 'Writing Team', 'Writing Team')
 
 /* ====================================================== */
 -- college grouptype
@@ -457,19 +431,19 @@ create table #collegeGroups (
 -- GroupType, Group, Location
 insert #collegeGroups
 values
-('NewSpring College', 'Acts', 'Class Attendee'),
-('NewSpring College', 'All-Staff', 'Class Attendee'),
-('NewSpring College', 'Bible', 'Class Attendee'),
-('NewSpring College', 'Builders & Shepherds', 'Class Attendee'),
-('NewSpring College', 'Character Forum', 'Class Attendee'),
-('NewSpring College', 'Christian Beliefs I', 'Class Attendee'),
-('NewSpring College', 'Christian Beliefs II', 'Class Attendee'),
-('NewSpring College', 'Communication', 'Class Attendee'),
-('NewSpring College', 'Ephesians', 'Class Attendee'),
-('NewSpring College', 'Leadership Forum', 'Class Attendee'),
-('NewSpring College', 'Leadership I', 'Class Attendee'),
-('NewSpring College', 'Small Group', 'Class Attendee'),
-('NewSpring College', 'Working Group', 'Class Attendee')
+('NewSpring College', 'Acts', 'Acts'), 
+('NewSpring College', 'All-Staff', 'All-Staff'), 
+('NewSpring College', 'Bible', 'Bible'), 
+('NewSpring College', 'Builders & Shepherds', 'Builders & Shepherds'), 
+('NewSpring College', 'Character Forum', 'Character Forum'), 
+('NewSpring College', 'Christian Beliefs I', 'Christian Beliefs I'), 
+('NewSpring College', 'Christian Beliefs II', 'Christian Beliefs II'), 
+('NewSpring College', 'Communication', 'Communication'), 
+('NewSpring College', 'Ephesians', 'Ephesians'), 
+('NewSpring College', 'Leadership Forum', 'Leadership Forum'), 
+('NewSpring College', 'Leadership I', 'Leadership I'), 
+('NewSpring College', 'Small Group', 'Small Group'), 
+('NewSpring College', 'Working Group', 'Working Group')
 
 /* ====================================================== */
 -- delete existing areas
@@ -496,324 +470,211 @@ where id in (14, 18, 19, 20, 21, 22)
 
 
 /* ====================================================== */
--- set up initial values
+-- set up check-in config areas
 /* ====================================================== */
 
-declare @campusId int, @numCampuses int, @campusAreaId int, @defaultRoleId int,
-	@typePurpose int, @campusLocationId int, @campusGroupId int
-select @typePurpose = 142  /* check-in template purpose type */
-select @campusId = min(Id) from Campus
-select @numCampuses = count(1) + @campusId from Campus where IsActive = @True
+declare @AreaName nvarchar(255), @AreaId int, @AreaLocation nvarchar(255), @AreaLocationId int, 
+	@ParentAreaName nvarchar(255), @ParentAreaId int, @DefaultRoleId int, @AttendanceRule int, 
+	@AreaGroupId int, @InheritedTypeId int
 
-declare @campusName nvarchar(30), @campusCode nvarchar(5)
+declare @scopeIndex int, @numItems int		
+select @scopeIndex = min(Id) from #topAreas
+select @numItems = count(1) + @scopeIndex from #topAreas
 
-/* ====================================================== */
--- insert campus levels
-/* ====================================================== */
-while @campusId <= @numCampuses
+while @scopeIndex <= @numItems
 begin
+	select @AreaName = '', @AreaLocationId = NULL, @AreaLocation = '', @AreaId = 0, @DefaultRoleId = 0
+	select @ParentAreaName = parentArea, @AreaName = childArea, @InheritedTypeId = inheritedType
+	from #topAreas where id = @scopeIndex
 
-	select @campusName = '', @campusAreaId = 0
-	select @campusName = name, @campusCode = ShortCode
-	from Campus where Id = @campusId and IsActive = @True
-
-	if @campusName <> ''
+	if @AreaName <> ''
 	begin
-		-- campus location
-		insert location (ParentLocationId, Name, IsActive, [Guid])
-		select NULL, @campusName, 1, NEWID()
 
-		set @campusLocationId = SCOPE_IDENTITY()
+		declare @msg nvarchar(500)
+		select @msg = 'Creating ' + @ParentAreaName + ' / ' + @AreaName
+		RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
 
-		update campus set LocationId = @campusLocationId where id = @campusId
+		/* ====================================================== */
+		-- create the parent if it doesn't exist
+		/* ====================================================== */
+		select @ParentAreaId = [Id] from GroupType
+		where name = @ParentAreaName and InheritedGroupTypeId = @InheritedTypeId
+		
+		if @ParentAreaId is null
+		begin
+			insert grouptype (IsSystem, Name, [Description], GroupTerm, GroupMemberTerm, AllowMultipleLocations, 
+				ShowInGroupList, ShowInNavigation, TakesAttendance, AttendanceRule, AttendancePrintTo,
+				[Order], InheritedGroupTypeId, LocationSelectionMode, GroupTypePurposeValueId, [Guid],
+				AllowedScheduleTypes, SendAttendanceReminder)
+			select @IsSystem, @ParentAreaName, @ParentAreaName + ' Area', 'Group', 'Member', @False, @False, @False, 
+				@False, 0, 0, 0, NULL, 0, @CheckInAreaTypePurpose, NEWID(), 0, @False
 
-		-- initial check-in areas
-		insert grouptype (IsSystem, Name, Description, GroupTerm, GroupMemberTerm,
-			DefaultGroupRoleId, AllowMultipleLocations, ShowInGroupList,
-			ShowInNavigation, TakesAttendance, AttendanceRule, AttendancePrintTo,
+			select @ParentAreaId = SCOPE_IDENTITY()
+
+			-- allow children of this grouptype
+			insert GroupTypeAssociation
+			values (@ParentAreaId, @ParentAreaId)
+
+			/* ====================================================== */
+			-- set default grouptype role
+			/* ====================================================== */
+			insert GroupTypeRole (isSystem, GroupTypeId, Name, [Order], IsLeader,
+				[Guid], CanView, CanEdit)
+			values (@IsSystem, @ParentAreaId, 'Member', 0, 0, NEWID(), 0, 0)
+
+			select @DefaultRoleId = SCOPE_IDENTITY()
+
+			update grouptype set DefaultGroupRoleId = @DefaultRoleId where id = @ParentAreaId
+		end
+
+		/* ====================================================== */
+		-- create the child grouptype
+		/* ====================================================== */
+		insert grouptype (IsSystem, Name, [Description], GroupTerm, GroupMemberTerm, AllowMultipleLocations, 
+			ShowInGroupList, ShowInNavigation, TakesAttendance, AttendanceRule, AttendancePrintTo,
 			[Order], InheritedGroupTypeId, LocationSelectionMode, GroupTypePurposeValueId, [Guid],
 			AllowedScheduleTypes, SendAttendanceReminder)
-		select 0, @campusName, @campusName + ' Campus Check-in Area', 'Group', 'Member',
-			NULL, 0, 1, 1, 0, 0, 1, 0, NULL, 0, 142, NEWID(), 0, 0
+		select @IsSystem, @AreaName, @AreaName + ' GroupType', 'Group', 'Member', @True, @True, @True, 
+			@True, 0, 0, 0, @InheritedTypeId, 0, NULL, NEWID(), 0, @False
 
-		select @campusAreaId = SCOPE_IDENTITY()
+		select @AreaId = SCOPE_IDENTITY()
+
+		-- allow children of this grouptype
+		insert GroupTypeAssociation
+		values (@AreaId, @AreaId)
 
 		/* ====================================================== */
 		-- set default grouptype role
 		/* ====================================================== */
 		insert GroupTypeRole (isSystem, GroupTypeId, Name, [Order], IsLeader,
 			[Guid], CanView, CanEdit)
-		values (@isSystem, @campusAreaId, 'Member', 0, 0, NEWID(), 0, 0)
+		values (@IsSystem, @AreaId, 'Member', 0, 0, NEWID(), 0, 0)
 
-		select @defaultRoleId = SCOPE_IDENTITY()
+		select @DefaultRoleId = SCOPE_IDENTITY()
 
-		update grouptype
-		set DefaultGroupRoleId = @defaultRoleId
-		where id = @campusAreaId
+		update grouptype set DefaultGroupRoleId = @DefaultRoleId where id = @AreaId
 
 		/* ====================================================== */
 		-- create matching group
 		/* ====================================================== */
-		insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name,
-			Description, IsSecurityRole, IsActive, [Order], [Guid])
-		select @isSystem, NULL, @campusAreaId, @campusId, @campusName,
-			@campusName + ' Group', 0, 1, 0, NEWID()
+		insert [Group] (IsSystem, ParentGroupId, GroupTypeId, Name,
+			[Description], IsSecurityRole, IsActive, [Order], [Guid], [IsPublic])
+		select @IsSystem, NULL, @AreaId, @AreaName, @AreaName + ' Group', @False, @True, 0, NEWID(), @True
 
-		select @campusGroupId = SCOPE_IDENTITY()
 
 		/* ====================================================== */
-		-- insert top areas
+		-- create parent location under campus location
 		/* ====================================================== */
-		declare @scopeIndex int, @numItems int, @currentAreaId int,
-			@attendanceRule int, @inheritedTypeId int, @areaLocationId int
-		declare @areaName nvarchar(255), @areaLocation nvarchar(255)
-		declare @volunteer nvarchar(255) = 'Volunteer'
-		declare @attendee nvarchar(255) = 'Attendee'
+		insert Location (ParentLocationId, Name, IsActive, [Guid])
+		select c.LocationId, @ParentAreaName, 1, NEWID()
+		from Campus c
+		where c.IsActive = @True
+		
+	end
+	-- end empty area name
 
-		select @scopeIndex = min(Id) from #campusAreas
-		select @numItems = count(1) + @scopeIndex from #campusAreas
+	select @scopeIndex = @scopeIndex + 1
+end
+-- end check-in config areas
 
-		while @scopeIndex <= @numItems
+/* ====================================================== */
+-- insert campus locations
+/* ====================================================== */
+declare @campusGroupId int, @numCampusGroups int
+select @campusGroupId = min(Id) from #campusGroups
+select @numCampusGroups = count(1) + @campusGroupId from #campusGroups
+
+while @campusGroupId <= @numCampusGroups
+begin
+	
+	declare @GroupTypeName nvarchar(255) = '', @GroupTypeId int = 0, @GroupTypeGroupId int = 0, 
+		@GroupName nvarchar(255) = '', @GroupId int = 0, @LocationName nvarchar(255) = '',
+		@ParentGroupTypeName nvarchar(255) = '', @ParentGroupTypeId int = 0, @ParentLocationId int = 0
+
+	select @GroupTypeName = groupTypeName, @GroupName = groupName, @LocationName = locationName
+	from #campusGroups
+
+	/* ====================================================== */
+	-- create grouptype if it doesn't exist
+	/* ====================================================== */
+	select @GroupTypeId = gt.[Id], @GroupTypeGroupId = g.[Id]
+	from GroupType gt
+	inner join [Group] g
+	on gt.id = g.GroupTypeId
+	and gt.name = @GroupTypeName
+	and g.name = @GroupTypeName
+
+	if @GroupTypeId is not null
+	begin	
+
+		/* ====================================================== */
+		-- create child group if it doesn't exist
+		/* ====================================================== */
+		select @GroupId = [Id] from [Group]
+		where GroupTypeId = @GroupTypeId
+		and name = @GroupName
+		
+		if @GroupId is null
 		begin
+			
+			insert [Group] (IsSystem, ParentGroupId, GroupTypeId, Name,
+				[Description], IsSecurityRole, IsActive, [Order], [Guid], [IsPublic])
+			select @IsSystem, NULL, @GroupTypeid, @GroupName, @GroupName + ' Group', @False, @True, 0, NEWID(), @True
 
-			select @areaName = '', @areaLocationId = NULL, @areaLocation = '', @currentAreaId = 0, @defaultRoleId = 0
-			select @areaName = name, @attendanceRule = attendanceRule, @inheritedTypeId = inheritedType
-			from #campusAreas where id = @scopeIndex
-
-			declare @msg nvarchar(500)
-			select @msg = 'Starting ' + @campusName + ' - ' + @areaName
-			RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
-
-			if @areaName <> ''
-			begin
-
-				/* ====================================================== */
-				-- insert top area hierarchy
-				/* ====================================================== */
-				insert grouptype (IsSystem, Name, Description, GroupTerm, GroupMemberTerm,
-					DefaultGroupRoleId, AllowMultipleLocations, ShowInGroupList,
-					ShowInNavigation, TakesAttendance, AttendanceRule, AttendancePrintTo,
-					[Order], InheritedGroupTypeId, LocationSelectionMode, GroupTypePurposeValueId, [Guid],
-					AllowedScheduleTypes, SendAttendanceReminder)
-				select 0, @campusCode + @delimiter + @areaName, @campusCode + @delimiter + @areaName + ' GroupType', 'Group', 'Member', NULL,
-					1, 1, 1, 1, @attendanceRule, 0, 0, @inheritedTypeId, 0, NULL, NEWID(), 0, 0
-
-				select @currentAreaId = SCOPE_IDENTITY()
-
-				insert GroupTypeAssociation
-				values (@campusAreaId, @currentAreaId)
-
-				-- allow children of this grouptype
-				insert GroupTypeAssociation
-				values (@currentAreaId, @currentAreaId)
-
-				/* ====================================================== */
-				-- set default grouptype role
-				/* ====================================================== */
-				insert GroupTypeRole (isSystem, GroupTypeId, Name, [Order], IsLeader,
-					[Guid], CanView, CanEdit)
-				values (@isSystem, @currentAreaId, 'Member', 0, 0, NEWID(), 0, 0)
-
-				select @defaultRoleId = SCOPE_IDENTITY()
-
-				update grouptype
-				set DefaultGroupRoleId = @defaultRoleId
-				where id = @currentAreaId
-
-				/* ====================================================== */
-				-- create matching group
-				/* ====================================================== */
-				insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name,
-					Description, IsSecurityRole, IsActive, [Order], [Guid])
-				select @isSystem, @campusGroupId, @currentAreaId, @campusId, @areaName,
-					@campusCode + @delimiter + @areaName + ' Group', 0, 1, 0, NEWID()
-
-				-- set up child location
-				insert location (ParentLocationId, Name, IsActive, [Guid])
-				select @campusLocationId, @areaName, 1, NEWID()				
-			end
-			--end if area not empty
-
-			set @scopeIndex = @scopeIndex + 1
+			select @GroupId = SCOPE_IDENTITY()
 		end
-		-- end top area grouptypes
-
 
 		/* ====================================================== */
-		-- set tri level grouptypes
+		-- get parent grouptype name
 		/* ====================================================== */
-		declare @parentArea nvarchar(255), @parentAreaId int, @parentGroupId int
-		select @scopeIndex = min(Id) from #subCampusAreas
-		select @numItems = @scopeIndex + count(1) from #subCampusAreas
-
-		while @scopeIndex <= @numItems
-		begin
-
-			select @areaName = '', @currentAreaId = 0
-			select @areaName = name, @parentArea = parentName, @inheritedTypeId = inheritedType
-			from #subCampusAreas where id = @scopeIndex
-
-			if @areaName <> ''
-			begin
-
-				select @parentAreaId = Id from GroupType where name = @campusCode + @delimiter + @parentArea
-
-				insert grouptype (IsSystem, Name, Description, GroupTerm, GroupMemberTerm,
-					DefaultGroupRoleId, AllowMultipleLocations, ShowInGroupList,
-					ShowInNavigation, TakesAttendance, AttendanceRule, AttendancePrintTo,
-					[Order], InheritedGroupTypeId, LocationSelectionMode, GroupTypePurposeValueId, [Guid],
-					AllowedScheduleTypes, SendAttendanceReminder)
-				select 0, @campusCode + @delimiter + @areaName, @campusCode + @delimiter + @areaName + ' GroupType', 'Group', 'Member', NULL,
-					1, 1, 1, 1, 0, 0, 0, @inheritedTypeId, 0, NULL, NEWID(), 0, 0
-
-				select @currentAreaId = SCOPE_IDENTITY()
-
-				insert GroupTypeAssociation
-				values (@parentAreaId, @currentAreaId)
-
-				-- allow children of this grouptype
-				insert GroupTypeAssociation
-				values (@currentAreaId, @currentAreaId)
-
-				/* ====================================================== */
-				-- set default grouptype role
-				/* ====================================================== */
-				insert grouptypeRole (isSystem, GroupTypeId, Name, [Order], IsLeader,
-					[Guid], CanView, CanEdit)
-				values (@isSystem, @currentAreaId, 'Member', 0, 0, NEWID(), 0, 0)
-
-				select @defaultRoleId = SCOPE_IDENTITY()
-
-				update grouptype
-				set DefaultGroupRoleId = @defaultRoleId
-				where id = @currentAreaId
-
-				/* ====================================================== */
-				-- create matching group
-				/* ====================================================== */
-				select @parentGroupId = Id from [group]
-				where name = @parentArea
-				and ParentGroupId = @campusGroupId
-
-				insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name,
-					Description, IsSecurityRole, IsActive, [Order], [Guid])
-				select @isSystem, @parentGroupId, @currentAreaId, @campusId,  @areaName,
-					@areaName + @delimiter + 'Group', 0, 1, 10, NEWID()
-
-			end
-			--end if area not empty
-
-			set @scopeIndex = @scopeIndex + 1
-		end
-		-- end kid level grouptypes
-
+		select @ParentGroupTypeName = gt.[Name], @ParentGroupTypeId = gt.[Id]
+		from GroupTypeAssociation gta
+		inner join GroupType gt
+		on gt.Id = gta.GroupTypeId
+		and gta.ChildGroupTypeId = @GroupTypeId
 
 		/* ====================================================== */
-		-- set group structure
+		-- insert campus level locations
 		/* ====================================================== */
-		declare @groupName nvarchar(255), @groupTypeName nvarchar(255), @locationName nvarchar(255)
-		declare @locationId int, @parentLocationId int, @groupTypeId int, @parentGroupTypeId int, @groupId int
-		select @scopeIndex = min(Id) from #campusGroups
-		select @numItems = @scopeIndex + count(1) from #campusGroups
+		insert Location (ParentLocationId, Name, IsActive, [Guid])
+		select l.Id, @LocationName, 1, NEWID()
+		from Location l
+		inner join Location pl
+		on l.ParentLocationId = pl.Id
+		and pl.Name = @ParentGroupTypeName
+		inner join Campus c
+		on c.LocationId = pl.Id
+		where c.IsActive = @True
 
-		while @scopeIndex <= @numItems
-		begin
-
-			select @groupName = null, @groupTypeName = null, @locationName = null, @locationId = null
-			select @groupName = groupName, @groupTypeName = groupTypeName, @locationName = locationName
-			from #campusGroups where id = @scopeIndex
-
-			if @groupName is not null
-			begin
-				-- get child and parent group
-				select @groupTypeId = Id from grouptype
-				where name = @campusCode + @delimiter + @groupTypeName
-
-				select @parentGroupId = Id from [group]
-				where name = @groupTypeName
-				and grouptypeId = @groupTypeId
-
-				-- insert child level group
-				insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name,
-					Description, IsSecurityRole, IsActive, [Order], [Guid])
-				select @isSystem, @parentGroupId, @groupTypeId, @campusId, @groupName,
-					@campusCode + @delimiter + @groupName + ' Group', 0, 1, 0, NEWID()
-
-				select @groupid = SCOPE_IDENTITY()
-
-				-- insert location for group
-
-				;with locationChildren as (
-					select l.id, l.parentLocationId, l.name
-						from location l
-						where id = @campusLocationId
-					union all
-					select l2.id, l2.parentlocationId, l2.name
-						from location l2
-						inner join locationChildren lc
-						on lc.id = l2.ParentLocationId
-				)
-				select @locationId = id from locationChildren
-				where name = @locationname
-
-				if @locationId is null
-				begin
-
-					declare @parentLocationName nvarchar(255)
-					-- KidSpring is the only one with a tri-level setup
-					if @groupTypeName like '%vols%'
-					begin
-						select @parentLocationName = 'KidSpring Volunteer'
-					end
-					else begin
-						select @parentLocationName = 'KidSpring Attendee'
-					end
-
-					;with locationChildren as (
-						select l.id, l.parentLocationId, l.name
-							from location l
-							where id = @campusLocationId
-						union all
-						select l2.id, l2.parentlocationId, l2.name
-							from location l2
-							inner join locationChildren lc
-							on lc.id = l2.ParentLocationId
-					)
-					select @parentLocationId = id from locationChildren
-					where name = @parentLocationName
-
-					-- create location
-					insert location (ParentLocationId, Name, IsActive, [Guid])
-					select @parentLocationId, @locationName, 1, NEWID()
-
-					select @locationId = SCOPE_IDENTITY()
-				end
-
-				insert grouplocation (groupid, locationid, IsMailingLocation, IsMappedLocation, [Guid])
-				values (@groupid, @locationId, 0, 0, newid())
-			end
-			-- end group name not empty
-
-			set @scopeIndex = @scopeIndex + 1
-		end
-		-- end group structure
+		/* ====================================================== */
+		-- insert group locations
+		/* ====================================================== */
+		insert GroupLocation (Groupid, LocationId, IsMailingLocation, IsMappedLocation, [Guid])
+		select @GroupId, l.Id, @False, @False, NEWID()
+		from Location l
+		inner join Location cl
+		on l.ParentLocationId = cl.Id
+		inner join Location pl
+		on cl.ParentLocationId = pl.Id
+		and pl.Name = @ParentGroupTypeName
 
 	end
-	-- end campus not empty
+	-- end grouptype not empty
 
-	set @campusId = @campusId + 1
+	select @campusGroupId = @campusGroupid + 1
 end
--- end campuses loop
+-- end campus groups
+
 
 /* ====================================================== */
 -- Add IsSpecialNeeds attribute value to spring zone groups
 /* ====================================================== */
 
 INSERT [AttributeValue] ( [IsSystem],[AttributeId],[EntityId],[Value] ,[Guid] ) 
-SELECT 0, @SpecialNeedsGroupId, g.[Id], 'True', NEWID()
+SELECT 0, @SpecialNeedsAttributeId, g.[Id], 'True', NEWID()
 FROM [Group] g
-JOIN [Group] parent ON g.ParentGroupId = parent.Id
-JOIN [GroupType] parentGt ON parent.GroupTypeId = parentGt.Id
+--JOIN [Group] parent ON g.ParentGroupId = parent.Id
+--JOIN [GroupType] parentGt ON parent.GroupTypeId = parentGt.Id
 WHERE g.Name = 'Spring Zone' or g.Name = 'Spring Zone Jr.'
 
 
@@ -825,56 +686,21 @@ WHERE g.Name = 'Spring Zone' or g.Name = 'Spring Zone Jr.'
 -- inform progress
 RAISERROR ( 'Starting Central grouptypes & groups', 0, 0 ) WITH NOWAIT
 
-SELECT @campusCode = 'CEN', @campusName = 'Central', @campusId = 0,
-	@campusLocationId = 0, @defaultRoleId = 0, @campusGroupId = 0
+DECLARE @CampusCode nvarchar(255), @CampusId int = 0, @CampusLocationId int = 0
 
-insert Campus (IsSystem, Name, ShortCode, [Guid], IsActive)
-values (@isSystem, @campusName, @campusCode, NEWID(), 1)
+--SELECT @CampusCode = 'CEN', @CampusName = 'Central', @CampusId = 0,
+--	@CampusLocationId = 0, @DefaultRoleId = 0, @CampusGroupId = 0
 
-select @campusId = SCOPE_IDENTITY()
+--insert Campus (IsSystem, Name, ShortCode, [Guid], IsActive)
+--values (@IsSystem, @CampusName, @CampusCode, NEWID(), 1)
 
---select @campusId = Id from Campus where name = @campusName
+--select @CampusId = SCOPE_IDENTITY()
 
-insert location (ParentLocationId, Name, IsActive, [Guid])
-select NULL, @campusName, 1, NEWID()
+set @CampusLocationId = SCOPE_IDENTITY()
 
-set @campusLocationId = SCOPE_IDENTITY()
+update campus set LocationId = @CampusLocationId 
+where id = @CampusId
 
-update campus set LocationId = @campusLocationId 
-where id = @campusId
-
-/* ====================================================== */
--- create initial central area
-/* ====================================================== */
-insert grouptype (IsSystem, Name, Description, GroupTerm, GroupMemberTerm,
-	DefaultGroupRoleId, AllowMultipleLocations, ShowInGroupList,
-	ShowInNavigation, TakesAttendance, AttendanceRule, AttendancePrintTo,
-	[Order], InheritedGroupTypeId, LocationSelectionMode, GroupTypePurposeValueId, [Guid],
-	AllowedScheduleTypes, SendAttendanceReminder)
-select 0, @campusName, @campusName + ' Campus Check-in Area', 'Group', 'Member',
-	NULL, 0, 1, 1, 0, 0, 1, 0, NULL, 0, 142, NEWID(), 0, 0
-
-select @campusAreaId = SCOPE_IDENTITY()
-
-insert GroupTypeRole (isSystem, GroupTypeId, Name, [Order], IsLeader,
-	[Guid], CanView, CanEdit)
-values (@isSystem, @campusAreaId, 'Member', 0, 0, NEWID(), 0, 0)
-
-select @defaultRoleId = SCOPE_IDENTITY()
-
-update grouptype
-set DefaultGroupRoleId = @defaultRoleId
-where id = @campusAreaId
-
-/* ====================================================== */
--- create central group
-/* ====================================================== */
-insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name,
-	Description, IsSecurityRole, IsActive, [Order], [Guid])
-select @isSystem, NULL, @campusAreaId, @campusId, @campusName,
-	@campusName + ' Group', 0, 1, 0, NEWID()
-
-select @campusGroupId = SCOPE_IDENTITY()
 
 /* ====================================================== */
 -- create central grouptypes
@@ -898,7 +724,7 @@ begin
 			ShowInNavigation, TakesAttendance, AttendanceRule, AttendancePrintTo,
 			[Order], InheritedGroupTypeId, LocationSelectionMode, GroupTypePurposeValueId, [Guid],
 			AllowedScheduleTypes, SendAttendanceReminder)
-		select 0, @campusCode + @delimiter + @areaName, @campusCode + @delimiter + @areaName + ' GroupType', 'Group', 'Member', NULL,
+		select 0, @campusCode + @Delimiter + @areaName, @campusCode + @Delimiter + @areaName + ' GroupType', 'Group', 'Member', NULL,
 			1, 1, 1, 1, @attendanceRule, 0, 0, @inheritedTypeId, 0, NULL, NEWID(), 0, 0
 
 		select @currentAreaId = SCOPE_IDENTITY()
@@ -915,7 +741,7 @@ begin
 		/* ====================================================== */
 		insert GroupTypeRole (isSystem, GroupTypeId, Name, [Order], IsLeader,
 			[Guid], CanView, CanEdit)
-		values (@isSystem, @currentAreaId, 'Member', 0, 0, NEWID(), 0, 0)
+		values (@IsSystem, @currentAreaId, 'Member', 0, 0, NEWID(), 0, 0)
 
 		select @defaultRoleId = SCOPE_IDENTITY()
 
@@ -929,8 +755,8 @@ begin
 		declare @areaGroupId int
 		insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name,
 			Description, IsSecurityRole, IsActive, [Order], [Guid])
-		select @isSystem, @campusGroupId, @currentAreaId, @campusId, @areaName,
-			@campusCode + @delimiter + @areaName + ' Group', 0, 1, 0, NEWID()
+		select @IsSystem, @campusGroupId, @currentAreaId, @campusId, @areaName,
+			@campusCode + @Delimiter + @areaName + ' Group', 0, 1, 0, NEWID()
 
 		select @areaGroupId = SCOPE_IDENTITY()
 
@@ -978,7 +804,7 @@ begin
 				/* ====================================================== */
 				insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name,
 					Description, IsSecurityRole, IsActive, [Order], [Guid])
-				select @isSystem, @areaGroupid, @currentAreaId, @campusId,  @childGroup,
+				select @IsSystem, @areaGroupid, @currentAreaId, @campusId,  @childGroup,
 					@childGroup + ' Group', 0, 1, 10, NEWID()
 
 				select @childGroupId = SCOPE_IDENTITY()
@@ -1021,13 +847,13 @@ insert grouptype (IsSystem, Name, Description, GroupTerm, GroupMemberTerm,
 	[Order], InheritedGroupTypeId, LocationSelectionMode, GroupTypePurposeValueId, [Guid],
 	AllowedScheduleTypes, SendAttendanceReminder)
 select 0, @campusName, @campusName + ' Check-in Area', 'Group', 'Member',
-	NULL, 0, 1, 1, 0, 0, 1, 0, NULL, 0, 142, NEWID(), 0, 0
+	NULL, 0, 1, 1, 0, 0, 1, 0, NULL, 0, @AreaTypePurpose, NEWID(), 0, 0
 
 select @campusAreaId = SCOPE_IDENTITY()
 
 insert GroupTypeRole (isSystem, GroupTypeId, Name, [Order], IsLeader,
 	[Guid], CanView, CanEdit)
-values (@isSystem, @campusAreaId, 'Member', 0, 0, NEWID(), 0, 0)
+values (@IsSystem, @campusAreaId, 'Member', 0, 0, NEWID(), 0, 0)
 
 select @defaultRoleId = SCOPE_IDENTITY()
 
@@ -1040,7 +866,7 @@ where id = @campusAreaId
 /* ====================================================== */
 insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name,
 	Description, IsSecurityRole, IsActive, [Order], [Guid])
-select @isSystem, NULL, @campusAreaId, @campusId, @campusName,
+select @IsSystem, NULL, @campusAreaId, @campusId, @campusName,
 	@campusName + ' Group', 0, 1, 0, NEWID()
 
 select @campusGroupId = SCOPE_IDENTITY()
@@ -1075,7 +901,7 @@ values (@currentAreaId, @currentAreaId)
 /* ====================================================== */
 insert GroupTypeRole (isSystem, GroupTypeId, Name, [Order], IsLeader,
 	[Guid], CanView, CanEdit)
-values (@isSystem, @currentAreaId, 'Member', 0, 0, NEWID(), 0, 0)
+values (@IsSystem, @currentAreaId, 'Member', 0, 0, NEWID(), 0, 0)
 
 select @defaultRoleId = SCOPE_IDENTITY()
 
@@ -1089,7 +915,7 @@ where id = @currentAreaId
 select @areaGroupId = 0, @areaLocationid = 0, @locationId = 0
 insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name,
 	Description, IsSecurityRole, IsActive, [Order], [Guid])
-select @isSystem, NULL, @currentAreaId, @campusId, @areaName,
+select @IsSystem, NULL, @currentAreaId, @campusId, @areaName,
 	@areaName + ' Group', 0, 1, 0, NEWID()
 
 select @areaGroupId = SCOPE_IDENTITY()
@@ -1126,7 +952,7 @@ begin
 		/* ====================================================== */
 		insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name,
 			Description, IsSecurityRole, IsActive, [Order], [Guid])
-		select @isSystem, @areaGroupid, @currentAreaId, @campusId,  @groupName,
+		select @IsSystem, @areaGroupid, @currentAreaId, @campusId,  @groupName,
 			@groupName + ' Group', 0, 1, 10, NEWID()
 
 		select @groupId = SCOPE_IDENTITY()
@@ -1152,7 +978,7 @@ SELECT @campusCode = 'WEB', @campusName = 'Web', @campusId = 0,
 	@campusLocationId = 0, @defaultRoleId = 0, @campusGroupId = 0
 
 insert Campus (IsSystem, Name, ShortCode, [Guid], IsActive)
-values (@isSystem, @campusName, @campusCode, NEWID(), 1)
+values (@IsSystem, @campusName, @campusCode, NEWID(), @True)
 -- end WEB insert
 
 use master
