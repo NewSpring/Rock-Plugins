@@ -542,13 +542,23 @@ begin
 		begin
 			
 			-- insert attendance for Financial Coaching attribute
-			declare @groupId int, @locationId int
+			declare @groupId int, @locationId int, @groupName nvarchar(50) = 'Financial Coaching Attendee'	
 			select @groupId = [Id] from [Group]
-			where CampusId = @campusId
-			and name = 'Financial Coaching Attendee'	
+			where name = @groupName
 
-			select @locationId = [LocationId] from [GroupLocation]
-			where GroupId = @groupId
+			-- get location from campus hierarchy
+			;with locationChildren as (
+				select l.id, l.parentLocationId, l.name
+				from location l
+				where name = @CampusId
+				union all 
+				select l2.id, l2.parentlocationId, l2.name
+				from location l2
+				inner join locationChildren lc
+				on lc.id = l2.ParentLocationId				
+			)
+			select @locationId = Id from locationChildren
+			where name = @groupName
 
 			if @groupId is not null and @locationId is not null
 			begin
