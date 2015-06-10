@@ -4,7 +4,7 @@
 
 -- Make sure you're using the right Rock database:
 
-USE Rock
+USE test
 
 /* ====================================================== */
 
@@ -12,20 +12,22 @@ USE Rock
 SET NOCOUNT ON
 
 -- Set common variables 
+declare @msg nvarchar(500) = ''
 declare @IsSystem bit = 0
 declare @Delimiter nvarchar(5) = ' - '
+declare @CollegeName nvarchar(50) = 'NewSpring College'
 declare @True bit = 1
 declare @False bit = 0
 declare @BooleanFieldTypeId int
 declare @GroupEntityTypeId int
-declare @CheckInAreaTypePurpose int
+declare @CheckInAreaPurposeId int
 declare @CampusLocationTypeId int
 
 select @BooleanFieldTypeId = [Id] FROM [FieldType] WHERE [Name] = 'Boolean'
 select @GroupEntityTypeId = [Id] FROM [EntityType] WHERE [Name] = 'Rock.Model.Group'
 
 /* Check-in Template Purpose Type */
-select @CheckInAreaTypePurpose = 142
+select @CheckInAreaPurposeId = 142
 
 /* Location Type: Campus */
 select @CampusLocationTypeId = [Id] from DefinedValue where [Guid] = 'C0D7AE35-7901-4396-870E-3AAF472AAE88'
@@ -34,7 +36,7 @@ update [group] set campusId = null
 delete from Campus where id = 1
 
 /* ====================================================== */
--- create campuses
+-- create campuses & campus locations
 /* ====================================================== */
 
 insert Campus (IsSystem, Name, ShortCode, [Guid], IsActive)
@@ -64,6 +66,14 @@ values
 -- create top-level campus locations
 insert Location (Name, IsActive, LocationTypeValueId, [Guid])
 select name, @True, @CampusLocationTypeId, NEWID() from Campus
+
+-- match campus to locations
+update c
+set LocationId = l.Id
+from Campus c
+inner join Location l
+on c.Name = l.Name
+and l.LocationTypeValueId = @CampusLocationTypeId
 
 
 /* ====================================================== */
@@ -109,8 +119,6 @@ insert #topAreas
 values
 ('Creativity & Technology', 'Creativity & Tech Attendee', 15),
 ('Creativity & Technology', 'Creativity & Tech Volunteer', 15),
-('Events', 'Event Attendee', 15),
-('Events', 'Event Volunteer', 15),
 ('Fuse', 'Fuse Attendee', 17),
 ('Fuse', 'Fuse Volunteer', 15),
 ('Guest Services', 'Guest Services Attendee', 15),
@@ -147,20 +155,20 @@ insert #campusGroups
 values
 -- child attendee structure
 ('Elementary Attendee', 'Base Camp', 'Base Camp'), 
-('Elementary Attendee', 'ImagiNation - 1st', 'ImagiNation - 1st'), 
-('Elementary Attendee', 'ImagiNation - K', 'ImagiNation - K'), 
-('Elementary Attendee', 'Jump Street - 2nd', 'Jump Street - 2nd'), 
-('Elementary Attendee', 'Jump Street - 3rd', 'Jump Street - 3rd'), 
-('Elementary Attendee', 'Shockwave - 4th', 'Shockwave - 4th'), 
-('Elementary Attendee', 'Shockwave - 5th', 'Shockwave - 5th'), 
-('Nursery Attendee', 'Wonder Way - 1', 'Wonder Way - 1'), 
-('Nursery Attendee', 'Wonder Way - 2', 'Wonder Way - 2'), 
-('Nursery Attendee', 'Wonder Way - 3', 'Wonder Way - 3'), 
-('Nursery Attendee', 'Wonder Way - 4', 'Wonder Way - 4'), 
-('Nursery Attendee', 'Wonder Way - 5', 'Wonder Way - 5'), 
-('Nursery Attendee', 'Wonder Way - 6', 'Wonder Way - 6'), 
-('Nursery Attendee', 'Wonder Way - 7', 'Wonder Way - 7'), 
-('Nursery Attendee', 'Wonder Way - 8', 'Wonder Way - 8'), 
+('Elementary Attendee', 'ImagiNation 1st', 'ImagiNation 1st'), 
+('Elementary Attendee', 'ImagiNation K', 'ImagiNation K'), 
+('Elementary Attendee', 'Jump Street 2nd', 'Jump Street 2nd'), 
+('Elementary Attendee', 'Jump Street 3rd', 'Jump Street 3rd'), 
+('Elementary Attendee', 'Shockwave 4th', 'Shockwave 4th'), 
+('Elementary Attendee', 'Shockwave 5th', 'Shockwave 5th'), 
+('Nursery Attendee', 'Wonder Way 1', 'Wonder Way 1'), 
+('Nursery Attendee', 'Wonder Way 2', 'Wonder Way 2'), 
+('Nursery Attendee', 'Wonder Way 3', 'Wonder Way 3'), 
+('Nursery Attendee', 'Wonder Way 4', 'Wonder Way 4'), 
+('Nursery Attendee', 'Wonder Way 5', 'Wonder Way 5'), 
+('Nursery Attendee', 'Wonder Way 6', 'Wonder Way 6'), 
+('Nursery Attendee', 'Wonder Way 7', 'Wonder Way 7'), 
+('Nursery Attendee', 'Wonder Way 8', 'Wonder Way 8'), 
 ('Preschool Attendee', 'Base Camp Jr.', 'Base Camp Jr.'), 
 ('Preschool Attendee', 'Fire Station', 'Fire Station'), 
 ('Preschool Attendee', 'Lil'' Spring', 'Lil'' Spring'), 
@@ -327,7 +335,7 @@ values
 ('Next Steps Volunteer', 'Special Event Volunteer', 'Special Event Volunteer'), 
 ('Next Steps Volunteer', 'Sunday Care Team', 'Sunday Care Team'), 
 ('Next Steps Volunteer', 'Writing Team', 'Writing Team'), 
-('Nursery Volunteer', 'Early Bird Volunteer', 'Early Bird Volunteer'), 
+('Nursery Volunteer', 'Nursery Early Bird', 'Nursery Early Bird'), 
 ('Nursery Volunteer', 'Wonder Way Service Leader', 'Wonder Way Service Leader'), 
 ('Nursery Volunteer', 'Wonder Way Area Leader', 'Wonder Way Area Leader'), 
 ('Nursery Volunteer', 'Wonder Way 1 Volunteer', 'Wonder Way 1 Volunteer'), 
@@ -355,7 +363,7 @@ values
 ('Preschool Volunteer', 'Police Team Leader', 'Police Team Leader'), 
 ('Preschool Volunteer', 'Pop''s Garage Volunteer', 'Pop''s Garage Volunteer'), 
 ('Preschool Volunteer', 'Pop''s Garage Team Leader', 'Pop''s Garage Team Leader'), 
-('Preschool Volunteer', 'Early Bird Volunteer', 'Early Bird Volunteer'), 
+('Preschool Volunteer', 'Preschool Early Bird', 'Preschool Early Bird'), 
 ('Preschool Volunteer', 'Preschool Service Leader', 'Preschool Service Leader'), 
 ('Preschool Volunteer', 'Preschool Area Leader', 'Preschool Area Leader'), 
 ('Preschool Volunteer', 'Spring Fresh Volunteer', 'Spring Fresh Volunteer'), 
@@ -402,7 +410,7 @@ values
 ('Guest Services Volunteer', 'Receptionist', 'Receptionist'), 
 ('Guest Services Volunteer', 'Special Event Attendee', 'Special Event Attendee'), 
 ('Guest Services Volunteer', 'Special Event Volunteer', 'Special Event Volunteer'), 
-('KidSpring Volunteer', 'KS Office Team', 'KS Office Team'), 
+('Support Volunteer', 'Office Team', 'Office Team'), 
 ('Next Steps Volunteer', 'Groups Office Team', 'Groups Office Team'), 
 ('Next Steps Volunteer', 'NS Office Team', 'NS Office Team'), 
 ('Next Steps Volunteer', 'Writing Team', 'Writing Team')
@@ -431,19 +439,19 @@ create table #collegeGroups (
 -- GroupType, Group, Location
 insert #collegeGroups
 values
-('NewSpring College', 'Acts', 'Acts'), 
-('NewSpring College', 'All-Staff', 'All-Staff'), 
-('NewSpring College', 'Bible', 'Bible'), 
-('NewSpring College', 'Builders & Shepherds', 'Builders & Shepherds'), 
-('NewSpring College', 'Character Forum', 'Character Forum'), 
-('NewSpring College', 'Christian Beliefs I', 'Christian Beliefs I'), 
-('NewSpring College', 'Christian Beliefs II', 'Christian Beliefs II'), 
-('NewSpring College', 'Communication', 'Communication'), 
-('NewSpring College', 'Ephesians', 'Ephesians'), 
-('NewSpring College', 'Leadership Forum', 'Leadership Forum'), 
-('NewSpring College', 'Leadership I', 'Leadership I'), 
-('NewSpring College', 'Small Group', 'Small Group'), 
-('NewSpring College', 'Working Group', 'Working Group')
+('NewSpring College Attendee', 'Acts', 'Acts'), 
+('NewSpring College Attendee', 'All-Staff', 'All-Staff'), 
+('NewSpring College Attendee', 'Bible', 'Bible'), 
+('NewSpring College Attendee', 'Builders & Shepherds', 'Builders & Shepherds'), 
+('NewSpring College Attendee', 'Character Forum', 'Character Forum'), 
+('NewSpring College Attendee', 'Christian Beliefs I', 'Christian Beliefs I'), 
+('NewSpring College Attendee', 'Christian Beliefs II', 'Christian Beliefs II'), 
+('NewSpring College Attendee', 'Communication', 'Communication'), 
+('NewSpring College Attendee', 'Ephesians', 'Ephesians'), 
+('NewSpring College Attendee', 'Leadership Forum', 'Leadership Forum'), 
+('NewSpring College Attendee', 'Leadership I', 'Leadership I'), 
+('NewSpring College Attendee', 'Small Group', 'Small Group'), 
+('NewSpring College Attendee', 'Working Group', 'Working Group')
 
 /* ====================================================== */
 -- delete existing areas
@@ -455,19 +463,18 @@ where id in (
 	from grouplocation gl
 	inner join [group] g
 	on gl.groupid = g.id
-	and g.GroupTypeId in (14, 18, 19, 20, 21, 22)
+	and g.GroupTypeId in (14, 18, 19, 20, 21, 22, 24, 26)
 )
 
 delete from GroupTypeAssociation
-where GroupTypeId in (14, 18, 19, 20, 21, 22)
-or ChildGroupTypeId in (14, 18, 19, 20, 21, 22)
+where GroupTypeId in (14, 18, 19, 20, 21, 22, 24, 26)
+or ChildGroupTypeId in (14, 18, 19, 20, 21, 22, 24, 26)
 
-delete from [Group]
-where GroupTypeId in (14, 18, 19, 20, 21, 22)
+delete from test..[Group]
+where GroupTypeId in (14, 18, 19, 20, 21, 22, 24, 26)
 
-delete from GroupType
-where id in (14, 18, 19, 20, 21, 22)
-
+delete from test..GroupType
+where id in (14, 18, 19, 20, 21, 22, 24, 26)
 
 /* ====================================================== */
 -- set up check-in config areas
@@ -483,14 +490,16 @@ select @numItems = count(1) + @scopeIndex from #topAreas
 
 while @scopeIndex <= @numItems
 begin
-	select @AreaName = '', @AreaLocationId = NULL, @AreaLocation = '', @AreaId = 0, @DefaultRoleId = 0
+	
+	select @ParentAreaName = '', @AreaName = '', @InheritedTypeId = null, @ParentAreaId = null, 
+		@AreaId = null, @AreaLocation = '', @AreaLocationId = null, @AreaGroupId = null, @DefaultRoleId = null,
+		@AttendanceRule = 0, @AreaGroupId = null, @InheritedTypeId = null
 	select @ParentAreaName = parentArea, @AreaName = childArea, @InheritedTypeId = inheritedType
 	from #topAreas where id = @scopeIndex
 
 	if @AreaName <> ''
 	begin
-
-		declare @msg nvarchar(500)
+				
 		select @msg = 'Creating ' + @ParentAreaName + ' / ' + @AreaName
 		RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
 
@@ -498,16 +507,17 @@ begin
 		-- create the parent if it doesn't exist
 		/* ====================================================== */
 		select @ParentAreaId = [Id] from GroupType
-		where name = @ParentAreaName and InheritedGroupTypeId = @InheritedTypeId
-		
+		where name = @ParentAreaName and IsSystem = @IsSystem
+
 		if @ParentAreaId is null
 		begin
+			
 			insert grouptype (IsSystem, Name, [Description], GroupTerm, GroupMemberTerm, AllowMultipleLocations, 
 				ShowInGroupList, ShowInNavigation, TakesAttendance, AttendanceRule, AttendancePrintTo,
 				[Order], InheritedGroupTypeId, LocationSelectionMode, GroupTypePurposeValueId, [Guid],
 				AllowedScheduleTypes, SendAttendanceReminder)
 			select @IsSystem, @ParentAreaName, @ParentAreaName + ' Area', 'Group', 'Member', @False, @False, @False, 
-				@False, 0, 0, 0, NULL, 0, @CheckInAreaTypePurpose, NEWID(), 0, @False
+				@False, 0, 0, 0, NULL, 0, @CheckInAreaPurposeId, NEWID(), 0, @False
 
 			select @ParentAreaId = SCOPE_IDENTITY()
 
@@ -539,6 +549,10 @@ begin
 
 		select @AreaId = SCOPE_IDENTITY()
 
+		-- set parent association
+		insert GroupTypeAssociation
+		values (@ParentAreaId, @AreaId)
+
 		-- allow children of this grouptype
 		insert GroupTypeAssociation
 		values (@AreaId, @AreaId)
@@ -563,13 +577,20 @@ begin
 
 
 		/* ====================================================== */
-		-- create parent location under campus location
+		-- create group locations under campus locations
 		/* ====================================================== */
-		insert Location (ParentLocationId, Name, IsActive, [Guid])
-		select c.LocationId, @ParentAreaName, 1, NEWID()
-		from Campus c
-		where c.IsActive = @True
+		select @AreaLocationId = [Id] from Location
+		where name = @ParentAreaName and IsActive = @True
 		
+		if @AreaLocationId is null
+		begin
+
+			insert Location (ParentLocationId, Name, IsActive, [Guid])
+			select c.LocationId, @ParentAreaName, 1, NEWID()
+			from Campus c
+			where c.IsActive = @True
+
+		end
 	end
 	-- end empty area name
 
@@ -578,24 +599,29 @@ end
 -- end check-in config areas
 
 /* ====================================================== */
--- insert campus locations
+-- insert campus groups
 /* ====================================================== */
+declare @GroupTypeName nvarchar(255), @GroupTypeId int, @GroupTypeGroupId int, 
+		@GroupName nvarchar(255), @GroupId int, @LocationName nvarchar(255),
+		@ParentGroupTypeName nvarchar(255), @ParentGroupTypeId int, @ParentLocationId int
+
 declare @campusGroupId int, @numCampusGroups int
 select @campusGroupId = min(Id) from #campusGroups
 select @numCampusGroups = count(1) + @campusGroupId from #campusGroups
 
-while @campusGroupId <= @numCampusGroups
+while @campusGroupId < @numCampusGroups
 begin
 	
-	declare @GroupTypeName nvarchar(255) = '', @GroupTypeId int = 0, @GroupTypeGroupId int = 0, 
-		@GroupName nvarchar(255) = '', @GroupId int = 0, @LocationName nvarchar(255) = '',
-		@ParentGroupTypeName nvarchar(255) = '', @ParentGroupTypeId int = 0, @ParentLocationId int = 0
+	select @GroupTypeName = '', @GroupTypeId = null, @GroupTypeGroupId = null, @LocationName = '',
+		@GroupName = '', @GroupId = null, @LocationName = '', @ParentGroupTypeName = '', 
+		@ParentGroupTypeId = null, @ParentLocationId = null
 
 	select @GroupTypeName = groupTypeName, @GroupName = groupName, @LocationName = locationName
 	from #campusGroups
+	where Id = @campusGroupId
 
 	/* ====================================================== */
-	-- create grouptype if it doesn't exist
+	-- get parent grouptype
 	/* ====================================================== */
 	select @GroupTypeId = gt.[Id], @GroupTypeGroupId = g.[Id]
 	from GroupType gt
@@ -603,9 +629,12 @@ begin
 	on gt.id = g.GroupTypeId
 	and gt.name = @GroupTypeName
 	and g.name = @GroupTypeName
-
+	
 	if @GroupTypeId is not null
-	begin	
+	begin
+		
+		select @msg = 'Creating ' + @GroupTypeName + ' / ' + @GroupName
+		RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
 
 		/* ====================================================== */
 		-- create child group if it doesn't exist
@@ -613,13 +642,13 @@ begin
 		select @GroupId = [Id] from [Group]
 		where GroupTypeId = @GroupTypeId
 		and name = @GroupName
-		
+				
 		if @GroupId is null
 		begin
-			
+
 			insert [Group] (IsSystem, ParentGroupId, GroupTypeId, Name,
 				[Description], IsSecurityRole, IsActive, [Order], [Guid], [IsPublic])
-			select @IsSystem, NULL, @GroupTypeid, @GroupName, @GroupName + ' Group', @False, @True, 0, NEWID(), @True
+			select @IsSystem, @GroupTypeGroupId, @GroupTypeId, @GroupName, @GroupName + ' Group', @False, @True, 0, NEWID(), @True
 
 			select @GroupId = SCOPE_IDENTITY()
 		end
@@ -628,22 +657,21 @@ begin
 		-- get parent grouptype name
 		/* ====================================================== */
 		select @ParentGroupTypeName = gt.[Name], @ParentGroupTypeId = gt.[Id]
-		from GroupTypeAssociation gta
-		inner join GroupType gt
+		from GroupType gt
+		inner join GroupTypeAssociation gta
 		on gt.Id = gta.GroupTypeId
 		and gta.ChildGroupTypeId = @GroupTypeId
-
+		and gta.GroupTypeId <> @GroupTypeId
+		
 		/* ====================================================== */
 		-- insert campus level locations
 		/* ====================================================== */
 		insert Location (ParentLocationId, Name, IsActive, [Guid])
 		select l.Id, @LocationName, 1, NEWID()
-		from Location l
-		inner join Location pl
-		on l.ParentLocationId = pl.Id
-		and pl.Name = @ParentGroupTypeName
+		from Location l		
 		inner join Campus c
-		on c.LocationId = pl.Id
+		on c.LocationId = l.ParentLocationId
+		and l.Name = @ParentGroupTypeName
 		where c.IsActive = @True
 
 		/* ====================================================== */
@@ -652,11 +680,10 @@ begin
 		insert GroupLocation (Groupid, LocationId, IsMailingLocation, IsMappedLocation, [Guid])
 		select @GroupId, l.Id, @False, @False, NEWID()
 		from Location l
-		inner join Location cl
-		on l.ParentLocationId = cl.Id
 		inner join Location pl
-		on cl.ParentLocationId = pl.Id
+		on l.ParentLocationId = pl.Id
 		and pl.Name = @ParentGroupTypeName
+		and l.name = @LocationName
 
 	end
 	-- end grouptype not empty
@@ -665,271 +692,212 @@ begin
 end
 -- end campus groups
 
-
 /* ====================================================== */
 -- Add IsSpecialNeeds attribute value to spring zone groups
 /* ====================================================== */
 
 INSERT [AttributeValue] ( [IsSystem],[AttributeId],[EntityId],[Value] ,[Guid] ) 
-SELECT 0, @SpecialNeedsAttributeId, g.[Id], 'True', NEWID()
-FROM [Group] g
---JOIN [Group] parent ON g.ParentGroupId = parent.Id
---JOIN [GroupType] parentGt ON parent.GroupTypeId = parentGt.Id
-WHERE g.Name = 'Spring Zone' or g.Name = 'Spring Zone Jr.'
-
+SELECT 0, @SpecialNeedsAttributeId, [Id], 'True', NEWID()
+FROM [Group] WHERE Name = 'Spring Zone' or Name = 'Spring Zone Jr.'
 
 /* ====================================================== */
--- Add Central separately from campuses since groups and
--- grouptypes are vastly different
+-- Add Central hierarchy separately from campus groups
 /* ====================================================== */
 
--- inform progress
 RAISERROR ( 'Starting Central grouptypes & groups', 0, 0 ) WITH NOWAIT
 
-DECLARE @CampusCode nvarchar(255), @CampusId int = 0, @CampusLocationId int = 0
+DECLARE @CampusName nvarchar(255), @CampusCode nvarchar(255), @CampusId int = 0, @CampusLocationId int = 0
+select @CampusName = 'Central', @CampusCode = 'CEN'
 
---SELECT @CampusCode = 'CEN', @CampusName = 'Central', @CampusId = 0,
---	@CampusLocationId = 0, @DefaultRoleId = 0, @CampusGroupId = 0
+select @CampusId = [Id] from Campus
+where Name = @CampusName
+and ShortCode = @CampusCode
 
---insert Campus (IsSystem, Name, ShortCode, [Guid], IsActive)
---values (@IsSystem, @CampusName, @CampusCode, NEWID(), 1)
-
---select @CampusId = SCOPE_IDENTITY()
-
-set @CampusLocationId = SCOPE_IDENTITY()
-
-update campus set LocationId = @CampusLocationId 
-where id = @CampusId
-
+select @CampusLocationId = [Id] from Location
+where name = @CampusName 
+and LocationTypeValueId = @CampusLocationTypeId
 
 /* ====================================================== */
 -- create central grouptypes
 /* ====================================================== */
-select @scopeIndex = min(Id) from #centralAreas
-select @numItems = @scopeIndex + count(1) from #centralAreas
-while @scopeIndex <= @numItems
+select @scopeIndex = min(Id) from #centralGroups
+select @numItems = @scopeIndex + count(1) from #centralGroups
+
+while @scopeIndex < @numItems
 begin
 	
-	select @areaName = '', @areaLocation = '', @currentAreaId = 0, @defaultRoleId = 0, @areaLocationId = 0
-	select @areaName = name, @attendanceRule = attendanceRule, @inheritedTypeId = inheritedType
-	from #centralAreas where id = @scopeIndex
+	declare @LocationId int
+	select @GroupTypeName = '', @GroupTypeId = null, @GroupTypeGroupId = null, @LocationName = '',
+		@GroupName = '', @GroupId = null, @LocationName = '', @ParentGroupTypeName = '', 
+		@LocationId = null, @ParentGroupTypeId = null, @ParentLocationId = null
 
-	if @areaName <> ''
+	select @GroupTypeName = groupTypeName, @GroupName = groupName, @LocationName = locationName
+	from #centralGroups
+	where Id = @scopeIndex
+
+	if @GroupName <> ''
 	begin
-		/* ====================================================== */
-		-- insert central hierarchy
-		/* ====================================================== */
-		insert grouptype (IsSystem, Name, Description, GroupTerm, GroupMemberTerm,
-			DefaultGroupRoleId, AllowMultipleLocations, ShowInGroupList,
-			ShowInNavigation, TakesAttendance, AttendanceRule, AttendancePrintTo,
-			[Order], InheritedGroupTypeId, LocationSelectionMode, GroupTypePurposeValueId, [Guid],
-			AllowedScheduleTypes, SendAttendanceReminder)
-		select 0, @campusCode + @Delimiter + @areaName, @campusCode + @Delimiter + @areaName + ' GroupType', 'Group', 'Member', NULL,
-			1, 1, 1, 1, @attendanceRule, 0, 0, @inheritedTypeId, 0, NULL, NEWID(), 0, 0
-
-		select @currentAreaId = SCOPE_IDENTITY()
-
-		insert GroupTypeAssociation
-		values (@campusAreaId, @currentAreaId)
-
-		-- allow children of this grouptype
-		insert GroupTypeAssociation
-		values (@currentAreaId, @currentAreaId)
 
 		/* ====================================================== */
-		-- set default grouptype role
+		-- lookup parent grouptype
 		/* ====================================================== */
-		insert GroupTypeRole (isSystem, GroupTypeId, Name, [Order], IsLeader,
-			[Guid], CanView, CanEdit)
-		values (@IsSystem, @currentAreaId, 'Member', 0, 0, NEWID(), 0, 0)
+		select @GroupTypeId = gt.[Id], @GroupTypeGroupId = g.[Id]
+		from GroupType gt
+		inner join [Group] g
+		on gt.id = g.GroupTypeId
+		and gt.name = @GroupTypeName
+		and g.name = @GroupTypeName
 
-		select @defaultRoleId = SCOPE_IDENTITY()
-
-		update grouptype
-		set DefaultGroupRoleId = @defaultRoleId
-		where id = @currentAreaId
-
-		/* ====================================================== */
-		-- create matching group
-		/* ====================================================== */
-		declare @areaGroupId int
-		insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name,
-			Description, IsSecurityRole, IsActive, [Order], [Guid])
-		select @IsSystem, @campusGroupId, @currentAreaId, @campusId, @areaName,
-			@campusCode + @Delimiter + @areaName + ' Group', 0, 1, 0, NEWID()
-
-		select @areaGroupId = SCOPE_IDENTITY()
-
-		-- set up child location
-		insert location (ParentLocationId, Name, IsActive, [Guid])
-		select @campusLocationId, @areaName, 1, NEWID()
-
-		select @areaLocationId = SCOPE_IDENTITY()
-
-		-- create a subset of groups for this grouptype
-		if object_id('tempdb..#childGroups') is not null
-		begin
-			drop table #childGroups
-		end
-		create table #childGroups (
-			ID int IDENTITY(1,1),
-			groupTypeName nvarchar(255),
-			groupName nvarchar(255),
-			locationName nvarchar(255),
-		)
-
-		insert #childGroups
-		select groupTypeName, groupName, locationName
-		from #centralGroups
-		where groupTypeName = @areaName
-
-		-- count the groups that match this grouptype
-		declare @childIndex int, @childItems int
-		select @childIndex = min(Id) from #childGroups
-		select @childItems = @childIndex + count(1) from #childGroups
+		select @msg = 'Creating ' + @GroupTypeName + ' / ' + @GroupName
+		RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
 		
-		while @childIndex < @childItems
+		/* ====================================================== */
+		-- create central group if it doesn't exist
+		/* ====================================================== */		
+		select @GroupId = [Id] from [Group]
+		where name = @GroupName 
+		and GroupTypeId = @GroupTypeId
+		
+		if @GroupId is null
 		begin
-			declare @childGroupType nvarchar(255), @childGroup nvarchar(255), @childLocation nvarchar(255)			
-			select @childGroupType = groupTypeName, @childGroup = groupName, @childLocation = locationName
-			from #childGroups where id = @childIndex
+		
+			insert [Group] (IsSystem, ParentGroupId, GroupTypeId, Name, [Description], IsSecurityRole, IsActive, [Order], [Guid])
+			select @IsSystem, @GroupTypeGroupId, @GroupTypeId, @GroupName, @GroupName + ' Group', 0, 1, 0, NEWID()
 
-			if @childGroup <> ''
-			begin
-
-				declare @childGroupId int = 0
-
-				/* ====================================================== */
-				-- create child group
-				/* ====================================================== */
-				insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name,
-					Description, IsSecurityRole, IsActive, [Order], [Guid])
-				select @IsSystem, @areaGroupid, @currentAreaId, @campusId,  @childGroup,
-					@childGroup + ' Group', 0, 1, 10, NEWID()
-
-				select @childGroupId = SCOPE_IDENTITY()
-
-				/* ====================================================== */
-				-- set group location
-				/* ====================================================== */
-				insert grouplocation (groupid, locationid, IsMailingLocation, IsMappedLocation, [Guid])
-				values (@childGroupId, @areaLocationId, 0, 0, NEWID())
-			end
-			-- end childGroup not empty
-
-			set @childIndex = @childIndex + 1
+			select @GroupId = SCOPE_IDENTITY()
 		end
-		-- end child groups		
+
+		/* ====================================================== */
+		-- get parent grouptype name
+		/* ====================================================== */
+		select @ParentGroupTypeName = gt.[Name], @ParentGroupTypeId = gt.[Id]
+		from GroupType gt
+		inner join GroupTypeAssociation gta
+		on gt.Id = gta.GroupTypeId
+		and gta.ChildGroupTypeId = @GroupTypeId
+		and gta.GroupTypeId <> @GroupTypeId
+
+		/* ====================================================== */
+		-- insert central locations
+		/* ====================================================== */
+		select @ParentLocationId = [Id] from Location
+		where Name = @ParentGroupTypeName
+		and ParentLocationId = @CampusLocationId
+
+		if @ParentLocationId is null
+		begin
+			insert Location (ParentLocationId, Name, IsActive, [Guid])
+			select @CampusLocationId, @ParentGroupTypeName, @True, NEWID()
+
+			select @ParentLocationId = SCOPE_IDENTITY()
+		end
+
+		select @LocationId = [Id] from Location
+		where Name = @LocationName
+		and ParentLocationId = @ParentLocationId
+
+		if @LocationId is null
+		begin
+			insert Location (ParentLocationId, Name, IsActive, [Guid])
+			select @ParentLocationId, @LocationName, @True, NEWID()
+
+			select @LocationId = SCOPE_IDENTITY()
+		end
+
+		/* ====================================================== */
+		-- insert group location
+		/* ====================================================== */
+		insert GroupLocation (Groupid, LocationId, IsMailingLocation, IsMappedLocation, [Guid])
+		select @GroupId, @LocationId, @False, @False, NEWID()
+			
 	end
-	--end if area not empty
+	-- end name not empty	
 
 	set @scopeIndex = @scopeIndex + 1
 end
-
-
-/* ====================================================== */
--- Add College separately from campuses and central
-/* ====================================================== */
--- inform progress
-RAISERROR ( 'Starting NewSpring College grouptypes & groups', 0, 0 ) WITH NOWAIT
-
-SELECT @campusName = @collegeArea, @campusAreaId = 0, 
-	@defaultRoleId = 0, @campusGroupId = 0
-
--- NOTE: @campusCode and @campusId already set to Central
+-- end central
 
 /* ====================================================== */
--- create initial college area
+-- Add NewSpring College hierarchy
 /* ====================================================== */
-insert grouptype (IsSystem, Name, Description, GroupTerm, GroupMemberTerm,
-	DefaultGroupRoleId, AllowMultipleLocations, ShowInGroupList,
-	ShowInNavigation, TakesAttendance, AttendanceRule, AttendancePrintTo,
+
+-- NOTE: @CampusCode, @CampusLocationId, @CampusId already set to Central
+
+/* ====================================================== */
+-- create college check-in area
+/* ====================================================== */
+insert grouptype (IsSystem, Name, [Description], GroupTerm, GroupMemberTerm, AllowMultipleLocations, 
+	ShowInGroupList, ShowInNavigation, TakesAttendance, AttendanceRule, AttendancePrintTo,
 	[Order], InheritedGroupTypeId, LocationSelectionMode, GroupTypePurposeValueId, [Guid],
 	AllowedScheduleTypes, SendAttendanceReminder)
-select 0, @campusName, @campusName + ' Check-in Area', 'Group', 'Member',
-	NULL, 0, 1, 1, 0, 0, 1, 0, NULL, 0, @AreaTypePurpose, NEWID(), 0, 0
+select @IsSystem, @CollegeName, @CollegeName + ' Area', 'Group', 'Member', @False, @False, @False, 
+	@False, 0, 0, 0, NULL, 0, @CheckInAreaPurposeId, NEWID(), 0, @False
 
-select @campusAreaId = SCOPE_IDENTITY()
+select @ParentAreaId = SCOPE_IDENTITY()
 
-insert GroupTypeRole (isSystem, GroupTypeId, Name, [Order], IsLeader,
-	[Guid], CanView, CanEdit)
-values (@IsSystem, @campusAreaId, 'Member', 0, 0, NEWID(), 0, 0)
+insert GroupTypeRole (isSystem, GroupTypeId, Name, [Order], IsLeader, [Guid], CanView, CanEdit)
+values (@IsSystem, @ParentAreaId, 'Member', 0, @False, NEWID(), @False, @False)
 
-select @defaultRoleId = SCOPE_IDENTITY()
+select @DefaultRoleId = SCOPE_IDENTITY()
 
 update grouptype
-set DefaultGroupRoleId = @defaultRoleId
-where id = @campusAreaId
+set DefaultGroupRoleId = @DefaultRoleId
+where id = @ParentAreaId
 
 /* ====================================================== */
--- create college group
+-- class attendee grouptype
 /* ====================================================== */
-insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name,
-	Description, IsSecurityRole, IsActive, [Order], [Guid])
-select @IsSystem, NULL, @campusAreaId, @campusId, @campusName,
-	@campusName + ' Group', 0, 1, 0, NEWID()
-
-select @campusGroupId = SCOPE_IDENTITY()
-
-/* ====================================================== */
--- create college grouptype
-/* ====================================================== */
-
-select @areaName = @collegeArea, 
-	@attendanceRule = @collegeAttendance, 
-	@inheritedTypeId = @collegeInheritedType
-
-insert grouptype (IsSystem, Name, Description, GroupTerm, GroupMemberTerm,
-	DefaultGroupRoleId, AllowMultipleLocations, ShowInGroupList,
-	ShowInNavigation, TakesAttendance, AttendanceRule, AttendancePrintTo,
+insert grouptype (IsSystem, Name, [Description], GroupTerm, GroupMemberTerm, AllowMultipleLocations, 
+	ShowInGroupList, ShowInNavigation, TakesAttendance, AttendanceRule, AttendancePrintTo,
 	[Order], InheritedGroupTypeId, LocationSelectionMode, GroupTypePurposeValueId, [Guid],
 	AllowedScheduleTypes, SendAttendanceReminder)
-select 0, @areaName, @areaName + ' GroupType', 'Group', 'Member', NULL,
-	1, 1, 1, 1, @attendanceRule, 0, 0, @inheritedTypeId, 0, NULL, NEWID(), 0, 0 
+select @IsSystem, @CollegeName + ' Attendee', @CollegeName + ' Attendee GroupType', 'Group', 'Member', @True, @True, @True, 
+	@True, 0, 0, 0, NULL, 0, NULL, NEWID(), 0, @False
 
-select @currentAreaId = SCOPE_IDENTITY()
+select @AreaId = SCOPE_IDENTITY()
 
-insert GroupTypeAssociation
-values (@campusAreaId, @currentAreaId)
+insert GroupTypeRole (isSystem, GroupTypeId, Name, [Order], IsLeader, [Guid], CanView, CanEdit)
+values (@IsSystem, @AreaId, 'Member', 0, @False, NEWID(), @False, @False)
 
--- allow children of this grouptype
-insert GroupTypeAssociation
-values (@currentAreaId, @currentAreaId)
-
-/* ====================================================== */
--- set default grouptype role
-/* ====================================================== */
-insert GroupTypeRole (isSystem, GroupTypeId, Name, [Order], IsLeader,
-	[Guid], CanView, CanEdit)
-values (@IsSystem, @currentAreaId, 'Member', 0, 0, NEWID(), 0, 0)
-
-select @defaultRoleId = SCOPE_IDENTITY()
+select @DefaultRoleId = SCOPE_IDENTITY()
 
 update grouptype
-set DefaultGroupRoleId = @defaultRoleId
-where id = @currentAreaId
+set DefaultGroupRoleId = @DefaultRoleId
+where id = @AreaId
 
 /* ====================================================== */
--- create top-level college group and location
+-- set grouptype associations
 /* ====================================================== */
-select @areaGroupId = 0, @areaLocationid = 0, @locationId = 0
-insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name,
-	Description, IsSecurityRole, IsActive, [Order], [Guid])
-select @IsSystem, NULL, @currentAreaId, @campusId, @areaName,
-	@areaName + ' Group', 0, 1, 0, NEWID()
+insert GroupTypeAssociation
+values (@ParentAreaId, @AreaId)
 
-select @areaGroupId = SCOPE_IDENTITY()
+insert GroupTypeAssociation
+values (@AreaId, @AreaId)
 
--- set up location hierarchy
-insert location (ParentLocationId, Name, IsActive, [Guid])
-select @campusLocationId, @areaName, 1, NEWID()
+/* ====================================================== */
+-- create child group if it doesn't exist
+/* ====================================================== */
+select @AreaGroupId = [Id] from [Group]
+where GroupTypeId = @AreaId
+and name = @CollegeName
+				
+if @AreaGroupId is null
+begin
 
-select @areaLocationId = SCOPE_IDENTITY()
+	insert [Group] (IsSystem, ParentGroupId, GroupTypeId, Name,
+		[Description], IsSecurityRole, IsActive, [Order], [Guid], [IsPublic])
+	select @IsSystem, NULL, @AreaId, @CollegeName, @CollegeName + ' Attendee', @False, @True, 0, NEWID(), @True
 
-insert location (ParentLocationId, Name, IsActive, [Guid])
-select @areaLocationId, @collegeLocation, 1, NEWID()
+	select @AreaGroupId = SCOPE_IDENTITY()
+end
 
-select @locationId = SCOPE_IDENTITY()
+/* ====================================================== */
+-- create top-level college location
+/* ====================================================== */
+insert Location (ParentLocationId, Name, IsActive, [Guid])
+select @CampusLocationId, @CollegeName, @True, NEWID()
+
+set @ParentLocationId = SCOPE_IDENTITY()
 
 /* ====================================================== */
 -- create college groups
@@ -940,78 +908,35 @@ select @numItems = @scopeIndex + count(1) from #collegeGroups
 		
 while @scopeIndex < @numItems
 begin
-	select @groupName = '', @groupTypeName = '', @groupId = 0
-	select @groupName = groupName, @groupTypeName = groupTypeName
+	select @GroupTypeName = '', @GroupName = '', @LocationName = '', @GroupId = NULL
+	select @GroupTypeName = groupTypeName, @GroupName = groupName, @LocationName = locationName
 	from #collegeGroups where id = @scopeIndex
 
-	if @groupName <> ''
+	if @GroupName <> ''
 	begin
-		
+
+		select @msg = 'Creating ' + @GroupTypeName + ' / ' + @GroupName
+		RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
+
 		/* ====================================================== */
 		-- create child group
 		/* ====================================================== */
-		insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name,
-			Description, IsSecurityRole, IsActive, [Order], [Guid])
-		select @IsSystem, @areaGroupid, @currentAreaId, @campusId,  @groupName,
-			@groupName + ' Group', 0, 1, 10, NEWID()
+		insert [Group] (IsSystem, ParentGroupId, GroupTypeId, Name, [Description], IsSecurityRole, IsActive, [Order], [Guid])
+		select @IsSystem, @AreaGroupId, @AreaId, @GroupName, @GroupName + ' Group', @False, @True, 0, NEWID()
 
-		select @groupId = SCOPE_IDENTITY()
+		select @GroupId = SCOPE_IDENTITY()
 
-		-- set group location
-		insert grouplocation (groupid, locationid, IsMailingLocation, IsMappedLocation, [Guid])
-		values (@groupId, @locationId, 0, 0, NEWID())
-	end
-	-- end childGroup not empty
+		insert Location (ParentLocationId, Name, IsActive, [Guid])
+		select @ParentLocationId, @LocationName, @True, NEWID()
+
+		select @LocationId = SCOPE_IDENTITY()
+
+		insert GroupLocation (Groupid, LocationId, IsMailingLocation, IsMappedLocation, [Guid])
+		select @GroupId, @LocationId, @False, @False, NEWID()
+	end	
 
 	set @scopeIndex = @scopeIndex + 1
 end
--- end child groups		
-
-/* ====================================================== */
--- Insert a campus to track WEB
-/* ====================================================== */
-
--- inform progress
-RAISERROR ( 'Adding WEB as a campus', 0, 0 ) WITH NOWAIT
-
-SELECT @campusCode = 'WEB', @campusName = 'Web', @campusId = 0,
-	@campusLocationId = 0, @defaultRoleId = 0, @campusGroupId = 0
-
-insert Campus (IsSystem, Name, ShortCode, [Guid], IsActive)
-values (@IsSystem, @campusName, @campusCode, NEWID(), @True)
--- end WEB insert
+-- end college		
 
 use master
-go
-
--- end central areas
-
-
-/* TESTING SECTION
-
-use master
-restore database test from test with replace
-
-use test
-
-
-select '(''' + substring(c.name, 7, len(c.name)-6) + ''', '  --as 'child.grouptype'
-+ '''' + g.name + ''', ' --as 'child.group'
-+ '''' + l.name + '''),' --as 'group.location'
-select distinct l.name
-from rock..GroupType p
-inner join rock..GroupTypeAssociation gta
-on p.id = gta.GroupTypeId
-and p.name like 'col%'
-and p.name not like '%kidspring%attendee%'
-inner join rock..grouptype c
-on gta.ChildGroupTypeId = c.id
-inner join rock..[group] g
-on g.GroupTypeId = c.id
-inner join rock..grouplocation gl
-on g.id = gl.groupid
-inner join rock..location l
-on gl.LocationId = l.id
-
-
-*/
