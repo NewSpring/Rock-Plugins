@@ -4,7 +4,7 @@
 
 -- Make sure you're using the right Rock database:
 
-USE test
+USE Rock
 
 /* ====================================================== */
 
@@ -470,10 +470,10 @@ delete from GroupTypeAssociation
 where GroupTypeId in (14, 18, 19, 20, 21, 22, 24, 26)
 or ChildGroupTypeId in (14, 18, 19, 20, 21, 22, 24, 26)
 
-delete from test..[Group]
+delete from [Group]
 where GroupTypeId in (14, 18, 19, 20, 21, 22, 24, 26)
 
-delete from test..GroupType
+delete from GroupType
 where id in (14, 18, 19, 20, 21, 22, 24, 26)
 
 /* ====================================================== */
