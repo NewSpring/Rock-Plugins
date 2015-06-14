@@ -17,7 +17,7 @@
    ====================================================== */
 -- Make sure you're using the right Rock database:
 
-USE Rock
+USE Import
 
 /* ====================================================== */
 
@@ -70,6 +70,8 @@ where ( attribute_name like 'Ownership%Joined'
 )
 group by attribute_group_name, attribute_name
 
+select * from #attributes
+
 /* ====================================================== */
 -- Create attribute lookup
 /* ====================================================== */
@@ -107,7 +109,7 @@ begin
 		-- set campus based on the attribute name
 		select @campusGuid = [Guid], @campusId = [Id] from Campus
 		where shortcode = left(ltrim(@AttributeName), 3)
-		or shortcode = right(rtrim(@AttributeName), 3) 
+		or shortcode = right(rtrim(@AttributeName), 3)
 
 		-- depending on what attribute this is, take different actions
 		-- Spring Zone is weird because it spans two GroupNames
