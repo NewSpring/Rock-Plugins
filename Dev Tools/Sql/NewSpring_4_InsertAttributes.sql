@@ -17,7 +17,7 @@
    ====================================================== */
 -- Make sure you're using the right Rock database:
 
-USE Import
+USE People
 
 /* ====================================================== */
 
@@ -92,8 +92,9 @@ select @numItems = count(1) + @scopeIndex from #attributes
 
 while @scopeIndex < @numItems
 begin
-	declare @AttributeGroup nvarchar(255), @AttributeName nvarchar(255), @AttributeCategoryId int, @DateAttributeId int, @CampusAttributeId int, 
-		@BooleanAttributeId int, @IsProcessed bit, @campusGuid uniqueidentifier, @campusId int, @msg nvarchar(max)
+	declare @AttributeGroup nvarchar(255), @AttributeName nvarchar(255), @AttributeCategoryId int, @DateAttributeId int, 
+		@CampusAttributeId int, @BooleanAttributeId int, @IsProcessed bit, @campusGuid uniqueidentifier, @campusId int, 
+		@campusName nvarchar(255), @msg nvarchar(max)
 
 	select @AttributeGroup = attributeGroupName, @AttributeName = attributeName, @DateAttributeId = dateAttributeId, 
 		@CampusAttributeId = campusAttributeId, @BooleanAttributeId = booleanAttributeId, 
@@ -107,7 +108,7 @@ begin
 		RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
 
 		-- set campus based on the attribute name
-		select @campusGuid = [Guid], @campusId = [Id] from Campus
+		select @campusName = [Name], @campusGuid = [Guid], @campusId = [Id] from Campus
 		where shortcode = left(ltrim(@AttributeName), 3)
 		or shortcode = right(rtrim(@AttributeName), 3)
 
@@ -552,7 +553,7 @@ begin
 			;with locationChildren as (
 				select l.id, l.parentLocationId, l.name
 				from location l
-				where name = @CampusId
+				where name = @campusName
 				union all 
 				select l2.id, l2.parentlocationId, l2.name
 				from location l2

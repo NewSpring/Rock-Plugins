@@ -4,7 +4,7 @@
 
 -- Make sure you're using the right Rock database:
 
-USE Import
+USE People
 
 /* ====================================================== */
 
