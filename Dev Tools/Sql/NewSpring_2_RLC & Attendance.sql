@@ -57,14 +57,14 @@ end
 --/* ====================================================== */
 ---- Create campus defined type
 --/* ====================================================== */
---if @CampusDefinedTypeId is null
---begin
---	insert DefinedType ( [IsSystem], [FieldTypeId], [Order], [Name], [Description], [Guid], CategoryId )
---	select @IsSystem, @TextFieldTypeId, @Order, 'Campus', 'The campus assigned to this group member.',
---		'CF673374-A508-4ABC-AA2B-AA48D19AF799', @GroupCategoryId
+if @CampusDefinedTypeId is null
+begin
+	insert DefinedType ( [IsSystem], [FieldTypeId], [Order], [Name], [Description], [Guid], CategoryId )
+	select @IsSystem, @TextFieldTypeId, @Order, 'Campus', 'The campus assigned to this group member.',
+		'CF673374-A508-4ABC-AA2B-AA48D19AF799', @GroupCategoryId
 
---	select @CampusDefinedTypeId = SCOPE_IDENTITY()
---end
+	select @CampusDefinedTypeId = SCOPE_IDENTITY()
+end
 
 /* ====================================================== */
 -- Create person Breakout Group attribute for attendees
@@ -2264,26 +2264,26 @@ begin
 		/* ====================================================== */
 		-- Create campus group member attribute
 		/* ====================================================== */
-		--select @CampusAttributeId = Id from Attribute where EntityTypeId = @GroupMemberEntityId
-		--	and EntityTypeQualifierValue = @GroupTypeId and Name = 'Campus'
-		--if @CampusAttributeId is null
-		--begin
-		--	insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
-		--		[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
-		--	select @IsSystem, @DefinedValueFieldTypeId, @GroupMemberEntityId, 'GroupTypeId',  @GroupTypeId, 'TeamConnector', 
-		--		'Team Connector', 'The team connector for this group member.', '', @Order, @True, @True, @False, NEWID()
+		select @CampusAttributeId = Id from Attribute where EntityTypeId = @GroupMemberEntityId
+			and EntityTypeQualifierValue = @GroupTypeId and Name = 'Campus'
+		if @CampusAttributeId is null
+		begin
+			insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
+				[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
+			select @IsSystem, @DefinedValueFieldTypeId, @GroupMemberEntityId, 'GroupTypeId',  @GroupTypeId, 'Campus', 
+				'Campus', 'This group member''s campus.', '', @Order, @True, @False, @False, NEWID()
 
-		--	select @CampusAttributeId = SCOPE_IDENTITY()
+			select @CampusAttributeId = SCOPE_IDENTITY()
 
-		--	insert AttributeQualifier ( [IsSystem], [AttributeId], [Key], [Value], [Guid] )
-		--	select @IsSystem, @CampusAttributeId, 'definedtype', @TeamConnectorTypeId, NEWID()
+			--insert AttributeQualifier ( [IsSystem], [AttributeId], [Key], [Value], [Guid] )
+			--select @IsSystem, @CampusAttributeId, 'definedtype', @TeamConnectorTypeId, NEWID()
 
-		--	insert AttributeQualifier ( [IsSystem], [AttributeId], [Key], [Value], [Guid] )
-		--	select @IsSystem, @CampusAttributeId, 'allowmultiple', 'False', NEWID()
+			--insert AttributeQualifier ( [IsSystem], [AttributeId], [Key], [Value], [Guid] )
+			--select @IsSystem, @CampusAttributeId, 'allowmultiple', 'False', NEWID()
 
-		--	insert AttributeQualifier ( [IsSystem], [AttributeId], [Key], [Value], [Guid] )
-		--	select @IsSystem, @CampusAttributeId, 'displaydescription', 'False', NEWID()
-		--end
+			--insert AttributeQualifier ( [IsSystem], [AttributeId], [Key], [Value], [Guid] )
+			--select @IsSystem, @CampusAttributeId, 'displaydescription', 'False', NEWID()
+		end
 
 		/* ====================================================== */
 		-- Create team connector group member attribute
