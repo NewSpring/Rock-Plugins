@@ -10,7 +10,7 @@
    ====================================================== */
 -- Make sure you're using the right Rock database:
 
-USE Import
+USE People
 
 /* ====================================================== */
 
@@ -36,7 +36,7 @@ select @GroupMemberEntityId = Id from EntityType where [Guid] = '49668B95-FEDC-4
 select @PersonEntityTypeId = Id from EntityType where [Guid] = '72657ED8-D16E-492E-AC12-144C5E7567E7' 
 select @DefinedValueFieldTypeId = Id from FieldType where [Guid] = '59D5A94C-94A0-4630-B80A-BB25697D74C7'
 select @NameSearchValueId = Id from DefinedValue where [Guid] = '071D6DAA-3063-463A-B8A1-7D9A1BE1BB31'
---select @CampusDefinedTypeId = Id from DefinedType where [Guid] = 'CF673374-A508-4ABC-AA2B-AA48D19AF799'
+select @CampusDefinedTypeId = Id from DefinedType where [Guid] = 'CF673374-A508-4ABC-AA2B-AA48D19AF799'
 select @ScheduleDefinedTypeId = Id from DefinedType where [Guid] = '26ECDD90-A2FA-4732-B3D1-32AC93953EFA'
 select @BreakoutGroupAttributeId = Id from Attribute where [Guid] = 'BF976365-01E7-4C98-9BE2-4D5B78EDBF48'
 select @TeamConnectorTypeId = Id from DefinedType where [Guid] = '418C4656-6A85-4642-B8BA-BEEB1A0FF869'
