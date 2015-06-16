@@ -1,6 +1,13 @@
 var gulp = require('gulp'),
 	sass = require('gulp-sass'),
-	less = require('gulp-less');
+	less = require('gulp-less'),
+	browserSync = require('browser-sync').create();
+
+gulp.task('browser-sync', function() {
+    browserSync.init({
+        proxy: "rock.dev:50345"
+    });
+});
 
 gulp.task('less', function () {
   	return gulp.src([
@@ -27,4 +34,4 @@ gulp.task('watch', function(){
 
 gulp.task('build', ['less','sass']);
 
-gulp.task('default', ['less','sass','watch']);
+gulp.task('default', ['less','sass','watch','browser-sync']);
