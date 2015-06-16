@@ -4,7 +4,7 @@
 
 -- Make sure you're using the right Rock database:
 
-USE People
+USE Rock
 
 /* ====================================================== */
 
@@ -194,7 +194,7 @@ values
 ('Creativity & Tech Volunteer', 'Special Event Volunteer', 'Special Event Volunteer'), 
 ('Elementary Volunteer', 'Base Camp Volunteer', 'Base Camp Volunteer'), 
 ('Elementary Volunteer', 'Base Camp Team Leader', 'Base Camp Team Leader'), 
-('Elementary Volunteer', 'Early Bird Volunteer', 'Early Bird Volunteer'), 
+('Elementary Volunteer', 'Elementary Early Bird', 'Elementary Early Bird'), 
 ('Elementary Volunteer', 'Elementary Service Leader', 'Elementary Service Leader'), 
 ('Elementary Volunteer', 'Elementary Area Leader', 'Elementary Area Leader'), 
 ('Elementary Volunteer', 'ImagiNation Volunteer', 'ImagiNation Volunteer'), 
