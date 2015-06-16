@@ -770,7 +770,7 @@ Copyright (c) 2012 Dan Eden*/
 }
 .picker .picker-label {
   padding: 6px 12px;
-  font-size: 14px;
+  font-size: 16px;
   color: #555555;
   background-color: #efefef;
   border: 1px solid #cccccc;
@@ -2150,7 +2150,7 @@ a.aspNetDisabled {
   padding-top: 0;
 }
 .form-group {
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.42857143;
 }
 .form-group .checkbox:last-child {
@@ -2874,7 +2874,7 @@ tr.row-highlight td {
 }
 .panel-note-light article .note-author,
 .panel-note-light article .note-created {
-  font-size: 13px;
+  font-size: 15px;
   opacity: 0.7;
 }
 .panel-noteentry {
@@ -4497,7 +4497,7 @@ iframe.email-body {
   min-height: 24px !important;
   font-weight: 700 !important;
   font-size: 24px !important;
-  font-family: 'OpenSans', 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+  font-family: "colfax-web", sans-serif !important;
 }
 .cke_dialog_close_button {
   background-image: none !important;
@@ -4510,7 +4510,7 @@ iframe.email-body {
   color: #282526 !important;
   font-weight: 900 !important;
   font-size: 20px !important;
-  font-family: 'OpenSans', 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+  font-family: "colfax-web", sans-serif !important;
   margin-top: 8px;
 }
 .cke_dialog_close_button .cke_label:after {
@@ -4540,8 +4540,8 @@ a.cke_dialog_ui_button:active {
   border-radius: 4px;
   text-shadow: none !important;
   padding: 6px 2px !important;
-  font-family: 'OpenSans', 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
-  font-size: 14px !important;
+  font-family: "colfax-web", sans-serif !important;
+  font-size: 16px !important;
 }
 a.cke_dialog_ui_button span {
   text-shadow: none !important;
@@ -4678,7 +4678,7 @@ a.help {
 .popover-content header {
   margin: -9px -14px 8px -14px;
   padding: 8px 14px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: normal;
   line-height: 18px;
   background-color: #f7f7f7;
@@ -5582,6 +5582,11 @@ h4,
   width: 100%;
 }
 #content-wrapper {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  bottom: 0px;
+  left: 0px;
   background-color: #f3f3f4;
   min-height: 1000px;
   z-index: 30;
@@ -5773,8 +5778,10 @@ body#splash.error #content #logo {
 .navbar-static-side {
   background-color: #282526;
   color: #d3cec5;
-  display: none;
   position: absolute;
+  top: 0px;
+  left: -70px;
+  bottom: 0px;
   width: 70px;
 }
 .navbar-static-side .navbar-header {
@@ -5859,24 +5866,25 @@ body#splash.error #content #logo {
 }
 @media (min-width: 992px) {
   .navbar-static-side {
-    display: block;
+    left: 0px;
   }
   #content-wrapper {
-    margin-left: 70px;
+    left: 70px;
   }
 }
 body.navbar-side-open .navbar-static-side {
   width: 70px;
+  left: 0px;
   display: block;
 }
 body.navbar-side-open #content-wrapper {
-  margin-left: 70px;
+  left: 70px;
 }
 body.navbar-side-close .navbar-static-side {
-  display: none;
+  left: -70px;
 }
 body.navbar-side-close #content-wrapper {
-  margin-left: 0;
+  left: 0px;
 }
 /*#endregion */
 /*#region

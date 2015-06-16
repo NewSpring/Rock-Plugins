@@ -398,6 +398,11 @@ h4, .h4 {
 }
 
 #content-wrapper {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    left: 0px;
     background-color: @body-bg;
     min-height: 1000px;
     z-index: 30;
@@ -673,8 +678,10 @@ body#splash {
 .navbar-static-side {
     background-color: @accent-bold-color;
     color: @accent-bold-text-color;
-    display: none;
     position: absolute;
+    top: 0px;
+    left: -70px;
+    bottom: 0px;
     width: 70px;
 
     .navbar-header {
@@ -779,13 +786,14 @@ body#splash {
 
 // expanded view
 @media (min-width: @screen-md-min) {
+    // Medium Screen Size and Up
 
     .navbar-static-side {
-        display: block;
+        left: 0px;
     }
 
     #content-wrapper {
-        margin-left: 70px;
+        left: 70px;
     }
 }
 
@@ -793,21 +801,22 @@ body#splash {
 body.navbar-side-open {
     .navbar-static-side {
         width: 70px;
+        left: 0px;
         display: block;
     }
 
     #content-wrapper {
-        margin-left: 70px;
+        left: 70px;
     }
 }
 
 body.navbar-side-close {
     .navbar-static-side {
-        display: none;
+        left: -70px;
     }
 
     #content-wrapper {
-        margin-left: 0;
+        left: 0px;
     }
 }
 /*#endregion */
