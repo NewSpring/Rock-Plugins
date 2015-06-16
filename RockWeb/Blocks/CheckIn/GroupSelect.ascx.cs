@@ -23,7 +23,7 @@ using System.Web.UI.WebControls;
 
 using Rock;
 using Rock.CheckIn;
-using Rock.Model;
+using Rock.Model; 
 
 namespace RockWeb.Blocks.CheckIn
 {
@@ -132,6 +132,13 @@ namespace RockWeb.Blocks.CheckIn
                     int id = Int32.Parse( e.CommandArgument.ToString() );
                     var group = groupTypes.SelectMany( t => t.Groups)
                         .Where( g => g.Group.Id == id ).FirstOrDefault();
+
+                    // deselect any group types that don't contain the group
+                    foreach ( var groupType in groupTypes )
+                    {
+                        groupType.Selected = groupType.Groups.Contains(group);
+                    }
+
                     if ( group != null )
                     {
                         group.Selected = true;
@@ -159,7 +166,7 @@ namespace RockWeb.Blocks.CheckIn
                         .SelectMany( t => t.Groups.Where( g => g.Selected ) 
                             .SelectMany( g => g.Locations.Where( l => !l.ExcludedByFilter ) ) ) ) )
                 .Count() <= 0,
-                "<ul><li>Sorry, based on your selection, there are currently not any available locations that can be checked into.</li></ul>" );
+                "<p>Sorry, based on your selection, there are currently not any available locations that can be checked into.</p>" );
         }
     }
 }

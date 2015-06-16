@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.Entity;
 using System.IO;
 using System.Linq;
 using System.Web;
@@ -112,14 +113,29 @@ namespace RockWeb.Blocks.CheckIn
                     {
                         ddlTheme.Items.Add( new ListItem( themeDir.Name, themeDir.Name.ToLower() ) );
                     }
-                    ddlTheme.SetValue( RockPage.Site.Theme.ToLower() );
+
+                    if ( !string.IsNullOrWhiteSpace( CurrentTheme ) )
+                    {
+                        ddlTheme.SetValue( CurrentTheme );
+                    }
+                    else
+                    {
+                        ddlTheme.SetValue( RockPage.Site.Theme.ToLower() );
+                    }
 
                     Guid kioskDeviceType = Rock.SystemGuid.DefinedValue.DEVICE_TYPE_CHECKIN_KIOSK.AsGuid();
                     ddlKiosk.Items.Clear();
                     using ( var rockContext = new RockContext() )
                     {
-                        ddlKiosk.DataSource = new DeviceService( rockContext ).Queryable()
+                        ddlKiosk.DataSource = new DeviceService( rockContext )
+                        	.Queryable().AsNoTracking()
                             .Where( d => d.DeviceType.Guid.Equals( kioskDeviceType ) )
+                            .OrderBy(d => d.Name)
+                            .Select( d => new
+                            {
+                                d.Id,
+                                d.Name
+                            } )
                             .ToList();
                     }
                     ddlKiosk.DataBind();
@@ -223,6 +239,7 @@ namespace RockWeb.Blocks.CheckIn
                 !hfTheme.Value.Equals( ddlTheme.SelectedValue, StringComparison.OrdinalIgnoreCase ) &&
                 Directory.Exists( Path.Combine( this.Page.Request.MapPath( ResolveRockUrl( "~~" ) ), hfTheme.Value ) ) )
             {
+                CurrentTheme = hfTheme.Value;
                 RedirectToNewTheme( hfTheme.Value );
             }
             else
@@ -356,6 +373,7 @@ namespace RockWeb.Blocks.CheckIn
 
         protected void ddlTheme_SelectedIndexChanged( object sender, EventArgs e )
         {
+            CurrentTheme = ddlTheme.SelectedValue;
             RedirectToNewTheme( ddlTheme.SelectedValue );
         }
 
@@ -377,6 +395,7 @@ namespace RockWeb.Blocks.CheckIn
             }
 
             ClearMobileCookie();
+            CurrentTheme = ddlTheme.SelectedValue;
             CurrentKioskId = Int32.Parse( ddlKiosk.SelectedValue );
             CurrentGroupTypeIds = groupTypeIds;
             CurrentCheckInState = null;
@@ -399,26 +418,24 @@ namespace RockWeb.Blocks.CheckIn
 
             // Get all locations (and their children) associated with device
             var locationIds = locationService
-                .GetByDevice(deviceId, true)
-                .Select( l => l.Id)
+                .GetByDevice( deviceId, true )
+                .Select( l => l.Id )
                 .ToList();
 
             // Requery using EF
-            foreach ( var groupType in locationService.Queryable()
+            foreach ( var groupType in locationService
+                .Queryable().AsNoTracking()
                 .Where( l => locationIds.Contains( l.Id ) )
                 .SelectMany( l => l.GroupLocations )
                 .Where( gl => gl.Group.GroupType.TakesAttendance )
                 .Select( gl => gl.Group.GroupType )
-                .Distinct()
                 .ToList() )
             {
-                if ( !groupTypes.ContainsKey( groupType.Id ) )
-                {
-                    groupTypes.Add( groupType.Id, groupType );
-                }
+                groupTypes.AddOrIgnore( groupType.Id, groupType );
             }
 
-            return groupTypes.Select( g => g.Value )
+            return groupTypes
+                .Select( g => g.Value )
                 .OrderBy( g => g.Order )
                 .ToList();
         }
@@ -439,12 +456,8 @@ namespace RockWeb.Blocks.CheckIn
             {
                 using ( var rockContext = new RockContext() )
                 {
-                    var kiosk = new DeviceService( rockContext ).Get( Int32.Parse( ddlKiosk.SelectedValue ) );
-                    if ( kiosk != null )
-                    {
-                        cblGroupTypes.DataSource = GetDeviceGroupTypes( kiosk.Id, rockContext );
-                        cblGroupTypes.DataBind();
-                    }
+                    cblGroupTypes.DataSource = GetDeviceGroupTypes( ddlKiosk.SelectedValueAsInt() ?? 0, rockContext );
+                    cblGroupTypes.DataBind();
                 }
 
                 if ( selectedValues != string.Empty )

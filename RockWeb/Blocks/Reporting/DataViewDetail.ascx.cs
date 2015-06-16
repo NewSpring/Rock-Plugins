@@ -494,7 +494,15 @@ $(document).ready(function() {
 
             if ( dataView.DataViewFilter != null && dataView.EntityTypeId.HasValue )
             {
-                descriptionListFilters.Add( "Filter", dataView.DataViewFilter.ToString( EntityTypeCache.Read( dataView.EntityTypeId.Value ).GetEntityType() ) );
+                var entityTypeCache = EntityTypeCache.Read( dataView.EntityTypeId.Value );
+                if ( entityTypeCache != null )
+                {
+                    var entityTypeType = entityTypeCache.GetEntityType();
+                    if ( entityTypeType != null )
+                    {
+                        descriptionListFilters.Add( "Filter", dataView.DataViewFilter.ToString( entityTypeType ) );
+                    }
+                }
             }
 
             lFilters.Text = descriptionListFilters.Html;
@@ -527,7 +535,11 @@ $(document).ready(function() {
 
                 if ( dataView.EntityTypeId.HasValue )
                 {
-                    gReport.RowItemText = EntityTypeCache.Read( dataView.EntityTypeId.Value, rockContext ).FriendlyName;
+                    var entityTypeCache = EntityTypeCache.Read( dataView.EntityTypeId.Value, rockContext );
+                    if (entityTypeCache != null)
+                    {
+                        gReport.RowItemText = entityTypeCache.FriendlyName;
+                    }
                 }
 
                 gReport.Visible = true;
@@ -546,10 +558,9 @@ $(document).ready(function() {
         /// <param name="filter">The filter.</param>
         private void ShowPreview( DataView dataView )
         {
-            if ( BindGrid( gPreview, dataView, 15 ) )
-            {
-                modalPreview.Show();
-            }
+            BindGrid( gPreview, dataView, 15 );
+            
+            modalPreview.Show();
         }
 
         /// <summary>
@@ -594,7 +605,8 @@ $(document).ready(function() {
 
                         try
                         {
-                            grid.DataSource = qry.AsNoTracking().ToList();
+                            grid.SetLinqDataSource( qry.AsNoTracking() );
+                            grid.DataBind();
                         }
                         catch ( Exception ex )
                         {
@@ -628,10 +640,17 @@ $(document).ready(function() {
                 }
             }
 
+            var errorBox = ( grid == gPreview) ? nbPreviewError : nbGridError;
+
             if ( errorMessages.Any() )
             {
-                nbEditModeMessage.NotificationBoxType = NotificationBoxType.Warning;
-                nbEditModeMessage.Text = "INFO: There was a problem with one or more of the filters for this data view...<br/><br/> " + errorMessages.AsDelimited( "<br/>" );
+                errorBox.NotificationBoxType = NotificationBoxType.Warning;
+                errorBox.Text = "WARNING: There was a problem with one or more of the filters for this data view...<br/><br/> " + errorMessages.AsDelimited( "<br/>" );
+                errorBox.Visible = true;
+            }
+            else
+            {
+                errorBox.Visible = false;
             }
 
             if ( dataView.EntityTypeId.HasValue )
@@ -642,7 +661,6 @@ $(document).ready(function() {
             if ( grid.DataSource != null )
             {
                 grid.ExportFilename = dataView.Name;
-                grid.DataBind();
                 return true;
             }
 
@@ -689,6 +707,7 @@ $(document).ready(function() {
             FilterGroup groupControl = sender as FilterGroup;
             FilterField filterField = new FilterField();
             filterField.DataViewFilterGuid = Guid.NewGuid();
+            filterField.DeleteClick += filterControl_DeleteClick;
             groupControl.Controls.Add( filterField );
             filterField.ID = string.Format( "ff_{0}", filterField.DataViewFilterGuid.ToString( "N" ) );
             filterField.FilteredEntityTypeName = groupControl.FilteredEntityTypeName;

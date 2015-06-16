@@ -1,13 +1,14 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="AttendanceReporting.ascx.cs" Inherits="RockWeb.Blocks.CheckIn.AttendanceReporting" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="AttendanceAnalytics.ascx.cs" Inherits="RockWeb.Blocks.CheckIn.AttendanceAnalytics" %>
 
 <asp:UpdatePanel ID="upnlContent" runat="server">
     <ContentTemplate>
 
-        <div class="panel panel-block">
+        <div class="panel panel-block panel-analytics">
             <div class="panel-heading">
                 <h1 class="panel-title"><i class="fa fa-check-square-o"></i>Attendance Analysis</h1>
 
                 <div class="panel-labels">
+                    <asp:Button ID="btnCheckinDetails" runat="server" CssClass="btn btn-default btn-sm" OnClick="btnCheckinDetails_Click" Text="Check-in Detail" />
                     <a href="#" onclick="$('.js-slidingdaterange-help').slideToggle()">
                         <i class='fa fa-question-circle'></i>
                     </a>
@@ -62,6 +63,8 @@
 
                         </ul>
 
+                        <Rock:DataViewPicker ID="dvpDataView" runat="server" Label="Limit by DataView" />
+
                     </div>
                     <div class="col-md-9">
 
@@ -111,6 +114,7 @@
                                 </div>
                             </div>
                             <Rock:LineChart ID="lcAttendance" runat="server" DataSourceUrl="" Title="" Subtitle="" ChartHeight="300" />
+                            <Rock:BarChart ID="bcAttendance" runat="server" DataSourceUrl="" Title="" Subtitle="" ChartHeight="300" />
                             <div class="row margin-t-sm">
                                 <div class="col-md-12">
                                     <div class="pull-right">
@@ -185,10 +189,6 @@
                                             </asp:Panel>
                                         </p>
                                     </Rock:RockControlWrapper>
-
-                                    <div class="actions margin-b-md">
-                                        <asp:LinkButton ID="btnApplyAttendeesFilter" runat="server" Visible="false" CssClass="btn btn-primary" Text="Apply" ToolTip="Update the Attendees grid" OnClick="btnApplyAttendeesFilter_Click" />
-                                    </div>
 
                                 </div>
                             </div>
