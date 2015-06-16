@@ -5,7 +5,7 @@
 @primary-color: #6bac43;
 @secondary-color: #1c683e;
 @tertiary-color: #2a4930;
-@dark-color: #202020;
+@dark-color: #303030;
 @light-color: #fff;
 
 //
@@ -21,14 +21,14 @@
 @font-weight-semibold:  700;
 
 // Standard Colors
-@accent-color: #dbd5cb;
+@accent-color: darken(@light-color, 15);
 @accent-text-color: #524c43;
 @accent-light-color: #e3ded7;
 @accent-light-text-color: #817b72;
 @accent-semibold-color: #c2b8a7;
 @accent-semibold-text-color: #616161;
-@accent-bold-color: #282526;
-@accent-bold-text-color: #d3cec5;
+@accent-bold-color: @dark-color;
+@accent-bold-text-color: lighten(@dark-color, 60);
 
 @text-light-color: lighten(@text-color, 20%);
 @text-selection-color: #afd074;
@@ -55,8 +55,8 @@
 
 @pagetitle-bg: #c7cacd;
 
-@header-bg:     #c2b8a7;
-@header-text-color: @accent-semibold-text-color;
+@header-bg:     @primary-color;
+@header-text-color: @tertiary-color;
 
 @footer-bg: @header-bg;
 @footer-text-color: @header-text-color;
@@ -405,7 +405,8 @@
 // -------------------------
 
 // Basics of a navbar
-@navbar-height:                    50px;
+@navbar-width: 					   70px;
+@navbar-height:                    70px;
 @navbar-margin-bottom:             0;
 @navbar-default-color:             #777;
 @navbar-default-bg:                @header-bg;

@@ -143,6 +143,10 @@ pre {
 // 3. Bootstrap Overrides    */
 // -------------------------
 
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 0px;
+}
+
 h1 small, 
 h2 small, 
 h3 small, 
@@ -190,7 +194,7 @@ h4, .h4 {
             font-weight: @font-weight-light;
             letter-spacing: -.5px;
             font-size: 18px;
-            margin: 0 12px 4px 0;
+            margin: 6px 12px 4px 0;
         }
 
         h3 > i {
@@ -415,11 +419,12 @@ h4, .h4 {
             color: @accent-bold-text-color;
 
             .navbar-header {
-                padding: 8px 0 0 12px;
+                padding: 0 0 0 4px;
                 float: left;
             }
 
             .navbar-mobile-logo {
+                display: none;
                 float: left;
                 width: 95px;
                 height: 34px;
@@ -574,13 +579,26 @@ body#splash {
 // -------------------------
 
 .navbar-minimize {
-    background-color: @btn-primary-bg;
+    // background-color: @btn-primary-bg;
     color: @btn-primary-color;
     border: none;
-    padding: 4px 12px;
+    padding: 0 @navbar-height/4;
     border-radius: 4px;
     cursor: pointer;
     display: inline-block;
+
+    i:before {
+        font-size: 28px;
+        line-height: @navbar-height - 2;
+        content: '\f060';
+    }
+
+    body.navbar-side-close & {
+        i:before {
+            content: '\f0c9';
+            line-height: @navbar-height;
+        }
+    }
 }
 
 
@@ -597,7 +615,6 @@ body#splash {
 @media (min-width: @screen-sm-min) {
 
     body#splash {
-
         #content {
             margin: 36px auto 0;
 
@@ -607,6 +624,16 @@ body#splash {
                 display: block;
                 margin: 0 auto 12px;
             }
+        }
+    }
+
+    #content-wrapper {
+        #page-content {
+            padding: 30px;
+        }
+
+        footer {
+            padding: 0 30px;
         }
     }
 
@@ -680,9 +707,9 @@ body#splash {
     color: @accent-bold-text-color;
     position: absolute;
     top: 0px;
-    left: -70px;
+    left: -@navbar-width;
     bottom: 0px;
-    width: 70px;
+    width: @navbar-width;
 
     .navbar-header {
         height: @navbar-height;
@@ -690,11 +717,11 @@ body#splash {
         background-color: darken(@accent-bold-color, 5%);
 
         .logo {
-            background: url(../../../Assets/Images/rock-logo-sm.svg) no-repeat top left;
+            background: url(../Assets/Images/newspring-logo.png) no-repeat top left;
             height: 35px;
             width: 36px;
             background-size: contain;
-            margin: 8px auto 0;
+            margin: 18px auto 0;
         }
     }
 
@@ -708,7 +735,7 @@ body#splash {
             margin-top: 0;
 
             > i {
-                padding: 11px 0;
+                padding: 14px 0;
                 font-size: 24px;
                 color: @accent-bold-text-color;
                 display: block;
@@ -724,19 +751,19 @@ body#splash {
 
             .nav-childpages {
                 top: 0;
-                left: 70px;
+                left: @navbar-width;
                 position: absolute;
                 z-index: 9999;
                 background-color: lighten(@accent-bold-color, 5%);
                 display: none;
-                font-size: 14px;
-                width: 220px;
+                font-size: @font-size-base;
+                width: 240px;
                 text-align: left;
-                padding: 9px 12px;
+                padding: 12px 12px 16px;
 
                 li a {
                     line-height: 1.1em;
-                    padding: 6px;
+                    padding: 7px 8px;
                     color: @accent-bold-text-color;
 
                     &:focus {
@@ -749,20 +776,20 @@ body#splash {
                 }
 
                 li.title {
-                    font-size: 18px;
-                    font-weight: @font-weight-light;
-                    color: #ee7624;
+                    font-size: @font-size-large;
+                    font-weight: @font-weight-semibold;
+                    color: @primary-color;
                     margin-bottom: -8px;
                 }
 
                 li.header {
                     margin-top: 14px;
-                    color: darken(@accent-bold-text-color, 20%);
+                    color: darken(@accent-bold-text-color, 30);
                     margin-left: 4px;
-                    font-weight: @font-weight-semibold;
+                    margin-bottom: 8px;
+                    font-weight: 400;
                     padding-bottom: 2px;
                     border-bottom: 1px solid lighten(@accent-bold-color, 10%);
-                    font-weight: 400;
                 }
 
                 li.header:first-child {
@@ -793,26 +820,26 @@ body#splash {
     }
 
     #content-wrapper {
-        left: 70px;
+        left: @navbar-width;
     }
 }
 
 // minimized view
 body.navbar-side-open {
     .navbar-static-side {
-        width: 70px;
+        width: @navbar-width;
         left: 0px;
         display: block;
     }
 
     #content-wrapper {
-        left: 70px;
+        left: @navbar-width;
     }
 }
 
 body.navbar-side-close {
     .navbar-static-side {
-        left: -70px;
+        left: -@navbar-width;
     }
 
     #content-wrapper {

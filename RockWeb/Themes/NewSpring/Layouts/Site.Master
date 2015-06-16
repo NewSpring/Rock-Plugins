@@ -171,12 +171,16 @@
 
             // show/hide sidebar nav
             $('.navbar-minimize').click(function () {
-                if ($('body').hasClass('navbar-side-open')) {
+                if($('body').hasClass('navbar-side-open')) {
                     $('body').addClass('navbar-side-close');
                     $('body').removeClass('navbar-side-open');
-                } else {
-                    $('body').addClass('navbar-side-open');
+                } 
+                else if($('body').hasClass('navbar-side-close')) {
                     $('body').removeClass('navbar-side-close');
+                    $('body').addClass('navbar-side-open');
+                } 
+                else {
+                    $('body').addClass('navbar-side-close');
                 }
             });
 
