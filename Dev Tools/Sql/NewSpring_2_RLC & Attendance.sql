@@ -2215,8 +2215,8 @@ begin
 	from #rlcMap where ID = @scopeIndex
 	
 	declare @msg nvarchar(500)
-	--select @msg = 'Starting ' + @CampusCode + ' / ' + @GroupTypeName + ' / ' + @GroupName + ' (' + ltrim(str(@RLCID, 25, 0)) + ')'
-	--RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
+	select @msg = 'Starting ' + @CampusCode + ' / ' + @GroupTypeName + ' / ' + @GroupName + ' (' + ltrim(str(@RLCID, 25, 0)) + ')'
+	RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
 	
 	select @CampusId = [Id], @CampusName = [Name], @CampusGuid = [Guid]
 	from [Campus]
@@ -2272,9 +2272,6 @@ begin
 
 		if @CampusAttributeId is null
 		begin
-
-			select @msg = 'Creating ' + @CampusCode + ' / ' + @GroupTypeName + ' / ' + @GroupName + ' (' + ltrim(str(@RLCID, 25, 0)) + ')'
-			RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
 
 			insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
 				[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
