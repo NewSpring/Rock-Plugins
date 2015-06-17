@@ -5346,9 +5346,6 @@ div.aspNetDisabled {
   font-style: normal;
 }
 /*#endregion */
-#cms-admin-footer {
-  display: none;
-}
 /*
     Rock Theme Styles
 
@@ -5455,8 +5452,11 @@ h4,
   border-top-width: 0;
   border-top-width: 3px;
 }
+.panel.panel-block {
+  overflow: hidden;
+}
 .panel .panel-heading {
-  padding: 6px 10px;
+  padding: 10px 17px;
   border-color: #e2e2e2;
   border-radius: 0;
 }
@@ -5478,64 +5478,6 @@ h4,
 .btn-xs,
 .btn-group-xs > .btn {
   padding: 5px 12px 4px;
-}
-.modal.modal-overflow {
-  bottom: 30px;
-}
-.modal-open .modal {
-  overflow: hidden;
-}
-.modal-backdrop,
-.modal-backdrop.fade.in,
-.modal-scrollable {
-  background-color: rgba(0, 0, 0, 0.75);
-}
-.modal-backdrop.in {
-  opacity: 1;
-}
-.modal-content.rock-modal .modal-header,
-.rock-modal .modal-content .modal-header,
-.modal-content.rock-modal .modal-footer,
-.rock-modal .modal-content .modal-footer {
-  position: absolute;
-  left: 0px;
-  right: 0px;
-  height: 60px;
-  padding: 9px 20px;
-}
-.modal-content.rock-modal,
-.rock-modal .modal-content {
-  background-color: #000;
-}
-.modal-content.rock-modal .modal-header,
-.rock-modal .modal-content .modal-header {
-  top: 0px;
-  background-color: #6bac43;
-  color: #ffffff;
-}
-.modal-content.rock-modal .modal-body,
-.rock-modal .modal-content .modal-body {
-  position: absolute;
-  top: 60px;
-  right: 0px;
-  bottom: 60px;
-  left: 0px;
-  padding: 20px;
-  overflow-y: scroll;
-  overflow-x: hidden;
-  background-color: #ffffff;
-  min-height: 0 !important;
-}
-.modal-content.rock-modal .modal-footer,
-.rock-modal .modal-content .modal-footer {
-  bottom: 0px;
-  background-color: #303030;
-  padding-top: 12px;
-}
-.modal-content.rock-modal .modal-footer .btn,
-.rock-modal .modal-content .modal-footer .btn {
-  font-weight: 500;
-  border-color: transparent;
 }
 .tag-letterlist a {
   color: #6bac43;
@@ -5689,6 +5631,20 @@ h4,
 }
 .discchart .discbar.discbar-primary {
   background: #6bac43;
+}
+.form-group.rockliteral label,
+.rock-control-wrapper label {
+  margin-bottom: 5px;
+}
+.label {
+  display: inline-block;
+  width: 100%;
+  padding: .8em .5em;
+  vertical-align: top;
+  margin-bottom: 7px;
+}
+.table-responsive {
+  margin-bottom: 0px;
 }
 /*#endregion */
 /*#region
@@ -5915,6 +5871,13 @@ body.navbar-side-close .navbar-minimize i:before {
   }
   #content-wrapper .smartsearch input.searchinput {
     color: #2a4930;
+  }
+  .panel-analytics .filter-options {
+    border-right: 1px solid #ddd;
+  }
+  .panel-analytics .analysis-types {
+    border-bottom: 1px solid #ddd;
+    border-left: 1px solid #ddd;
   }
 }
 @media (min-width: 1200px) {

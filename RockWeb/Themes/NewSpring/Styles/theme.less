@@ -65,9 +65,9 @@
 }
 /*#endregion */
 
-#cms-admin-footer {
-    display: none;
-}
+// #cms-admin-footer {
+//     display: none;
+// }
 
 /*
     Rock Theme Styles
@@ -190,8 +190,12 @@ h4, .h4 {
     border-top-width: 0;
     border-top-width: 3px;
 
+    &.panel-block {
+        overflow: hidden;
+    }
+
     .panel-heading {
-        padding: 6px 10px;
+        padding: 10px 17px;
         border-color: darken(@gray-lighter, 5%);
         border-radius: 0;
 
@@ -220,6 +224,10 @@ h4, .h4 {
     }
 }
 
+// .panel-analytics .panel-body .grid.grid-panel {
+//     border-top: 1px solid #ddd;
+// }
+
 // button tweaks
 
 .btn-xs, .btn-group-xs > .btn {
@@ -228,71 +236,83 @@ h4, .h4 {
 
 // modal tweaks
 
-.modal.modal-overflow {
-    bottom: 30px;
-}
+// .modal-content.rock-modal .modal-body,
+// .rock-modal .modal-content .modal-body {
+//     position: absolute;
+//     top: 60px;
+//     left: 0px;
+//     right: 0px;
+//     bottom: 0px;
+// }
 
-.modal-open .modal {
-    overflow: hidden;
-}
+// .modal.modal-overflow {
+//     bottom: 30px;
+// }
 
-.modal-backdrop, 
-.modal-backdrop.fade.in, 
-.modal-scrollable {
-    background-color: rgba(0,0,0,.75);
-}
-.modal-backdrop.in {
-    opacity: 1;
-}
+// .modal-open .modal {
+//     overflow: hidden;
+// }
 
-.modal-content.rock-modal .modal-header, 
-.rock-modal .modal-content .modal-header, 
-.modal-content.rock-modal .modal-footer, 
-.rock-modal .modal-content .modal-footer {
-    position: absolute;
-    left: 0px;
-    right: 0px;
-    height: 60px;
-    padding: 9px 20px;
-}
+// .modal-backdrop, 
+// .modal-backdrop.fade.in, 
+// .modal-scrollable {
+//     background-color: rgba(0,0,0,.75);
+// }
+// .modal-backdrop.in {
+//     opacity: 1;
+// }
 
-.modal-content.rock-modal, 
-.rock-modal .modal-content {
-    background-color: #000;
-}
+// .modal-content.rock-modal .modal-header, 
+// .rock-modal .modal-content .modal-header, 
+// .modal-content.rock-modal .modal-footer, 
+// .rock-modal .modal-content .modal-footer {
+//     position: absolute;
+//     left: 0px;
+//     right: 0px;
+//     height: 60px;
+//     padding: 9px 20px;
+// }
 
-.modal-content.rock-modal .modal-header, 
-.rock-modal .modal-content .modal-header {
-    top: 0px;
-    background-color: @primary-color;
-    color: @light-color;
-}
+// .modal-content.rock-modal, 
+// .rock-modal .modal-content {
+//     background-color: #000;
+// }
 
-.modal-content.rock-modal .modal-body, 
-.rock-modal .modal-content .modal-body {
-    position: absolute;
-    top: 60px;
-    right: 0px;
-    bottom: 60px;
-    left: 0px;
-    padding: 20px;
-    overflow-y: scroll;
-    overflow-x: hidden;
-    background-color: @light-color;
-    min-height: 0 !important;
-}
+// .modal-content.rock-modal .modal-header, 
+// .rock-modal .modal-content .modal-header {
+//     top: 0px;
+//     background-color: @primary-color;
+//     color: @light-color;
+// }
 
-.modal-content.rock-modal .modal-footer, 
-.rock-modal .modal-content .modal-footer {
-    bottom: 0px;
-    background-color: @dark-color;
-    padding-top: 12px;
+// .modal-content.rock-modal .modal-body, 
+// .rock-modal .modal-content .modal-body {
+//     position: absolute;
+//     top: 60px;
+//     right: 0px;
+//     bottom: 60px;
+//     left: 0px;
+//     padding: 20px;
+//     overflow-y: scroll;
+//     overflow-x: hidden;
+//     background-color: @light-color;
+//     min-height: 0 !important;
+// }
 
-    .btn {
-        font-weight: 500;
-        border-color: transparent;
-    }
-}
+// .modal-content.rock-modal .modal-footer, 
+// .rock-modal .modal-content .modal-footer {
+//     bottom: 0px;
+//     background-color: @dark-color;
+//     padding-top: 12px;
+
+//     .btn {
+//         font-weight: 500;
+//         border-color: transparent;
+//     }
+// }
+
+
+
 
 .tag-letterlist a {
     color: @brand-primary;
@@ -519,6 +539,23 @@ h4, .h4 {
             background: @brand-primary;
         }
     }
+}
+
+// forms
+.form-group.rockliteral label, .rock-control-wrapper label {
+    margin-bottom: 5px;
+}
+
+.label {
+    display: inline-block;
+    width: 100%;
+    padding: .8em .5em;
+    vertical-align: top;
+    margin-bottom: 7px;
+}
+
+.table-responsive {
+    margin-bottom: 0px;
 }
 
 /*#endregion */
@@ -841,6 +878,17 @@ body#splash {
             input.searchinput {
                 color: @header-text-color;
             }
+        }
+    }
+
+    .panel-analytics {
+        .filter-options {
+            border-right: 1px solid #ddd;
+        }
+
+        .analysis-types {
+            border-bottom: 1px solid #ddd;
+            border-left: 1px solid #ddd;
         }
     }
 }
