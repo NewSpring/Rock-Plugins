@@ -5,7 +5,9 @@ var gulp = require('gulp'),
 
 gulp.task('browser-sync', function() {
     browserSync.init({
-        proxy: "rock.dev:50345"
+        proxy: "rock.dev:50345",
+        xip: true,
+        notify: true
     });
 });
 
@@ -16,6 +18,7 @@ gulp.task('less', function () {
   	])
     .pipe(less())
     .pipe(gulp.dest('./Themes/NewSpring'))
+    .pipe(browserSync.stream());
 });
 
 gulp.task('sass', function(){
@@ -25,6 +28,7 @@ gulp.task('sass', function(){
 	])
 	.pipe(sass())
 	.pipe(gulp.dest('./Themes/NewSpring'))
+	.pipe(browserSync.stream());
 });
 
 gulp.task('watch', function(){
