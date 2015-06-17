@@ -5,7 +5,7 @@ Built with the Rock developer kit: https://github.com/SparkDevNetwork/RockKit
 ______________________________________________
 Installation:
 
-* Download Rock.CyberSource.dll into RockWeb\Plugins: https://github.com/NewSpring/Cybersource-Plugin/blob/master/RockWeb/Plugins/Rock.CyberSource.dll
+* Download cc.newspring.CyberSource.dll into RockWeb\Bin: https://github.com/NewSpring/Cybersource-Plugin/blob/develop/RockWeb/Bin/cc.newspring.CyberSource.dll
 * Go to Admin Tools -> System Settings -> Financial Gateways and select the CyberSource option
 * Fill out your MerchantID, Transaction Key, and Reporting User credentials (if you want to use reporting)
 
