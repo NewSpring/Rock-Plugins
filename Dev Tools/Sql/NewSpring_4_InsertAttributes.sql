@@ -17,7 +17,7 @@
    ====================================================== */
 -- Make sure you're using the right Rock database:
 
-USE People
+USE Rock
 
 /* ====================================================== */
 
@@ -69,8 +69,6 @@ where ( attribute_name like 'Ownership%Joined'
 	or attribute_name like 'NewServe%'
 )
 group by attribute_group_name, attribute_name
-
-select * from #attributes
 
 /* ====================================================== */
 -- Create attribute lookup
@@ -144,7 +142,7 @@ begin
 
 				-- set additional attribute fields
 				insert AttributeQualifier (IsSystem, AttributeId, [Key], Value, [Guid])
-				select @IsSystem, @DateAttributeId, 'truetext', 'YES', NEWID()
+				select @IsSystem, @DateAttributeId, 'truetext', 'Yes', NEWID()
 
 				insert AttributeQualifier (IsSystem, AttributeId, [Key], Value, [Guid])
 				select @IsSystem, @DateAttributeId, 'falsetext', 'No', NEWID()
@@ -355,7 +353,7 @@ begin
 
 					-- set additional attribute fields
 					insert AttributeQualifier (IsSystem, AttributeId, [Key], Value, [Guid])
-					select @IsSystem, @BooleanAttributeId, 'truetext', 'YES', NEWID()
+					select @IsSystem, @BooleanAttributeId, 'truetext', 'Yes', NEWID()
 
 					insert AttributeQualifier (IsSystem, AttributeId, [Key], Value, [Guid])
 					select @IsSystem, @BooleanAttributeId, 'falsetext', 'No', NEWID()
@@ -629,6 +627,93 @@ begin
 end
 -- end while attribute loop
 
+-- UPDATE 6/16/15
+-- create badge attributes for all current members/owners
+
+declare @MemberStatusId int
+select @MemberStatusId = dv.[Id] from DefinedValue dv
+inner join DefinedType dt
+	on dv.DefinedTypeId = dt.Id
+	and dt.name = 'Connection Status'
+where dv.value = 'Member'
+	or dv.value = 'Owner'
+
+select @AttributeCategoryId = [Id] from Category
+where EntityTypeId = @AttributeEntityTypeId 
+	and name = 'Next Steps'
+
+select @msg = 'Creating Boolean: Baptism attribute for members'
+RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
+
+-- Boolean: Has Been Baptized attribute
+select @BooleanAttributeId = null
+select @BooleanAttributeId = [Id] from Attribute 
+where EntityTypeId = @PersonEntityTypeId and name = 'Has Been Baptized'
+
+if @BooleanAttributeId is null
+begin
+	insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
+		[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
+	select @IsSystem, @BooleanFieldTypeId, @PersonEntityTypeId, '', '', 'HasBeenBaptized', 'Has Been Baptized', 
+		'The person was baptized outside of NewSpring.', '', @Order, @False, @False, @False, NEWID()
+
+	select @BooleanAttributeId = SCOPE_IDENTITY()
+
+	-- set additional attribute fields
+	insert AttributeQualifier (IsSystem, AttributeId, [Key], Value, [Guid])
+	select @IsSystem, @BooleanAttributeId, 'truetext', 'Yes', NEWID()
+
+	insert AttributeQualifier (IsSystem, AttributeId, [Key], Value, [Guid])
+	select @IsSystem, @BooleanAttributeId, 'falsetext', 'No', NEWID()
+
+	insert AttributeCategory (AttributeId, CategoryId)
+	select @BooleanAttributeId, @AttributeCategoryId
+end
+
+if @BooleanAttributeId is not null
+begin
+	insert into #attributeAssignment ( personId, attributeId, value, filterDate )
+	select [Id], @BooleanAttributeId, 'True', null
+	from Person
+	where ConnectionStatusValueId = @MemberStatusId
+end
+
+select @msg = 'Creating Boolean: Salvation attribute for members'
+RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
+
+-- Boolean: Has Been Saved attribute
+select @BooleanAttributeId = null
+select @BooleanAttributeId = [Id] from Attribute 
+where EntityTypeId = @PersonEntityTypeId and name = 'Has Been Saved'
+
+if @BooleanAttributeId is null
+begin
+	insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
+		[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
+	select @IsSystem, @BooleanFieldTypeId, @PersonEntityTypeId, '', '', 'Has Been Saved', 'Has Been Saved', 
+		'The person was saved outside of NewSpring.', '', @Order, @False, @False, @False, NEWID()
+
+	select @BooleanAttributeId = SCOPE_IDENTITY()
+
+	-- set additional attribute fields
+	insert AttributeQualifier (IsSystem, AttributeId, [Key], Value, [Guid])
+	select @IsSystem, @BooleanAttributeId, 'truetext', 'Yes', NEWID()
+
+	insert AttributeQualifier (IsSystem, AttributeId, [Key], Value, [Guid])
+	select @IsSystem, @BooleanAttributeId, 'falsetext', 'No', NEWID()
+
+	insert AttributeCategory (AttributeId, CategoryId)
+	select @BooleanAttributeId, @AttributeCategoryId
+end
+
+if @BooleanAttributeId is not null
+begin
+	insert into #attributeAssignment ( personId, attributeId, value, filterDate )
+	select [Id], @BooleanAttributeId, 'True', null
+	from Person
+	where ConnectionStatusValueId = @MemberStatusId
+end
+
 -- remove duplicate attributes and values
 ;WITH duplicates (personId, attributeId, id) 
 AS (
@@ -650,11 +735,8 @@ and a.attributeId = av.AttributeId
 
 -- insert attribute values
 insert AttributeValue ( [IsSystem], [AttributeId], [EntityId], [Value], [Guid] )
-select @IsSystem, attributeId, personId, value, NEWID()
+select 0, attributeId, personId, value, NEWID()
 from #attributeAssignment
-
--- clear the assignments for this attribute
-truncate table #attributeAssignment
 
 -- completed successfully
 RAISERROR ( N'Completed successfully.', 0, 0 ) WITH NOWAIT

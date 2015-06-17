@@ -10,7 +10,7 @@
    ====================================================== */
 -- Make sure you're using the right Rock database:
 
-USE People
+USE Rock
 
 /* ====================================================== */
 
@@ -26,17 +26,17 @@ DECLARE @F1 nvarchar(255) = 'F1'
 declare @IsSystem int = 0, @Order int = 0,  @TextFieldTypeId int = 1, @True int = 1, @False int = 0
 declare @ScheduleDefinedTypeId decimal, @GroupCategoryId bigint, @ChildCategoryId bigint, @RLCID bigint, 
 	@NameSearchValueId bigint, @PersonId bigint, @GroupTypeId bigint, @GroupId bigint, @LocationId bigint, 
-	@CampusId bigint,@GroupMemberEntityId bigint, @PersonEntityTypeId bigint, @DefinedValueFieldTypeId bigint, 
+	@CampusId bigint, @GroupMemberEntityId bigint, @PersonEntityTypeId bigint, @DefinedValueFieldTypeId bigint, 
 	@ScheduleAttributeId bigint, @BreakoutGroupAttributeId bigint, @TeamConnectorTypeId bigint, 
-	@TeamConnectorAttributeId bigint, @CampusDefinedTypeId bigint, @CampusAttributeId bigint
+	@TeamConnectorAttributeId bigint, @CampusFieldTypeId bigint, @CampusAttributeId bigint
 
 select @GroupCategoryId = Id from Category where [Guid] = '56B3C72A-6CE7-4CAE-8105-9F16EE772530'
 select @ChildCategoryId = Id from Category where [Guid] = '752DC692-836E-4A3E-B670-4325CD7724BF'
 select @GroupMemberEntityId = Id from EntityType where [Guid] = '49668B95-FEDC-43DD-8085-D2B0D6343C48'
 select @PersonEntityTypeId = Id from EntityType where [Guid] = '72657ED8-D16E-492E-AC12-144C5E7567E7' 
 select @DefinedValueFieldTypeId = Id from FieldType where [Guid] = '59D5A94C-94A0-4630-B80A-BB25697D74C7'
+select @CampusFieldTypeId = Id from FieldType where [Guid] = '1B71FEF4-201F-4D53-8C60-2DF21F1985ED'
 select @NameSearchValueId = Id from DefinedValue where [Guid] = '071D6DAA-3063-463A-B8A1-7D9A1BE1BB31'
-select @CampusDefinedTypeId = Id from DefinedType where [Guid] = 'CF673374-A508-4ABC-AA2B-AA48D19AF799'
 select @ScheduleDefinedTypeId = Id from DefinedType where [Guid] = '26ECDD90-A2FA-4732-B3D1-32AC93953EFA'
 select @BreakoutGroupAttributeId = Id from Attribute where [Guid] = 'BF976365-01E7-4C98-9BE2-4D5B78EDBF48'
 select @TeamConnectorTypeId = Id from DefinedType where [Guid] = '418C4656-6A85-4642-B8BA-BEEB1A0FF869'
@@ -53,18 +53,6 @@ if not exists (select top 1 object_id from F1.sys.indexes where name = 'IX_Atten
 begin
 	CREATE INDEX IX_Attendance ON F1..Attendance (Individual_ID, RLC_ID, Start_Date_Time, Check_In_Time)
 end
-
---/* ====================================================== */
----- Create campus defined type
---/* ====================================================== */
---if @CampusDefinedTypeId is null
---begin
---	insert DefinedType ( [IsSystem], [FieldTypeId], [Order], [Name], [Description], [Guid], CategoryId )
---	select @IsSystem, @TextFieldTypeId, @Order, 'Campus', 'The campus assigned to this group member.',
---		'CF673374-A508-4ABC-AA2B-AA48D19AF799', @GroupCategoryId
-
---	select @CampusDefinedTypeId = SCOPE_IDENTITY()
---end
 
 /* ====================================================== */
 -- Create person Breakout Group attribute for attendees
@@ -208,7 +196,7 @@ end
 create table #rlcMap (
 	ID int IDENTITY(1,1),
 	RLC_ID bigint,
-	Campus nvarchar(3),
+	Code nvarchar(3),
 	GroupType nvarchar(255),
 	GroupName nvarchar(255)
 )
@@ -223,15 +211,15 @@ values
 (1062481, 'AND', 'Creativity & Tech Volunteer', 'Office Team'),
 (1219466, 'AND', 'Creativity & Tech Volunteer', 'Production Team'),
 (1340597, 'AND', 'Creativity & Tech Volunteer', 'Social Media/PR Team'),
-(778083, 'AND', 'Elementary', 'Base Camp'),
-(776134, 'AND', 'Elementary', 'ImagiNation - 1st'),
-(776132, 'AND', 'Elementary', 'ImagiNation - K'),
-(776131, 'AND', 'Elementary', 'Jump Street - 2nd'),
-(776130, 'AND', 'Elementary', 'Jump Street - 3rd'),
-(778081, 'AND', 'Elementary', 'Shockwave - 4th'),
-(778082, 'AND', 'Elementary', 'Shockwave - 5th'),
+(778083, 'AND', 'Elementary Attendee', 'Base Camp'),
+(776134, 'AND', 'Elementary Attendee', 'ImagiNation 1st'),
+(776132, 'AND', 'Elementary Attendee', 'ImagiNation K'),
+(776131, 'AND', 'Elementary Attendee', 'Jump Street 2nd'),
+(776130, 'AND', 'Elementary Attendee', 'Jump Street 3rd'),
+(778081, 'AND', 'Elementary Attendee', 'Shockwave 4th'),
+(778082, 'AND', 'Elementary Attendee', 'Shockwave 5th'),
 (800903, 'AND', 'Elementary Volunteer', 'Base Camp Volunteer'),
-(1313359, 'AND', 'Elementary Volunteer', 'Early Bird Volunteer'),
+(1313359, 'AND', 'Elementary Volunteer', 'Elementary Early Bird'),
 (1382568, 'AND', 'Elementary Volunteer', 'Elementary Area Leader'),
 (802734, 'AND', 'Elementary Volunteer', 'Elementary Service Leader'),
 (800897, 'AND', 'Elementary Volunteer', 'ImagiNation Volunteer'),
@@ -373,15 +361,15 @@ values
 (1285794, 'AND', 'Next Steps Volunteer', 'Special Event Volunteer'),
 (1285801, 'AND', 'Next Steps Volunteer', 'Sunday Care Team'),
 (1285805, 'AND', 'Next Steps Volunteer', 'Writing Team'),
-(776129, 'AND', 'Nursery', 'Wonder Way - 1'),
-(776139, 'AND', 'Nursery', 'Wonder Way - 2'),
-(776138, 'AND', 'Nursery', 'Wonder Way - 3'),
-(776140, 'AND', 'Nursery', 'Wonder Way - 4'),
-(776137, 'AND', 'Nursery', 'Wonder Way - 5'),
-(776136, 'AND', 'Nursery', 'Wonder Way - 6'),
-(776135, 'AND', 'Nursery', 'Wonder Way - 7'),
-(776133, 'AND', 'Nursery', 'Wonder Way - 8'),
-(802747, 'AND', 'Nursery Volunteer', 'Early Bird Volunteer'),
+(776129, 'AND', 'Nursery Attendee', 'Wonder Way 1'),
+(776139, 'AND', 'Nursery Attendee', 'Wonder Way 2'),
+(776138, 'AND', 'Nursery Attendee', 'Wonder Way 3'),
+(776140, 'AND', 'Nursery Attendee', 'Wonder Way 4'),
+(776137, 'AND', 'Nursery Attendee', 'Wonder Way 5'),
+(776136, 'AND', 'Nursery Attendee', 'Wonder Way 6'),
+(776135, 'AND', 'Nursery Attendee', 'Wonder Way 7'),
+(776133, 'AND', 'Nursery Attendee', 'Wonder Way 8'),
+(802747, 'AND', 'Nursery Volunteer', 'Nursery Early Bird'),
 (800895, 'AND', 'Nursery Volunteer', 'Wonder Way 1 Volunteer'),
 (802748, 'AND', 'Nursery Volunteer', 'Wonder Way 2 Volunteer'),
 (802749, 'AND', 'Nursery Volunteer', 'Wonder Way 3 Volunteer'),
@@ -392,16 +380,16 @@ values
 (802754, 'AND', 'Nursery Volunteer', 'Wonder Way 8 Volunteer'),
 (961212, 'AND', 'Nursery Volunteer', 'Wonder Way 8 Volunteer'),
 (802760, 'AND', 'Nursery Volunteer', 'Wonder Way Service Leader'),
-(930856, 'AND', 'Preschool', 'Base Camp Jr.'),
-(800558, 'AND', 'Preschool', 'Fire Station'),
-(800560, 'AND', 'Preschool', 'Lil'' Spring'),
-(800559, 'AND', 'Preschool', 'Pop''s Garage'),
-(800561, 'AND', 'Preschool', 'Spring Fresh'),
-(800563, 'AND', 'Preschool', 'SpringTown Police'),
-(800562, 'AND', 'Preschool', 'SpringTown Toys'),
-(800618, 'AND', 'Preschool', 'Treehouse'),
+(930856, 'AND', 'Preschool Attendee', 'Base Camp Jr.'),
+(800558, 'AND', 'Preschool Attendee', 'Fire Station'),
+(800560, 'AND', 'Preschool Attendee', 'Lil'' Spring'),
+(800559, 'AND', 'Preschool Attendee', 'Pop''s Garage'),
+(800561, 'AND', 'Preschool Attendee', 'Spring Fresh'),
+(800563, 'AND', 'Preschool Attendee', 'SpringTown Police'),
+(800562, 'AND', 'Preschool Attendee', 'SpringTown Toys'),
+(800618, 'AND', 'Preschool Attendee', 'Treehouse'),
 (800904, 'AND', 'Preschool Volunteer', 'Base Camp Jr. Volunteer'),
-(802742, 'AND', 'Preschool Volunteer', 'Early Bird Volunteer'),
+(802742, 'AND', 'Preschool Volunteer', 'Preschool Early Bird'),
 (800896, 'AND', 'Preschool Volunteer', 'Fire Station Volunteer'),
 (802737, 'AND', 'Preschool Volunteer', 'Lil'' Spring Volunteer'),
 (802741, 'AND', 'Preschool Volunteer', 'Police Volunteer'),
@@ -410,8 +398,8 @@ values
 (802739, 'AND', 'Preschool Volunteer', 'Spring Fresh Volunteer'),
 (802740, 'AND', 'Preschool Volunteer', 'Toys Volunteer'),
 (802762, 'AND', 'Preschool Volunteer', 'Treehouse Volunteer'),
-(778084, 'AND', 'Special Needs', 'Spring Zone'),
-(1102924, 'AND', 'Special Needs', 'Spring Zone Jr.'),
+(778084, 'AND', 'Special Needs Attendee', 'Spring Zone'),
+(1102924, 'AND', 'Special Needs Attendee', 'Spring Zone Jr.'),
 (1344518, 'AND', 'Special Needs Volunteer', 'Spring Zone Area Leader'),
 (1102965, 'AND', 'Special Needs Volunteer', 'Spring Zone Jr. Volunteer'),
 (1297084, 'AND', 'Special Needs Volunteer', 'Spring Zone Service Leader'),
@@ -424,15 +412,15 @@ values
 (1219521, 'BSP', 'Creativity & Tech Volunteer', 'Production Team'),
 (1211161, 'BSP', 'Creativity & Tech Volunteer', 'Social Media/PR Team'),
 (1211160, 'BSP', 'Creativity & Tech Volunteer', 'Social Media/PR Team'),
-(1212114, 'BSP', 'Elementary', 'Base Camp'),
-(1212116, 'BSP', 'Elementary', 'ImagiNation - 1st'),
-(1212115, 'BSP', 'Elementary', 'ImagiNation - K'),
-(1212117, 'BSP', 'Elementary', 'Jump Street - 2nd'),
-(1212118, 'BSP', 'Elementary', 'Jump Street - 3rd'),
-(1212119, 'BSP', 'Elementary', 'Shockwave - 4th'),
-(1212120, 'BSP', 'Elementary', 'Shockwave - 5th'),
+(1212114, 'BSP', 'Elementary Attendee', 'Base Camp'),
+(1212116, 'BSP', 'Elementary Attendee', 'ImagiNation 1st'),
+(1212115, 'BSP', 'Elementary Attendee', 'ImagiNation K'),
+(1212117, 'BSP', 'Elementary Attendee', 'Jump Street 2nd'),
+(1212118, 'BSP', 'Elementary Attendee', 'Jump Street 3rd'),
+(1212119, 'BSP', 'Elementary Attendee', 'Shockwave 4th'),
+(1212120, 'BSP', 'Elementary Attendee', 'Shockwave 5th'),
 (1212610, 'BSP', 'Elementary Volunteer', 'Base Camp Volunteer'),
-(1212612, 'BSP', 'Elementary Volunteer', 'Early Bird Volunteer'),
+(1212612, 'BSP', 'Elementary Volunteer', 'Elementary Early Bird'),
 (1212614, 'BSP', 'Elementary Volunteer', 'Elementary Area Leader'),
 (1212613, 'BSP', 'Elementary Volunteer', 'Elementary Service Leader'),
 (1212615, 'BSP', 'Elementary Volunteer', 'ImagiNation Volunteer'),
@@ -547,27 +535,27 @@ values
 (1242921, 'BSP', 'Next Steps Volunteer', 'Resource Center'),
 (1242929, 'BSP', 'Next Steps Volunteer', 'Sunday Care Team'),
 (1242933, 'BSP', 'Next Steps Volunteer', 'Writing Team'),
-(1212601, 'BSP', 'Nursery', 'Wonder Way - 1'),
-(1212602, 'BSP', 'Nursery', 'Wonder Way - 2'),
-(1212123, 'BSP', 'Nursery', 'Wonder Way - 3'),
+(1212601, 'BSP', 'Nursery Attendee', 'Wonder Way 1'),
+(1212602, 'BSP', 'Nursery Attendee', 'Wonder Way 2'),
+(1212123, 'BSP', 'Nursery Attendee', 'Wonder Way 3'),
 (1212630, 'BSP', 'Nursery Volunteer', 'Wonder Way 1 Volunteer'),
 (1212631, 'BSP', 'Nursery Volunteer', 'Wonder Way 2 Volunteer'),
 (1212632, 'BSP', 'Nursery Volunteer', 'Wonder Way 3 Volunteer'),
 (1212629, 'BSP', 'Nursery Volunteer', 'Wonder Way Area Leader'),
 (1212628, 'BSP', 'Nursery Volunteer', 'Wonder Way Service Leader'),
-(1212609, 'BSP', 'Preschool', 'Base Camp Jr.'),
-(1212606, 'BSP', 'Preschool', 'Pop''s Garage'),
-(1212607, 'BSP', 'Preschool', 'SpringTown Toys'),
-(1212608, 'BSP', 'Preschool', 'Treehouse'),
+(1212609, 'BSP', 'Preschool Attendee', 'Base Camp Jr.'),
+(1212606, 'BSP', 'Preschool Attendee', 'Pop''s Garage'),
+(1212607, 'BSP', 'Preschool Attendee', 'SpringTown Toys'),
+(1212608, 'BSP', 'Preschool Attendee', 'Treehouse'),
 (1212634, 'BSP', 'Preschool Volunteer', 'Base Camp Jr. Volunteer'),
-(1212638, 'BSP', 'Preschool Volunteer', 'Early Bird Volunteer'),
+(1212638, 'BSP', 'Preschool Volunteer', 'Preschool Early Bird'),
 (1212635, 'BSP', 'Preschool Volunteer', 'Lil'' Spring Volunteer'),
 (1212636, 'BSP', 'Preschool Volunteer', 'Pop''s Garage Volunteer'),
 (1212640, 'BSP', 'Preschool Volunteer', 'Preschool Area Leader'),
 (1212639, 'BSP', 'Preschool Volunteer', 'Preschool Service Leader'),
 (1212641, 'BSP', 'Preschool Volunteer', 'Toys Volunteer'),
 (1212642, 'BSP', 'Preschool Volunteer', 'Treehouse Volunteer'),
-(1212121, 'BSP', 'Special Needs', 'Spring Zone'),
+(1212121, 'BSP', 'Special Needs Attendee', 'Spring Zone'),
 (1212648, 'BSP', 'Special Needs Volunteer', 'Spring Zone Volunteer'),
 (1062479, 'CEN', 'Creativity & Tech Volunteer', 'Design Team'),
 (1339310, 'CEN', 'Creativity & Tech Volunteer', 'Design Team'),
@@ -582,20 +570,20 @@ values
 (1339313, 'CEN', 'Creativity & Tech Volunteer', 'Web Dev Team'),
 (1127856, 'CEN', 'Creativity & Tech Volunteer', 'Web Dev Team'),
 (1062480, 'CEN', 'Creativity & Tech Volunteer', 'Web Dev Team'),
-(1190220, 'CEN', 'Events', 'Event Attendee'),
-(1327890, 'CEN', 'Events', 'Event Attendee'),
-(1353571, 'CEN', 'Events', 'Event Attendee'),
-(1348848, 'CEN', 'Events', 'Event Attendee'),
-(1345803, 'CEN', 'Events', 'Event Attendee'),
-(1114611, 'CEN', 'Events', 'Event Attendee'),
-(1388038, 'CEN', 'Events', 'Event Attendee'),
-(1017062, 'CEN', 'Events', 'Event Volunteer'),
-(935951, 'CEN', 'Events', 'Event Volunteer'),
-(1005523, 'CEN', 'Events', 'Event Volunteer'),
-(938310, 'CEN', 'Events', 'Event Volunteer'),
-(1006455, 'CEN', 'Events', 'Event Volunteer'),
-(945459, 'CEN', 'Events', 'Event Volunteer'),
-(1211334, 'CEN', 'Events', 'Event Volunteer'),
+(1190220, 'CEN', 'Event Attendee', 'Event Attendee'),
+(1327890, 'CEN', 'Event Attendee', 'Event Attendee'),
+(1353571, 'CEN', 'Event Attendee', 'Event Attendee'),
+(1348848, 'CEN', 'Event Attendee', 'Event Attendee'),
+(1345803, 'CEN', 'Event Attendee', 'Event Attendee'),
+(1114611, 'CEN', 'Event Attendee', 'Event Attendee'),
+(1388038, 'CEN', 'Event Attendee', 'Event Attendee'),
+(1017062, 'CEN', 'Event Volunteer', 'Event Volunteer'),
+(935951, 'CEN', 'Event Volunteer', 'Event Volunteer'),
+(1005523, 'CEN', 'Event Volunteer', 'Event Volunteer'),
+(938310, 'CEN', 'Event Volunteer', 'Event Volunteer'),
+(1006455, 'CEN', 'Event Volunteer', 'Event Volunteer'),
+(945459, 'CEN', 'Event Volunteer', 'Event Volunteer'),
+(1211334, 'CEN', 'Event Volunteer', 'Event Volunteer'),
 (1293789, 'CEN', 'Fuse Volunteer', 'Fuse Office Team'),
 (1184051, 'CEN', 'Guest Services Volunteer', 'Events Team'),
 (1166486, 'CEN', 'Guest Services Volunteer', 'Finance Office Team'),
@@ -603,12 +591,21 @@ values
 (1166485, 'CEN', 'Guest Services Volunteer', 'Receptionist'),
 (1314404, 'CEN', 'Guest Services Volunteer', 'Special Event Volunteer'),
 (844951, 'CEN', 'Guest Services Volunteer', 'Special Event Volunteer'),
-(939370, 'CEN', 'KidSpring Volunteer', 'Office Team'),
-(1339332, 'CEN', 'KidSpring Volunteer', 'Office Team'),
+(939370, 'CEN', 'Support Volunteer', 'Office Team'),
+(1339332, 'CEN', 'Support Volunteer', 'Office Team'),
 (1340553, 'CEN', 'Next Steps Volunteer', 'Groups Office Team'),
 (939376, 'CEN', 'Next Steps Volunteer', 'NS Office Team'),
 (1166489, 'CEN', 'Next Steps Volunteer', 'NS Office Team'),
 (803636, 'CEN', 'Next Steps Volunteer', 'Writing Team'),
+(1378245, 'CEN', 'NewSpring College', 'All-Staff'),
+(1375136, 'CEN', 'NewSpring College', 'Builders & Shepherds'),
+(1347705, 'CEN', 'NewSpring College', 'Character Forum'),
+(1347707, 'CEN', 'NewSpring College', 'Christian Beliefs I'),
+(1375103, 'CEN', 'NewSpring College', 'Christian Beliefs II'),
+(1375142, 'CEN', 'NewSpring College', 'Ephesians'),
+(1347715, 'CEN', 'NewSpring College', 'Leadership Forum'),
+(1375138, 'CEN', 'NewSpring College', 'Leadership I'),
+(1347706, 'CEN', 'NewSpring College', 'Small Group'),
 (1257874, 'CHS', 'Creativity & Tech Volunteer', 'Band'),
 (1104832, 'CHS', 'Creativity & Tech Volunteer', 'Band Green Room'),
 (1257875, 'CHS', 'Creativity & Tech Volunteer', 'Load In/Load Out'),
@@ -618,15 +615,15 @@ values
 (1340611, 'CHS', 'Creativity & Tech Volunteer', 'Social Media/PR Team'),
 (1068566, 'CHS', 'Creativity & Tech Volunteer', 'Social Media/PR Team'),
 (1068567, 'CHS', 'Creativity & Tech Volunteer', 'Social Media/PR Team'),
-(802875, 'CHS', 'Elementary', 'Base Camp'),
-(802866, 'CHS', 'Elementary', 'ImagiNation - 1st'),
-(802865, 'CHS', 'Elementary', 'ImagiNation - K'),
-(802867, 'CHS', 'Elementary', 'Jump Street - 2nd'),
-(802869, 'CHS', 'Elementary', 'Jump Street - 3rd'),
-(802873, 'CHS', 'Elementary', 'Shockwave - 4th'),
-(802874, 'CHS', 'Elementary', 'Shockwave - 5th'),
+(802875, 'CHS', 'Elementary Attendee', 'Base Camp'),
+(802866, 'CHS', 'Elementary Attendee', 'ImagiNation 1st'),
+(802865, 'CHS', 'Elementary Attendee', 'ImagiNation K'),
+(802867, 'CHS', 'Elementary Attendee', 'Jump Street 2nd'),
+(802869, 'CHS', 'Elementary Attendee', 'Jump Street 3rd'),
+(802873, 'CHS', 'Elementary Attendee', 'Shockwave 4th'),
+(802874, 'CHS', 'Elementary Attendee', 'Shockwave 5th'),
 (802143, 'CHS', 'Elementary Volunteer', 'Base Camp Volunteer'),
-(802145, 'CHS', 'Elementary Volunteer', 'Early Bird Volunteer'),
+(802145, 'CHS', 'Elementary Volunteer', 'Elementary Early Bird'),
 (1093018, 'CHS', 'Elementary Volunteer', 'Elementary Area Leader'),
 (802141, 'CHS', 'Elementary Volunteer', 'Elementary Service Leader'),
 (802142, 'CHS', 'Elementary Volunteer', 'ImagiNation Volunteer'),
@@ -764,31 +761,31 @@ values
 (1285767, 'CHS', 'Next Steps Volunteer', 'Special Event Volunteer'),
 (1276041, 'CHS', 'Next Steps Volunteer', 'Sunday Care Team'),
 (1276040, 'CHS', 'Next Steps Volunteer', 'Writing Team'),
-(802861, 'CHS', 'Nursery', 'Wonder Way - 1'),
-(870959, 'CHS', 'Nursery', 'Wonder Way - 2'),
-(1101309, 'CHS', 'Nursery', 'Wonder Way - 3'),
-(1267824, 'CHS', 'Nursery', 'Wonder Way - 4'),
-(802146, 'CHS', 'Nursery Volunteer', 'Early Bird Volunteer'),
+(802861, 'CHS', 'Nursery Attendee', 'Wonder Way 1'),
+(870959, 'CHS', 'Nursery Attendee', 'Wonder Way 2'),
+(1101309, 'CHS', 'Nursery Attendee', 'Wonder Way 3'),
+(1267824, 'CHS', 'Nursery Attendee', 'Wonder Way 4'),
+(802146, 'CHS', 'Nursery Volunteer', 'Nursery Early Bird'),
 (818316, 'CHS', 'Nursery Volunteer', 'Wonder Way 1 Volunteer'),
 (870960, 'CHS', 'Nursery Volunteer', 'Wonder Way 2 Volunteer'),
 (1102949, 'CHS', 'Nursery Volunteer', 'Wonder Way 3 Volunteer'),
 (1267825, 'CHS', 'Nursery Volunteer', 'Wonder Way 4 Volunteer'),
 (1210227, 'CHS', 'Nursery Volunteer', 'Wonder Way Area Leader'),
 (818313, 'CHS', 'Nursery Volunteer', 'Wonder Way Service Leader'),
-(827174, 'CHS', 'Preschool', 'Base Camp Jr.'),
-(1394880, 'CHS', 'Preschool', 'Lil'' Spring'),
-(870961, 'CHS', 'Preschool', 'Pop''s Garage'),
-(802863, 'CHS', 'Preschool', 'SpringTown Toys'),
-(1102946, 'CHS', 'Preschool', 'Treehouse'),
+(827174, 'CHS', 'Preschool Attendee', 'Base Camp Jr.'),
+(1394880, 'CHS', 'Preschool Attendee', 'Lil'' Spring'),
+(870961, 'CHS', 'Preschool Attendee', 'Pop''s Garage'),
+(802863, 'CHS', 'Preschool Attendee', 'SpringTown Toys'),
+(1102946, 'CHS', 'Preschool Attendee', 'Treehouse'),
 (818317, 'CHS', 'Preschool Volunteer', 'Base Camp Jr. Volunteer'),
-(818319, 'CHS', 'Preschool Volunteer', 'Early Bird Volunteer'),
+(818319, 'CHS', 'Preschool Volunteer', 'Preschool Early Bird'),
 (1396339, 'CHS', 'Preschool Volunteer', 'Lil'' Spring Volunteer'),
 (870966, 'CHS', 'Preschool Volunteer', 'Pop''s Garage Volunteer'),
 (1210230, 'CHS', 'Preschool Volunteer', 'Preschool Area Leader'),
 (818320, 'CHS', 'Preschool Volunteer', 'Preschool Service Leader'),
 (818318, 'CHS', 'Preschool Volunteer', 'Toys Volunteer'),
 (1102962, 'CHS', 'Preschool Volunteer', 'Treehouse Volunteer'),
-(802881, 'CHS', 'Special Needs', 'Spring Zone'),
+(802881, 'CHS', 'Special Needs Attendee', 'Spring Zone'),
 (818325, 'CHS', 'Special Needs Volunteer', 'Spring Zone Volunteer'),
 (1290762, 'COL', 'Creativity & Tech Volunteer', 'Band'),
 (1104833, 'COL', 'Creativity & Tech Volunteer', 'Band Green Room'),
@@ -800,15 +797,15 @@ values
 (1327325, 'COL', 'Creativity & Tech Volunteer', 'Production Team'),
 (1068568, 'COL', 'Creativity & Tech Volunteer', 'Social Media/PR Team'),
 (1068569, 'COL', 'Creativity & Tech Volunteer', 'Social Media/PR Team'),
-(800687, 'COL', 'Elementary', 'Base Camp'),
-(800682, 'COL', 'Elementary', 'ImagiNation - 1st'),
-(800681, 'COL', 'Elementary', 'ImagiNation - K'),
-(800683, 'COL', 'Elementary', 'Jump Street - 2nd'),
-(800684, 'COL', 'Elementary', 'Jump Street - 3rd'),
-(800685, 'COL', 'Elementary', 'Shockwave - 4th'),
-(800686, 'COL', 'Elementary', 'Shockwave - 5th'),
+(800687, 'COL', 'Elementary Attendee', 'Base Camp'),
+(800682, 'COL', 'Elementary Attendee', 'ImagiNation 1st'),
+(800681, 'COL', 'Elementary Attendee', 'ImagiNation K'),
+(800683, 'COL', 'Elementary Attendee', 'Jump Street 2nd'),
+(800684, 'COL', 'Elementary Attendee', 'Jump Street 3rd'),
+(800685, 'COL', 'Elementary Attendee', 'Shockwave 4th'),
+(800686, 'COL', 'Elementary Attendee', 'Shockwave 5th'),
 (802185, 'COL', 'Elementary Volunteer', 'Base Camp Volunteer'),
-(802186, 'COL', 'Elementary Volunteer', 'Early Bird Volunteer'),
+(802186, 'COL', 'Elementary Volunteer', 'Elementary Early Bird'),
 (1382563, 'COL', 'Elementary Volunteer', 'Elementary Area Leader'),
 (802180, 'COL', 'Elementary Volunteer', 'Elementary Service Leader'),
 (935220, 'COL', 'Elementary Volunteer', 'ImagiNation Team Leader'),
@@ -953,12 +950,12 @@ values
 (1285769, 'COL', 'Next Steps Volunteer', 'Special Event Volunteer'),
 (1285743, 'COL', 'Next Steps Volunteer', 'Sunday Care Team'),
 (1285748, 'COL', 'Next Steps Volunteer', 'Writing Team'),
-(800675, 'COL', 'Nursery', 'Wonder Way - 1'),
-(800676, 'COL', 'Nursery', 'Wonder Way - 2'),
-(858500, 'COL', 'Nursery', 'Wonder Way - 3'),
-(1005207, 'COL', 'Nursery', 'Wonder Way - 4'),
-(1375038, 'COL', 'Nursery', 'Wonder Way - 5'),
-(802181, 'COL', 'Nursery Volunteer', 'Early Bird Volunteer'),
+(800675, 'COL', 'Nursery Attendee', 'Wonder Way 1'),
+(800676, 'COL', 'Nursery Attendee', 'Wonder Way 2'),
+(858500, 'COL', 'Nursery Attendee', 'Wonder Way 3'),
+(1005207, 'COL', 'Nursery Attendee', 'Wonder Way 4'),
+(1375038, 'COL', 'Nursery Attendee', 'Wonder Way 5'),
+(802181, 'COL', 'Nursery Volunteer', 'Nursery Early Bird'),
 (935213, 'COL', 'Nursery Volunteer', 'Wonder Way 1 Volunteer'),
 (818121, 'COL', 'Nursery Volunteer', 'Wonder Way 1 Volunteer'),
 (935214, 'COL', 'Nursery Volunteer', 'Wonder Way 2 Volunteer'),
@@ -971,14 +968,14 @@ values
 (1375297, 'COL', 'Nursery Volunteer', 'Wonder Way 5 Volunteer'),
 (1382560, 'COL', 'Nursery Volunteer', 'Wonder Way Area Leader'),
 (818120, 'COL', 'Nursery Volunteer', 'Wonder Way Service Leader'),
-(800680, 'COL', 'Preschool', 'Base Camp Jr.'),
-(1059150, 'COL', 'Preschool', 'Lil'' Spring'),
-(800677, 'COL', 'Preschool', 'Pop''s Garage'),
-(1059151, 'COL', 'Preschool', 'Spring Fresh'),
-(800678, 'COL', 'Preschool', 'SpringTown Toys'),
-(800679, 'COL', 'Preschool', 'Treehouse'),
+(800680, 'COL', 'Preschool Attendee', 'Base Camp Jr.'),
+(1059150, 'COL', 'Preschool Attendee', 'Lil'' Spring'),
+(800677, 'COL', 'Preschool Attendee', 'Pop''s Garage'),
+(1059151, 'COL', 'Preschool Attendee', 'Spring Fresh'),
+(800678, 'COL', 'Preschool Attendee', 'SpringTown Toys'),
+(800679, 'COL', 'Preschool Attendee', 'Treehouse'),
 (818122, 'COL', 'Preschool Volunteer', 'Base Camp Jr. Volunteer'),
-(818126, 'COL', 'Preschool Volunteer', 'Early Bird Volunteer'),
+(818126, 'COL', 'Preschool Volunteer', 'Preschool Early Bird'),
 (1060521, 'COL', 'Preschool Volunteer', 'Lil'' Spring Team Leader'),
 (1060524, 'COL', 'Preschool Volunteer', 'Lil'' Spring Volunteer'),
 (935216, 'COL', 'Preschool Volunteer', 'Pop''s Garage Team Leader'),
@@ -991,8 +988,8 @@ values
 (818124, 'COL', 'Preschool Volunteer', 'Toys Volunteer'),
 (935218, 'COL', 'Preschool Volunteer', 'Treehouse Volunteer'),
 (818125, 'COL', 'Preschool Volunteer', 'Treehouse Volunteer'),
-(802878, 'COL', 'Special Needs', 'Spring Zone'),
-(1294812, 'COL', 'Special Needs', 'Spring Zone Jr.'),
+(802878, 'COL', 'Special Needs Attendee', 'Spring Zone'),
+(1294812, 'COL', 'Special Needs Attendee', 'Spring Zone Jr.'),
 (1386015, 'COL', 'Special Needs Volunteer', 'Spring Zone Area Leader'),
 (1294818, 'COL', 'Special Needs Volunteer', 'Spring Zone Jr. Volunteer'),
 (1386014, 'COL', 'Special Needs Volunteer', 'Spring Zone Service Leader'),
@@ -1004,15 +1001,15 @@ values
 (1239830, 'FLO', 'Creativity & Tech Volunteer', 'New Serve Team'),
 (1068571, 'FLO', 'Creativity & Tech Volunteer', 'Production Team'),
 (1071051, 'FLO', 'Creativity & Tech Volunteer', 'Social Media/PR Team'),
-(802843, 'FLO', 'Elementary', 'Base Camp'),
-(802844, 'FLO', 'Elementary', 'ImagiNation - 1st'),
-(802845, 'FLO', 'Elementary', 'ImagiNation - K'),
-(802846, 'FLO', 'Elementary', 'Jump Street - 2nd'),
-(802847, 'FLO', 'Elementary', 'Jump Street - 3rd'),
-(802848, 'FLO', 'Elementary', 'Shockwave - 4th'),
-(802849, 'FLO', 'Elementary', 'Shockwave - 5th'),
+(802843, 'FLO', 'Elementary Attendee', 'Base Camp'),
+(802844, 'FLO', 'Elementary Attendee', 'ImagiNation 1st'),
+(802845, 'FLO', 'Elementary Attendee', 'ImagiNation K'),
+(802846, 'FLO', 'Elementary Attendee', 'Jump Street 2nd'),
+(802847, 'FLO', 'Elementary Attendee', 'Jump Street 3rd'),
+(802848, 'FLO', 'Elementary Attendee', 'Shockwave 4th'),
+(802849, 'FLO', 'Elementary Attendee', 'Shockwave 5th'),
 (802202, 'FLO', 'Elementary Volunteer', 'Base Camp Volunteer'),
-(802203, 'FLO', 'Elementary Volunteer', 'Early Bird Volunteer'),
+(802203, 'FLO', 'Elementary Volunteer', 'Elementary Early Bird'),
 (821418, 'FLO', 'Elementary Volunteer', 'Elementary Area Leader'),
 (802197, 'FLO', 'Elementary Volunteer', 'Elementary Service Leader'),
 (802199, 'FLO', 'Elementary Volunteer', 'ImagiNation Volunteer'),
@@ -1151,31 +1148,31 @@ values
 (1285771, 'FLO', 'Next Steps Volunteer', 'Special Event Volunteer'),
 (1283465, 'FLO', 'Next Steps Volunteer', 'Sunday Care Team'),
 (1283469, 'FLO', 'Next Steps Volunteer', 'Writing Team'),
-(802838, 'FLO', 'Nursery', 'Wonder Way - 1'),
-(802839, 'FLO', 'Nursery', 'Wonder Way - 2'),
-(858502, 'FLO', 'Nursery', 'Wonder Way - 3'),
-(931362, 'FLO', 'Nursery', 'Wonder Way - 4'),
-(802196, 'FLO', 'Nursery Volunteer', 'Early Bird Volunteer'),
+(802838, 'FLO', 'Nursery Attendee', 'Wonder Way 1'),
+(802839, 'FLO', 'Nursery Attendee', 'Wonder Way 2'),
+(858502, 'FLO', 'Nursery Attendee', 'Wonder Way 3'),
+(931362, 'FLO', 'Nursery Attendee', 'Wonder Way 4'),
+(802196, 'FLO', 'Nursery Volunteer', 'Nursery Early Bird'),
 (802200, 'FLO', 'Nursery Volunteer', 'Wonder Way 1 Volunteer'),
 (818096, 'FLO', 'Nursery Volunteer', 'Wonder Way 2 Volunteer'),
 (858503, 'FLO', 'Nursery Volunteer', 'Wonder Way 3 Volunteer'),
 (931363, 'FLO', 'Nursery Volunteer', 'Wonder Way 4 Volunteer'),
 (821416, 'FLO', 'Nursery Volunteer', 'Wonder Way Area Leader'),
 (802198, 'FLO', 'Nursery Volunteer', 'Wonder Way Service Leader'),
-(827250, 'FLO', 'Preschool', 'Base Camp Jr.'),
-(1294275, 'FLO', 'Preschool', 'Lil'' Spring'),
-(931364, 'FLO', 'Preschool', 'Pop''s Garage'),
-(802841, 'FLO', 'Preschool', 'SpringTown Toys'),
-(802842, 'FLO', 'Preschool', 'Treehouse'),
+(827250, 'FLO', 'Preschool Attendee', 'Base Camp Jr.'),
+(1294275, 'FLO', 'Preschool Attendee', 'Lil'' Spring'),
+(931364, 'FLO', 'Preschool Attendee', 'Pop''s Garage'),
+(802841, 'FLO', 'Preschool Attendee', 'SpringTown Toys'),
+(802842, 'FLO', 'Preschool Attendee', 'Treehouse'),
 (818097, 'FLO', 'Preschool Volunteer', 'Base Camp Jr. Volunteer'),
-(818100, 'FLO', 'Preschool Volunteer', 'Early Bird Volunteer'),
+(818100, 'FLO', 'Preschool Volunteer', 'Preschool Early Bird'),
 (1294276, 'FLO', 'Preschool Volunteer', 'Lil'' Spring Volunteer'),
 (931365, 'FLO', 'Preschool Volunteer', 'Pop''s Garage Volunteer'),
 (821417, 'FLO', 'Preschool Volunteer', 'Preschool Area Leader'),
 (818101, 'FLO', 'Preschool Volunteer', 'Preschool Service Leader'),
 (818098, 'FLO', 'Preschool Volunteer', 'Toys Volunteer'),
 (818099, 'FLO', 'Preschool Volunteer', 'Treehouse Volunteer'),
-(802880, 'FLO', 'Special Needs', 'Spring Zone'),
+(802880, 'FLO', 'Special Needs Attendee', 'Spring Zone'),
 (821419, 'FLO', 'Special Needs Volunteer', 'Spring Zone Area Leader'),
 (818106, 'FLO', 'Special Needs Volunteer', 'Spring Zone Volunteer'),
 (1362086, 'GVL', 'Creativity & Tech Attendee', 'Choir'),
@@ -1187,20 +1184,24 @@ values
 (1219524, 'GVL', 'Creativity & Tech Volunteer', 'Production Team'),
 (1068580, 'GVL', 'Creativity & Tech Volunteer', 'Social Media/PR Team'),
 (1068581, 'GVL', 'Creativity & Tech Volunteer', 'Social Media/PR Team'),
-(800633, 'GVL', 'Elementary', 'Base Camp'),
-(800627, 'GVL', 'Elementary', 'ImagiNation - 1st'),
-(800628, 'GVL', 'Elementary', 'ImagiNation - K'),
-(800629, 'GVL', 'Elementary', 'Jump Street - 2nd'),
-(800630, 'GVL', 'Elementary', 'Jump Street - 3rd'),
-(800631, 'GVL', 'Elementary', 'Shockwave - 4th'),
-(800632, 'GVL', 'Elementary', 'Shockwave - 5th'),
+(800633, 'GVL', 'Elementary Attendee', 'Base Camp'),
+(800627, 'GVL', 'Elementary Attendee', 'ImagiNation 1st'),
+(800628, 'GVL', 'Elementary Attendee', 'ImagiNation K'),
+(800629, 'GVL', 'Elementary Attendee', 'Jump Street 2nd'),
+(800630, 'GVL', 'Elementary Attendee', 'Jump Street 3rd'),
+(800631, 'GVL', 'Elementary Attendee', 'Shockwave 4th'),
+(800632, 'GVL', 'Elementary Attendee', 'Shockwave 5th'),
 (802243, 'GVL', 'Elementary Volunteer', 'Base Camp Volunteer'),
-(802244, 'GVL', 'Elementary Volunteer', 'Early Bird Volunteer'),
+(802244, 'GVL', 'Elementary Volunteer', 'Elementary Early Bird'),
 (821424, 'GVL', 'Elementary Volunteer', 'Elementary Area Leader'),
 (802238, 'GVL', 'Elementary Volunteer', 'Elementary Service Leader'),
 (802240, 'GVL', 'Elementary Volunteer', 'ImagiNation Volunteer'),
 (802236, 'GVL', 'Elementary Volunteer', 'Jump Street Volunteer'),
-(817137, 'GVL', 'Elementary Volunteer', 'Shockwave Volunteer'),
+(817137, 'GVL', 'Elementary Volunteer', 'Shockwave Volunteer')
+
+
+insert #rlcMap
+values
 (797443, 'GVL', 'Fuse Attendee', '10th Grade Student'),
 (797445, 'GVL', 'Fuse Attendee', '10th Grade Student'),
 (797446, 'GVL', 'Fuse Attendee', '11th Grade Student'),
@@ -1214,11 +1215,7 @@ values
 (797440, 'GVL', 'Fuse Attendee', '8th Grade Student'),
 (797442, 'GVL', 'Fuse Attendee', '8th Grade Student'),
 (797452, 'GVL', 'Fuse Attendee', '9th Grade Student'),
-(797454, 'GVL', 'Fuse Attendee', '9th Grade Student')
-
-
-insert #rlcMap
-values
+(797454, 'GVL', 'Fuse Attendee', '9th Grade Student'),
 (884616, 'GVL', 'Fuse Volunteer', 'Campus Safety'),
 (884618, 'GVL', 'Fuse Volunteer', 'Campus Safety'),
 (1319351, 'GVL', 'Fuse Volunteer', 'Care'),
@@ -1346,14 +1343,14 @@ values
 (1285773, 'GVL', 'Next Steps Volunteer', 'Special Event Volunteer'),
 (1285712, 'GVL', 'Next Steps Volunteer', 'Sunday Care Team'),
 (1285716, 'GVL', 'Next Steps Volunteer', 'Writing Team'),
-(800620, 'GVL', 'Nursery', 'Wonder Way - 1'),
-(800621, 'GVL', 'Nursery', 'Wonder Way - 2'),
-(800622, 'GVL', 'Nursery', 'Wonder Way - 3'),
-(800623, 'GVL', 'Nursery', 'Wonder Way - 4'),
-(828965, 'GVL', 'Nursery', 'Wonder Way - 5'),
-(828967, 'GVL', 'Nursery', 'Wonder Way - 6'),
-(1165257, 'GVL', 'Nursery', 'Wonder Way - 7'),
-(817139, 'GVL', 'Nursery Volunteer', 'Early Bird Volunteer'),
+(800620, 'GVL', 'Nursery Attendee', 'Wonder Way 1'),
+(800621, 'GVL', 'Nursery Attendee', 'Wonder Way 2'),
+(800622, 'GVL', 'Nursery Attendee', 'Wonder Way 3'),
+(800623, 'GVL', 'Nursery Attendee', 'Wonder Way 4'),
+(828965, 'GVL', 'Nursery Attendee', 'Wonder Way 5'),
+(828967, 'GVL', 'Nursery Attendee', 'Wonder Way 6'),
+(1165257, 'GVL', 'Nursery Attendee', 'Wonder Way 7'),
+(817139, 'GVL', 'Nursery Volunteer', 'Nursery Early Bird'),
 (802237, 'GVL', 'Nursery Volunteer', 'Wonder Way 1 Volunteer'),
 (802239, 'GVL', 'Nursery Volunteer', 'Wonder Way 2 Volunteer'),
 (802241, 'GVL', 'Nursery Volunteer', 'Wonder Way 3 Volunteer'),
@@ -1363,15 +1360,15 @@ values
 (1268147, 'GVL', 'Nursery Volunteer', 'Wonder Way 7 Volunteer'),
 (821422, 'GVL', 'Nursery Volunteer', 'Wonder Way Area Leader'),
 (817140, 'GVL', 'Nursery Volunteer', 'Wonder Way Service Leader'),
-(800634, 'GVL', 'Preschool', 'Base Camp Jr.'),
-(1080425, 'GVL', 'Preschool', 'Lil'' Spring'),
-(800624, 'GVL', 'Preschool', 'Pop''s Garage'),
-(1200645, 'GVL', 'Preschool', 'Spring Fresh'),
-(1259860, 'GVL', 'Preschool', 'SpringTown Police'),
-(800625, 'GVL', 'Preschool', 'SpringTown Toys'),
-(800626, 'GVL', 'Preschool', 'Treehouse'),
+(800634, 'GVL', 'Preschool Attendee', 'Base Camp Jr.'),
+(1080425, 'GVL', 'Preschool Attendee', 'Lil'' Spring'),
+(800624, 'GVL', 'Preschool Attendee', 'Pop''s Garage'),
+(1200645, 'GVL', 'Preschool Attendee', 'Spring Fresh'),
+(1259860, 'GVL', 'Preschool Attendee', 'SpringTown Police'),
+(800625, 'GVL', 'Preschool Attendee', 'SpringTown Toys'),
+(800626, 'GVL', 'Preschool Attendee', 'Treehouse'),
 (817143, 'GVL', 'Preschool Volunteer', 'Base Camp Jr. Volunteer'),
-(817150, 'GVL', 'Preschool Volunteer', 'Early Bird Volunteer'),
+(817150, 'GVL', 'Preschool Volunteer', 'Preschool Early Bird'),
 (1080430, 'GVL', 'Preschool Volunteer', 'Lil'' Spring Volunteer'),
 (1268148, 'GVL', 'Preschool Volunteer', 'Police Volunteer'),
 (817145, 'GVL', 'Preschool Volunteer', 'Pop''s Garage Volunteer'),
@@ -1380,7 +1377,7 @@ values
 (1200646, 'GVL', 'Preschool Volunteer', 'Spring Fresh Volunteer'),
 (817146, 'GVL', 'Preschool Volunteer', 'Toys Volunteer'),
 (817148, 'GVL', 'Preschool Volunteer', 'Treehouse Volunteer'),
-(800635, 'GVL', 'Special Needs', 'Spring Zone'),
+(800635, 'GVL', 'Special Needs Attendee', 'Spring Zone'),
 (1087936, 'GVL', 'Special Needs Volunteer', 'Spring Zone Area Leader'),
 (817167, 'GVL', 'Special Needs Volunteer', 'Spring Zone Volunteer'),
 (1290765, 'GWD', 'Creativity & Tech Volunteer', 'Band'),
@@ -1388,15 +1385,15 @@ values
 (1239832, 'GWD', 'Creativity & Tech Volunteer', 'New Serve Team'),
 (1184042, 'GWD', 'Creativity & Tech Volunteer', 'Production Team'),
 (1068642, 'GWD', 'Creativity & Tech Volunteer', 'Social Media/PR Team'),
-(872798, 'GWD', 'Elementary', 'Base Camp'),
-(872799, 'GWD', 'Elementary', 'ImagiNation - 1st'),
-(872800, 'GWD', 'Elementary', 'ImagiNation - K'),
-(872802, 'GWD', 'Elementary', 'Jump Street - 2nd'),
-(872803, 'GWD', 'Elementary', 'Jump Street - 3rd'),
-(872804, 'GWD', 'Elementary', 'Shockwave - 4th'),
-(872806, 'GWD', 'Elementary', 'Shockwave - 5th'),
+(872798, 'GWD', 'Elementary Attendee', 'Base Camp'),
+(872799, 'GWD', 'Elementary Attendee', 'ImagiNation 1st'),
+(872800, 'GWD', 'Elementary Attendee', 'ImagiNation K'),
+(872802, 'GWD', 'Elementary Attendee', 'Jump Street 2nd'),
+(872803, 'GWD', 'Elementary Attendee', 'Jump Street 3rd'),
+(872804, 'GWD', 'Elementary Attendee', 'Shockwave 4th'),
+(872806, 'GWD', 'Elementary Attendee', 'Shockwave 5th'),
 (872826, 'GWD', 'Elementary Volunteer', 'Base Camp Volunteer'),
-(872829, 'GWD', 'Elementary Volunteer', 'Early Bird Volunteer'),
+(872829, 'GWD', 'Elementary Volunteer', 'Elementary Early Bird'),
 (872828, 'GWD', 'Elementary Volunteer', 'Elementary Area Leader'),
 (872830, 'GWD', 'Elementary Volunteer', 'Elementary Service Leader'),
 (872832, 'GWD', 'Elementary Volunteer', 'ImagiNation Volunteer'),
@@ -1514,46 +1511,46 @@ values
 (1283389, 'GWD', 'Next Steps Volunteer', 'Resource Center'),
 (1285775, 'GWD', 'Next Steps Volunteer', 'Special Event Volunteer'),
 (1283380, 'GWD', 'Next Steps Volunteer', 'Sunday Care Team'),
-(872875, 'GWD', 'Nursery', 'Wonder Way - 1'),
-(872878, 'GWD', 'Nursery', 'Wonder Way - 2'),
-(1162869, 'GWD', 'Nursery', 'Wonder Way - 3'),
-(1162872, 'GWD', 'Nursery', 'Wonder Way - 4'),
-(872809, 'GWD', 'Nursery Volunteer', 'Early Bird Volunteer'),
+(872875, 'GWD', 'Nursery Attendee', 'Wonder Way 1'),
+(872878, 'GWD', 'Nursery Attendee', 'Wonder Way 2'),
+(1162869, 'GWD', 'Nursery Attendee', 'Wonder Way 3'),
+(1162872, 'GWD', 'Nursery Attendee', 'Wonder Way 4'),
+(872809, 'GWD', 'Nursery Volunteer', 'Nursery Early Bird'),
 (872811, 'GWD', 'Nursery Volunteer', 'Wonder Way 1 Volunteer'),
 (872812, 'GWD', 'Nursery Volunteer', 'Wonder Way 2 Volunteer'),
 (1162885, 'GWD', 'Nursery Volunteer', 'Wonder Way 3 Volunteer'),
 (1162886, 'GWD', 'Nursery Volunteer', 'Wonder Way 4 Volunteer'),
 (872808, 'GWD', 'Nursery Volunteer', 'Wonder Way Area Leader'),
 (872810, 'GWD', 'Nursery Volunteer', 'Wonder Way Service Leader'),
-(872792, 'GWD', 'Preschool', 'Base Camp Jr.'),
-(1162891, 'GWD', 'Preschool', 'Lil'' Spring'),
-(872793, 'GWD', 'Preschool', 'Pop''s Garage'),
-(872794, 'GWD', 'Preschool', 'SpringTown Toys'),
-(872797, 'GWD', 'Preschool', 'Treehouse'),
+(872792, 'GWD', 'Preschool Attendee', 'Base Camp Jr.'),
+(1162891, 'GWD', 'Preschool Attendee', 'Lil'' Spring'),
+(872793, 'GWD', 'Preschool Attendee', 'Pop''s Garage'),
+(872794, 'GWD', 'Preschool Attendee', 'SpringTown Toys'),
+(872797, 'GWD', 'Preschool Attendee', 'Treehouse'),
 (872818, 'GWD', 'Preschool Volunteer', 'Base Camp Jr. Volunteer'),
-(872821, 'GWD', 'Preschool Volunteer', 'Early Bird Volunteer'),
+(872821, 'GWD', 'Preschool Volunteer', 'Preschool Early Bird'),
 (1162892, 'GWD', 'Preschool Volunteer', 'Lil'' Spring Volunteer'),
 (872819, 'GWD', 'Preschool Volunteer', 'Pop''s Garage Volunteer'),
 (872820, 'GWD', 'Preschool Volunteer', 'Preschool Area Leader'),
 (872822, 'GWD', 'Preschool Volunteer', 'Preschool Service Leader'),
 (872823, 'GWD', 'Preschool Volunteer', 'Toys Volunteer'),
 (872825, 'GWD', 'Preschool Volunteer', 'Treehouse Volunteer'),
-(872807, 'GWD', 'Special Needs', 'Spring Zone'),
+(872807, 'GWD', 'Special Needs Attendee', 'Spring Zone'),
 (872848, 'GWD', 'Special Needs Volunteer', 'Spring Zone Volunteer'),
 (1290766, 'LEX', 'Creativity & Tech Volunteer', 'Band'),
 (1289970, 'LEX', 'Creativity & Tech Volunteer', 'Load In/Load Out'),
 (1289971, 'LEX', 'Creativity & Tech Volunteer', 'Load In/Load Out'),
 (1246846, 'LEX', 'Creativity & Tech Volunteer', 'Production Team'),
 (1340627, 'LEX', 'Creativity & Tech Volunteer', 'Social Media/PR Team'),
-(1289915, 'LEX', 'Elementary', 'Base Camp'),
-(1289916, 'LEX', 'Elementary', 'ImagiNation - 1st'),
-(1289917, 'LEX', 'Elementary', 'ImagiNation - K'),
-(1289918, 'LEX', 'Elementary', 'Jump Street - 2nd'),
-(1289919, 'LEX', 'Elementary', 'Jump Street - 3rd'),
-(1289920, 'LEX', 'Elementary', 'Shockwave - 4th'),
-(1289921, 'LEX', 'Elementary', 'Shockwave - 5th'),
+(1289915, 'LEX', 'Elementary Attendee', 'Base Camp'),
+(1289916, 'LEX', 'Elementary Attendee', 'ImagiNation 1st'),
+(1289917, 'LEX', 'Elementary Attendee', 'ImagiNation K'),
+(1289918, 'LEX', 'Elementary Attendee', 'Jump Street 2nd'),
+(1289919, 'LEX', 'Elementary Attendee', 'Jump Street 3rd'),
+(1289920, 'LEX', 'Elementary Attendee', 'Shockwave 4th'),
+(1289921, 'LEX', 'Elementary Attendee', 'Shockwave 5th'),
 (1289940, 'LEX', 'Elementary Volunteer', 'Base Camp Volunteer'),
-(1289943, 'LEX', 'Elementary Volunteer', 'Early Bird Volunteer'),
+(1289943, 'LEX', 'Elementary Volunteer', 'Elementary Early Bird'),
 (1289946, 'LEX', 'Elementary Volunteer', 'Elementary Area Leader'),
 (1289944, 'LEX', 'Elementary Volunteer', 'Elementary Service Leader'),
 (1289947, 'LEX', 'Elementary Volunteer', 'ImagiNation Volunteer'),
@@ -1670,29 +1667,29 @@ values
 (1263136, 'LEX', 'Next Steps Volunteer', 'Resource Center'),
 (1285777, 'LEX', 'Next Steps Volunteer', 'Special Event Volunteer'),
 (1263156, 'LEX', 'Next Steps Volunteer', 'Sunday Care Team'),
-(1289905, 'LEX', 'Nursery', 'Wonder Way - 1'),
-(1289906, 'LEX', 'Nursery', 'Wonder Way - 2'),
-(1289907, 'LEX', 'Nursery', 'Wonder Way - 3'),
-(1289924, 'LEX', 'Nursery Volunteer', 'Early Bird Volunteer'),
+(1289905, 'LEX', 'Nursery Attendee', 'Wonder Way 1'),
+(1289906, 'LEX', 'Nursery Attendee', 'Wonder Way 2'),
+(1289907, 'LEX', 'Nursery Attendee', 'Wonder Way 3'),
+(1289924, 'LEX', 'Nursery Volunteer', 'Nursery Early Bird'),
 (1289927, 'LEX', 'Nursery Volunteer', 'Wonder Way 1 Volunteer'),
 (1289928, 'LEX', 'Nursery Volunteer', 'Wonder Way 2 Volunteer'),
 (1289929, 'LEX', 'Nursery Volunteer', 'Wonder Way 3 Volunteer'),
 (1289930, 'LEX', 'Nursery Volunteer', 'Wonder Way 4 Volunteer'),
 (1289926, 'LEX', 'Nursery Volunteer', 'Wonder Way Area Leader'),
 (1289925, 'LEX', 'Nursery Volunteer', 'Wonder Way Service Leader'),
-(1289914, 'LEX', 'Preschool', 'Base Camp Jr.'),
-(1289910, 'LEX', 'Preschool', 'Pop''s Garage'),
-(1289912, 'LEX', 'Preschool', 'SpringTown Toys'),
-(1289913, 'LEX', 'Preschool', 'Treehouse'),
+(1289914, 'LEX', 'Preschool Attendee', 'Base Camp Jr.'),
+(1289910, 'LEX', 'Preschool Attendee', 'Pop''s Garage'),
+(1289912, 'LEX', 'Preschool Attendee', 'SpringTown Toys'),
+(1289913, 'LEX', 'Preschool Attendee', 'Treehouse'),
 (1289931, 'LEX', 'Preschool Volunteer', 'Base Camp Jr. Volunteer'),
-(1289935, 'LEX', 'Preschool Volunteer', 'Early Bird Volunteer'),
+(1289935, 'LEX', 'Preschool Volunteer', 'Preschool Early Bird'),
 (1289932, 'LEX', 'Preschool Volunteer', 'Lil'' Spring Volunteer'),
 (1289933, 'LEX', 'Preschool Volunteer', 'Pop''s Garage Volunteer'),
 (1289937, 'LEX', 'Preschool Volunteer', 'Preschool Area Leader'),
 (1289936, 'LEX', 'Preschool Volunteer', 'Preschool Service Leader'),
 (1289938, 'LEX', 'Preschool Volunteer', 'Toys Volunteer'),
 (1289939, 'LEX', 'Preschool Volunteer', 'Treehouse Volunteer'),
-(1289922, 'LEX', 'Special Needs', 'Spring Zone'),
+(1289922, 'LEX', 'Special Needs Attendee', 'Spring Zone'),
 (1297161, 'LEX', 'Special Needs Volunteer', 'Spring Zone Area Leader'),
 (1289961, 'LEX', 'Special Needs Volunteer', 'Spring Zone Service Leader'),
 (1289962, 'LEX', 'Special Needs Volunteer', 'Spring Zone Volunteer'),
@@ -1704,15 +1701,15 @@ values
 (1342768, 'MYR', 'Creativity & Tech Volunteer', 'Office Team'),
 (1219525, 'MYR', 'Creativity & Tech Volunteer', 'Production Team'),
 (1164430, 'MYR', 'Creativity & Tech Volunteer', 'Social Media/PR Team'),
-(842063, 'MYR', 'Elementary', 'Base Camp'),
-(842064, 'MYR', 'Elementary', 'ImagiNation - 1st'),
-(842069, 'MYR', 'Elementary', 'ImagiNation - K'),
-(842065, 'MYR', 'Elementary', 'Jump Street - 2nd'),
-(842066, 'MYR', 'Elementary', 'Jump Street - 3rd'),
-(842067, 'MYR', 'Elementary', 'Shockwave - 4th'),
-(842068, 'MYR', 'Elementary', 'Shockwave - 5th'),
+(842063, 'MYR', 'Elementary Attendee', 'Base Camp'),
+(842064, 'MYR', 'Elementary Attendee', 'ImagiNation 1st'),
+(842069, 'MYR', 'Elementary Attendee', 'ImagiNation K'),
+(842065, 'MYR', 'Elementary Attendee', 'Jump Street 2nd'),
+(842066, 'MYR', 'Elementary Attendee', 'Jump Street 3rd'),
+(842067, 'MYR', 'Elementary Attendee', 'Shockwave 4th'),
+(842068, 'MYR', 'Elementary Attendee', 'Shockwave 5th'),
 (1197360, 'MYR', 'Elementary Volunteer', 'Base Camp Volunteer'),
-(1405683, 'MYR', 'Elementary Volunteer', 'Early Bird Volunteer'),
+(1405683, 'MYR', 'Elementary Volunteer', 'Elementary Early Bird'),
 (1405684, 'MYR', 'Elementary Volunteer', 'Elementary Service Leader'),
 (842083, 'MYR', 'Elementary Volunteer', 'ImagiNation Volunteer'),
 (1200984, 'MYR', 'Elementary Volunteer', 'Jump Street Volunteer'),
@@ -1834,37 +1831,28 @@ values
 (1283482, 'MYR', 'Next Steps Volunteer', 'Resource Center'),
 (1285779, 'MYR', 'Next Steps Volunteer', 'Special Event Volunteer'),
 (1283488, 'MYR', 'Next Steps Volunteer', 'Sunday Care Team'),
-(842059, 'MYR', 'Nursery', 'Wonder Way - 1'),
-(1159891, 'MYR', 'Nursery', 'Wonder Way - 2'),
-(1326083, 'MYR', 'Nursery', 'Wonder Way - 3'),
-(1403998, 'MYR', 'Nursery', 'Wonder Way - 4'),
-(1405678, 'MYR', 'Nursery Volunteer', 'Early Bird Volunteer'),
+(842059, 'MYR', 'Nursery Attendee', 'Wonder Way 1'),
+(1159891, 'MYR', 'Nursery Attendee', 'Wonder Way 2'),
+(1326083, 'MYR', 'Nursery Attendee', 'Wonder Way 3'),
+(1403998, 'MYR', 'Nursery Attendee', 'Wonder Way 4'),
+(1405678, 'MYR', 'Nursery Volunteer', 'Nursery Early Bird'),
 (842073, 'MYR', 'Nursery Volunteer', 'Wonder Way 1 Volunteer'),
 (1159892, 'MYR', 'Nursery Volunteer', 'Wonder Way 2 Volunteer'),
 (1326091, 'MYR', 'Nursery Volunteer', 'Wonder Way 3 Volunteer'),
 (1404036, 'MYR', 'Nursery Volunteer', 'Wonder Way 4 Volunteer'),
 (1405679, 'MYR', 'Nursery Volunteer', 'Wonder Way Service Leader'),
-(1074498, 'MYR', 'Preschool', 'Base Camp Jr.'),
-(1404022, 'MYR', 'Preschool', 'Lil'' Spring'),
-(992086, 'MYR', 'Preschool', 'Pop''s Garage'),
-(842062, 'MYR', 'Preschool', 'SpringTown Toys'),
-(1304932, 'MYR', 'Preschool', 'Treehouse'),
+(1074498, 'MYR', 'Preschool Attendee', 'Base Camp Jr.'),
+(1404022, 'MYR', 'Preschool Attendee', 'Lil'' Spring'),
+(992086, 'MYR', 'Preschool Attendee', 'Pop''s Garage'),
+(842062, 'MYR', 'Preschool Attendee', 'SpringTown Toys'),
+(1304932, 'MYR', 'Preschool Attendee', 'Treehouse'),
 (1404063, 'MYR', 'Preschool Volunteer', 'Lil'' Spring Volunteer'),
 (842078, 'MYR', 'Preschool Volunteer', 'Pop''s Garage Volunteer'),
 (1405682, 'MYR', 'Preschool Volunteer', 'Preschool Service Leader'),
 (1200649, 'MYR', 'Preschool Volunteer', 'Toys Volunteer'),
 (1304995, 'MYR', 'Preschool Volunteer', 'Treehouse Volunteer'),
-(842070, 'MYR', 'Special Needs', 'Spring Zone'),
+(842070, 'MYR', 'Special Needs Attendee', 'Spring Zone'),
 (976858, 'MYR', 'Special Needs Volunteer', 'Spring Zone Volunteer'),
-(1378245, 'New', 'ing College', 'All-Staff'),
-(1375136, 'New', 'ing College', 'Builders & Shepherds'),
-(1347705, 'New', 'ing College', 'Character Forum'),
-(1347707, 'New', 'ing College', 'Christian Beliefs I'),
-(1375103, 'New', 'ing College', 'Christian Beliefs II'),
-(1375142, 'New', 'ing College', 'Ephesians'),
-(1347715, 'New', 'ing College', 'Leadership Forum'),
-(1375138, 'New', 'ing College', 'Leadership I'),
-(1347706, 'New', 'ing College', 'Small Group'),
 (1335239, 'POW', 'Creativity & Tech Volunteer', 'Band'),
 (1335240, 'POW', 'Creativity & Tech Volunteer', 'Band Green Room'),
 (1335237, 'POW', 'Creativity & Tech Volunteer', 'Load In/Load Out'),
@@ -1872,15 +1860,15 @@ values
 (1384261, 'POW', 'Creativity & Tech Volunteer', 'Office Team'),
 (1335236, 'POW', 'Creativity & Tech Volunteer', 'Production Team'),
 (1340633, 'POW', 'Creativity & Tech Volunteer', 'Social Media/PR Team'),
-(1336796, 'POW', 'Elementary', 'Base Camp'),
-(1336797, 'POW', 'Elementary', 'ImagiNation - 1st'),
-(1336799, 'POW', 'Elementary', 'ImagiNation - K'),
-(1336800, 'POW', 'Elementary', 'Jump Street - 2nd'),
-(1336804, 'POW', 'Elementary', 'Jump Street - 3rd'),
-(1336807, 'POW', 'Elementary', 'Shockwave - 4th'),
-(1336809, 'POW', 'Elementary', 'Shockwave - 5th'),
+(1336796, 'POW', 'Elementary Attendee', 'Base Camp'),
+(1336797, 'POW', 'Elementary Attendee', 'ImagiNation 1st'),
+(1336799, 'POW', 'Elementary Attendee', 'ImagiNation K'),
+(1336800, 'POW', 'Elementary Attendee', 'Jump Street 2nd'),
+(1336804, 'POW', 'Elementary Attendee', 'Jump Street 3rd'),
+(1336807, 'POW', 'Elementary Attendee', 'Shockwave 4th'),
+(1336809, 'POW', 'Elementary Attendee', 'Shockwave 5th'),
 (1336828, 'POW', 'Elementary Volunteer', 'Base Camp Volunteer'),
-(1336834, 'POW', 'Elementary Volunteer', 'Early Bird Volunteer'),
+(1336834, 'POW', 'Elementary Volunteer', 'Elementary Early Bird'),
 (1336830, 'POW', 'Elementary Volunteer', 'Elementary Area Leader'),
 (1336829, 'POW', 'Elementary Volunteer', 'Elementary Service Leader'),
 (1336831, 'POW', 'Elementary Volunteer', 'ImagiNation Volunteer'),
@@ -1998,26 +1986,26 @@ values
 (1335031, 'POW', 'Next Steps Volunteer', 'Special Event Volunteer'),
 (1335010, 'POW', 'Next Steps Volunteer', 'Sunday Care Team'),
 (1335006, 'POW', 'Next Steps Volunteer', 'Writing Team'),
-(1336789, 'POW', 'Nursery', 'Wonder Way - 1'),
-(1336790, 'POW', 'Nursery', 'Wonder Way - 2'),
-(1336791, 'POW', 'Nursery', 'Wonder Way - 3'),
-(1336815, 'POW', 'Nursery Volunteer', 'Early Bird Volunteer'),
+(1336789, 'POW', 'Nursery Attendee', 'Wonder Way 1'),
+(1336790, 'POW', 'Nursery Attendee', 'Wonder Way 2'),
+(1336791, 'POW', 'Nursery Attendee', 'Wonder Way 3'),
+(1336815, 'POW', 'Nursery Volunteer', 'Nursery Early Bird'),
 (1336818, 'POW', 'Nursery Volunteer', 'Wonder Way 1 Volunteer'),
 (1336819, 'POW', 'Nursery Volunteer', 'Wonder Way 2 Volunteer'),
 (1336820, 'POW', 'Nursery Volunteer', 'Wonder Way 3 Volunteer'),
 (1336817, 'POW', 'Nursery Volunteer', 'Wonder Way Area Leader'),
 (1336816, 'POW', 'Nursery Volunteer', 'Wonder Way Service Leader'),
-(1336795, 'POW', 'Preschool', 'Base Camp Jr.'),
-(1336792, 'POW', 'Preschool', 'Pop''s Garage'),
-(1336793, 'POW', 'Preschool', 'SpringTown Toys'),
-(1336794, 'POW', 'Preschool', 'Treehouse'),
+(1336795, 'POW', 'Preschool Attendee', 'Base Camp Jr.'),
+(1336792, 'POW', 'Preschool Attendee', 'Pop''s Garage'),
+(1336793, 'POW', 'Preschool Attendee', 'SpringTown Toys'),
+(1336794, 'POW', 'Preschool Attendee', 'Treehouse'),
 (1336822, 'POW', 'Preschool Volunteer', 'Base Camp Jr. Volunteer'),
 (1336823, 'POW', 'Preschool Volunteer', 'Pop''s Garage Volunteer'),
 (1336825, 'POW', 'Preschool Volunteer', 'Preschool Service Leader'),
 (1405828, 'POW', 'Preschool Volunteer', 'Preschool Service Leader'),
 (1336826, 'POW', 'Preschool Volunteer', 'Toys Volunteer'),
 (1336827, 'POW', 'Preschool Volunteer', 'Treehouse Volunteer'),
-(1336812, 'POW', 'Special Needs', 'Spring Zone'),
+(1336812, 'POW', 'Special Needs Attendee', 'Spring Zone'),
 (1336841, 'POW', 'Special Needs Volunteer', 'Spring Zone Area Leader'),
 (1336840, 'POW', 'Special Needs Volunteer', 'Spring Zone Volunteer'),
 (1290768, 'SPA', 'Creativity & Tech Volunteer', 'Band'),
@@ -2029,15 +2017,15 @@ values
 (1219527, 'SPA', 'Creativity & Tech Volunteer', 'Production Team'),
 (1068650, 'SPA', 'Creativity & Tech Volunteer', 'Social Media/PR Team'),
 (1068649, 'SPA', 'Creativity & Tech Volunteer', 'Social Media/PR Team'),
-(872719, 'SPA', 'Elementary', 'Base Camp'),
-(872720, 'SPA', 'Elementary', 'ImagiNation - 1st'),
-(872721, 'SPA', 'Elementary', 'ImagiNation - K'),
-(872722, 'SPA', 'Elementary', 'Jump Street - 2nd'),
-(872723, 'SPA', 'Elementary', 'Jump Street - 3rd'),
-(872724, 'SPA', 'Elementary', 'Shockwave - 4th'),
-(872725, 'SPA', 'Elementary', 'Shockwave - 5th'),
+(872719, 'SPA', 'Elementary Attendee', 'Base Camp'),
+(872720, 'SPA', 'Elementary Attendee', 'ImagiNation 1st'),
+(872721, 'SPA', 'Elementary Attendee', 'ImagiNation K'),
+(872722, 'SPA', 'Elementary Attendee', 'Jump Street 2nd'),
+(872723, 'SPA', 'Elementary Attendee', 'Jump Street 3rd'),
+(872724, 'SPA', 'Elementary Attendee', 'Shockwave 4th'),
+(872725, 'SPA', 'Elementary Attendee', 'Shockwave 5th'),
 (872750, 'SPA', 'Elementary Volunteer', 'Base Camp Volunteer'),
-(872752, 'SPA', 'Elementary Volunteer', 'Early Bird Volunteer'),
+(872752, 'SPA', 'Elementary Volunteer', 'Elementary Early Bird'),
 (1190757, 'SPA', 'Elementary Volunteer', 'Elementary Area Leader'),
 (872753, 'SPA', 'Elementary Volunteer', 'Elementary Service Leader'),
 (872754, 'SPA', 'Elementary Volunteer', 'ImagiNation Volunteer'),
@@ -2176,31 +2164,31 @@ values
 (1285781, 'SPA', 'Next Steps Volunteer', 'Special Event Volunteer'),
 (1242970, 'SPA', 'Next Steps Volunteer', 'Sunday Care Team'),
 (1242975, 'SPA', 'Next Steps Volunteer', 'Writing Team'),
-(872782, 'SPA', 'Nursery', 'Wonder Way - 1'),
-(872784, 'SPA', 'Nursery', 'Wonder Way - 2'),
-(872786, 'SPA', 'Nursery', 'Wonder Way - 3'),
-(1081247, 'SPA', 'Nursery', 'Wonder Way - 4'),
-(872730, 'SPA', 'Nursery Volunteer', 'Early Bird Volunteer'),
+(872782, 'SPA', 'Nursery Attendee', 'Wonder Way 1'),
+(872784, 'SPA', 'Nursery Attendee', 'Wonder Way 2'),
+(872786, 'SPA', 'Nursery Attendee', 'Wonder Way 3'),
+(1081247, 'SPA', 'Nursery Attendee', 'Wonder Way 4'),
+(872730, 'SPA', 'Nursery Volunteer', 'Nursery Early Bird'),
 (872732, 'SPA', 'Nursery Volunteer', 'Wonder Way 1 Volunteer'),
 (872733, 'SPA', 'Nursery Volunteer', 'Wonder Way 2 Volunteer'),
 (872734, 'SPA', 'Nursery Volunteer', 'Wonder Way 3 Volunteer'),
 (1081249, 'SPA', 'Nursery Volunteer', 'Wonder Way 4 Volunteer'),
 (1190759, 'SPA', 'Nursery Volunteer', 'Wonder Way Area Leader'),
 (872731, 'SPA', 'Nursery Volunteer', 'Wonder Way Service Leader'),
-(1073454, 'SPA', 'Preschool', 'Base Camp Jr.'),
-(1081248, 'SPA', 'Preschool', 'Lil'' Spring'),
-(872713, 'SPA', 'Preschool', 'Pop''s Garage'),
-(872717, 'SPA', 'Preschool', 'SpringTown Toys'),
-(872718, 'SPA', 'Preschool', 'Treehouse'),
+(1073454, 'SPA', 'Preschool Attendee', 'Base Camp Jr.'),
+(1081248, 'SPA', 'Preschool Attendee', 'Lil'' Spring'),
+(872713, 'SPA', 'Preschool Attendee', 'Pop''s Garage'),
+(872717, 'SPA', 'Preschool Attendee', 'SpringTown Toys'),
+(872718, 'SPA', 'Preschool Attendee', 'Treehouse'),
 (1073455, 'SPA', 'Preschool Volunteer', 'Base Camp Jr. Volunteer'),
-(872744, 'SPA', 'Preschool Volunteer', 'Early Bird Volunteer'),
+(872744, 'SPA', 'Preschool Volunteer', 'Preschool Early Bird'),
 (1081250, 'SPA', 'Preschool Volunteer', 'Lil'' Spring Volunteer'),
 (872742, 'SPA', 'Preschool Volunteer', 'Pop''s Garage Volunteer'),
 (1190758, 'SPA', 'Preschool Volunteer', 'Preschool Area Leader'),
 (872745, 'SPA', 'Preschool Volunteer', 'Preschool Service Leader'),
 (872746, 'SPA', 'Preschool Volunteer', 'Toys Volunteer'),
 (872749, 'SPA', 'Preschool Volunteer', 'Treehouse Volunteer'),
-(872727, 'SPA', 'Special Needs', 'Spring Zone'),
+(872727, 'SPA', 'Special Needs Attendee', 'Spring Zone'),
 (930573, 'SPA', 'Special Needs Volunteer', 'Spring Zone Service Leader'),
 (872771, 'SPA', 'Special Needs Volunteer', 'Spring Zone Volunteer')
 
@@ -2211,35 +2199,50 @@ values
 
 declare @scopeIndex int, @numItems int
 declare @GroupTypeName nvarchar(255), @GroupName nvarchar(255), @GroupLocation nvarchar(255), @GroupMemberId bigint, @IsBreakoutTag bit,
-	@JobTitle nvarchar(255), @ScheduleName nvarchar(255), @JobId bigint, @GroupRoleId bigint, @BreakoutGroup nvarchar(255)
+	@JobTitle nvarchar(255), @ScheduleName nvarchar(255), @CampusName nvarchar(255), @CampusCode nvarchar(255), @CampusGuid uniqueidentifier,
+	@JobId bigint, @GroupRoleId bigint, @BreakoutGroup nvarchar(255), @CampusAssignmentId bigint
+
 select @scopeIndex = min(ID) from #rlcMap
 select @numItems = count(1) + @scopeIndex from #rlcMap
 
 while @scopeIndex <= @numItems
 begin
 	
-	select @RLCID = null, @GroupTypeName = '', @GroupName = '', @GroupTypeId = null, 
-		@GroupId = null, @CampusId = null, @LocationId = null
-	select @RLCID = RLC_ID, @GroupTypeName = GroupType, @GroupName = GroupName
+	select @RLCID = null, @CampusCode = '', @CampusName = '', @GroupTypeName = '', @GroupName = '', @GroupTypeId = null, 
+		@GroupId = null, @CampusId = null, @CampusGuid = null, @LocationId = null, @CampusAssignmentId = null
+
+	select @RLCID = RLC_ID, @CampusCode = Code, @GroupTypeName = GroupType, @GroupName = GroupName
 	from #rlcMap where ID = @scopeIndex
 	
 	declare @msg nvarchar(500)
-	select @msg = 'Starting ' + @GroupTypeName + ', ' + @GroupName + ', RLC_ID ' + ltrim(str(@RLCID, 25, 0))
-	RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
+	--select @msg = 'Starting ' + @CampusCode + ' / ' + @GroupTypeName + ' / ' + @GroupName + ' (' + ltrim(str(@RLCID, 25, 0)) + ')'
+	--RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
 	
-		
+	select @CampusId = [Id], @CampusName = [Name], @CampusGuid = [Guid]
+	from [Campus]
+	where ShortCode = @CampusCode
+
 	select @GroupTypeId = ID 
 	from [GroupType]
 	where name = @GroupTypeName
 
-	select @GroupId = ID, @CampusId = CampusId
+	select @GroupId = ID
 	from [Group]
 	where GroupTypeId = @GroupTypeId
 	and Name = @GroupName
 
-	select @LocationId = LocationID
-	from [GroupLocation]
-	where GroupId = @GroupId
+	;with locationChildren as (
+		select l.id, l.parentLocationId, l.name
+		from location l
+		where name = @CampusName
+		union all 
+		select l2.id, l2.parentlocationId, l2.name
+		from location l2
+		inner join locationChildren lc
+		on lc.id = l2.ParentLocationId				
+	)
+	select @LocationId = Id from locationChildren
+	where name = @GroupName
 	
 	if @GroupId is not null
 	begin
@@ -2259,31 +2262,27 @@ begin
 		
 		select @JobTitle = null, @JobId = null, @PersonId = null, @ScheduleName = null, 
 			@GroupRoleId = null, @GroupMemberId = null, @ScheduleAttributeId = null,
-			@TeamConnectorAttributeId = null, @BreakoutGroup = null
+			@CampusAttributeId = null, @TeamConnectorAttributeId = null, @BreakoutGroup = null
 
 		/* ====================================================== */
 		-- Create campus group member attribute
 		/* ====================================================== */
-		--select @CampusAttributeId = Id from Attribute where EntityTypeId = @GroupMemberEntityId
-		--	and EntityTypeQualifierValue = @GroupTypeId and Name = 'Campus'
-		--if @CampusAttributeId is null
-		--begin
-		--	insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
-		--		[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
-		--	select @IsSystem, @DefinedValueFieldTypeId, @GroupMemberEntityId, 'GroupTypeId',  @GroupTypeId, 'TeamConnector', 
-		--		'Team Connector', 'The team connector for this group member.', '', @Order, @True, @True, @False, NEWID()
+		select @CampusAttributeId = Id from Attribute where EntityTypeId = @GroupMemberEntityId
+			and EntityTypeQualifierValue = @GroupTypeId and [Key] = 'Campus'
 
-		--	select @CampusAttributeId = SCOPE_IDENTITY()
+		if @CampusAttributeId is null
+		begin
 
-		--	insert AttributeQualifier ( [IsSystem], [AttributeId], [Key], [Value], [Guid] )
-		--	select @IsSystem, @CampusAttributeId, 'definedtype', @TeamConnectorTypeId, NEWID()
+			select @msg = 'Creating ' + @CampusCode + ' / ' + @GroupTypeName + ' / ' + @GroupName + ' (' + ltrim(str(@RLCID, 25, 0)) + ')'
+			RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
 
-		--	insert AttributeQualifier ( [IsSystem], [AttributeId], [Key], [Value], [Guid] )
-		--	select @IsSystem, @CampusAttributeId, 'allowmultiple', 'False', NEWID()
+			insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
+				[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
+			select @IsSystem, @CampusFieldTypeId, @GroupMemberEntityId, 'GroupTypeId',  @GroupTypeId, 'Campus', 
+				'Campus', 'This group member''s campus.', '', @Order, @True, @False, @True, NEWID()
 
-		--	insert AttributeQualifier ( [IsSystem], [AttributeId], [Key], [Value], [Guid] )
-		--	select @IsSystem, @CampusAttributeId, 'displaydescription', 'False', NEWID()
-		--end
+			select @CampusAttributeId = SCOPE_IDENTITY()			
+		end
 
 		/* ====================================================== */
 		-- Create team connector group member attribute
@@ -2349,11 +2348,13 @@ begin
 		from F1..ActivityAssignment aa
 		inner join PersonAlias p
 		on aa.Individual_ID = p.ForeignId
-		and RLC_ID = @RLCID 
+		and RLC_ID = @RLCID
+		-- ignore fuse attendee because dirty data
+		and aa.activity_name <> 'Fuse Attendee'
 
 		declare @childIndex int, @childItems int
 		select @childIndex = min(ID) from #assignments
-		select @childItems = count(1) + @childIndex from #assignments		
+		select @childItems = count(1) + @childIndex from #assignments
 
 		while @childIndex <= @childItems
 		begin
@@ -2385,19 +2386,31 @@ begin
 					end
 				end
 				-- end lookup/create role
-
+								
 				select @GroupMemberId = Id from GroupMember where GroupId = @GroupId 
 					and GroupRoleId = @GroupRoleId and PersonId = @PersonId
 
+				-- Create group member with role if it doesn't exist
 				if @GroupMemberId is null and @GroupRoleId is not null
 				begin
-					-- Create group member with role
+					
 					insert GroupMember (IsSystem, GroupId, PersonId, GroupRoleId, GroupMemberStatus, [Guid], ForeignId)
 					select @IsSystem, @GroupId, @PersonId, @GroupRoleId, @True, NEWID(), @JobId
 
 					select @GroupMemberId = SCOPE_IDENTITY()
 				end
+				
+				-- Create campus attribute if it doesn't already exist
+				select @CampusAssignmentId = Id from AttributeValue
+				where AttributeId = @CampusAttributeId and EntityId = @GroupMemberId
+				
+				if @CampusAssignmentId is null
+				begin
+					insert AttributeValue ( [IsSystem], [AttributeId], [EntityId], [Value], [Guid] )
+					select @IsSystem, @CampusAttributeId, @GroupMemberId, @CampusGuid, NEWID()
+				end
 
+				-- Create schedule attribute
 				if @ScheduleName is not null and @ScheduleName <> ''
 				begin
 					declare @currentSchedule nvarchar(250) = null, @newSchedule nvarchar(250) = null
@@ -2421,6 +2434,7 @@ begin
 					end
 				end
 
+				-- Create breakout attribute
 				if @BreakoutGroup is not null and @BreakoutGroup <> ''
 				begin
 					-- this is an attendee breakout, create it as a person attribute
@@ -2471,7 +2485,7 @@ begin
 				-- end breakout group 
 
 				select @JobId = null, @JobTitle = null, @PersonId = null, @ScheduleName = null, 
-					@GroupRoleId = null, @GroupMemberId = null, @BreakoutGroup = null
+					@GroupRoleId = null, @GroupMemberId = null, @BreakoutGroup = null, @CampusAssignmentId = null
 			end
 			-- end personId not null
 
@@ -2514,8 +2528,8 @@ from #rlcMap
 where grouptype + groupname not in 
 (
 	select gt.name + g.name
-	from rock..[group] g
-	inner join rock..grouptype gt
+	from [group] g
+	inner join grouptype gt
 	on g.grouptypeid = gt.id
 )
 

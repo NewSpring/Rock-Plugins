@@ -4,7 +4,7 @@
 
 -- Make sure you're using the right Rock database:
 
-USE People
+USE Rock
 
 /* ====================================================== */
 
@@ -119,6 +119,8 @@ insert #topAreas
 values
 ('Creativity & Technology', 'Creativity & Tech Attendee', 15),
 ('Creativity & Technology', 'Creativity & Tech Volunteer', 15),
+('Central Events', 'Event Attendee', 15),
+('Central Events', 'Event Volunteer', 15),
 ('Fuse', 'Fuse Attendee', 17),
 ('Fuse', 'Fuse Volunteer', 15),
 ('Guest Services', 'Guest Services Attendee', 15),
@@ -194,7 +196,7 @@ values
 ('Creativity & Tech Volunteer', 'Special Event Volunteer', 'Special Event Volunteer'), 
 ('Elementary Volunteer', 'Base Camp Volunteer', 'Base Camp Volunteer'), 
 ('Elementary Volunteer', 'Base Camp Team Leader', 'Base Camp Team Leader'), 
-('Elementary Volunteer', 'Early Bird Volunteer', 'Early Bird Volunteer'), 
+('Elementary Volunteer', 'Elementary Early Bird', 'Elementary Early Bird'), 
 ('Elementary Volunteer', 'Elementary Service Leader', 'Elementary Service Leader'), 
 ('Elementary Volunteer', 'Elementary Area Leader', 'Elementary Area Leader'), 
 ('Elementary Volunteer', 'ImagiNation Volunteer', 'ImagiNation Volunteer'), 
@@ -400,6 +402,8 @@ values
 ('Creativity & Tech Volunteer', 'Social Media/PR Team', 'Social Media/PR Team'), 
 ('Creativity & Tech Volunteer', 'Video Production Team', 'Video Production Team'), 
 ('Creativity & Tech Volunteer', 'Web Dev Team', 'Web Dev Team'), 
+('Event Attendee', 'Event Attendee', 'Event Attendee'), 
+('Event Volunteer', 'Event Volunteer', 'Event Volunteer'),
 ('Fuse Volunteer', 'Fuse Office Team', 'Fuse Office Team'), 
 ('Fuse Volunteer', 'Special Event Attendee', 'Special Event Attendee'), 
 ('Fuse Volunteer', 'Special Event Volunteer', 'Special Event Volunteer'), 
@@ -439,19 +443,19 @@ create table #collegeGroups (
 -- GroupType, Group, Location
 insert #collegeGroups
 values
-('NewSpring College Attendee', 'Acts', 'Acts'), 
-('NewSpring College Attendee', 'All-Staff', 'All-Staff'), 
-('NewSpring College Attendee', 'Bible', 'Bible'), 
-('NewSpring College Attendee', 'Builders & Shepherds', 'Builders & Shepherds'), 
-('NewSpring College Attendee', 'Character Forum', 'Character Forum'), 
-('NewSpring College Attendee', 'Christian Beliefs I', 'Christian Beliefs I'), 
-('NewSpring College Attendee', 'Christian Beliefs II', 'Christian Beliefs II'), 
-('NewSpring College Attendee', 'Communication', 'Communication'), 
-('NewSpring College Attendee', 'Ephesians', 'Ephesians'), 
-('NewSpring College Attendee', 'Leadership Forum', 'Leadership Forum'), 
-('NewSpring College Attendee', 'Leadership I', 'Leadership I'), 
-('NewSpring College Attendee', 'Small Group', 'Small Group'), 
-('NewSpring College Attendee', 'Working Group', 'Working Group')
+('NewSpring College', 'Acts', 'Acts'), 
+('NewSpring College', 'All-Staff', 'All-Staff'), 
+('NewSpring College', 'Bible', 'Bible'), 
+('NewSpring College', 'Builders & Shepherds', 'Builders & Shepherds'), 
+('NewSpring College', 'Character Forum', 'Character Forum'), 
+('NewSpring College', 'Christian Beliefs I', 'Christian Beliefs I'), 
+('NewSpring College', 'Christian Beliefs II', 'Christian Beliefs II'), 
+('NewSpring College', 'Communication', 'Communication'), 
+('NewSpring College', 'Ephesians', 'Ephesians'), 
+('NewSpring College', 'Leadership Forum', 'Leadership Forum'), 
+('NewSpring College', 'Leadership I', 'Leadership I'), 
+('NewSpring College', 'Small Group', 'Small Group'), 
+('NewSpring College', 'Working Group', 'Working Group')
 
 /* ====================================================== */
 -- delete existing areas
@@ -755,7 +759,7 @@ begin
 		-- create central group if it doesn't exist
 		/* ====================================================== */		
 		select @GroupId = [Id] from [Group]
-		where name = @GroupName 
+		where name = @GroupName
 		and GroupTypeId = @GroupTypeId
 		
 		if @GroupId is null
@@ -851,7 +855,7 @@ insert grouptype (IsSystem, Name, [Description], GroupTerm, GroupMemberTerm, All
 	ShowInGroupList, ShowInNavigation, TakesAttendance, AttendanceRule, AttendancePrintTo,
 	[Order], InheritedGroupTypeId, LocationSelectionMode, GroupTypePurposeValueId, [Guid],
 	AllowedScheduleTypes, SendAttendanceReminder)
-select @IsSystem, @CollegeName + ' Attendee', @CollegeName + ' Attendee GroupType', 'Group', 'Member', @True, @True, @True, 
+select @IsSystem, @CollegeName, @CollegeName + ' GroupType', 'Group', 'Member', @True, @True, @True, 
 	@True, 0, 0, 0, NULL, 0, NULL, NEWID(), 0, @False
 
 select @AreaId = SCOPE_IDENTITY()
@@ -886,7 +890,7 @@ begin
 
 	insert [Group] (IsSystem, ParentGroupId, GroupTypeId, Name,
 		[Description], IsSecurityRole, IsActive, [Order], [Guid], [IsPublic])
-	select @IsSystem, NULL, @AreaId, @CollegeName, @CollegeName + ' Attendee', @False, @True, 0, NEWID(), @True
+	select @IsSystem, NULL, @AreaId, @CollegeName, @CollegeName, @False, @True, 0, NEWID(), @True
 
 	select @AreaGroupId = SCOPE_IDENTITY()
 end
