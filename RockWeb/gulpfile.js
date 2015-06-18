@@ -13,27 +13,27 @@ gulp.task('browser-sync', function() {
 
 gulp.task('less', function () {
   	return gulp.src([
-  		'./Themes/NewSpring/**/*.less',
-  		'!./Themes/NewSpring/**/_*.less'
+  		'./Themes/NewSpring1/**/*.less',
+  		'!./Themes/NewSpring1/**/_*.less'
   	])
     .pipe(less())
-    .pipe(gulp.dest('./Themes/NewSpring'))
+    .pipe(gulp.dest('./Themes/NewSpring1'))
     .pipe(browserSync.stream());
 });
 
 gulp.task('sass', function(){
 	gulp.src([
-		'./Themes/NewSpring/**/*.scss',
-  		'!./Themes/NewSpring/**/_*.scss'
+		'./Themes/NewSpring1/**/*.scss',
+  		'!./Themes/NewSpring1/**/_*.scss'
 	])
 	.pipe(sass())
-	.pipe(gulp.dest('./Themes/NewSpring'))
+	.pipe(gulp.dest('./Themes/NewSpring1'))
 	.pipe(browserSync.stream());
 });
 
 gulp.task('watch', function(){
-	gulp.watch('Themes/NewSpring/**/*.scss', ['sass']);
-	gulp.watch('Themes/NewSpring/**/*.less', ['less']);
+	gulp.watch('Themes/NewSpring1/**/*.scss', ['sass']);
+	gulp.watch('Themes/NewSpring1/**/*.less', ['less']);
 });
 
 gulp.task('build', ['less','sass']);
