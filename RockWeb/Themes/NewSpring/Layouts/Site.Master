@@ -1,5 +1,4 @@
 ﻿<%@ Master Language="C#" AutoEventWireup="true" Inherits="Rock.Web.UI.RockMasterPage" %>
-
 <%@ Import Namespace="System.Web.Optimization" %>
 <!DOCTYPE html>
 
@@ -26,8 +25,9 @@
     {
         base.OnInit( e );
 
-        lLogoSvg.Text = System.IO.File.ReadAllText( HttpContext.Current.Request.MapPath( "~/Assets/Images/rock-logo.svg" ) );
+        lLogoSvg.Text = System.IO.File.ReadAllText( HttpContext.Current.Request.MapPath("~/Assets/Images/rock-logo.svg") );
     }
+
 </script>
 
 <html class="no-js">
@@ -37,24 +37,24 @@
     <meta charset="utf-8">
     <title></title>
 
-    <script src="<%# ResolveRockUrl("~/Scripts/jquery-1.10.2.min.js") %>"></script>
-    <script src="<%# ResolveRockUrl("~/Scripts/jquery.jquery-dotimeout.js") %>"></script>
+    <script src="<%# ResolveRockUrl("~/Scripts/jquery-1.10.2.min.js" ) %>"></script>
+    <script src="<%# ResolveRockUrl("~/Scripts/jquery.jquery-dotimeout.js" ) %>"></script>
 
     <!-- Typekit -->
     <script src="//use.typekit.net/oby6bqi.js"></script>
     <script>try{Typekit.load();}catch(e){}</script>
 
     <!-- Set the viewport width to device width for mobile -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
     <asp:ContentPlaceHolder ID="css" runat="server" />
 
-    <!-- Included CSS Files -->
-    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/bootstrap.css", true) %>" />
-    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/theme.css", true) %>" />
-    <link rel="stylesheet" href="<%# ResolveRockUrl("~/Styles/developer.css", true) %>" />
+	<!-- Included CSS Files -->
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/bootstrap.css", true) %>"/>
+	<link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/theme.css", true) %>"/>
+	<link rel="stylesheet" href="<%# ResolveRockUrl("~/Styles/developer.css", true) %>"/>
 
-    <script src="<%# ResolveRockUrl("~/Scripts/modernizr.js") %>"></script>
+    <script src="<%# ResolveRockUrl("~/Scripts/modernizr.js" ) %>" ></script>
 
     <asp:ContentPlaceHolder ID="head" runat="server"></asp:ContentPlaceHolder>
 
@@ -64,6 +64,7 @@
     <link rel="apple-touch-icon-precomposed" sizes="114x114" href="<%# ResolveRockUrl("~/Assets/Icons/touch-icon-iphone-retina.png", true) %>">
     <link rel="apple-touch-icon-precomposed" sizes="72x72" href="<%# ResolveRockUrl("~/Assets/Icons/touch-icon-ipad.png", true) %>">
     <link rel="apple-touch-icon-precomposed" href="<%# ResolveRockUrl("~/Assets/Icons/touch-icon-iphone.png", true) %>">
+
 </head>
 <body>
 
@@ -87,26 +88,20 @@
                 <header>
                     <!-- Brand Bar -->
                     <nav class="navbar navbar-default navbar-static-top">
-
-                        <div class="navbar-header">
-                            <div class="navbar-minimize">
+                            <!-- <div class="nav-trigger">
                                 <i class="fa fa-bars"></i>
-                            </div>
-                        </div>
+                            </div> -->
 
-                        <div class="navbar-mobile-logo">
-                            <asp:Literal ID="lLogoSvg" runat="server" />
-                        </div>
+                            <!-- <div class="navbar-mobile-logo">
+                                <asp:Literal ID="lLogoSvg" runat="server" />
+                            </div> -->
 
-                        <div class="navbar-content">
-                            <div class="navbar-zone-login pull-right">
-                                <Rock:Zone Name="Login" runat="server" />
-                            </div>
-                            <div class="navbar-zone-header pull-right divided">
-                                <Rock:Zone Name="Header" runat="server" />
-                            </div>
-                        </div>
+                            <div class="navbar-content">
+                                <div class="navbar-zone-header divided"><Rock:Zone Name="Header" runat="server" /></div>
+                                <div class="navbar-zone-login"><Rock:Zone Name="Login" runat="server" /></div>
+			                </div>
                     </nav>
+
                 </header>
 
                 <main>
@@ -115,54 +110,65 @@
                     <asp:ContentPlaceHolder ID="main" runat="server"></asp:ContentPlaceHolder>
                 </main>
 
-                <footer>
+                 <footer>
 
-                    <hr />
 
-                    <div class="row">
-                        <div class="col-md-8">
-                            <Rock:Zone Name="Footer" runat="server" />
+                        <hr />
+
+                        <div class="row">
+                            <div class="col-md-8">
+                                <Rock:Zone Name="Footer" runat="server" />
+                            </div>
+                            <div class="col-md-4">
+
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                        </div>
-                    </div>
-                </footer>
+
+	            </footer>
+
             </div>
-        </div>
+
+	    </div>
 
         <%-- controls for scriptmanager and update panel --%>
-        <asp:ScriptManager ID="sManager" runat="server" />
-        <asp:UpdateProgress ID="updateProgress" runat="server" DisplayAfter="800">
-            <ProgressTemplate>
-                <div class="updateprogress-status">
-                    <div class="spinner">
-                        <div class="rect1"></div>
-                        <div class="rect2"></div>
-                        <div class="rect3"></div>
-                        <div class="rect4"></div>
-                        <div class="rect5"></div>
+        <asp:ScriptManager ID="sManager" runat="server"/>
+        <asp:UpdateProgress id="updateProgress" runat="server" DisplayAfter="800">
+		        <ProgressTemplate>
+		            <div class="updateprogress-status">
+                        <div class="spinner">
+                          <div class="rect1"></div>
+                          <div class="rect2"></div>
+                          <div class="rect3"></div>
+                          <div class="rect4"></div>
+                          <div class="rect5"></div>
+                        </div>
                     </div>
-                </div>
-                <div class="updateprogress-bg modal-backdrop"></div>
-            </ProgressTemplate>
+                    <div class="updateprogress-bg modal-backdrop"></div>
+		        </ProgressTemplate>
         </asp:UpdateProgress>
+
     </form>
 
     <script>
-        Sys.Application.add_load(function () {
-            $('.navbar-side > li').hover(function () {
-                $(this).doTimeout('hover', 250, 'addClass', 'open');
-            }, function () {
-                $(this).doTimeout('hover', 250, 'removeClass', 'open');
-            });
-        });
+        // Sys.Application.add_load( function () {
+        //     $('.navbar-side > li').hover(function () {
+        //         $(this).doTimeout('hover', 250, 'addClass', 'open');
+        //     }, function () {
+        //         $(this).doTimeout('hover', 250, 'removeClass', 'open');
+        //     });
+        // });
+
 
         $(document).ready(function () {
 
             // enable sidbar sub menus
             $('.navbar-side li').click(function () {
-                $('.navbar-side li').removeClass('open');
-                $(this).addClass('open');
+                if ($(this).hasClass('open')) {
+                    $(this).removeClass('open')
+                } else {
+                    $('.navbar-side li').removeClass('open');
+                    $(this).addClass('open');
+                }
             });
 
             $('#content-wrapper').click(function () {
@@ -170,21 +176,20 @@
             });
 
             // show/hide sidebar nav
-            $('.navbar-minimize').click(function () {
-                if($('body').hasClass('navbar-side-open')) {
+            $('.nav-trigger').click(function () {
+                if ($('body').hasClass("navbar-side-open")) {
                     $('body').addClass('navbar-side-close');
                     $('body').removeClass('navbar-side-open');
-                } 
-                else if($('body').hasClass('navbar-side-close')) {
-                    $('body').removeClass('navbar-side-close');
+                } else {
                     $('body').addClass('navbar-side-open');
-                } 
-                else {
-                    $('body').addClass('navbar-side-close');
+                    $('body').removeClass('navbar-side-close');
                 }
             });
 
+
         });
     </script>
+
 </body>
+
 </html>

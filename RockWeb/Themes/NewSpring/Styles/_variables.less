@@ -1,12 +1,18 @@
 // Custom Theme Variables
-@accent-blue: #2a4930; //5e99a9
+@accent-blue: #567d8c; //5e99a9
 @accent-blue-light: #eaf7fc;
 
-@primary-color: #6bac43;
-@secondary-color: #1c683e;
-@tertiary-color: #2a4930;
-@dark-color: #303030;
-@light-color: #fff;
+@green-primary: 	#6bac43;
+@green-secondary: 	#1c683e;
+@green-tertiary: 	#2a4930;
+@dark-primary: 		#303030;
+@dark-secondary: 	#555;
+@dark-tertiary: 	#aaa;
+@light-primary: 	#fff;
+@light-secondary: 	#f7f7f7;
+@light-tertiary: 	#ddd;
+
+@sidebar-width: 	260px;
 
 //
 // Rock 1.0 Variables
@@ -16,19 +22,19 @@
 @const-border-darken-amt: 10%; // creates a border color by darkening the background by this amount
 
 // Font Weights
-@font-weight-light:     500;
+@font-weight-light:     400;
 @font-weight-bold:      900;
 @font-weight-semibold:  700;
 
 // Standard Colors
-@accent-color: darken(@light-color, 15);
+@accent-color: darken(@light-secondary, 10);
 @accent-text-color: #524c43;
 @accent-light-color: #e3ded7;
 @accent-light-text-color: #817b72;
-@accent-semibold-color: #c2b8a7;
-@accent-semibold-text-color: #616161;
-@accent-bold-color: @dark-color;
-@accent-bold-text-color: lighten(@dark-color, 60);
+@accent-semibold-color: @green-primary;
+@accent-semibold-text-color: @light-primary;
+@accent-bold-color: @dark-primary;
+@accent-bold-text-color: @light-primary;
 
 @text-light-color: lighten(@text-color, 20%);
 @text-selection-color: #afd074;
@@ -55,8 +61,8 @@
 
 @pagetitle-bg: #c7cacd;
 
-@header-bg:     @primary-color;
-@header-text-color: @tertiary-color;
+@header-bg:     #c2b8a7;
+@header-text-color: @accent-semibold-text-color;
 
 @footer-bg: @header-bg;
 @footer-text-color: @header-text-color;
@@ -169,11 +175,11 @@
 // Brand colors
 // -------------------------
 
-@brand-primary:         #6BAC43;
-@brand-success:         #1c683e;
+@brand-primary:         @green-primary;
+@brand-success:         @green-primary;
 @brand-warning:         #f3d066;
-@brand-danger:          #c84b4b;
-@brand-info:            #6BAC43;
+@brand-danger:          #c64f55;
+@brand-info:            #3bc2df;
 
 // Scaffolding
 // -------------------------
@@ -184,8 +190,8 @@
 // Links
 // -------------------------
 
-@link-color:            @primary-color;
-@link-hover-color:      darken(@primary-color, 15%);
+@link-color:            @green-primary;
+@link-hover-color:      darken(@link-color, 15%);
 
 // Typography
 // -------------------------
@@ -273,23 +279,23 @@
 
 @btn-primary-color:              #fff;
 @btn-primary-bg:                 @brand-primary;
-@btn-primary-border:             darken(@btn-primary-bg, 5%);
+@btn-primary-border:             @brand-primary;
 
 @btn-success-color:              #fff;
 @btn-success-bg:                 @brand-success;
-@btn-success-border:             darken(@btn-success-bg, 5%);
+@btn-success-border:             @brand-success;
 
 @btn-warning-color:              #fff;
 @btn-warning-bg:                 @brand-warning;
-@btn-warning-border:             darken(@btn-warning-bg, 5%);
+@btn-warning-border:             @brand-warning;
 
 @btn-danger-color:               #fff;
 @btn-danger-bg:                  @brand-danger;
-@btn-danger-border:              darken(@btn-danger-bg, 5%);
+@btn-danger-border:              @brand-danger;
 
 @btn-info-color:                 #fff;
 @btn-info-bg:                    @brand-info;
-@btn-info-border:                darken(@btn-info-bg, 5%);
+@btn-info-border:                @brand-info;
 
 @btn-link-disabled-color:        @gray-light;
 
@@ -405,8 +411,7 @@
 // -------------------------
 
 // Basics of a navbar
-@navbar-width: 					   70px;
-@navbar-height:                    70px;
+@navbar-height:                    50px;
 @navbar-margin-bottom:             0;
 @navbar-default-color:             #777;
 @navbar-default-bg:                @header-bg;
@@ -417,8 +422,8 @@
 @navbar-collapse-max-height:       340px;
 
 // Navbar links
-@navbar-default-link-color:                darken(@primary-color, 20);
-@navbar-default-link-hover-color:          darken(@primary-color, 30);
+@navbar-default-link-color:                #777;
+@navbar-default-link-hover-color:          #333;
 @navbar-default-link-hover-bg:             transparent;
 @navbar-default-link-active-color:         #555;
 @navbar-default-link-active-bg:            darken(@navbar-default-bg, 6.5%);
@@ -488,7 +493,7 @@
 @nav-tabs-justified-active-link-border-color:     @body-bg;
 
 // Pills
-@nav-pills-active-link-hover-bg:            #6BAC43;
+@nav-pills-active-link-hover-bg:            @green-primary;
 @nav-pills-active-link-hover-color:         #fff;
 
 
@@ -532,21 +537,21 @@
 // Form states and alerts
 // -------------------------
 
-@state-warning-text:             #A0886E;
+@state-warning-text:             #c09853;
 @state-warning-bg:               #fcf8e3;
-@state-warning-border:           darken(spin(@state-warning-bg, -10), 3%);
+@state-warning-border:           #fcf8e3;
 
-@state-danger-text:              #b94a48;
+@state-danger-text:              #c64f55;
 @state-danger-bg:                #f2dede;
-@state-danger-border:            darken(spin(@state-danger-bg, -10), 3%);
+@state-danger-border:            #f2dede;
 
-@state-success-text:             #468847;
-@state-success-bg:               #dff0d8;
-@state-success-border:           darken(spin(@state-success-bg, -10), 5%);
+@state-success-text:             @green-tertiary;
+@state-success-bg:               @green-primary;
+@state-success-border:           @green-primary;
 
-@state-info-text:                darken(@brand-primary, 20%);
-@state-info-bg:                  lighten(@brand-primary, 15%);
-@state-info-border:              darken(spin(@state-info-bg, -10), 7%);
+@state-info-text:                #3a87ad;
+@state-info-bg:                  #d9edf7;
+@state-info-border:              #d9edf7;
 
 
 // Tooltips
