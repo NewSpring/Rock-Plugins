@@ -152,6 +152,9 @@ select distinct Staffing_Schedule_Name, case
 	end as 'schedule'
 from F1..Staffing_Assignment
 
+-- Remove any old schedules
+delete from DefinedValue where DefinedTypeId = @ScheduleDefinedTypeId
+
 -- Create defined values for all the schedules
 ;with distinctSchedules as (
 	select distinct scheduleRock 
