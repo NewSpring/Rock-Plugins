@@ -1,0 +1,30 @@
+{% if Page.DisplayChildPages == 'true' and Page.Pages != empty %}
+    <ul class="nav nav-stacked navbar-side">
+		{% for childPage in Page.Pages %}
+            {% if childPage.Current == 'true' %}
+				<li class="current">
+			{% else %}
+				<li>
+			{% endif %}
+				<i class="fa-fw {{ childPage.IconCssClass }}"></i> {{ childPage.Title }}
+
+				{% if childPage.DisplayChildPages == 'true' and childPage.Pages != empty %}
+                    {{ greatgrandchildPage.Title }}
+                    <ul class="nav nav-childpages">
+						{% for grandchildPage in childPage.Pages %}
+                            <li class="header">{{ grandchildPage.Title }}</li>
+                            {% if grandchildPage.DisplayChildPages == 'true' %}
+                                {% for greatgrandchildPage in grandchildPage.Pages %}
+                                    <li>
+                                        <a role="menu-item" href="{{ greatgrandchildPage.Url }}">{{ greatgrandchildPage.Title }}</a>
+                                    </li>
+                                {% endfor %}
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}
