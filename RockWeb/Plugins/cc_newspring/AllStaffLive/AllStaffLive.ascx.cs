@@ -38,122 +38,51 @@ namespace RockWeb.Plugins.cc_newspring.AllStaffLive
         {
             base.OnLoad( e );
 
-            // Set Times To Check Against
-            var serverDate = DateTime.Now.Date;
-            string serverDay = DateTime.Now.DayOfWeek.ToString();
-            var serverTime = DateTime.Now.TimeOfDay;
+            var scheduleGuids = GetAttributeValue( "LiveSchedule" );
 
-            var scheduleGuids = GetAttributeValue( "LiveSchedule" ).ToString();
-            var scheduleArray = scheduleGuids.Split( ',' ).AsGuidList().ToArray();
-
-            var scheduleService = new ScheduleService( new RockContext() );
-
-            // Support for multiples schedules loops through each
-            foreach ( var scheduleGuid in scheduleArray )
+            // Check to make sure that scheduleGuids is not null
+            if ( scheduleGuids != null )
             {
-                var schedule = scheduleService.Get( scheduleGuid );
+                var scheduleArray = scheduleGuids.Split( ',' ).AsGuidList();
 
-                var calendarList = iCalendar.LoadFromStream( new StringReader( schedule.iCalendarContent ) );
+                var scheduleService = new ScheduleService( new RockContext() );
 
-                // Get the friendly schedule text
-                scheduleText.Value = schedule.FriendlyScheduleText.ToString();
-
-                // Get the start & end dates for the schedule
-
-                // Get the start date of the schedule
-                var scheduleStartDate = new DateTime( calendarList[0].Events[0].DTEnd.Year, calendarList[0].Events[0].DTEnd.Month, calendarList[0].Events[0].DTEnd.Day );
-
-                // Get the schedule start time
-                var scheduleStartTime = new TimeSpan( schedule.StartTimeOfDay.Hours, schedule.StartTimeOfDay.Minutes, schedule.StartTimeOfDay.Seconds );
-
-                // Make the offset open minutes negative
-                var offsetMinutes = schedule.CheckInStartOffsetMinutes * -1 ?? 0;
-
-                // Create the new schedule start time
-                var scheduleOpenTime = scheduleStartTime.Add( new TimeSpan( 0, offsetMinutes, 0 ) );
-
-                if ( calendarList.Any() )
+                // Support for multiples schedules loops through each
+                foreach ( var scheduleGuid in scheduleArray )
                 {
-                    DateTime? scheduleExpiration;
-                    bool hasRecurringRules = false;
+                    var schedule = new ScheduleService( new RockContext() ).Get( scheduleGuid );
 
-                    var calendarInstance = calendarList[0].Events[0];
-
-                    // Check for recurring and set the appropriate expriation option
-                    if ( calendarInstance.RecurrenceRules[0] != null )
+                    if ( schedule != null )
                     {
-                        scheduleExpiration = calendarInstance.RecurrenceRules[0].Until;
-                        hasRecurringRules = true;
-                    }
-                    else
-                    {
-                        scheduleExpiration = calendarInstance.DTEnd.Date;
-                    }
+                        // Get the friendly schedule text
+                        scheduleText.Value = schedule.FriendlyScheduleText.ToString();
 
-                    // Check to make sure that the schedule isn't expired
-                    if ( scheduleExpiration >= serverDate )
-                    {
+                        var scheduleExpired = schedule.IsValid;
 
-                        // Get the end time
-                        var scheduleEndTime = calendarInstance.DTEnd.TimeOfDay;
+                        bool scheduleActive = schedule.IsScheduleOrCheckInActive;
 
-                        // Get the day
-                        string scheduleDay = calendarInstance.DTEnd.DayOfWeek.ToString();
-
-
-                        if ( hasRecurringRules )
+                        // Check if Check in or Schedule is active and set the state accordingly
+                        if ( scheduleActive )
                         {
-                            var liveDays = calendarInstance.RecurrenceRules[0].ByDay;
+                            // Active Schedule, set liveFeedStatus to on
+                            liveFeedStatus.Value = "on";
 
-                            var recurringDays = liveDays.Select( d => d.DayOfWeek.ToString() ).ToList();
+                            // Set the ooyala id
+                            ooyalaId.Value = GetAttributeValue( "OoyalaContentID" );
 
-                            foreach ( var recurringDay in recurringDays )
-                            {
-                                if ( serverDay.Equals( recurringDay ) )
-                                {
-                                    if ( serverTime >= scheduleOpenTime && serverTime <= scheduleEndTime )
-                                    {
-                                        liveFeedStatus.Value = "on";
-                                    }
-                                    else
-                                    {
-                                        liveFeedStatus.Value = "off";
-                                    }
-                                }
-                                else
-                                {
-                                    liveFeedStatus.Value = "off";
-                                }
-                            }
+                            break;
                         }
                         else
                         {
-                            if ( serverTime >= scheduleOpenTime && serverTime <= scheduleEndTime )
-                            {
-                                liveFeedStatus.Value = "on";
-                            }
-                            else
-                            {
-                                liveFeedStatus.Value = "off";
-                            }
+                            liveFeedStatus.Value = "off";
                         }
-
                     }
                     else
                     {
-                        // Schedule is expired, pass an expired value for future expansion
-                        liveFeedStatus.Value = "expired";
+                        liveFeedStatus.Value = "off";
                     }
                 }
-
-                if ( liveFeedStatus.Value.Equals( "on" ) )
-                {
-                    break;
-                }
             }
-
-            // Set the ooyala id
-            ooyalaId.Value = GetAttributeValue( "OoyalaContentID" );
         }
     }
 }
