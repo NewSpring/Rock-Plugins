@@ -366,7 +366,7 @@ table {
   margin: 0;
   padding: 7px 0;
   border: 0;
-  border-radius: 3px;
+  border-radius: 0px;
   background-color: @light-primary;
 
   i {
@@ -391,35 +391,6 @@ table {
     right: 0px;
     font-size: @font-size-small;
     width: 160px;
-  }
-}
-
-.loginstatus {
-  position: relative;
-  margin-left: 24px;
-  // margin-right: 2px;
-
-  .dropdown-toggle {
-    padding-left: 54px;
-    background-color: transparent;
-
-    b {
-      margin-left: 5px;
-    }
-  }
-
-  .profile-photo {
-    position: absolute;
-    top: 50%;
-    left: 8px;
-    margin-top: -18px;
-    height: 36px;
-    width: 36px;
-    background-size: 100%;
-    -webkit-border-radius: 17.5px;
-    -moz-border-radius: 17.5px;
-    border-radius: 17.5px;
-    // margin: -8px 4px 0 0;
   }
 }
 
@@ -637,7 +608,7 @@ a.link-block,
 
   header {
     .navbar-default {
-      background-color: @green-primary;
+      background-color: @dark-primary;
       border: 0px;
       color: @light-primary;
 
@@ -662,14 +633,9 @@ a.link-block,
         }
       }
 
-      .navbar-zone-header, .navbar-zone-login {
-        display: inline-block;
-        vertical-align: top;
+      .navbar-nav > li {
+        float: none;
       }
-      
-      // .navbar-zone-login {
-      //   vertical-align: bottom;
-      // }
 
       .navbar-nav > .open > a,
       .navbar-nav > .open > a:hover,
@@ -813,32 +779,10 @@ body#splash {
 /*#endregion */
 
 
-/*#region
-// 6. Utilities              */
+// #region
+// 6. Utilities              
 // -------------------------
 
-// .navbar {
-//   .logo, .nav-trigger {
-//     display: inline-block;
-//     height: 50px;
-//     width: 50px;
-//     vertical-align: top;
-//   }
-
-//   .logo {
-//     background-image: url('../Assets/Images/newspring-logo.png');
-//     background-size: cover;
-//     background-color: @dark-primary;
-//   }
-
-//   .nav-trigger i {
-//     position: absolute;
-//     top: 50%;
-//     margin-top: -11px;
-//     text-align: center;
-//     font-size: @font-size-large;
-//   }
-// }
 
 
 /*#endregion */
@@ -853,6 +797,17 @@ body {
   overflow: hidden;
 }
 
+.logo {
+  display: none;
+  float: left;
+  width: 40px;
+  height: 40px;
+  margin-top: 5px;
+  margin-left: 5px;
+  background-image: url('../Assets/Images/newspring-logo.png');
+  background-size: cover;
+}
+
 #content-wrapper {
   position: absolute;
   top: 0px;
@@ -863,15 +818,63 @@ body {
 
   body.navbar-side-open & {
     left: @sidebar-width;
+    right: -@sidebar-width;
   }
 }
 
 .navbar-static-top {
-  padding: 10px;
-
   .navbar-content {
-    float: right;
-    display: inline-block;
+    width: 100%;
+    background-color: @green-primary;
+
+    .nav-trigger {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      width: 50px;
+      height: 50px;
+      text-align: center;
+      cursor: pointer;
+
+      i {
+        font-size: 24px;
+        margin-top: 13px;
+      }
+    }
+
+    .navbar-zone-header, .navbar-zone-login {
+      display: inline-block;
+      vertical-align: top;
+    }
+
+    .navbar-zone-header {
+      width: 100%;
+      padding-left: 50px;
+      text-align: right;
+
+      .zone-instance {
+        display: inline-block;
+        vertical-align: bottom;
+        float: none;
+      }
+
+      #zone-login {
+        position: relative;
+
+        .dropdown-toggle {
+          padding-left: 65px;
+        }
+
+        .profile-photo {
+          position: absolute;
+          width: 50px;
+          height: 50px;
+          top: 50%;
+          left: 0px;
+          margin-top: -25px;
+        }
+      }
+    }
   }
 }
 
@@ -994,64 +997,12 @@ body {
 
 }
 
-// expanded view
-// @media (min-width: @screen-md-min) {
-
-//   .navbar-static-side {
-//     display: block;
-//   }
-
-//   #content-wrapper {
-//     margin-left: 70px;
-//   }
-// }
-
-// minimized view
-// body.navbar-side-open {
-//   .navbar-static-side {
-//     width: 70px;
-//     display: block;
-//   }
-
-//   #content-wrapper {
-//     margin-left: 70px;
-//   }
-// }
-
-// body.navbar-side-close {
-//   .navbar-static-side {
-//     display: none;
-//   }
-
-//   #content-wrapper {
-//     margin-left: 0;
-//   }
-// }
 /*#endregion */
 
 
 /*#region
 // 8. Person Details  */
 // -------------------------
-
-.personprofile {
-
-  .personprofilebar-badge,
-  .personprofilebar-family,
-  .pagetabs,
-  .person-content {
-    padding-left: 15px;
-    padding-right: 15px;
-  }
-
-  .personprofilebar-bio {
-    margin-top: 12px;
-  }
-
-  .pagetabs {
-    margin-bottom: 12px;
-  }
-}
 
 /*#endregion */
 
@@ -1087,6 +1038,9 @@ body {
 }
 
 @media (max-width: @screen-xs-max) {
+  .smartsearch {
+    width: 70%;
+  }
   #content-wrapper {
     width: 100%;
 

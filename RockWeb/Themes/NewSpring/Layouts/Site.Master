@@ -74,11 +74,11 @@
 
             <nav class="navbar-default navbar-static-side" role="navigation">
 
-                <div class="navbar-header">
+                <!-- <div class="navbar-header">
                     <asp:HyperLink ID="hlHome" runat="server" NavigateUrl="~" ToolTip="Rock">
                         <div class="logo"></div>
                     </asp:HyperLink>
-                </div>
+                </div> -->
 
                 <Rock:Zone Name="Navigation" runat="server" />
             </nav>
@@ -88,18 +88,16 @@
                 <header>
                     <!-- Brand Bar -->
                     <nav class="navbar navbar-default navbar-static-top">
-                            <!-- <div class="nav-trigger">
-                                <i class="fa fa-bars"></i>
-                            </div> -->
+                        
 
-                            <!-- <div class="navbar-mobile-logo">
-                                <asp:Literal ID="lLogoSvg" runat="server" />
-                            </div> -->
+                        <!-- <div class="navbar-mobile-logo">
+                            <asp:Literal ID="lLogoSvg" runat="server" />
+                        </div> -->
 
-                            <div class="navbar-content">
-                                <div class="navbar-zone-header divided"><Rock:Zone Name="Header" runat="server" /></div>
-                                <div class="navbar-zone-login"><Rock:Zone Name="Login" runat="server" /></div>
-			                </div>
+                        <div class="navbar-content">
+                            <div class="nav-trigger"><i class="fa fa-bars"></i></div>
+                            <div class="navbar-zone-header"><Rock:Zone Name="Header" runat="server" /><Rock:Zone Name="Login" runat="server" /></div>
+		                </div>
                     </nav>
 
                 </header>
