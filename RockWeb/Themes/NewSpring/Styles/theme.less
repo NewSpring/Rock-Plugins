@@ -28,9 +28,9 @@
 
 */
 
-#cms-admin-footer {
-  display: none;
-}
+// #cms-admin-footer {
+//   display: none;
+// }
 
 /*#region
 // 1.         */
@@ -116,6 +116,11 @@ h6 .small,
   font-weight: inherit;
 }
 
+h1, h2, h3, h4, h5, h6, p, li, small {
+  margin-top: 0px;
+  color: @dark-primary;
+}
+
 // tables
 .table > tbody > tr > th, 
 .table > tbody > tr > td {
@@ -145,7 +150,7 @@ table {
 .panel {
   border-radius: 0;
   border-top-width: 0;
-  border-top-width: 3px;
+  border-top-width: 1px;
 
   .panel-heading {
     position: relative;
@@ -159,6 +164,7 @@ table {
       letter-spacing: -.5px;
       font-size: 18px;
       margin: 6px 12px 4px 0;
+      color: @accent-light-text-color;
 
       i {
         position: relative;
@@ -169,6 +175,16 @@ table {
 
     h3 > i {
       margin-right: 4px;
+    }
+  }
+
+  &.panel-chart {
+    .panel-body {
+      padding: 0px;
+
+      canvas {
+        padding: 30px;
+      }
     }
   }
 
@@ -534,6 +550,28 @@ table {
 /*#region
 // 5. Theme Styling          */
 // -------------------------
+
+// Helper Classes
+
+.flush {
+  margin: 0px;
+}
+
+.hard {
+  padding: 0px;
+}
+
+.centered {
+  text-align: center;
+}
+
+.brand-success {
+  color: @brand-success;
+}
+
+.brand-danger {
+  color: @brand-danger;
+}
 
 // Notifications
 .navbar-top-links {
@@ -910,6 +948,7 @@ body {
       line-height: @line-height-base;
       font-weight: @font-weight-semibold;
       border-bottom: 1px solid rgba(255,255,255,.05);
+      color: @accent-bold-text-color;
 
       &:hover {
         background-color: lighten(@accent-bold-color, 5%);

@@ -1973,7 +1973,7 @@ ul.rocklist .rocklist-item.selected {
   background-color: #fff;
   border: 1px solid #cec5b9;
   border-radius: 0 0 4px 4px;
-  color: #817b72;
+  color: #303030;
   -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
   -moz-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
@@ -1992,12 +1992,12 @@ ul.rocklist .rocklist-item.selected {
   background-color: #d9d2c8;
 }
 .tt-suggestion.tt-is-under-cursor {
-  color: #817b72;
+  color: #303030;
   background-repeat: repeat-x;
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff0088cc', endColorstr='#ff0077b3', GradientType=0);
 }
 .tt-suggestion.tt-is-under-cursor a {
-  color: #817b72;
+  color: #303030;
 }
 .tt-suggestion p {
   margin: 0;
@@ -2538,7 +2538,7 @@ td.grid-col-actions {
 }
 .table > tbody > tr.grid-section-header > td {
   background-color: #e3ded7;
-  color: #817b72;
+  color: #303030;
 }
 .table > tbody > tr.grid-section-header:hover > td {
   background-color: #e3ded7 !important;
@@ -3372,7 +3372,7 @@ table.attribute-grid tr th:nth-child(3) {
   background-color: #e3ded7;
   min-height: 64px;
   border-bottom: 1px solid #cec5b9;
-  color: #817b72;
+  color: #303030;
 }
 .personprofilebar-badge .badge-group {
   margin: 7.5px 0;
@@ -3416,7 +3416,7 @@ table.attribute-grid tr th:nth-child(3) {
 }
 .badge-attendance ul.badge-attendance-chart li span {
   display: block;
-  background: #817b72;
+  background: #303030;
   width: 8px;
   min-height: 1px;
 }
@@ -4209,11 +4209,11 @@ iframe.email-body {
 }
 .accent-light-color {
   background-color: #e3ded7;
-  color: #817b72;
+  color: #303030;
 }
 .accent-light-color-bordered {
   background-color: #e3ded7;
-  color: #817b72;
+  color: #303030;
   border: 1px solid #cec5b9;
 }
 .accent-semibold-color {
@@ -5330,9 +5330,6 @@ div.aspNetDisabled {
   10. Responsive Overrides
 
 */
-#cms-admin-footer {
-  display: none;
-}
 /*#region
 // 1.         */
 /*#endregion */
@@ -5365,7 +5362,7 @@ textarea:focus,
 pre {
   background-color: #e3ded7;
   border-color: #c3b9aa;
-  color: #817b72;
+  color: #303030;
 }
 ul {
   padding-left: 20px;
@@ -5399,6 +5396,18 @@ h6 .small,
 .h6 .small {
   font-weight: inherit;
 }
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+li,
+small {
+  margin-top: 0px;
+  color: #303030;
+}
 .table > tbody > tr > th,
 .table > tbody > tr > td {
   vertical-align: middle;
@@ -5419,7 +5428,7 @@ table {
 .panel {
   border-radius: 0;
   border-top-width: 0;
-  border-top-width: 3px;
+  border-top-width: 1px;
 }
 .panel .panel-heading {
   position: relative;
@@ -5433,6 +5442,7 @@ table {
   letter-spacing: -0.5px;
   font-size: 18px;
   margin: 6px 12px 4px 0;
+  color: #303030;
 }
 .panel .panel-heading .panel-title i {
   position: relative;
@@ -5441,6 +5451,12 @@ table {
 }
 .panel .panel-heading h3 > i {
   margin-right: 4px;
+}
+.panel.panel-chart .panel-body {
+  padding: 0px;
+}
+.panel.panel-chart .panel-body canvas {
+  padding: 30px;
 }
 .panel .panel-labels {
   position: absolute;
@@ -5698,6 +5714,21 @@ table {
 /*#endregion */
 /*#region
 // 5. Theme Styling          */
+.flush {
+  margin: 0px;
+}
+.hard {
+  padding: 0px;
+}
+.centered {
+  text-align: center;
+}
+.brand-success {
+  color: #6bac43;
+}
+.brand-danger {
+  color: #c64f55;
+}
 .navbar-top-links {
   float: left;
   margin-left: 12px;
@@ -6003,6 +6034,7 @@ body.navbar-side-open .navbar-static-side {
   line-height: 1.42857143;
   font-weight: 700;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #ffffff;
 }
 .navbar-static-side .navbar-side > li:hover {
   background-color: #3d3d3d;
