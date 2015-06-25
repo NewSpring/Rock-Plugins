@@ -49,7 +49,7 @@
                         </Rock:RockControlWrapper>
 
                         <Rock:NotificationBox ID="nbCampusesWarning" runat="server" NotificationBoxType="Warning" Text="Please select at least one campus." Visible="false"/>
-                        <Rock:CampusesPicker ID="cpCampuses" runat="server" Label="Campuses" />
+                        <Rock:CampusesPicker ID="cpCampuses" runat="server" CssClass="campuses-picker-vertical" Label="Campuses" />
 
                         
                         <Rock:NotificationBox ID="nbGroupsWarning" runat="server" NotificationBoxType="Warning" Text="Please select at least one group." Visible="false"/>
@@ -204,7 +204,7 @@
                                     <Rock:DateField DataField="LastVisit.StartDateTime" HeaderText="Last Visit" SortExpression="LastVisit.StartDateTime" />
                                     <Rock:CampusField DataField="LastVisit.CampusId" HeaderText="Campus" SortExpression="LastVisit.Campus.Name" />
                                     <Rock:RockLiteralField HeaderText="Service Time" ID="lServiceTime" />
-                                    <Rock:RockBoundField DataField="LastVisit.Group.Name" HeaderText="Check-in Area" SortExpression="LastVisit.Group.Name" />
+                                    <Rock:RockBoundField DataField="LastVisit.GroupName" HeaderText="Check-in Area" SortExpression="LastVisit.GroupName" />
                                     <Rock:RockLiteralField HeaderText="Home Address" ID="lHomeAddress" ItemStyle-Wrap="false" />
                                     <Rock:PhoneNumbersField HeaderText="Phone Numbers" DataField="PhoneNumbers" ItemStyle-Wrap="false" DisplayCountryCode="false" />
                                     <Rock:RockLiteralField HeaderText="Count" ID="lAttendanceCount" SortExpression="AttendanceSummary.Count" />
