@@ -4,7 +4,7 @@
 
 -- Make sure you're using the right Rock database:
 
-USE Rock
+USE test
 
 /* ====================================================== */
 
@@ -82,10 +82,30 @@ and l.LocationTypeValueId = @CampusLocationTypeId
 DECLARE @SpecialNeedsAttributeId INT
 DECLARE @SpecialNeedsGroupTypeId INT
 SELECT @SpecialNeedsGroupTypeId = (
-	SELECT [Id]
-	FROM [GroupType]
+	SELECT [Id] FROM [GroupType]
 	WHERE [Name] = 'Check in By Special Needs'	
 );
+
+if @SpecialNeedsGroupTypeId is null
+begin
+	INSERT [GroupType] ( [IsSystem], [Name], [Description], [GroupTerm], [GroupMemberTerm], [AllowMultipleLocations], [ShowInGroupList], [ShowInNavigation], 
+		[TakesAttendance], [AttendanceRule], [AttendancePrintTo], [Order], [LocationSelectionMode], [AllowedScheduleTypes], [SendAttendanceReminder], [Guid] ) 
+	VALUES ( @IsSystem, 'Check In By Special Needs', 'Indicates if this group is for those who have special needs.', 'Group', 'Member', @True, @True, @True, 
+		@False, 1, 0, 0, 0, 0, 0, NEWID() );
+	
+	SET @SpecialNeedsGroupTypeId = SCOPE_IDENTITY()
+
+	INSERT [GroupTypeRole] ( [IsSystem], [GroupTypeId], [Name], [Order], [IsLeader], [CanView], [CanEdit], [Guid] )
+	VALUES ( @IsSystem, @SpecialNeedsGroupTypeId, 'Member', 0, @False, @False, @False, NEWID() )
+
+	DECLARE @SpecialNeedsGroupMemberId int
+	SET @SpecialNeedsGroupMemberId = SCOPE_IDENTITY()
+
+	UPDATE [GroupType]
+	SET DefaultGroupRoleId = @SpecialNeedsGroupMemberId
+	WHERE [Id] = @SpecialNeedsGroupTypeId
+end
+
 
 select @SpecialNeedsAttributeId = Id from [Attribute] where [Key] = 'IsSpecialNeeds' 
 	and EntityTypeid = @GroupEntityTypeId
