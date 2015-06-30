@@ -87,7 +87,8 @@ SELECT @SpecialNeedsGroupTypeId = (
 	WHERE [Name] = 'Check in By Special Needs'	
 );
 
-select @SpecialNeedsAttributeId = Id from [Attribute] where [Key] = 'IsSpecialNeeds'
+select @SpecialNeedsAttributeId = Id from [Attribute] where [Key] = 'IsSpecialNeeds' 
+	and EntityTypeid = @GroupEntityTypeId
 if @SpecialNeedsAttributeId is null or @SpecialNeedsAttributeId = ''
 begin
 
