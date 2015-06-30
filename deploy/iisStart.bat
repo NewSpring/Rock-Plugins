@@ -8,6 +8,6 @@ echo %ERRORLEVEL%
 REM only if the w3svc is not running do we want to try to start it.
 REM if we try to start it when it is already started it will throw an error.
 REM if NOT %STATE% == 4 (
-if NOT %ERRORLEVEL%=="0"
+if NOT %ERRORLEVEL%==0
   net start w3svc
 )
