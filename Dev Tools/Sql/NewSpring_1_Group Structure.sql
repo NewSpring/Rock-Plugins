@@ -4,7 +4,7 @@
 
 -- Make sure you're using the right Rock database:
 
-USE test
+USE Rock
 
 /* ====================================================== */
 
@@ -83,15 +83,15 @@ DECLARE @SpecialNeedsAttributeId INT
 DECLARE @SpecialNeedsGroupTypeId INT
 SELECT @SpecialNeedsGroupTypeId = (
 	SELECT [Id] FROM [GroupType]
-	WHERE [Name] = 'Check in By Special Needs'	
+	WHERE [Name] = 'Check In By Special Needs'	
 );
 
 if @SpecialNeedsGroupTypeId is null
 begin
-	INSERT [GroupType] ( [IsSystem], [Name], [Description], [GroupTerm], [GroupMemberTerm], [AllowMultipleLocations], [ShowInGroupList], [ShowInNavigation], 
-		[TakesAttendance], [AttendanceRule], [AttendancePrintTo], [Order], [LocationSelectionMode], [AllowedScheduleTypes], [SendAttendanceReminder], [Guid] ) 
-	VALUES ( @IsSystem, 'Check In By Special Needs', 'Indicates if this group is for those who have special needs.', 'Group', 'Member', @True, @True, @True, 
-		@False, 1, 0, 0, 0, 0, 0, NEWID() );
+	INSERT [GroupType] ( [IsSystem], [Name], [Description], [GroupTerm], [GroupMemberTerm], [AllowMultipleLocations], [ShowInGroupList], [ShowInNavigation], [GroupTypePurposeValueId],
+		[TakesAttendance], [AttendanceRule], [AttendancePrintTo], [Order], [InheritedGroupTypeId], [LocationSelectionMode], [AllowedScheduleTypes], [SendAttendanceReminder], [Guid] ) 
+	VALUES ( @IsSystem, 'Check In By Special Needs', 'Indicates if this group is for those who have special needs.', 'Group', 'Member', @False, @False, @False, 145,
+		@False, 1, 0, 0, 15, 0, 0, 0, NEWID() );
 	
 	SET @SpecialNeedsGroupTypeId = SCOPE_IDENTITY()
 
