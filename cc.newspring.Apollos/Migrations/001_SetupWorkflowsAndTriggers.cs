@@ -112,7 +112,7 @@ namespace cc.newspring.Apollos.Migrations
                    ,{2}
                    ,(SELECT Id FROM WorkflowType WHERE Guid = '{3}')
                    ,{4}
-                   ,'Apollos {5} Trigger'
+                   ,'{5} API Sync'
                    ,NEWID()
                    ,1)", modelName, qualifierColumn, qualifierValue, workflowTypeGuid, (int)triggerType, description );
 
@@ -176,14 +176,14 @@ namespace cc.newspring.Apollos.Migrations
 
         private void SetupWorkflow( string entityName, string deleteTypeGuid, string saveTypeGuid, string deleteActivityGuid, string saveActivityGuid, string deleteActionGuid, string saveActionGuid )
         {
-            RockMigrationHelper.UpdateWorkflowType( false, true, string.Format( "Apollos {0} Delete Workflow Type", entityName ), "", categoryGuid, "Work", "fa fa-trash-o", 0, true, 0, deleteTypeGuid );
-            RockMigrationHelper.UpdateWorkflowType( false, true, string.Format( "Apollos {0} Save Workflow Type", entityName ), "", categoryGuid, "Work", "fa fa-floppy-o", 0, true, 0, saveTypeGuid );
+            RockMigrationHelper.UpdateWorkflowType( false, true, string.Format( "{0} Delete Workflow Type", entityName ), "", categoryGuid, "Work", "fa fa-trash-o", 0, true, 0, deleteTypeGuid );
+            RockMigrationHelper.UpdateWorkflowType( false, true, string.Format( "{0} Save Workflow Type", entityName ), "", categoryGuid, "Work", "fa fa-floppy-o", 0, true, 0, saveTypeGuid );
 
-            RockMigrationHelper.UpdateWorkflowActivityType( deleteTypeGuid, true, string.Format( "Apollos {0} Delete Activity", entityName ), "", true, 0, deleteActivityGuid );
-            RockMigrationHelper.UpdateWorkflowActivityType( saveTypeGuid, true, string.Format( "Apollos {0} Save Activity", entityName ), "", true, 0, saveActivityGuid );
+            RockMigrationHelper.UpdateWorkflowActivityType( deleteTypeGuid, true, string.Format( "{0} Delete Activity", entityName ), "", true, 0, deleteActivityGuid );
+            RockMigrationHelper.UpdateWorkflowActivityType( saveTypeGuid, true, string.Format( "{0} Save Activity", entityName ), "", true, 0, saveActivityGuid );
 
-            RockMigrationHelper.UpdateWorkflowActionType( deleteActivityGuid, string.Format( "Apollos {0} Delete Action", entityName ), 0, apiSyncGuid, true, false, "", "", 1, "", deleteActionGuid );
-            RockMigrationHelper.UpdateWorkflowActionType( saveActivityGuid, string.Format( "Apollos {0} Save Action", entityName ), 0, apiSyncGuid, true, false, "", "", 1, "", saveActionGuid );
+            RockMigrationHelper.UpdateWorkflowActionType( deleteActivityGuid, string.Format( "{0} Delete Action", entityName ), 0, apiSyncGuid, true, false, "", "", 1, "", deleteActionGuid );
+            RockMigrationHelper.UpdateWorkflowActionType( saveActivityGuid, string.Format( "{0} Save Action", entityName ), 0, apiSyncGuid, true, false, "", "", 1, "", saveActionGuid );
 
             SetupAttributeValues( deleteActionGuid, "Delete", entityName );
             SetupAttributeValues( saveActionGuid, "Save", entityName );
@@ -259,7 +259,7 @@ namespace cc.newspring.Apollos.Migrations
             RockMigrationHelper.UpdateWorkflowActionEntityAttribute( apiSyncGuid, "E4EAB7B2-0B76-429B-AFE4-AD86D7428C70", "Rest User", "RestUser", "The associated REST user that handles sync from the third party", 0, @"", restUserAttributeGuid ); // Rest User
             RockMigrationHelper.UpdateWorkflowActionEntityAttribute( apiSyncGuid, "A75DFC58-7A1B-4799-BF31-451B2BBE38FF", "Order", "Order", "The order that this service should be used (priority)", 0, @"", orderAttributeGuid ); // Order
 
-            RockMigrationHelper.UpdateCategory( "C9F3C4A5-1526-474D-803F-D6C7A45CBBAE", "Apollos API Sync Category", "fa fa-connectdevelop", "", categoryGuid, 0 );
+            RockMigrationHelper.UpdateCategory( "C9F3C4A5-1526-474D-803F-D6C7A45CBBAE", "API Sync To Apollos", "fa fa-connectdevelop", "", categoryGuid, 0 );
 
             var entityName = "UserLogin";
             SetupWorkflow( entityName, userDeleteTypeGuid, userSaveTypeGuid, userDeleteActivityGuid, userSaveActivityGuid, userDeleteActionGuid, userSaveActionGuid );
