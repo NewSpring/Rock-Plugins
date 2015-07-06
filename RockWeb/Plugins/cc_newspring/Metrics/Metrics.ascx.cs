@@ -39,6 +39,7 @@ namespace RockWeb.Plugins.cc_newspring.Metrics
     [Category( "Metrics" )]
     [Description( "All Church Metrics Block" )]
     [CustomDropdownListField( "Metric Display Type", "", "Text,Line,Donut" )]
+    [CustomDropdownListField( "Metric Period", "", "This Week,YTD" )]
     [MetricCategoriesField( "Metric Source", "Select the metric to include in this chart.", false, "", "", 4 )]
     [SlidingDateRangeField( "Date Range", Key = "SlidingDateRange", DefaultValue = "1||4||", Order = 7 )]
     [LinkedPage( "Detail Page", "Select the page to navigate to when the chart is clicked", Order = 8 )]
@@ -50,13 +51,17 @@ namespace RockWeb.Plugins.cc_newspring.Metrics
         /// Raises the <see cref="E:System.Web.UI.Control.Init" /> event.
         /// </summary>
         /// <param name="e">An <see cref="T:System.EventArgs" /> object that contains the event data.</param>
-        protected override void OnInit( EventArgs e )
+        protected override void OnLoad( EventArgs e )
         {
             base.OnInit( e );
 
-            this.BlockUpdated += Block_BlockUpdated;
+            metricTitle.Value = BlockName;
 
             var churchMetricSource = GetMetricIds( "MetricSource" );
+            metricDisplay.Value = GetAttributeValue( "MetricDisplayType" );
+            var churchMetricPeriod = GetAttributeValue( "MetricPeriod" );
+
+            churchMetricWarning.Visible = !churchMetricSource.Any();
 
             var newMetric = new MetricService( new RockContext() ).GetByIds( churchMetricSource );
 
@@ -64,159 +69,40 @@ namespace RockWeb.Plugins.cc_newspring.Metrics
             {
                 var churchMetricValue = metric.MetricValues;
 
-                var sortedMetric = churchMetricValue.OrderByDescending( c => c.CreatedDateTime ).ToArray();
-
-                var currentWeek = sortedMetric[0].YValue;
-                var lastWeek = sortedMetric[1].YValue;
-
-                if ( currentWeek > lastWeek )
+                if ( churchMetricPeriod == "YTD" )
                 {
-                    metricType.Value = "greater";
+                    // Here's an the numbers, make sure that these metrics are after jan 1 of the current year
+
+                    // Use this to get entries since this date
+                    var ytdSince = new DateTime( DateTime.Now.Year, 1, 1 );
+
+                    var metricSum = churchMetricValue.Where( a => a.MetricValueDateTime > ytdSince ).Select( a => a.YValue ).ToArray();
+                    metricNumber.Value = string.Format( "{0:n0}", metricSum.Sum() );
                 }
                 else
                 {
-                    metricType.Value = "less";
+                    var sortedMetric = churchMetricValue.OrderByDescending( c => c.CreatedDateTime ).ToArray();
+
+                    var currentWeek = sortedMetric[0].YValue;
+                    var lastWeek = sortedMetric[1].YValue;
+
+                    if ( currentWeek > lastWeek )
+                    {
+                        metricClass.Value = "fa-caret-up brand-success";
+                        metricNumber.Value = string.Format( "{0:n0}", currentWeek );
+                    }
+                    else
+                    {
+                        metricClass.Value = "fa-caret-down brand-danger";
+                        metricNumber.Value = string.Format( "{0:n0}", currentWeek );
+                    }
                 }
             }
-        }
-
-        /// <summary>
-        /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
-        /// </summary>
-        /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
-        protected override void OnLoad( EventArgs e )
-        {
-            base.OnLoad( e );
-
-            var metricId = GetMetricIds( "MetricSource" );
-
-            string pieChartURL = string.Format( "~/api/MetricValues/GetSummary?metricIdList={0}", metricId.AsDelimited( "," ) );
-
-            pieAttendance.DataSourceUrl = pieChartURL;
-
-            LoadChart();
-        }
-
-        /// <summary>
-        /// Handles the BlockUpdated event of the Block control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void Block_BlockUpdated( object sender, EventArgs e )
-        {
-            LoadChart();
         }
 
         #endregion
 
         #region Internal Methods
-
-        /// <summary>
-        /// Loads the chart.
-        /// </summary>
-        public void LoadChart()
-        {
-            //pieTitle.Text = this.Title;
-            //pieSubTitle.Text = this.Subtitle;
-            pieAttendance.ShowTooltip = true;
-            pieAttendance.Options.SetChartStyle( this.GetAttributeValue( "ChartStyle" ).AsGuidOrNull() );
-
-            lineAttendance.ShowTooltip = true;
-            lineAttendance.Options.SetChartStyle( this.GetAttributeValue( "ChartStyle" ).AsGuidOrNull() );
-
-            var pieChartMetrics = GetMetricIds( "PieChartMetric" );
-            var lineChartMetrics = GetMetricIds( "LineChartMetric" );
-
-            string pieChartURL = string.Format( "~/api/MetricValues/GetSummary?metricIdList={0}", pieChartMetrics.AsDelimited( "," ) );
-            string lineChartURL = string.Format( "~/api/MetricValues/GetSummary?metricIdList={0}", lineChartMetrics.AsDelimited( "," ) );
-
-            var dateRange = SlidingDateRangePicker.CalculateDateRangeFromDelimitedValues( this.GetAttributeValue( "SlidingDateRange" ) ?? string.Empty );
-            if ( dateRange != null )
-            {
-                if ( dateRange.Start.HasValue )
-                {
-                    pieChartURL += string.Format( "&startDate={0}", dateRange.Start.Value.ToString( "o" ) );
-                    lineChartURL += string.Format( "&startDate={0}", dateRange.Start.Value.ToString( "o" ) );
-                }
-
-                if ( dateRange.End.HasValue )
-                {
-                    pieChartURL += string.Format( "&endDate={0}", dateRange.End.Value.ToString( "o" ) );
-                    lineChartURL += string.Format( "&endDate={0}", dateRange.End.Value.ToString( "o" ) );
-                }
-            }
-
-            var metricValueType = this.GetAttributeValue( "MetricValueTypes" ).ConvertToEnumOrNull<MetricValueType>() ?? Rock.Model.MetricValueType.Measure;
-
-            pieChartURL += string.Format( "&metricValueType={0}", metricValueType );
-            lineChartURL += string.Format( "&metricValueType={0}", metricValueType );
-
-            string[] entityValues = ( GetAttributeValue( "Entity" ) ?? string.Empty ).Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries );
-            EntityTypeCache entityType = null;
-            if ( entityValues.Length >= 1 )
-            {
-                entityType = EntityTypeCache.Read( entityValues[0].AsGuid() );
-            }
-
-            if ( entityValues.Length == 2 )
-            {
-                // entity id specified by block setting
-                if ( entityType != null )
-                {
-                    pieChartURL += string.Format( "&entityTypeId={0}", entityType.Id );
-                    lineChartURL += string.Format( "&entityTypeId={0}", entityType.Id );
-                    int? entityId = entityValues[1].AsIntegerOrNull();
-                    if ( entityId.HasValue )
-                    {
-                        pieChartURL += string.Format( "&entityId={0}", entityId );
-                        lineChartURL += string.Format( "&entityId={0}", entityId );
-                    }
-                }
-            }
-            else
-            {
-                // entity id comes from context
-                Rock.Data.IEntity contextEntity;
-                if ( entityType != null )
-                {
-                    contextEntity = this.ContextEntity( entityType.Name );
-                }
-                else
-                {
-                    contextEntity = this.ContextEntity();
-                }
-
-                if ( contextEntity != null )
-                {
-                    pieChartURL += string.Format( "&entityTypeId={0}&entityId={1}", EntityTypeCache.GetId( contextEntity.GetType() ), contextEntity.Id );
-                    lineChartURL += string.Format( "&entityTypeId={0}&entityId={1}", EntityTypeCache.GetId( contextEntity.GetType() ), contextEntity.Id );
-                }
-            }
-
-            pieAttendance.DataSourceUrl = pieChartURL;
-            lineAttendance.DataSourceUrl = lineChartURL;
-
-            //// pieAttendance.PieOptions.tilt = 0.5;
-            //// pieAttendance.ChartHeight =
-
-            pieAttendance.PieOptions.label = new PieLabel { show = true };
-            pieAttendance.PieOptions.label.formatter = @"
-                    function labelFormatter(label, series) {
-                    	return ""<div style='font-size:8pt; text-align:center; padding:2px; '>"" + label + ""<br/>"" + Math.round(series.percent) + ""%</div>"";
-                    }
-                    ".Trim();
-            pieAttendance.Legend.show = false;
-
-            lineAttendance.MetricId = lineChartMetrics.FirstOrDefault();
-
-            lineAttendance.MetricValueType = metricValueType;
-            lineAttendance.StartDate = dateRange.Start;
-            lineAttendance.EndDate = dateRange.End;
-            lineAttendance.CombineValues = false;
-
-            nbMetricWarning.Visible = !pieChartMetrics.Any();
-            lineMetricWarning.Visible = !lineChartMetrics.Any();
-        }
 
         /// <summary>
         /// Gets the metrics.
