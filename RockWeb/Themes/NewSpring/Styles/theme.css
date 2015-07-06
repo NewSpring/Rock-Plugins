@@ -5772,6 +5772,7 @@ body {
   bottom: 0px;
   left: 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 body.navbar-side-open #content-wrapper {
   left: 260px;
@@ -5787,7 +5788,12 @@ body.navbar-side-open #content-wrapper {
   padding-bottom: 9px;
 }
 .navbar-static-top .nav-trigger {
-  display: none;
+  position: absolute;
+  top: 50%;
+  left: 15px;
+  margin-top: -14px;
+  font-size: 20px;
+  color: #ffffff;
 }
 .navbar-static-top .navbar-zone-header {
   text-align: right;
@@ -5834,6 +5840,9 @@ body.navbar-side-open #content-wrapper {
 }
 .navbar-static-top #zone-login .loginstatus > li .dropdown-menu {
   margin-top: 10px;
+}
+.navbar-static-top #zone-login .loginstatus > li .dropdown-menu li a {
+  border-radius: 2px;
 }
 .navbar-static-side {
   background-color: #303030;
@@ -5966,15 +5975,34 @@ body.navbar-side-open .navbar-static-side {
   .navbar-static-side body.navbar-side-open {
     left: 0;
   }
+  .navbar-static-top #zone-header {
+    width: 65%;
+  }
+  .navbar-static-top #zone-header .smartsearch input.searchinput {
+    padding-left: 28px;
+    width: 100%;
+  }
+  .navbar-static-top #zone-login {
+    margin-left: 10px;
+  }
+  .navbar-static-top #zone-login .loginstatus .dropdown-toggle {
+    padding-left: 45px;
+    padding-right: 5px;
+  }
+  .navbar-static-top #zone-login .loginstatus .dropdown-toggle span {
+    display: none;
+  }
   .navbar-static-top #zone-login .loginstatus > li .dropdown-menu {
     position: absolute;
+    right: 0px;
+    left: auto;
     background-color: #ffffff;
   }
   .navbar-static-top #zone-login .loginstatus > li .dropdown-menu li a {
     padding-left: 10px;
     padding-right: 10px;
   }
-  .navbar-static-top #zone-login .loginstatus > li .dropdown-menu li a:hover {
+  .navbar-static-top #zone-login .loginstatus > li .dropdown-menu li:hover a {
     background-color: #6bac43;
     color: #ffffff;
   }
