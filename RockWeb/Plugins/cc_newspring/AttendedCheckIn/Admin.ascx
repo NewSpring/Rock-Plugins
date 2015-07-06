@@ -1,6 +1,6 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="Admin.ascx.cs" Inherits="RockWeb.Plugins.cc_newspring.AttendedCheckin.Admin" %>
 
-<script type="text/javascript" src="../plugins/cc_newspring/attendedcheckin/scripts.js"></script>
+<script type="text/javascript" src="../plugins/cc_newspring/attendedcheckin/loadcss.js"></script>
 
 <asp:UpdatePanel ID="pnlContent" runat="server" UpdateMode="Conditional">
     <ContentTemplate>
@@ -36,7 +36,7 @@
 
             <div class="row checkin-body">
                 <div class="col-xs-12 centered">
-                    <asp:Label ID="lblHeader" runat="server"><h3>Checkin Type(s)</h3></asp:Label>
+                    <asp:Label ID="lblHeader" runat="server" Visible="false"><h3>Checkin Type(s)</h3></asp:Label>
                     <asp:DataList ID="dlMinistry" runat="server" OnItemDataBound="dlMinistry_ItemDataBound" RepeatColumns="3" CssClass="full-width centered">
                         <ItemStyle CssClass="expanded" />
                         <ItemTemplate>
