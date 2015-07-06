@@ -149,7 +149,7 @@
                             <h1 class="panel-title pull-left">This Week</h1>
                         </div>
                         <div class="panel-body">
-                            <h1>30,211 <i class="fa fa-fw fa-caret-down brand-danger pull-right"></i></h1>
+                            <h1 class="flush">30,211 <i class="fa fa-fw fa-caret-down brand-danger pull-right"></i></h1>
                         </div>   
                     </div>
                 </div>
@@ -159,7 +159,7 @@
                             <h1 class="panel-title pull-left">This Week Last Year</h1>
                         </div>
                         <div class="panel-body">
-                            <h1>26,742 <i class="fa fa-fw fa-caret-up brand-success pull-right"></i></h1>
+                            <h1 class="flush">26,742 <i class="fa fa-fw fa-caret-up brand-success pull-right"></i></h1>
                         </div>   
                     </div>
                 </div>
@@ -169,7 +169,7 @@
                             <h1 class="panel-title pull-left">Last Week</h1>
                         </div>
                         <div class="panel-body">
-                            <h1>31,528 <i class="fa fa-fw fa-caret-up brand-success pull-right"></i></h1>
+                            <h1 class="flush">31,528 <i class="fa fa-fw fa-caret-up brand-success pull-right"></i></h1>
                         </div>   
                     </div>
                 </div>
@@ -183,7 +183,7 @@
                     <h1>Annual Stats</h1>
                 </div>
                 <div class="col-md-3">
-                    <div class="panel panel-block panel-chart">
+                    <div class="panel panel-block">
                         <div class="panel-heading clearfix">
                             <h1 class="panel-title pull-left">Salvations (YTD)</h1>
                         </div>
@@ -193,7 +193,7 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="panel panel-block panel-chart">
+                    <div class="panel panel-block">
                         <div class="panel-heading clearfix">
                             <h1 class="panel-title pull-left">Baptisms (YTD)</h1>
                         </div>
@@ -203,7 +203,7 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="panel panel-block panel-chart">
+                    <div class="panel panel-block">
                         <div class="panel-heading clearfix">
                             <h1 class="panel-title pull-left">Fuse (YTD)</h1>
                         </div>
@@ -213,7 +213,7 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="panel panel-block panel-chart">
+                    <div class="panel panel-block">
                         <div class="panel-heading clearfix">
                             <h1 class="panel-title pull-left">KidSpring (YTD)</h1>
                         </div>

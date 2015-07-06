@@ -90,7 +90,6 @@
                 <header>
                     <!-- Brand Bar -->
                     <nav class="navbar navbar-default navbar-static-top">
-                        
 
                         <!-- <div class="navbar-mobile-logo">
                             <asp:Literal ID="lLogoSvg" runat="server" />
