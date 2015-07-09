@@ -6968,7 +6968,7 @@ a.list-group-item-danger.active:focus {
   border-color: #dedede;
 }
 .panel-default > .panel-heading {
-  color: #303030;
+  color: #202020;
   background-color: #e3ded7;
   border-color: #dedede;
 }
@@ -6977,7 +6977,7 @@ a.list-group-item-danger.active:focus {
 }
 .panel-default > .panel-heading .badge {
   color: #e3ded7;
-  background-color: #303030;
+  background-color: #202020;
 }
 .panel-default > .panel-footer + .panel-collapse > .panel-body {
   border-bottom-color: #dedede;

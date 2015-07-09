@@ -183,6 +183,7 @@
                     $('body').addClass('navbar-side-open');
                     $('body').removeClass('navbar-side-close');
                 }
+                $(this).find('i').toggleClass('fa-bars').toggleClass('fa-arrow-left');
             });
 
 
