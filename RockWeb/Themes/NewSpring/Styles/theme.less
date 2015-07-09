@@ -896,6 +896,7 @@ body {
   bottom: 0px;
   left: 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 
   body.navbar-side-open & {
     left: @sidebar-width;
@@ -915,7 +916,12 @@ body {
   padding-bottom: 9px;
 
   .nav-trigger {
-    display: none;
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    margin-top: -14px;
+    font-size: @font-size-large;
+    color: @light-primary;
   }
 
   .navbar-zone-header {
@@ -969,6 +975,12 @@ body {
 
         .dropdown-menu {
           margin-top: 10px;
+
+          li {
+            a {
+              border-radius: 2px;
+            }
+          }
         }
       }
     }
@@ -1147,19 +1159,46 @@ body {
   
   // Admin Menu Overrides for Mobile
   .navbar-static-top {
+    #zone-header {
+      width: 65%;
+
+      .smartsearch {
+        input.searchinput {
+          padding-left: 28px;
+          width: 100%;
+        }
+      }
+    }
+
     #zone-login {
+      margin-left: 10px;
+
       .loginstatus {
+
+        .dropdown-toggle {
+          padding-left: 45px;
+          padding-right: 5px;
+
+          span {
+            display: none;
+          }
+        }
+
         & > li {
           .dropdown-menu {
             position: absolute;
+            right: 0px;
+            left: auto;
             background-color: @light-primary;
 
             li {
               a {
                 padding-left: 10px;
                 padding-right: 10px;
+              }
 
-                &:hover {
+              &:hover {
+                a {
                   background-color: @green-primary;
                   color: @light-primary;
                 }
