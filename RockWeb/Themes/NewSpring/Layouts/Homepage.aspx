@@ -9,24 +9,23 @@
             </div>
         </div>
     </section>
-
 </asp:Content>
 
 <asp:Content ID="ctMain" ContentPlaceHolderID="main" runat="server">
-    
-	<main>
 
-        <script>
-            var randomScalingFactor = function(){ return Math.round(Math.random()*(36000-45000)+36000)};
+    <main>
+
+        <%--<script>
+            var randomScalingFactor = function () { return Math.round(Math.random() * (36000 - 45000) + 36000) };
 
             var lineOptions = {
                 responsive: true,
                 scaleFontSize: 16,
                 tooltipFontSize: 16,
                 bezierCurve: false,
-                datasetStrokeWidth : 3,
-                pointDotRadius : 6,
-                pointDotStrokeWidth : 3,
+                datasetStrokeWidth: 3,
+                pointDotRadius: 6,
+                pointDotStrokeWidth: 3,
             }
 
             var pieOptions = {
@@ -35,21 +34,21 @@
                 scaleFontSize: 16,
                 tooltipFontSize: 16,
                 bezierCurve: false,
-                datasetStrokeWidth : 3,
-                pointDotRadius : 6,
-                pointDotStrokeWidth : 3,
+                datasetStrokeWidth: 3,
+                pointDotRadius: 6,
+                pointDotStrokeWidth: 3,
             }
 
             var overallAttendanceData = {
-                labels : ["January","February","March","April","May","June","July"],
-                datasets : [
+                labels: ["January", "February", "March", "April", "May", "June", "July"],
+                datasets: [
                     {
                         label: "2015",
                         fillColor: "rgba(28,104,62,0)",
                         strokeColor: "rgba(28,104,62,1)",
                         pointColor: "rgba(28,104,62,1)",
                         pointStrokeColor: "#fff",
-                        data : [randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor()]
+                        data: [randomScalingFactor(), randomScalingFactor(), randomScalingFactor(), randomScalingFactor(), randomScalingFactor(), randomScalingFactor(), randomScalingFactor()]
                     },
                     {
                         label: "2014",
@@ -57,7 +56,7 @@
                         strokeColor: "rgba(89,161,46,1)",
                         pointColor: "rgba(89,161,46,1)",
                         pointStrokeColor: "#fff",
-                        data : [randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor(),randomScalingFactor()]
+                        data: [randomScalingFactor(), randomScalingFactor(), randomScalingFactor(), randomScalingFactor(), randomScalingFactor(), randomScalingFactor(), randomScalingFactor()]
                     }
                 ]
             }
@@ -65,7 +64,7 @@
             var kidspringData = [
                 {
                     value: 28526,
-                    color:"#6bac43",
+                    color: "#6bac43",
                     highlight: "#6bac43",
                     label: "Adults"
                 },
@@ -80,7 +79,7 @@
             var fuseData = [
                 {
                     value: 28526,
-                    color:"#6bac43",
+                    color: "#6bac43",
                     highlight: "#6bac43",
                     label: "Adults"
                 },
@@ -95,7 +94,7 @@
             var vipData = [
                 {
                     value: 28526,
-                    color:"#6bac43",
+                    color: "#6bac43",
                     highlight: "#6bac43",
                     label: "Sunday Attendance"
                 },
@@ -107,7 +106,7 @@
                 }
             ]
 
-            window.onload = function(){
+            window.onload = function () {
                 var overallAttendance = document.getElementById("attendanceChart").getContext("2d");
                 // var kidspring = document.getElementById("kidspringChart").getContext("2d");
                 // var fuse = document.getElementById("fuseChart").getContext("2d");
@@ -118,10 +117,10 @@
                 // window.fuseChart = new Chart(fuse).Doughnut(fuseData, pieOptions);
                 // window.vipChart = new Chart(vip).Doughnut(vipData, pieOptions);
             }
-        </script>
-        
+        </script>--%>
+
         <!-- Start Content Area -->
-        
+
         <!-- Ajax Error -->
         <div class="alert alert-danger ajax-error" style="display:none">
             <p><strong>Error</strong></p>
@@ -129,7 +128,7 @@
         </div>
 
         <div class="container" style="padding-top: 30px;">
-            <div class="row">
+            <%--<div class="row">
                 <div class="col-md-12">
                     <h1>Attendance Dashboard</h1>
                 </div>
@@ -140,18 +139,10 @@
                         </div>
                         <div class="panel-body">
                             <canvas id="attendanceChart"></canvas>
-                        </div>   
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="panel panel-block">
-                        <div class="panel-heading clearfix">
-                            <h1 class="panel-title pull-left">This Week</h1>
-                        </div>
-                        <div class="panel-body">
-                            <h1 class="flush">30,211 <i class="fa fa-fw fa-caret-down brand-danger pull-right"></i></h1>
-                        </div>   
-                    </div>
                 </div>
                 <div class="col-md-3">
                     <div class="panel panel-block">
@@ -160,7 +151,7 @@
                         </div>
                         <div class="panel-body">
                             <h1 class="flush">26,742 <i class="fa fa-fw fa-caret-up brand-success pull-right"></i></h1>
-                        </div>   
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -170,7 +161,7 @@
                         </div>
                         <div class="panel-body">
                             <h1 class="flush">31,528 <i class="fa fa-fw fa-caret-up brand-success pull-right"></i></h1>
-                        </div>   
+                        </div>
                     </div>
                 </div>
                 <!-- <div class="col-md-4">
@@ -225,7 +216,7 @@
             </div>
             <br>
 
-            <div class="row">                
+            <div class="row">
                 <div class="col-md-12">
                     <h1>Staff Information</h1>
                 </div>
@@ -282,7 +273,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div>--%>
 
             <!-- <div class="row">
                 <div class="col-md-4 centered">
@@ -302,7 +293,7 @@
                         </div>
                         <div class="panel-body">
                             <canvas id="fuseChart"></canvas>
-                        </div>   
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-4 centered">
@@ -312,41 +303,39 @@
                         </div>
                         <div class="panel-body">
                             <canvas id="vipChart"></canvas>
-                        </div>   
+                        </div>
                     </div>
                 </div>
             </div> -->
 
             <div class="row">
                 <div class="col-md-3">
-                    
                 </div>
                 <div class="col-md-3">
-                    
                 </div>
                 <div class="col-md-3">
-                    
                 </div>
                 <div class="col-md-3">
-                    
                 </div>
             </div>
         </div>
-        
-        <div class="hidden">
+
             <div class="row">
-                <div class="col-md-12">
+                <div class="col-md-9">
                     <Rock:Zone Name="Section A" runat="server" />
+                </div>
+                <div class="col-md-3">
+                    <Rock:Zone Name="Section B" runat="server" />
                 </div>
             </div>
 
             <div class="row">
-                <div class="col-md-4">
-                    <Rock:Zone Name="Section B" runat="server" />
-                </div>
-                <div class="col-md-4">
+                <div class="col-md-12">
                     <Rock:Zone Name="Section C" runat="server" />
                 </div>
+            </div>
+
+            <div class="row">
                 <div class="col-md-4">
                     <Rock:Zone Name="Section D" runat="server" />
                 </div>
@@ -360,11 +349,7 @@
                     <Rock:Zone Name="Section G" runat="server" />
                 </div>
             </div>
-        </div>
 
         <!-- End Content Area -->
-
 	</main>
-        
 </asp:Content>
-
