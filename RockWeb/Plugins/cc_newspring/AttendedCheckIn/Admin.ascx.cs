@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.Entity;
 using System.Linq;
 using System.Web;
 using System.Web.UI;
@@ -51,6 +52,15 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
         {
             if ( !Page.IsPostBack )
             {
+                // Set the check-in state from values passed on query string
+                CurrentKioskId = PageParameter( "KioskId" ).AsIntegerOrNull();
+
+                CurrentGroupTypeIds = ( PageParameter( "GroupTypeIds" ) ?? "" )
+                    .Split( new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries )
+                    .ToList()
+                    .Select( s => s.AsInteger() )
+                    .ToList();
+
                 if ( CurrentKioskId.HasValue && CurrentGroupTypeIds != null && CurrentGroupTypeIds.Any() && !UserBackedUp )
                 {
                     // Save the check-in state
@@ -74,8 +84,8 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                                 if (localStorage.checkInGroupTypes) {{
                                     $('[id$=""hfGroupTypes""]').val(localStorage.checkInGroupTypes);
                                 }}
-                                {0};
                             }}
+                            {0};
                         }}
                     }});
                 </script>
@@ -110,11 +120,12 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
             ipAddress = Request.ServerVariables["REMOTE_ADDR"];
             skipDeviceNameLookup = false;
 
+            var rockContext = new RockContext();
             var checkInDeviceTypeId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.DEVICE_TYPE_CHECKIN_KIOSK ).Id;
-            var device = new DeviceService( new RockContext() ).GetByIPAddress( ipAddress, checkInDeviceTypeId, skipDeviceNameLookup );
+            var device = new DeviceService( rockContext ).GetByIPAddress( ipAddress, checkInDeviceTypeId, skipDeviceNameLookup );
 
             var checkInDeviceTypeGuid = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.DEVICE_TYPE_CHECKIN_KIOSK ).Guid;
-            var deviceList = new DeviceService( new RockContext() ).GetByDeviceTypeGuid( checkInDeviceTypeGuid ).ToList();
+            var deviceList = new DeviceService( rockContext ).GetByDeviceTypeGuid( checkInDeviceTypeGuid ).AsNoTracking().ToList();
 
             string hostName = string.Empty;
             try
@@ -132,7 +143,10 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
             {
                 ClearMobileCookie();
                 CurrentKioskId = device.Id;
-                BindGroupTypes( hfGroupTypes.Value );
+            }
+            else
+            {
+                // add a message or disable Ok here?
             }
         }
 
@@ -154,18 +168,14 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                 return;
             }
 
-            // return if kiosk isn't active
-            if ( !CurrentCheckInState.Kiosk.HasLocations( CurrentGroupTypeIds ) || !CurrentCheckInState.Kiosk.HasActiveLocations( CurrentGroupTypeIds ) )
+            if ( CurrentKioskId == null || CurrentKioskId == 0 )
             {
-                maAlert.Show( "There are no active schedules for this kiosk.", ModalAlertType.Information );
-                pnlContent.Update();
-                return;
+                CurrentKioskId = hfKiosk.ValueAsInt();
             }
 
-            List<int> selectedGroupTypeIds = hfGroupTypes.Value.SplitDelimitedValues().Select( int.Parse ).Distinct().ToList();
-            if ( !selectedGroupTypeIds.Any() )
+            var selectedGroupTypes = hfGroupTypes.Value.SplitDelimitedValues().Select( int.Parse ).Distinct().ToList();
+            if ( !selectedGroupTypes.Any() )
             {
-                hfGroupTypes.Value = string.Empty;
                 foreach ( DataListItem item in dlMinistry.Items )
                 {
                     ( (Button)item.FindControl( "lbMinistry" ) ).RemoveCssClass( "active" );
@@ -176,20 +186,40 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                 return;
             }
 
-            // Set selected grouptypes
-            var groupTypeIds = selectedGroupTypeIds;
-
-            if ( CurrentKioskId == null || CurrentKioskId == 0 )
+            // return if kiosk isn't active
+            if ( !CurrentCheckInState.Kiosk.HasActiveLocations( selectedGroupTypes ) )
             {
-                CurrentKioskId = hfKiosk.ValueAsInt();
+                maAlert.Show( "There are no active schedules for this kiosk.", ModalAlertType.Information );
+                pnlContent.Update();
+                return;
             }
 
             ClearMobileCookie();
-            CurrentGroupTypeIds = groupTypeIds;
+            CurrentGroupTypeIds = selectedGroupTypes;
             CurrentCheckInState = null;
             CurrentWorkflow = null;
             SaveState();
             NavigateToNextPage();
+        }
+
+        /// <summary>
+        /// Handles the ItemDataBound event of the dlMinistry control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="RepeaterItemEventArgs"/> instance containing the event data.</param>
+        protected void dlMinistry_ItemDataBound( object sender, DataListItemEventArgs e )
+        {
+            var selectedGroupTypes = hfGroupTypes.Value.SplitDelimitedValues().Select( int.Parse ).ToList();
+            if ( selectedGroupTypes.Count > 0 )
+            {
+                if ( e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem )
+                {
+                    if ( selectedGroupTypes.Contains( ( (GroupType)e.Item.DataItem ).Id ) )
+                    {
+                        ( (Button)e.Item.FindControl( "lbMinistry" ) ).AddCssClass( "active" );
+                    }
+                }
+            }
         }
 
         #endregion Events
@@ -248,7 +278,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
         /// <param name="e"></param>
         protected void lbRefresh_Click( object sender, EventArgs e )
         {
-            BindGroupTypes( hfGroupTypes.Value );
+            BindGroupTypes();
         }
 
         /// <summary>
@@ -272,7 +302,6 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
             {
                 SetDeviceIdCookie( kiosk );
                 CurrentKioskId = kiosk.Id;
-                BindGroupTypes();
             }
         }
 
@@ -284,12 +313,13 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
         /// <returns></returns>
         public static Device GetCurrentKioskByGeoFencing( string sLatitude, string sLongitude )
         {
+            var rockContext = new RockContext();
             double latitude = double.Parse( sLatitude );
             double longitude = double.Parse( sLongitude );
-            var checkInDeviceTypeId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.DEVICE_TYPE_CHECKIN_KIOSK ).Id;
+            var checkInDeviceType = DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.DEVICE_TYPE_CHECKIN_KIOSK ), rockContext );
 
             // We need to use the DeviceService until we can get the GeoFence to JSON Serialize/Deserialize.
-            Device kiosk = new DeviceService( new RockContext() ).GetByGeocode( latitude, longitude, checkInDeviceTypeId );
+            Device kiosk = new DeviceService( rockContext ).GetByGeocode( latitude, longitude, checkInDeviceType.Id );
 
             return kiosk;
         }
@@ -338,26 +368,14 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
         /// <summary>
         /// Binds the group types.
         /// </summary>
-        private void BindGroupTypes()
-        {
-            BindGroupTypes( string.Empty );
-        }
-
-        /// <summary>
-        /// Binds the group types.
-        /// </summary>
         /// <param name="selectedValues">The selected values.</param>
-        private void BindGroupTypes( string selectedGroupTypes )
+        private void BindGroupTypes( RockContext rockContext = null )
         {
             if ( CurrentKioskId > 0 )
             {
-                var kiosk = new DeviceService( new RockContext() ).Get( (int)CurrentKioskId );
-                if ( kiosk != null )
-                {
-                    hfGroupTypes.Value = selectedGroupTypes;
-                    dlMinistry.DataSource = GetDeviceGroupTypes( kiosk.Id );
-                    dlMinistry.DataBind();
-                }
+                dlMinistry.DataSource = GetDeviceGroupTypes( (int)CurrentKioskId, rockContext );
+                dlMinistry.DataBind();
+                lblHeader.Visible = true;
             }
         }
 
@@ -366,11 +384,12 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
         /// </summary>
         /// <param name="deviceId">The device identifier.</param>
         /// <returns></returns>
-        private List<GroupType> GetDeviceGroupTypes( int deviceId )
+        private List<GroupType> GetDeviceGroupTypes( int deviceId, RockContext rockContext = null )
         {
+            rockContext = rockContext ?? new RockContext();
             var groupTypes = new Dictionary<int, GroupType>();
 
-            var locationService = new LocationService( new RockContext() );
+            var locationService = new LocationService( rockContext );
 
             // Get all locations (and their children) associated with device
             var locationIds = locationService
@@ -379,39 +398,21 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                 .ToList();
 
             // Requery using EF
-            foreach ( var groupType in locationService.Queryable()
+            foreach ( var groupType in locationService
+                .Queryable().AsNoTracking()
                 .Where( l => locationIds.Contains( l.Id ) )
                 .SelectMany( l => l.GroupLocations )
+                .Where( gl => gl.Group.GroupType.TakesAttendance && gl.Schedules.Any() )
                 .Select( gl => gl.Group.GroupType )
                 .ToList() )
             {
-                if ( !groupTypes.ContainsKey( groupType.Id ) )
-                {
-                    groupTypes.Add( groupType.Id, groupType );
-                }
+                groupTypes.AddOrIgnore( groupType.Id, groupType );
             }
 
-            return groupTypes.Select( g => g.Value ).ToList();
-        }
-
-        /// <summary>
-        /// Handles the ItemDataBound event of the dlMinistry control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="RepeaterItemEventArgs"/> instance containing the event data.</param>
-        protected void dlMinistry_ItemDataBound( object sender, DataListItemEventArgs e )
-        {
-            var selectedGroupTypes = hfGroupTypes.Value.SplitDelimitedValues().Select( int.Parse ).ToList();
-            if ( selectedGroupTypes.Count > 0 )
-            {
-                if ( e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem )
-                {
-                    if ( selectedGroupTypes.Contains( ( (GroupType)e.Item.DataItem ).Id ) )
-                    {
-                        ( (Button)e.Item.FindControl( "lbMinistry" ) ).AddCssClass( "active" );
-                    }
-                }
-            }
+            return groupTypes
+                .Select( g => g.Value )
+                .OrderBy( g => g.Order )
+                .ToList();
         }
 
         #endregion Internal Methods

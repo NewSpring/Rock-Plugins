@@ -1,5 +1,7 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="Admin.ascx.cs" Inherits="RockWeb.Plugins.cc_newspring.AttendedCheckin.Admin" %>
 
+<script type="text/javascript" src="../plugins/cc_newspring/attendedcheckin/loadcss.js"></script>
+
 <asp:UpdatePanel ID="pnlContent" runat="server" UpdateMode="Conditional">
     <ContentTemplate>
 
@@ -34,7 +36,7 @@
 
             <div class="row checkin-body">
                 <div class="col-xs-12 centered">
-                    <asp:Label ID="lblHeader" runat="server"><h3>Checkin Type(s)</h3></asp:Label>
+                    <asp:Label ID="lblHeader" runat="server" Visible="false"><h3>Checkin Type(s)</h3></asp:Label>
                     <asp:DataList ID="dlMinistry" runat="server" OnItemDataBound="dlMinistry_ItemDataBound" RepeatColumns="3" CssClass="full-width centered">
                         <ItemStyle CssClass="expanded" />
                         <ItemTemplate>
@@ -49,18 +51,17 @@
     </ContentTemplate>
 </asp:UpdatePanel>
 
-<script type="text/javascript" src="../plugins/cc_newspring/attendedcheckin/scripts.js"></script>
-
 <script type="text/javascript">
 
     var setClickEvents = function () {
-        $('.btn-grouptype').off('click').on('click', function () {
+        $('.btn-grouptype').off('click').on('click', function (event) {
+            event.stopPropagation();
             $(this).toggleClass('active').blur();
             var selectedIds = $('input[id$="hfGroupTypes"]').val();
             var buttonId = this.getAttribute('data-id');
             if (selectedIds.length && selectedIds.indexOf(buttonId) >= 0) {
-                var replacedIds = selectedIds.replace(buttonId, '');
-                $('input[id$="hfGroupTypes"]').val(replacedIds + ',');
+                var buttonIdRegex = new RegExp(buttonId + ',*', "g");
+                $('input[id$="hfGroupTypes"]').val(selectedIds.replace(buttonIdRegex, ''));
             } else {
                 $('input[id$="hfGroupTypes"]').val(buttonId + ',' + selectedIds);
             }
@@ -68,6 +69,8 @@
         });
     };
 
-    $(document).ready(function () { setClickEvents(); });
+    $(document).ready(function () {
+        setClickEvents();
+    });
     Sys.WebForms.PageRequestManager.getInstance().add_endRequest(setClickEvents);
 </script>

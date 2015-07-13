@@ -35,8 +35,10 @@ namespace cc.newspring.AttendedCheckIn.Workflow.Action.CheckIn
     [Description( "Select multiple services this person last checked into" )]
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Select By Multiple Services Attended" )]
-    [BooleanField( "Room Balance By Group", "Select the group with the least number of current people. Best for groups having a 1:1 ratio with locations.", false )]
-    [BooleanField( "Room Balance By Location", "Select the location with the least number of current people. Best for groups having 1 to many ratio with locations.", false )]
+    [BooleanField( "Room Balance", "Auto-assign the location with the least number of current people. This only applies when a person fits into multiple groups or locations.", false, "", 0 )]
+    [IntegerField( "Balancing Override", "Enter the maximum difference between two locations before room balancing overrides previous attendance.  The default value is 10.", false, 10, "", 1 )]
+    [IntegerField( "Previous Months Attendance", "Enter the number of previous months to look for attendance history.  The default value is 3 months.", false, 3, "", 2 )]
+    [IntegerField( "Max Assignments", "Enter the maximum number of auto-assignments based on previous attendance.  The default value is 5.", false, 5, "", 3 )]
     public class SelectByMultipleAttended : CheckInActionComponent
     {
         /// <summary>
@@ -50,41 +52,49 @@ namespace cc.newspring.AttendedCheckIn.Workflow.Action.CheckIn
         /// <exception cref="System.NotImplementedException"></exception>
         public override bool Execute( RockContext rockContext, Rock.Model.WorkflowAction action, Object entity, out List<string> errorMessages )
         {
-            bool roomBalanceByGroup = GetAttributeValue( action, "RoomBalanceByGroup" ).AsBoolean();
-            bool roomBalanceByLocation = GetAttributeValue( action, "RoomBalanceByLocation" ).AsBoolean();
             var checkInState = GetCheckInState( entity, out errorMessages );
-
             if ( checkInState == null )
             {
                 return false;
             }
 
-            var sixMonthsAgo = Rock.RockDateTime.Today.AddMonths( -6 );
+            int peopleWithoutAssignments = 0;
+            bool roomBalance = GetAttributeValue( action, "RoomBalance" ).AsBoolean();
+            int balanceOverride = GetAttributeValue( action, "DifferentialOverride" ).AsIntegerOrNull() ?? 10;
+            int previousMonthsNumber = GetAttributeValue( action, "PreviousMonthsAttendance" ).AsIntegerOrNull() ?? 3;
+            int maxAssignments = GetAttributeValue( action, "MaxAssignments" ).AsIntegerOrNull() ?? 5;
+
+            var cutoffDate = Rock.RockDateTime.Today.AddMonths( previousMonthsNumber * -1 );
             var attendanceService = new AttendanceService( rockContext );
 
-            foreach ( var family in checkInState.CheckIn.Families.Where( f => f.Selected ) )
+            var family = checkInState.CheckIn.Families.FirstOrDefault( f => f.Selected );
+            if ( family != null )
             {
-                foreach ( var person in family.People.Where( p => p.Selected ) )
-                {
-                    var personGroupTypeIds = person.GroupTypes.Select( gt => gt.GroupType.Id ).ToList();
+                // set the number of people checking in, including visitors or first-timers
+                peopleWithoutAssignments = family.People.Where( p => p.Selected ).Count();
 
-                    var personAttendances = attendanceService.Queryable()
+                foreach ( var previousAttender in family.People.Where( p => p.Selected && !p.FirstTime ) )
+                {
+                    var personGroupTypeIds = previousAttender.GroupTypes.Select( gt => gt.GroupType.Id );
+
+                    var lastDateAttendances = attendanceService.Queryable()
                         .Where( a =>
-                            a.PersonAlias.PersonId == person.Person.Id &&
+                            a.PersonAlias.PersonId == previousAttender.Person.Id &&
                             personGroupTypeIds.Contains( a.Group.GroupTypeId ) &&
-                            a.StartDateTime >= sixMonthsAgo && a.DidAttend == true )
+                            a.StartDateTime >= cutoffDate && a.DidAttend == true )
+                        .OrderByDescending( a => a.StartDateTime ).Take( maxAssignments )
                         .ToList();
 
-                    if ( personAttendances.Any() )
+                    if ( lastDateAttendances.Any() )
                     {
-                        var isSpecialNeeds = person.Person.GetAttributeValue( "IsSpecialNeeds" ).AsBoolean();
-                        var lastDate = personAttendances.Max( a => a.StartDateTime ).Date;
-                        var lastDateAttendances = personAttendances.Where( a => a.StartDateTime >= lastDate ).ToList();
+                        bool createdMatchingAssignment = false;
+                        var isSpecialNeeds = previousAttender.Person.GetAttributeValue( "IsSpecialNeeds" ).AsBoolean();
 
-                        foreach ( var groupAttendance in lastDateAttendances )
+                        var lastAttended = lastDateAttendances.Max( a => a.StartDateTime ).Date;
+                        foreach ( var groupAttendance in lastDateAttendances.Where( a => a.StartDateTime >= lastAttended ) )
                         {
-                            // Start with unfiltered groups for kids with abnormal age and grade parameters (1%)
-                            var groupType = person.GroupTypes.FirstOrDefault( t => t.GroupType.Id == groupAttendance.Group.GroupTypeId && ( !t.ExcludedByFilter || isSpecialNeeds ) );
+                            // Start with filtered groups unless they have abnormal age and grade parameters (1%)
+                            var groupType = previousAttender.GroupTypes.FirstOrDefault( gt => gt.GroupType.Id == groupAttendance.Group.GroupTypeId && ( !gt.ExcludedByFilter || isSpecialNeeds ) );
                             if ( groupType != null )
                             {
                                 CheckInGroup group = null;
@@ -97,15 +107,19 @@ namespace cc.newspring.AttendedCheckIn.Workflow.Action.CheckIn
                                 {
                                     // Pick the group they last attended
                                     group = groupType.Groups.FirstOrDefault( g => g.Group.Id == groupAttendance.GroupId && ( !g.ExcludedByFilter || isSpecialNeeds ) );
-                                }
 
-                                if ( roomBalanceByGroup && !isSpecialNeeds )
-                                {
-                                    // Respect filtering when room balancing
-                                    var filteredGroups = groupType.Groups.Where( g => !g.ExcludedByFilter ).ToList();
-                                    if ( filteredGroups.Any() )
+                                    if ( group != null && roomBalance && !isSpecialNeeds )
                                     {
-                                        group = filteredGroups.OrderBy( g => g.Locations.Select( l => KioskLocationAttendance.Read( l.Location.Id ).CurrentCount ).Sum() ).FirstOrDefault();
+                                        var currentAttendance = group.Locations.Select( l => KioskLocationAttendance.Read( l.Location.Id ).CurrentCount ).Sum();
+                                        var lowestAttendedGroup = groupType.Groups.Where( g => !g.ExcludedByFilter )
+                                            .Select( g => new { Group = g, Attendance = g.Locations.Select( l => KioskLocationAttendance.Read( l.Location.Id ).CurrentCount ).Sum() } )
+                                            .OrderBy( g => g.Attendance )
+                                            .FirstOrDefault();
+
+                                        if ( lowestAttendedGroup != null && lowestAttendedGroup.Attendance < ( currentAttendance - balanceOverride ) )
+                                        {
+                                            group = lowestAttendedGroup.Group;
+                                        }
                                     }
                                 }
 
@@ -121,15 +135,19 @@ namespace cc.newspring.AttendedCheckIn.Workflow.Action.CheckIn
                                     {
                                         // Pick the location they last attended
                                         location = group.Locations.FirstOrDefault( l => l.Location.Id == groupAttendance.LocationId && ( !l.ExcludedByFilter || isSpecialNeeds ) );
-                                    }
 
-                                    if ( roomBalanceByLocation && !isSpecialNeeds )
-                                    {
-                                        // Respect filtering when room balancing
-                                        var filteredLocations = group.Locations.Where( l => !l.ExcludedByFilter && l.Schedules.Any( s => !s.ExcludedByFilter && s.Schedule.IsCheckInActive ) ).ToList();
-                                        if ( filteredLocations.Any() )
+                                        if ( location != null && roomBalance && !isSpecialNeeds )
                                         {
-                                            location = filteredLocations.OrderBy( l => KioskLocationAttendance.Read( l.Location.Id ).CurrentCount ).FirstOrDefault();
+                                            var currentAttendance = KioskLocationAttendance.Read( location.Location.Id ).CurrentCount;
+                                            var lowestAttendedLocation = group.Locations.Where( l => !l.ExcludedByFilter )
+                                                .Select( l => new { Location = l, Attendance = KioskLocationAttendance.Read( location.Location.Id ).CurrentCount } )
+                                                .OrderBy( l => l.Attendance )
+                                                .FirstOrDefault();
+
+                                            if ( lowestAttendedLocation != null && lowestAttendedLocation.Attendance < ( currentAttendance - balanceOverride ) )
+                                            {
+                                                location = lowestAttendedLocation.Location;
+                                            }
                                         }
                                     }
 
@@ -164,13 +182,31 @@ namespace cc.newspring.AttendedCheckIn.Workflow.Action.CheckIn
                                             groupType.Selected = true;
                                             groupType.PreSelected = true;
                                             group.LastCheckIn = groupAttendance.StartDateTime;
+                                            groupType.LastCheckIn = groupAttendance.StartDateTime;
+                                            groupType.Selected = true;
+                                            groupType.PreSelected = true;
+                                            previousAttender.LastCheckIn = groupAttendance.StartDateTime;
+                                            createdMatchingAssignment = true;
                                         }
                                     }
                                 }
                             }
                         }
+
+                        if ( createdMatchingAssignment )
+                        {
+                            peopleWithoutAssignments--;
+                        }
                     }
                 }
+            }
+
+            // true condition will continue to the next auto-assignment
+            // false condition will stop processing auto-assignments
+            if ( action.Activity.AttributeValues.Any() && action.Activity.AttributeValues.ContainsKey( "ContinueAssignments" ) )
+            {
+                var continueAssignments = peopleWithoutAssignments > 0;
+                action.Activity.AttributeValues["ContinueAssignments"].Value = continueAssignments.ToString();
             }
 
             return true;

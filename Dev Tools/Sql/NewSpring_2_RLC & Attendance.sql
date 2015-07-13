@@ -152,6 +152,9 @@ select distinct Staffing_Schedule_Name, case
 	end as 'schedule'
 from F1..Staffing_Assignment
 
+-- Remove any old schedules
+delete from DefinedValue where DefinedTypeId = @ScheduleDefinedTypeId
+
 -- Create defined values for all the schedules
 ;with distinctSchedules as (
 	select distinct scheduleRock 
@@ -810,9 +813,9 @@ values
 (802180, 'COL', 'Elementary Volunteer', 'Elementary Service Leader'),
 (935220, 'COL', 'Elementary Volunteer', 'ImagiNation Team Leader'),
 (802182, 'COL', 'Elementary Volunteer', 'ImagiNation Volunteer'),
-(935221, 'COL', 'Elementary Volunteer', 'Jump Street Volunteer'),
+(935221, 'COL', 'Elementary Volunteer', 'Jump Street Team Leader'),
 (802178, 'COL', 'Elementary Volunteer', 'Jump Street Volunteer'),
-(935222, 'COL', 'Elementary Volunteer', 'Shockwave Volunteer'),
+(935222, 'COL', 'Elementary Volunteer', 'Shockwave Team Leader'),
 (802179, 'COL', 'Elementary Volunteer', 'Shockwave Volunteer'),
 (797369, 'COL', 'Fuse Attendee', '10th Grade Student'),
 (797368, 'COL', 'Fuse Attendee', '10th Grade Student'),
@@ -2215,8 +2218,8 @@ begin
 	from #rlcMap where ID = @scopeIndex
 	
 	declare @msg nvarchar(500)
-	--select @msg = 'Starting ' + @CampusCode + ' / ' + @GroupTypeName + ' / ' + @GroupName + ' (' + ltrim(str(@RLCID, 25, 0)) + ')'
-	--RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
+	select @msg = 'Starting ' + @CampusCode + ' / ' + @GroupTypeName + ' / ' + @GroupName + ' (' + ltrim(str(@RLCID, 25, 0)) + ')'
+	RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
 	
 	select @CampusId = [Id], @CampusName = [Name], @CampusGuid = [Guid]
 	from [Campus]
@@ -2272,9 +2275,6 @@ begin
 
 		if @CampusAttributeId is null
 		begin
-
-			select @msg = 'Creating ' + @CampusCode + ' / ' + @GroupTypeName + ' / ' + @GroupName + ' (' + ltrim(str(@RLCID, 25, 0)) + ')'
-			RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
 
 			insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
 				[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )

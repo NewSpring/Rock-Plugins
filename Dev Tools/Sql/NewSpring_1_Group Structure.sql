@@ -82,12 +82,33 @@ and l.LocationTypeValueId = @CampusLocationTypeId
 DECLARE @SpecialNeedsAttributeId INT
 DECLARE @SpecialNeedsGroupTypeId INT
 SELECT @SpecialNeedsGroupTypeId = (
-	SELECT [Id]
-	FROM [GroupType]
-	WHERE [Name] = 'Check in By Special Needs'	
+	SELECT [Id] FROM [GroupType]
+	WHERE [Name] = 'Check In By Special Needs'	
 );
 
-select @SpecialNeedsAttributeId = Id from [Attribute] where [Key] = 'IsSpecialNeeds'
+if @SpecialNeedsGroupTypeId is null
+begin
+	INSERT [GroupType] ( [IsSystem], [Name], [Description], [GroupTerm], [GroupMemberTerm], [AllowMultipleLocations], [ShowInGroupList], [ShowInNavigation], [GroupTypePurposeValueId],
+		[TakesAttendance], [AttendanceRule], [AttendancePrintTo], [Order], [InheritedGroupTypeId], [LocationSelectionMode], [AllowedScheduleTypes], [SendAttendanceReminder], [Guid] ) 
+	VALUES ( @IsSystem, 'Check In By Special Needs', 'Indicates if this group is for those who have special needs.', 'Group', 'Member', @False, @False, @False, 145,
+		@False, 1, 0, 0, 15, 0, 0, 0, NEWID() );
+	
+	SET @SpecialNeedsGroupTypeId = SCOPE_IDENTITY()
+
+	INSERT [GroupTypeRole] ( [IsSystem], [GroupTypeId], [Name], [Order], [IsLeader], [CanView], [CanEdit], [Guid] )
+	VALUES ( @IsSystem, @SpecialNeedsGroupTypeId, 'Member', 0, @False, @False, @False, NEWID() )
+
+	DECLARE @SpecialNeedsGroupMemberId int
+	SET @SpecialNeedsGroupMemberId = SCOPE_IDENTITY()
+
+	UPDATE [GroupType]
+	SET DefaultGroupRoleId = @SpecialNeedsGroupMemberId
+	WHERE [Id] = @SpecialNeedsGroupTypeId
+end
+
+
+select @SpecialNeedsAttributeId = Id from [Attribute] where [Key] = 'IsSpecialNeeds' 
+	and EntityTypeid = @GroupEntityTypeId
 if @SpecialNeedsAttributeId is null or @SpecialNeedsAttributeId = ''
 begin
 

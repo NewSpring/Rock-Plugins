@@ -52,20 +52,20 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
         {
             base.OnLoad( e );
 
-            if ( CurrentKioskId == null || CurrentCheckInState == null )
+            if ( !KioskCurrentlyActive )
             {
                 NavigateToLinkedPage( "AdminPage" );
-                return;
             }
-
-            if ( !Page.IsPostBack )
+            else
             {
-                if ( CurrentCheckInState != null && !string.IsNullOrWhiteSpace( CurrentCheckInState.CheckIn.SearchValue ) )
+                if ( !Page.IsPostBack )
                 {
-                    tbSearchBox.Text = CurrentCheckInState.CheckIn.SearchValue;
-                }
+                    if ( CurrentCheckInState != null && !string.IsNullOrWhiteSpace( CurrentCheckInState.CheckIn.SearchValue ) )
+                    {
+                        tbSearchBox.Text = CurrentCheckInState.CheckIn.SearchValue;
+                    }
 
-                string script = string.Format( @"
+                    string script = string.Format( @"
                 <script>
                     $(document).ready(function (e) {{
                         if (localStorage) {{
@@ -75,14 +75,15 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                     }});
                 </script>
                 ", CurrentKioskId, CurrentGroupTypeIds.AsDelimited( "," ) );
-                phScript.Controls.Add( new LiteralControl( script ) );
+                    phScript.Controls.Add( new LiteralControl( script ) );
 
-                if ( GetAttributeValue( "DisplayCountryCode" ).AsBoolean() )
-                {
-                    pnlKeyPad.Visible = true;
+                    if ( GetAttributeValue( "ShowKeyPad" ).AsBoolean() )
+                    {
+                        pnlKeyPad.Visible = true;
+                    }
+
+                    tbSearchBox.Focus();
                 }
-
-                tbSearchBox.Focus();
             }
         }
 
@@ -97,7 +98,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void lbSearch_Click( object sender, EventArgs e )
         {
-            if ( CurrentCheckInState != null && CurrentCheckInState.Kiosk != null )
+            if ( KioskCurrentlyActive )
             {
                 CurrentCheckInState.CheckIn.Families.Clear();
                 CurrentCheckInState.CheckIn.UserEnteredSearch = true;
@@ -133,8 +134,20 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                         CurrentCheckInState.CheckIn.SearchType = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_NAME );
                     }
 
+                    // remember the current search value
                     CurrentCheckInState.CheckIn.SearchValue = searchInput;
-                    ProcessSelection( maWarning );
+
+                    var errors = new List<string>();
+                    if ( ProcessActivity( "Family Search", out errors ) )
+                    {
+                        SaveState();
+                        NavigateToNextPage();
+                    }
+                    else
+                    {
+                        string errorMsg = "<ul><li>" + errors.AsDelimited( "</li><li>" ) + "</li></ul>";
+                        maWarning.Show( errorMsg.Replace( "'", @"\'" ), ModalAlertType.Warning );
+                    }
                 }
                 else
                 {
@@ -158,8 +171,8 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void lbBack_Click( object sender, EventArgs e )
         {
-            bool selectedFamilyExists = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).Any();
-            if ( !selectedFamilyExists )
+            bool hasFamilyCheckedIn = CurrentCheckInState.CheckIn.Families.Any( f => f.Selected );
+            if ( !hasFamilyCheckedIn )
             {
                 var queryParams = new Dictionary<string, string>();
                 queryParams.Add( "back", "true" );

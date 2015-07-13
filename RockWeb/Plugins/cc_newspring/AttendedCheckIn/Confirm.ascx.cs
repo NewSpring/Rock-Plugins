@@ -30,6 +30,7 @@ using Rock.Attribute;
 using Rock.CheckIn;
 using Rock.Data;
 using Rock.Model;
+using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
@@ -47,9 +48,62 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
     [BinaryFileField( "DE0E5C50-234B-474C-940C-C571F385E65F", "Designated Single Label", "Select a label to print once per print job.  Unselect the label to print it with every print job.", false )]
     public partial class Confirm : CheckInBlock
     {
-        private bool RemoveLabelFromClientQueue = false;
-        private bool RemoveLabelFromServerQueue = false;
+        #region Fields
 
+        /// <summary>
+        /// Gets or sets a value indicating whether [remove label from client queue].
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if [remove label from client queue]; otherwise, <c>false</c>.
+        /// </value>
+        private bool RemoveFromClientQueue
+        {
+            get
+            {
+                var labelAlreadyPrinted = ViewState["RemoveFromClientQueue"].ToStringSafe();
+                if ( !string.IsNullOrWhiteSpace( labelAlreadyPrinted ) )
+                {
+                    return labelAlreadyPrinted.AsBoolean();
+                }
+
+                return false;
+            }
+            set
+            {
+                ViewState["RemoveFromClientQueue"] = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [remove label from server queue].
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if [remove label from server queue]; otherwise, <c>false</c>.
+        /// </value>
+        private bool RemoveFromServerQueue
+        {
+            get
+            {
+                var labelAlreadyPrinted = ViewState["RemoveFromServerQueue"].ToStringSafe();
+                if ( !string.IsNullOrWhiteSpace( labelAlreadyPrinted ) )
+                {
+                    return labelAlreadyPrinted.AsBoolean();
+                }
+
+                return false;
+            }
+            set
+            {
+                ViewState["RemoveFromServerQueue"] = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [run save attendance].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [run save attendance]; otherwise, <c>false</c>.
+        /// </value>
         private bool RunSaveAttendance
         {
             get
@@ -67,6 +121,8 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                 ViewState["RunSaveAttendance"] = value;
             }
         }
+
+        #endregion
 
         #region Control Methods
 
@@ -93,13 +149,14 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
             if ( CurrentWorkflow == null || CurrentCheckInState == null )
             {
                 NavigateToHomePage();
-                return;
             }
-
-            if ( !Page.IsPostBack )
+            else
             {
-                gPersonList.UseAccessibleHeader = true;
-                BindGrid();
+                if ( !Page.IsPostBack )
+                {
+                    gPersonList.UseAccessibleHeader = true;
+                    BindGrid();
+                }
             }
         }
 
@@ -115,11 +172,9 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
             foreach ( var person in selectedPeopleList )
             {
                 var selectedGroupTypes = person.GroupTypes.Where( gt => gt.Selected ).ToList();
-                var selectedGroups = selectedGroupTypes.SelectMany( gt => gt.Groups.Where( g => g.Selected ) ).ToList();
-
                 if ( selectedGroupTypes.Any() )
                 {
-                    foreach ( var group in selectedGroups )
+                    foreach ( var group in selectedGroupTypes.SelectMany( gt => gt.Groups.Where( g => g.Selected ) ) )
                     {
                         foreach ( var location in group.Locations.Where( l => l.Selected ) )
                         {
@@ -149,7 +204,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                 }
             }
 
-            gPersonList.DataSource = checkInList.OrderBy( c => c.Name ).ThenBy( c => c.Schedule ).ToList();
+            gPersonList.DataSource = checkInList.OrderBy( c => c.Name ).ThenBy( c => c.Schedule );
             gPersonList.DataBind();
         }
 
@@ -180,7 +235,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void lbBack_Click( object sender, EventArgs e )
         {
-            GoBack();
+            NavigateToPreviousPage();
         }
 
         /// <summary>
@@ -200,7 +255,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                 else
                 {
                     string errorMsg = "<ul><li>" + errors.AsDelimited( "</li><li>" ) + "</li></ul>";
-                    maWarning.Show( errorMsg, Rock.Web.UI.Controls.ModalAlertType.Warning );
+                    maWarning.Show( errorMsg.Replace( "'", @"\'" ), ModalAlertType.Warning );
                     return;
                 }
 
@@ -209,7 +264,9 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
 
             // reset search criteria
             CurrentCheckInState.CheckIn.SearchValue = string.Empty;
-            ProcessSelection( maWarning );
+
+            SaveState();
+            NavigateToNextPage();
         }
 
         /// <summary>
@@ -254,7 +311,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
             }
 
             var selectedPerson = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault()
-                .People.Where( p => p.Person.Id == personId ).FirstOrDefault();
+                .People.FirstOrDefault( p => p.Person.Id == personId );
 
             if ( groupId == 0 || locationId == 0 || scheduleId == 0 )
             {
@@ -264,15 +321,10 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
             else
             {
                 var selectedGroups = selectedPerson.GroupTypes.Where( gt => gt.Selected )
-                    .SelectMany( gt => gt.Groups.Where( g => g.Selected ) );
-                CheckInGroup selectedGroup = selectedGroups.Where( g => g.Selected && g.Group.Id == groupId
-                    && g.Locations.Any( l => l.Location.Id == locationId
-                        && l.Schedules.Any( s => s.Schedule.Id == scheduleId ) ) ).FirstOrDefault();
-                CheckInLocation selectedLocation = selectedGroup.Locations.Where( l => l.Selected
-                    && l.Location.Id == locationId
-                        && l.Schedules.Any( s => s.Schedule.Id == scheduleId ) ).FirstOrDefault();
-                CheckInSchedule selectedSchedule = selectedLocation.Schedules.Where( s => s.Selected
-                    && s.Schedule.Id == scheduleId ).FirstOrDefault();
+                    .SelectMany( gt => gt.Groups.Where( g => g.Selected ) ).ToList();
+                var selectedGroup = selectedGroups.Where( g => g.Selected && g.Group.Id == groupId ).FirstOrDefault();
+                var selectedLocation = selectedGroup.Locations.Where( l => l.Selected && l.Location.Id == locationId ).FirstOrDefault();
+                var selectedSchedule = selectedLocation.Schedules.Where( s => s.Selected && s.Schedule.Id == scheduleId ).FirstOrDefault();
 
                 selectedSchedule.Selected = false;
                 selectedSchedule.PreSelected = false;
@@ -292,11 +344,13 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
 
                 if ( !selectedGroups.Any() )
                 {
+                    selectedPerson.GroupTypes.ForEach( gt => gt.Selected = false );
                     selectedPerson.Selected = false;
                     selectedPerson.PreSelected = false;
                 }
             }
 
+            SaveState();
             BindGrid();
         }
 
@@ -349,14 +403,14 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
             // Make sure we can save the attendance and get an attendance code
             if ( RunSaveAttendance )
             {
-                var errors = new List<string>();
-                if ( ProcessActivity( "Save Attendance", out errors ) )
+                var attendanceErrors = new List<string>();
+                if ( ProcessActivity( "Save Attendance", out attendanceErrors ) )
                 {
                     SaveState();
                 }
                 else
                 {
-                    string errorMsg = "<ul><li>" + errors.AsDelimited( "</li><li>" ) + "</li></ul>";
+                    string errorMsg = "<ul><li>" + attendanceErrors.AsDelimited( "</li><li>" ) + "</li></ul>";
                     maWarning.Show( errorMsg, Rock.Web.UI.Controls.ModalAlertType.Warning );
                     return;
                 }
@@ -364,165 +418,196 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                 RunSaveAttendance = false;
             }
 
-            if ( !GetAttributeValue( "PrintIndividualLabels" ).AsBoolean() )
+            var printQueue = new Dictionary<string, StringBuilder>();
+            bool printAll = !GetAttributeValue( "PrintIndividualLabels" ).AsBoolean();
+            var designatedLabelGuid = GetAttributeValue( "DesignatedSingleLabel" ).AsGuidOrNull();
+
+            foreach ( var selectedFamily in CurrentCheckInState.CheckIn.Families.Where( p => p.Selected ) )
             {
-                // separate labels by person and that's it
-                PrintLabels();
-            }
-            else
-            {
-                // checkinArray has all the data to be printed, whether single or multiple people are checking in
+                List<CheckInLabel> clientLabels = new List<CheckInLabel>();
+                List<CheckInLabel> serverLabels = new List<CheckInLabel>();
+
+                List<CheckInPerson> selectedPeople = selectedFamily.People.Where( p => p.Selected ).ToList();
+                List<CheckInGroupType> selectedGroupTypes = selectedPeople.SelectMany( gt => gt.GroupTypes ).Where( gt => gt.Selected ).ToList();
+                List<CheckInGroup> selectedGroups = null;
+                List<CheckInLocation> selectedLocations = null;
+                List<CheckInSchedule> selectedSchedules = null;
+
                 foreach ( DataKey dataKey in checkinArray )
                 {
                     var personId = Convert.ToInt32( dataKey["PersonId"] );
                     var groupId = Convert.ToInt32( dataKey["GroupId"] );
                     var locationId = Convert.ToInt32( dataKey["LocationId"] );
                     var scheduleId = Convert.ToInt32( dataKey["ScheduleId"] );
-
-                    // mark the person whose label is being printed
-                    var selectedPerson = CurrentCheckInState.CheckIn.Families.FirstOrDefault( f => f.Selected )
-                        .People.FirstOrDefault( p => p.Person.Id == personId );
-
-                    // unselect other people
-                    CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).SelectMany( f => f.People ).ToList().ForEach( p => p.Selected = false );
-
-                    // unselect grouptypes
-                    selectedPerson.GroupTypes.ForEach( gt => gt.Selected = false );
-
-                    // unselect groups
-                    selectedPerson.GroupTypes.SelectMany( gt => gt.Groups ).ToList().ForEach( g => g.Selected = false );
-
-                    // unselect locations
-                    selectedPerson.GroupTypes.SelectMany( gt => gt.Groups.SelectMany( g => g.Locations ) ).ToList().ForEach( l => l.Selected = false );
-
-                    // unselect schedules
-                    selectedPerson.GroupTypes.SelectMany( gt => gt.Groups.SelectMany( g => g.Locations.SelectMany( l => l.Schedules ) ) ).ToList()
-                        .ForEach( s => s.Selected = false );
-
-                    // set only the current label selection
-                    var selectedGroupType = selectedPerson.GroupTypes.FirstOrDefault( gt =>
-                        gt.Groups.Any( g => g.Locations.Any( l => l.Location.Id == locationId
-                            && l.Schedules.Any( s => s.Schedule.Id == scheduleId ) ) ) );
-                    var selectedGroup = selectedGroupType.Groups.FirstOrDefault( g => g.Group.Id == groupId &&
-                        g.Locations.Any( l => l.Location.Id == locationId && l.Schedules.Any( s => s.Schedule.Id == scheduleId ) ) );
-                    var selectedLocation = selectedGroup.Locations.FirstOrDefault( l => l.Location.Id == locationId
-                            && l.Schedules.Any( s => s.Schedule.Id == scheduleId ) );
-                    var selectedSchedule = selectedLocation.Schedules.FirstOrDefault( s => s.Schedule.Id == scheduleId );
-
-                    selectedPerson.Selected = true;
-                    selectedGroupType.Selected = true;
-                    selectedGroup.Selected = true;
-                    selectedLocation.Selected = true;
-                    selectedSchedule.Selected = true;
-
-                    PrintLabels();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Prints the label.
-        /// </summary>
-        private void PrintLabels()
-        {
-            var designatedLabelGuid = GetAttributeValue( "DesignatedSingleLabel" ).AsGuidOrNull();
-            var errors = new List<string>();
-
-            if ( ProcessActivity( "Create Labels", out errors ) )
-            {
-                SaveState();
-            }
-            else
-            {
-                string errorMsg = "<ul><li>" + errors.AsDelimited( "</li><li>" ) + "</li></ul>";
-                maWarning.Show( errorMsg, Rock.Web.UI.Controls.ModalAlertType.Warning );
-                return;
-            }
-
-            var printerIp = string.Empty;
-            var printContent = new StringBuilder();
-
-            foreach ( var family in CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ) )
-            {
-                foreach ( var person in family.People.Where( p => p.Selected ) )
-                {
-                    foreach ( var groupType in person.GroupTypes.Where( g => g.Selected ) )
+ 
+                    if ( !printAll )
                     {
-                        if ( groupType != null )
+                        // unselect everything 
+                        selectedPeople.ForEach( p => p.Selected = false );
+                        selectedGroupTypes.ForEach( gt => gt.Selected = false );
+                        selectedGroups = selectedGroupTypes.SelectMany( gt => gt.Groups ).ToList();
+                        selectedGroups.ForEach( g => g.Selected = false );
+                        selectedLocations = selectedGroups.SelectMany( g => g.Locations ).ToList();
+                        selectedLocations.ForEach( l => l.Selected = false );
+                        selectedSchedules = selectedLocations.SelectMany( l => l.Schedules ).ToList();
+                        selectedSchedules.ForEach( s => s.Selected = false );
+
+                        // select only the current data key
+                        var selectedPerson = selectedFamily.People.FirstOrDefault( p => p.Person.Id == personId );
+                        if ( selectedPerson != null )
                         {
-                            var printFromClient = groupType.Labels.Where( l => l.PrintFrom == Rock.Model.PrintFrom.Client );
-                            if ( RemoveLabelFromClientQueue )
+                            var selectedGroupType = selectedPerson.GroupTypes.FirstOrDefault( gt => gt.Groups.Any( g => g.Group.Id == groupId ) );
+                            if ( selectedGroupType != null )
                             {
-                                printFromClient = printFromClient.Where( l => l.FileGuid != designatedLabelGuid );
-                            }
-
-                            if ( printFromClient.Any() )
-                            {
-                                var urlRoot = string.Format( "{0}://{1}", Request.Url.Scheme, Request.Url.Authority );
-                                printFromClient.ToList().ForEach( l => l.LabelFile = urlRoot + l.LabelFile );
-                                AddLabelScript( printFromClient.ToJson() );
-
-                                // Remove from future client queues
-                                RemoveLabelFromClientQueue = RemoveLabelFromClientQueue || printFromClient.Any( l => l.FileGuid == designatedLabelGuid );
-                            }
-
-                            var printFromServer = groupType.Labels.Where( l => l.PrintFrom == Rock.Model.PrintFrom.Server );
-                            if ( RemoveLabelFromServerQueue )
-                            {
-                                printFromServer = printFromServer.Where( l => l.FileGuid != designatedLabelGuid );
-                            }
-
-                            if ( printFromServer.Any() )
-                            {
-                                foreach ( var label in printFromServer )
+                                var selectedGroup = selectedGroupType.Groups.FirstOrDefault( g => g.Group.Id == groupId );
+                                if ( selectedGroup != null )
                                 {
-                                    var labelCache = KioskLabel.Read( label.FileGuid );
-                                    if ( labelCache != null )
+                                    var selectedLocation = selectedGroup.Locations.FirstOrDefault( l => l.Location.Id == locationId );
+                                    if ( selectedLocation != null )
                                     {
-                                        if ( !string.IsNullOrWhiteSpace( label.PrinterAddress ) )
+                                        var selectedSchedule = selectedLocation.Schedules.FirstOrDefault( s => s.Schedule.Id == scheduleId );
+                                        if ( selectedSchedule != null )
                                         {
-                                            printerIp = label.PrinterAddress;
-                                            var currentPrintContent = labelCache.FileContent;
+                                            // make sure selected & preselected are set (to reset later)
+                                            selectedPerson.Selected = selectedPerson.PreSelected = true;
+                                            selectedGroupType.Selected = selectedGroupType.PreSelected = true;
+                                            selectedGroup.Selected = selectedGroup.PreSelected = true;
+                                            selectedLocation.Selected = selectedLocation.PreSelected = true;
+                                            selectedSchedule.Selected = selectedSchedule.PreSelected = true;
 
-                                            foreach ( var mergeField in label.MergeFields )
-                                            {
-                                                currentPrintContent = Regex.Replace( currentPrintContent, string.Format( @"(?<=\^FD){0}(?=\^FS)", mergeField.Key ), mergeField.Value );
-                                            }
-
-                                            printContent.Append( currentPrintContent );
-                                            RemoveLabelFromServerQueue = RemoveLabelFromServerQueue || label.FileGuid == designatedLabelGuid;
+                                            selectedPeople = new List<CheckInPerson>( 1 ) { selectedPerson };
+                                            selectedGroupTypes = new List<CheckInGroupType>( 1 ) { selectedGroupType };
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                }
-            }
 
-            if ( !string.IsNullOrWhiteSpace( printerIp ) )
+                    // When printing individual labels, this populates the merge
+                    // codes for a single person at a time (hence the print queue)
+                    var labelErrors = new List<string>();
+                    if ( ProcessActivity( "Create Labels", out labelErrors ) )
+                    {
+                        SaveState();
+                    }
+
+                    // Add all labels and exclude one-time label from future queues
+                    clientLabels.AddRange( selectedGroupTypes.SelectMany( gt => gt.Labels )
+                        .Where( l => ( !RemoveFromClientQueue || l.FileGuid != designatedLabelGuid ) && l.PrintFrom == Rock.Model.PrintFrom.Client ) );
+                    RemoveFromClientQueue = RemoveFromClientQueue || clientLabels.Any( l => l.FileGuid == designatedLabelGuid );
+
+                    serverLabels.AddRange( selectedGroupTypes.SelectMany( gt => gt.Labels )
+                        .Where( l => ( !RemoveFromServerQueue || l.FileGuid != designatedLabelGuid ) && l.PrintFrom == Rock.Model.PrintFrom.Server ) );
+                    RemoveFromServerQueue = RemoveFromServerQueue || serverLabels.Any( l => l.FileGuid == designatedLabelGuid );
+
+                    if ( printAll )
+                    {
+                        // only iterate datakeys once if printing the entire family
+                        break;
+                    }
+				}
+                // end of data keys
+
+                if ( clientLabels.Any() )
+                {
+                    var urlRoot = string.Format( "{0}://{1}", Request.Url.Scheme, Request.Url.Authority );
+                    clientLabels.ForEach( l => l.LabelFile = urlRoot + l.LabelFile );
+                    AddLabelScript( clientLabels.ToJson() );
+                }
+
+                if ( serverLabels.Any() )
+                {
+                    var printerIp = string.Empty;
+                    var labelContent = new StringBuilder();
+
+                    // sort by printer ip so we can consolidate each printer's labels in one job
+                    foreach ( var label in serverLabels.Where( p => !string.IsNullOrEmpty( p.PrinterAddress ) ).OrderBy( l => l.PrinterAddress ) )
+                    {
+                        var labelCache = KioskLabel.Read( label.FileGuid );
+                        if ( labelCache != null )
+                        {
+                            if ( printerIp != label.PrinterAddress )
+                            {
+                                printQueue.Add( label.PrinterAddress, labelContent );
+                                printerIp = label.PrinterAddress;
+                                labelContent = new StringBuilder();
+                            }
+
+                            var printContent = labelCache.FileContent;
+
+                            foreach ( var mergeField in label.MergeFields )
+                            {   
+                                if ( !string.IsNullOrWhiteSpace( mergeField.Value ) )
+                                {
+                                    printContent = Regex.Replace( printContent, string.Format( @"(?<=\^FD){0}(?=\^FS)", mergeField.Key ), ZebraFormatString( mergeField.Value ) );
+                                }
+                                else
+                                {
+                                    printContent = Regex.Replace( printContent, string.Format( @"\^FO.*\^FS\s*(?=\^FT.*\^FD{0}\^FS)", mergeField.Key ), string.Empty );
+                                    printContent = Regex.Replace( printContent, string.Format( @"\^FD{0}\^FS", mergeField.Key ), "^FD^FS" );
+                                }
+                            }
+
+                            labelContent.Append( printContent );
+                        }
+                    }
+
+                    printQueue.AddOrReplace( printerIp, labelContent );
+                }
+
+                if ( printQueue.Any() )
+                {
+                    PrintLabels( printQueue );
+                    printQueue.Clear();
+                }
+
+                if ( !printAll )
+                {
+                    // reset selections to what they were before queue loop
+                    selectedPeople.ForEach( p => p.Selected = p.PreSelected );
+                    selectedGroupTypes.ForEach( gt => gt.Selected = gt.PreSelected );
+                    selectedGroups.ForEach( g => g.Selected = g.PreSelected );
+                    selectedLocations.ForEach( l => l.Selected = l.PreSelected );
+                    selectedSchedules.ForEach( s => s.Selected = s.PreSelected );
+                }
+
+            } // end family
+        }
+
+        /// <summary>
+        /// Prints the labels.
+        /// </summary>
+        /// <param name="families">The families.</param>
+        private void PrintLabels( Dictionary<string, StringBuilder> printerContent )
+        {
+            foreach ( var printerIp in printerContent.Keys.Where( k => !string.IsNullOrEmpty( k ) ) )
             {
-                var socket = new Socket( AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp );
-                var printerIpEndPoint = new IPEndPoint( IPAddress.Parse( printerIp ), 9100 );
-                var result = socket.BeginConnect( printerIpEndPoint, null, null );
-                bool success = result.AsyncWaitHandle.WaitOne( 5000, true );
+                StringBuilder labelContent;
+                if ( printerContent.TryGetValue( printerIp, out labelContent ) )
+                {
+                    var socket = new Socket( AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp );
+                    var printerIpEndPoint = new IPEndPoint( IPAddress.Parse( printerIp ), 9100 );
+                    var result = socket.BeginConnect( printerIpEndPoint, null, null );
+                    bool success = result.AsyncWaitHandle.WaitOne( 5000, true );
 
-                if ( socket.Connected )
-                {
-                    var ns = new NetworkStream( socket );
-                    printContent.Append( "~JK" );
-                    byte[] toSend = System.Text.Encoding.ASCII.GetBytes( printContent.ToString() );
-                    ns.Write( toSend, 0, toSend.Length );
-                }
-                else
-                {
-                    maWarning.Show( "Could not connect to printer.", ModalAlertType.Warning );
-                }
+                    if ( socket.Connected )
+                    {
+                        var ns = new NetworkStream( socket );
+                        labelContent.Append( "~JK" );
+                        byte[] toSend = System.Text.Encoding.ASCII.GetBytes( labelContent.ToString() );
+                        ns.Write( toSend, 0, toSend.Length );
+                    }
+                    else
+                    {
+                        maWarning.Show( "Could not connect to printer.", ModalAlertType.Warning );
+                    }
 
-                if ( socket != null && socket.Connected )
-                {
-                    socket.Shutdown( SocketShutdown.Both );
-                    socket.Close();
+                    if ( socket != null && socket.Connected )
+                    {
+                        socket.Shutdown( SocketShutdown.Both );
+                        socket.Close();
+                    }
                 }
             }
         }
@@ -577,6 +662,24 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
 	        }}
             ", jsonObject );
             ScriptManager.RegisterStartupScript( this, this.GetType(), "addLabelScript", script, true );
+        }
+
+        /// <summary>
+        /// Formats the Zebra string.
+        /// </summary>
+        /// <param name="input">The input.</param>
+        /// <param name="isJson">if set to <c>true</c> [is json].</param>
+        /// <returns></returns>
+        private static string ZebraFormatString( string input, bool isJson = false )
+        {
+            if ( isJson )
+            {
+                return input.Replace( "é", @"\\82" );  // fix acute e
+            }
+            else
+            {
+                return input.Replace( "é", @"\82" );  // fix acute e
+            }
         }
 
         #endregion Internal Methods
