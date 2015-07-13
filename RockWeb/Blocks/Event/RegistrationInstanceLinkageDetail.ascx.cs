@@ -93,7 +93,7 @@ namespace RockWeb.Blocks.Event
                     service.Add( linkage );
                 }
 
-                linkage.EventItemCampusId = hfLinkageEventItemCampusId.ValueAsInt();
+                linkage.EventItemCampusId = hfLinkageEventItemCampusId.Value.AsIntegerOrNull();
                 linkage.GroupId = gpLinkageGroup.SelectedValueAsInt();
                 linkage.PublicName = tbLinkagePublicName.Text;
                 linkage.UrlSlug = tbLinkageUrlSlug.Text;
@@ -224,7 +224,7 @@ namespace RockWeb.Blocks.Event
                     BindLinkageCalendarItemCampus();
 
                     nbNoLinkage.Visible = false;
-                    dlgAddCalendarItemPage3.SaveButtonText = "Ok";
+                    dlgAddCalendarItemPage3.SaveButtonText = "OK";
                 }
                 else
                 {

@@ -24,6 +24,7 @@
             <div class="panel-body container-fluid">
 
                 <asp:ValidationSummary ID="vsDetails" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-danger" />
+                <Rock:NotificationBox ID="nbValidationError" runat="server" NotificationBoxType="Danger" Heading="Please Correct the Following" Visible="false" />
 
                 <div id="pnlEditDetails" runat="server">
 
@@ -67,7 +68,7 @@
                                 <Rock:CurrencyBox ID="cbCost" runat="server" Label="Cost"
                                     Help="The cost per registrant." />
                                 <Rock:CurrencyBox ID="cbMinimumInitialPayment" runat="server" Label="Minimum Initial Payment"
-                                    Help="The minimum amount required per registrant." />
+                                    Help="The minimum amount required per registrant. Leave value blank if full amount is required." />
                                 <Rock:FinancialGatewayPicker ID="fgpFinancialGateway" runat="server" Label="Financial Gateway"
                                     Help="The financial gateway to use for processing registration payments." />
                             </div>
@@ -105,7 +106,7 @@
                                 <Rock:RockBoundField DataField="Name" HeaderText="Fee" />
                                 <Rock:EnumField DataField="FeeType" HeaderText="Options" />
                                 <Rock:RockBoundField DataField="Cost" HeaderText="Cost" />
-                                <Rock:BoolField DataField="AllowMultiple" HeaderText="Allow Multiple" />
+                                <Rock:BoolField DataField="AllowMultiple" HeaderText="Enable Quantity" />
                                 <Rock:BoolField DataField="DiscountApplies" HeaderText="Discount Applies" />
                                 <Rock:EditField OnClick="gFees_Edit" />
                                 <Rock:DeleteField OnClick="gFees_Delete" />
@@ -135,17 +136,19 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <Rock:RockTextBox ID="tbRegistrationTerm" runat="server" Label="Registration Term" Placeholder="Registration" />
-                                <Rock:RockTextBox ID="tbRegistrantTerm" runat="server" Label="Registrant Term" Placeholder="Registrant" />
+                                <Rock:RockTextBox ID="tbRegistrantTerm" runat="server" Label="Registrant Term" Placeholder="Person" />
                             </div>
                             <div class="col-md-6">
-                                <Rock:RockTextBox ID="tbFeeTerm" runat="server" Label="Fee Term" Placeholder="Fee" />
-                                <Rock:RockTextBox ID="tbDiscountCodeTerm" runat="server" Label="Discount Code Term" Placeholder="Discount" />
+                                <Rock:RockTextBox ID="tbFeeTerm" runat="server" Label="Fee Term" Placeholder="Additional Options" />
+                                <Rock:RockTextBox ID="tbDiscountCodeTerm" runat="server" Label="Discount Code Term" Placeholder="Discount Code" />
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-12">
-                                <Rock:RockTextBox ID="tbSuccessTitle" runat="server" Label="Success Title" />
-                                <Rock:RockTextBox ID="tbSuccessText" runat="server" Label="Success Text" TextMode="MultiLine" Rows="4" />
+                                <Rock:RockTextBox ID="tbSuccessTitle" runat="server" Label="Success Title" 
+                                    Help="The heading to display to user after succesfully completing a registration of this type." />
+                                <Rock:RockTextBox ID="tbSuccessText" runat="server" Label="Success Text" TextMode="MultiLine" Rows="4" 
+                                    Help="The text to display to user after succesfully completing a registration of this type. If there are costs or fees for this registration, a summary of those will be displayed after this text." />
                             </div>
                         </div>
                     </Rock:PanelWidget>
@@ -254,8 +257,8 @@
                     <asp:ListItem Text="Percentage" Value="Percentage" />
                     <asp:ListItem Text="Amount" Value="Amount" />
                 </Rock:RockRadioButtonList>
-                <Rock:NumberBox ID="nbDiscountPercentage" runat="server" Label="Discount Percentage" NumberType="Integer" ValidationGroup="Discount"  />
-                <Rock:CurrencyBox ID="cbDiscountAmount" runat="server" Label="Discount Amount" ValidationGroup="Discount" />
+                <Rock:NumberBox ID="nbDiscountPercentage" runat="server" AppendText="%" CssClass="input-width-md" Label="Discount Percentage" NumberType="Integer" ValidationGroup="Discount"  />
+                <Rock:CurrencyBox ID="cbDiscountAmount" runat="server" CssClass="input-width-md" Label="Discount Amount" ValidationGroup="Discount" />
             </Content>
         </Rock:ModalDialog>
 
@@ -267,7 +270,7 @@
                 <Rock:RockRadioButtonList ID="rblFeeType" runat="server" Label="Options" ValidationGroup="Fee" RepeatDirection="Horizontal" AutoPostBack="true" OnSelectedIndexChanged="rblFeeType_SelectedIndexChanged" />
                 <Rock:CurrencyBox ID="cCost" runat="server" Label="Cost" ValidationGroup="Fee" />
                 <Rock:KeyValueList ID="kvlMultipleFees" runat="server" Label="Costs" ValidationGroup="Fee" KeyPrompt="Option" ValuePrompt="Cost" />
-                <Rock:RockCheckBox ID="cbAllowMultiple" runat="server" Label="Allow Multiple" ValidationGroup="Fee" Text="Yes"
+                <Rock:RockCheckBox ID="cbAllowMultiple" runat="server" Label="Enable Quantity" ValidationGroup="Fee" Text="Yes"
                     Help="Should registrants be able to select more than one of this item?" />
                 <Rock:RockCheckBox ID="cbDiscountApplies" runat="server" Label="Discount Applies" ValidationGroup="Fee" Text="Yes"
                     Help="Should discounts be applied to this fee?" />
