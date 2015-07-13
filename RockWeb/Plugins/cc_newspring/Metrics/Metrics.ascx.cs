@@ -74,10 +74,6 @@ namespace RockWeb.Plugins.cc_newspring.Metrics
             {
                 var churchMetricValue = newMetric;
 
-                //foreach ( var metric in newMetric )
-                //{
-                //    var churchMetricValue = metric.MetricValues;
-
                 if ( churchMetricPeriod == "YTD" )
                 {
                     metricNumber.Value = string.Format( "{0:n0}", churchMetricValue.Where( a => a.MetricValueDateTime > new DateTime( DateTime.Now.Year, 1, 1 ) ).Select( a => a.YValue ).Sum() );
@@ -93,18 +89,18 @@ namespace RockWeb.Plugins.cc_newspring.Metrics
                     var lastWeekOfYear = calendar.GetWeekOfYear( DateTime.Now.AddDays( -7 ), CalendarWeekRule.FirstDay, DayOfWeek.Sunday );
 
                     // Search DB Based on Current Week of Year
-                    var currentWeekMetric = churchMetricValue.Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) == currentWeekOfYear && a.MetricValueDateTime.Value.Year == DateTime.Now.Year ).Select( a => a.YValue ).ToArray();
+                    var currentWeekMetric = churchMetricValue.Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) == currentWeekOfYear && a.MetricValueDateTime.Value.Year == DateTime.Now.Year ).Select( a => a.YValue ).FirstOrDefault();
 
                     // Search DB Based on Last Week
-                    var lastWeekMetric = churchMetricValue.Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) == lastWeekOfYear && a.MetricValueDateTime.Value.Year == DateTime.Now.Year ).Select( a => a.YValue ).ToArray();
+                    var lastWeekMetric = churchMetricValue.Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) == lastWeekOfYear && a.MetricValueDateTime.Value.Year == DateTime.Now.Year ).Select( a => a.YValue ).FirstOrDefault();
 
-                    if ( churchMetricPeriod == "This Week" )
+                    if ( churchMetricPeriod == "This Week" && currentWeekMetric != null )
                     {
                         // This Week Metric Value
-                        metricNumber.Value = string.Format( "{0:n0}", currentWeekMetric[0] );
+                        metricNumber.Value = string.Format( "{0:n0}", currentWeekMetric );
 
                         // Get The CSS Classes For The Trend Arrow
-                        if ( currentWeekMetric[0] > lastWeekMetric[0] )
+                        if ( currentWeekMetric > lastWeekMetric )
                         {
                             metricClass.Value = "fa-caret-up brand-success";
                         }
@@ -113,20 +109,31 @@ namespace RockWeb.Plugins.cc_newspring.Metrics
                             metricClass.Value = "fa-caret-down brand-danger";
                         }
                     }
-                    else if ( churchMetricPeriod == "Last Week" )
+                    else if ( churchMetricPeriod == "Last Week" && lastWeekMetric != null )
                     {
                         // Last Week Metric Value
-                        metricNumber.Value = string.Format( "{0:n0}", lastWeekMetric[0] );
+                        metricNumber.Value = string.Format( "{0:n0}", lastWeekMetric );
                     }
                     else if ( churchMetricPeriod == "One Year Ago" )
                     {
                         // Search DD For Metric From This Week Last Year
-                        var lastYearMetric = churchMetricValue.Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) == currentWeekOfYear && a.MetricValueDateTime.Value.Year == DateTime.Now.AddYears( -1 ).Year ).Select( a => a.YValue ).ToArray();
+                        var lastYearMetric = churchMetricValue.Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) == currentWeekOfYear && a.MetricValueDateTime.Value.Year == DateTime.Now.AddYears( -1 ).Year ).Select( a => a.YValue ).FirstOrDefault();
 
-                        // This Week Last Year Metric
-                        metricNumber.Value = string.Format( "{0:n0}", lastYearMetric[0] );
+                        if ( lastYearMetric != null )
+                        {
+                            // This Week Last Year Metric
+                            metricNumber.Value = string.Format( "{0:n0}", lastYearMetric );
+                        }
+                        else
+                        {
+                            // This Week Last Year Metric
+                            metricNumber.Value = "0";
+                        }
                     }
-                    // }
+                    else
+                    {
+                        metricNumber.Value = "0";
+                    }
                 }
             }
             else if ( GetAttributeValue( "MetricDisplayType" ) == "Line" )
@@ -135,11 +142,16 @@ namespace RockWeb.Plugins.cc_newspring.Metrics
                 //{
                 var churchMetricValue = newMetric;
 
+                var calendar = DateTimeFormatInfo.CurrentInfo.Calendar;
+
+                // var lastYearMetric = churchMetricValue.Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) == currentWeekOfYear && a.MetricValueDateTime.Value.Year == DateTime.Now.AddYears( -1 ).Year ).Select( a => a.YValue ).ToList();
+
                 currentYear.Value = DateTime.Now.Year.ToString();
                 previousYear.Value = DateTime.Now.AddYears( -1 ).Year.ToString();
 
                 // Create an array of of labels
-                var metricLabelsArray = churchMetricValue.Where( a => a.MetricValueDateTime > DateTime.Now.AddDays( -42 ) )
+                var metricLabelsArray = churchMetricValue
+                    .Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) > calendar.GetWeekOfYear( a.MetricValueDateTime.Value.AddDays(-42).Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) && a.MetricValueDateTime.Value.Year == DateTime.Now.Year )
                     .OrderBy( a => a.MetricValueDateTime )
                     .Select( a => new DateTime( a.MetricValueDateTime.Value.Year, a.MetricValueDateTime.Value.Month, a.MetricValueDateTime.Value.Day ).ToString( "MMMM dd" ) )
                     .ToArray();
@@ -160,7 +172,7 @@ namespace RockWeb.Plugins.cc_newspring.Metrics
                 //    .ToArray();
 
                 var metricDataPointSumsCurrentYear = churchMetricValue
-                    .Where( a => a.MetricValueDateTime > DateTime.Now.AddDays( -42 ) )
+                    .Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) > calendar.GetWeekOfYear( a.MetricValueDateTime.Value.AddDays( -42 ).Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) && a.MetricValueDateTime.Value.Year == DateTime.Now.Year )
                     .OrderBy( a => a.MetricValueDateTime )
                     .Select( a => string.Format( "{0:0}", a.YValue ) )
                     .ToArray();
@@ -172,7 +184,7 @@ namespace RockWeb.Plugins.cc_newspring.Metrics
 
                 // Create an array of data points (Current Year)
                 var metricDataPointSumsPreviousYear = churchMetricValue
-                    .Where( a => a.MetricValueDateTime > DateTime.Now.AddDays( -1 ).AddMonths( -42 ) && a.MetricValueDateTime < DateTime.Now.AddYears( -1 ) )
+                    .Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) > calendar.GetWeekOfYear( a.MetricValueDateTime.Value.AddDays( -42 ).Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) && a.MetricValueDateTime.Value.Year == DateTime.Now.AddYears(-1).Year )
                     .OrderBy( a => a.MetricValueDateTime )
                     .Select( a => string.Format( "{0:0}", a.YValue ) )
                     .ToArray();
@@ -182,6 +194,10 @@ namespace RockWeb.Plugins.cc_newspring.Metrics
                 // Format the array of sums for output
                 metricDataPointsPrevious.Value = "'" + metricDataPointStringPrevious.Replace( ",", "','" ) + "'";
                 //}
+            }
+            else if ( GetAttributeValue( "MetricDisplayType" ) == "Donut" )
+            {
+
             }
         }
 
