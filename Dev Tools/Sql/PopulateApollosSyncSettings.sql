@@ -23,7 +23,7 @@ SELECT @syncEntityId = Id
 FROM EntityType
 WHERE Name = @syncEntityName;
 
-DECLARE @categoryName AS NVARCHAR(MAX) = 'Apollos API Sync Category';
+DECLARE @categoryName AS NVARCHAR(MAX) = 'API Sync To Apollos';
 DECLARE @categoryId AS INT;
 
 SELECT @categoryId = Id
@@ -69,3 +69,5 @@ WHERE
 			AND Name = 'Token Value'
 	)
 );
+
+SELECT 'END';
