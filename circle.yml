@@ -7,7 +7,7 @@ deployment:
     branch: release
     codedeploy:
       StagingRock:
-        deployment_group: Beta-Rock
+        deployment_group: Beta
         revision_location:
           revision_type: S3
           s3_location:
