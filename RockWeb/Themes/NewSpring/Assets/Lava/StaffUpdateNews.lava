@@ -1,0 +1,46 @@
+﻿{% for item in Items %}
+
+<div style="border-bottom: 1px solid black; margin: 20px 0 15px">
+    <center>
+    
+        <article class="margin-b-lg">
+          <h2>{{ item.Title }}</h2>
+        
+          <div>
+            <p>{{ item.Content }}</p>
+          </div>
+          
+          <div>
+            <p style="font-weight: bold">{{ item.StartDateTime }}</p>
+          </div>
+          
+     
+    </center>
+</div>
+</article>
+{% endfor %}
+
+<div class="clearfix">
+  {% assign nextPageString = Pagination.NextPage | ToString %}
+  {% assign prevPageString = Pagination.PreviousPage | ToString %}
+
+  {% if {{Pagination.PreviousPage == -1 }} %}
+  <div class="btn btn-default pull-left">
+    <i class="fa fa-chevron-left"></i> Prev
+  </div>
+  {% else %}
+  <a class="btn btn-primary pull-left" href="{{Pagination.UrlTemplate | Replace:'PageNum', prevPageString}}">
+    <i class="fa fa-chevron-left"></i> Prev
+  </a>
+  {% endif %}
+
+  {% if {{Pagination.NextPage == -1 }} %}
+  <div class="btn btn-default pull-right">
+    Next <i class="fa fa-chevron-right"></i>
+  </div>
+  {% else %}
+  <a class="btn btn-primary pull-right" href="{{Pagination.UrlTemplate | Replace:'PageNum', nextPageString}}">
+    Next <i class="fa fa-chevron-right"></i>
+  </a>
+  {% endif %}
+</div>

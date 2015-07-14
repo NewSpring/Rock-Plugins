@@ -1,0 +1,10 @@
+{
+  "name": "Rock_NewSpring",
+  "version": "1.0.0",
+  "dependencies": {
+    "browser-sync": "^2.7.11",
+    "gulp": "^3.9.0",
+    "gulp-less": "^3.0.3",
+    "gulp-sass": "^2.0.1"
+  }
+}
