@@ -5924,6 +5924,10 @@ table {
 /*#endregion */
 /*#region
 // 4. Rock Overrides         */
+.personprofile {
+  margin-top: 0px;
+  overflow: hidden;
+}
 .tt-query {
   vertical-align: baseline !important;
 }

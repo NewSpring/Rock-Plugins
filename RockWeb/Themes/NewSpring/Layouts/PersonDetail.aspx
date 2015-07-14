@@ -40,47 +40,51 @@
         </div>
 
 		<div class="pagetabs">
-            <div class="row">
-                <div class="col-md-12">
-                    <Rock:Zone Name="Sub Navigation" runat="server" />
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <Rock:Zone Name="Sub Navigation" runat="server" />
+                    </div>
                 </div>
-            </div> 
+            </div>
 		</div>
 
         <div class="person-content">
-            <div class="row">
-                <div class="col-md-8">
-                    <Rock:Zone Name="Section A1" runat="server" />
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-8">
+                        <Rock:Zone Name="Section A1" runat="server" />
+                    </div>
+                    <div class="col-md-4">
+                        <Rock:Zone Name="Section A2" runat="server" />
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <Rock:Zone Name="Section A2" runat="server" />
-                </div>
-            </div>
 
-            <div class="row">
-                <div class="col-md-4">
-                    <Rock:Zone Name="Section B1" runat="server" />
+                <div class="row">
+                    <div class="col-md-4">
+                        <Rock:Zone Name="Section B1" runat="server" />
+                    </div>
+                    <div class="col-md-4">
+                        <Rock:Zone Name="Section B2" runat="server" />
+                    </div>
+                    <div class="col-md-4">
+                        <Rock:Zone Name="Section B3" runat="server" />
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <Rock:Zone Name="Section B2" runat="server" />
-                </div>
-                <div class="col-md-4">
-                    <Rock:Zone Name="Section B3" runat="server" />
-                </div>
-            </div>
 
-            <div class="row">
-                <div class="col-md-12">
-                    <Rock:Zone Name="Section C1" runat="server" />
+                <div class="row">
+                    <div class="col-md-12">
+                        <Rock:Zone Name="Section C1" runat="server" />
+                    </div>
                 </div>
-            </div>
 
-            <div class="row">
-                <div class="col-md-4">
-                    <Rock:Zone Name="Section D1" runat="server" />
-                </div>
-                <div class="col-md-8">
-                    <Rock:Zone Name="Section D2" runat="server" />
+                <div class="row">
+                    <div class="col-md-4">
+                        <Rock:Zone Name="Section D1" runat="server" />
+                    </div>
+                    <div class="col-md-8">
+                        <Rock:Zone Name="Section D2" runat="server" />
+                    </div>
                 </div>
             </div>
         </div>
