@@ -10,6 +10,7 @@
             <asp:HiddenField ID="metricDisplay" runat="server" />
             <asp:HiddenField ID="metricNumber" runat="server" />
             <asp:HiddenField ID="metricTitle" runat="server" />
+            <asp:HiddenField ID="metricBlockId" runat="server" />
 
             <% if ( metricDisplay.Value.Equals( "Text" ) )
                { %>
@@ -33,7 +34,6 @@
             <asp:HiddenField ID="metricDataPointsPrevious" runat="server" />
 
             <script>
-                var randomScalingFactor = function () { return Math.round(Math.random() * (36000 - 45000) + 36000) };
 
                 var lineOptions = {
                     responsive: true,
@@ -45,7 +45,7 @@
                     pointDotStrokeWidth: 3,
                 }
 
-                var overallAttendanceData = {
+                var <%= metricBlockId.Value %>Data = {
                     labels: [<%= metricLabels.Value %>],
                     datasets: [
                         {
@@ -67,11 +67,11 @@
                     ]
                 }
 
-                    window.onload = function () {
-                        var overallAttendance = document.getElementById("attendanceChart").getContext("2d");
+                window.onload = function () {
+                    var <%= metricBlockId.Value %> = document.getElementById("<%= metricBlockId.Value %>").getContext("2d");
 
-                        window.attendanceChart = new Chart(overallAttendance).Line(overallAttendanceData, lineOptions);
-                    }
+                    window.<%= metricBlockId.Value %>Chart = new Chart(<%= metricBlockId.Value %>).Line(<%= metricBlockId.Value %>Data, lineOptions);
+                }
             </script>
 
             <div class="panel panel-block panel-chart">
@@ -79,19 +79,11 @@
                     <h1 class="panel-title pull-left"><%= metricTitle.Value %></h1>
                 </div>
                 <div class="panel-body">
-                    <canvas id="attendanceChart"></canvas>
+                    <canvas id="<%= metricBlockId.Value %>Chart"></canvas>
                 </div>
             </div>
 
-            <% }
-               else if ( metricDisplay.Value.Equals( "Donut" ) )
-               { %>
-
-            <asp:HiddenField ID="metricLabel" runat="server" />
-            <asp:HiddenField ID="metricValue" runat="server" />
-            <asp:HiddenField ID="metricCount" runat="server" />
-            <asp:HiddenField ID="metricBlockId" runat="server" />
-            <asp:HiddenField ID="metricItemName" runat="server" />
+            <% } else if ( metricDisplay.Value.Equals( "Donut" ) ) { %>
 
             <script>
 
