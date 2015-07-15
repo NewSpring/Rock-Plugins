@@ -31,6 +31,7 @@ using Rock.Utility;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
+using Newtonsoft.Json;
 
 namespace RockWeb.Plugins.cc_newspring.Metrics
 {
@@ -47,6 +48,37 @@ namespace RockWeb.Plugins.cc_newspring.Metrics
     // [SlidingDateRangeField( "Date Range", Key = "SlidingDateRange", DefaultValue = "1||4||", Order = 7 )]
     public partial class Metrics : Rock.Web.UI.RockBlock
     {
+        
+
+        #region Fields
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [remove label from client queue].
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if [remove label from client queue]; otherwise, <c>false</c>.
+        /// </value>
+        protected string metricBlockValues
+        {
+            get
+            {
+                var metricBlockValues = ViewState["metricBlockValues"] as string;
+
+                if ( metricBlockValues != null )
+                {
+                    return metricBlockValues;
+                }
+
+                return string.Empty;
+            }
+            set
+            {
+                ViewState["metricBlockValues"] = value;
+            }
+        }
+
+        #endregion
+
         #region Control Methods
 
         // <summary>
@@ -58,6 +90,7 @@ namespace RockWeb.Plugins.cc_newspring.Metrics
             base.OnInit( e );
 
             // Output variables direct to the ascx
+            metricBlockId.Value = BlockName.Replace( " ", "" ).ToString();
             metricTitle.Value = BlockName;
             metricDisplay.Value = GetAttributeValue( "MetricDisplayType" );
             metricWidth.Value = GetAttributeValue( "NumberofColumns" );
@@ -65,143 +98,197 @@ namespace RockWeb.Plugins.cc_newspring.Metrics
             var churchMetricSource = GetMetricIds( "MetricSource" );
             var churchMetricPeriod = GetAttributeValue( "MetricPeriod" );
 
-            // Show the warning if no data is selected
+            var newMetric = new MetricService( new RockContext() ).GetByIds( churchMetricSource ).FirstOrDefault();
+
+            // Show the warning if metric source is selected
             churchMetricWarning.Visible = !churchMetricSource.Any();
 
-            var newMetric = new MetricService( new RockContext() ).GetByIds( churchMetricSource ).ToArray()[0].MetricValues;
-
-            if ( GetAttributeValue( "MetricDisplayType" ) == "Text" )
+            // Show data if metric source is selected
+            if ( newMetric != null )
             {
-                var churchMetricValue = newMetric;
+                if ( GetAttributeValue( "MetricDisplayType" ) == "Text" && newMetric != null )
+                {
+                    var churchMetricValue = newMetric.MetricValues;
 
-                if ( churchMetricPeriod == "YTD" )
-                {
-                    metricNumber.Value = string.Format( "{0:n0}", churchMetricValue.Where( a => a.MetricValueDateTime > new DateTime( DateTime.Now.Year, 1, 1 ) ).Select( a => a.YValue ).Sum() );
+                    if ( churchMetricPeriod == "YTD" )
+                    {
+                        metricNumber.Value = string.Format( "{0:n0}", churchMetricValue.Where( a => a.MetricValueDateTime > new DateTime( DateTime.Now.Year, 1, 1 ) ).Select( a => a.YValue ).Sum() );
+                    }
+                    else
+                    {
+                        var calendar = DateTimeFormatInfo.CurrentInfo.Calendar;
+
+                        // Current Week of Year
+                        var currentWeekOfYear = calendar.GetWeekOfYear( DateTime.Now, CalendarWeekRule.FirstDay, DayOfWeek.Sunday );
+
+                        // Last Week
+                        var lastWeekOfYear = calendar.GetWeekOfYear( DateTime.Now.AddDays( -7 ), CalendarWeekRule.FirstDay, DayOfWeek.Sunday );
+
+                        // Search DB Based on Current Week of Year
+                        var currentWeekMetric = churchMetricValue.Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) == currentWeekOfYear && a.MetricValueDateTime.Value.Year == DateTime.Now.Year ).Select( a => a.YValue ).FirstOrDefault();
+
+                        // Search DB Based on Last Week
+                        var lastWeekMetric = churchMetricValue.Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) == lastWeekOfYear && a.MetricValueDateTime.Value.Year == DateTime.Now.Year ).Select( a => a.YValue ).FirstOrDefault();
+
+                        if ( churchMetricPeriod == "This Week" && currentWeekMetric != null )
+                        {
+                            // This Week Metric Value
+                            metricNumber.Value = string.Format( "{0:n0}", currentWeekMetric );
+
+                            // Get The CSS Classes For The Trend Arrow
+                            if ( currentWeekMetric > lastWeekMetric )
+                            {
+                                metricClass.Value = "fa-caret-up brand-success";
+                            }
+                            else
+                            {
+                                metricClass.Value = "fa-caret-down brand-danger";
+                            }
+                        }
+                        else if ( churchMetricPeriod == "Last Week" && lastWeekMetric != null )
+                        {
+                            // Last Week Metric Value
+                            metricNumber.Value = string.Format( "{0:n0}", lastWeekMetric );
+                        }
+                        else if ( churchMetricPeriod == "One Year Ago" )
+                        {
+                            // Search DD For Metric From This Week Last Year
+                            var lastYearMetric = churchMetricValue.Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) == currentWeekOfYear && a.MetricValueDateTime.Value.Year == DateTime.Now.AddYears( -1 ).Year ).Select( a => a.YValue ).FirstOrDefault();
+
+                            if ( lastYearMetric != null )
+                            {
+                                // This Week Last Year Metric
+                                metricNumber.Value = string.Format( "{0:n0}", lastYearMetric );
+                            }
+                            else
+                            {
+                                // This Week Last Year Metric
+                                metricNumber.Value = "0";
+                            }
+                        }
+                        else
+                        {
+                            metricNumber.Value = "0";
+                        }
+                    }
                 }
-                else
+                else if ( GetAttributeValue( "MetricDisplayType" ) == "Line" && newMetric != null )
                 {
+                    //foreach ( var metric in newMetric )
+                    //{
+                    var churchMetricValue = newMetric.MetricValues;
+
+                    var calendar = DateTimeFormatInfo.CurrentInfo.Calendar;
+
+                    // var lastYearMetric = churchMetricValue.Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) == currentWeekOfYear && a.MetricValueDateTime.Value.Year == DateTime.Now.AddYears( -1 ).Year ).Select( a => a.YValue ).ToList();
+
+                    currentYear.Value = DateTime.Now.Year.ToString();
+                    previousYear.Value = DateTime.Now.AddYears( -1 ).Year.ToString();
+
+                    // Create an array of of labels
+                    var metricLabelsArray = churchMetricValue
+                        .Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) > calendar.GetWeekOfYear( a.MetricValueDateTime.Value.AddDays( -42 ).Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) && a.MetricValueDateTime.Value.Year == DateTime.Now.Year )
+                        .OrderBy( a => a.MetricValueDateTime )
+                        .Select( a => new DateTime( a.MetricValueDateTime.Value.Year, a.MetricValueDateTime.Value.Month, a.MetricValueDateTime.Value.Day ).ToString( "MMMM dd" ) )
+                        .ToArray();
+
+                    var metricLabelsString = string.Join( ",", metricLabelsArray );
+
+                    // Format the array of labels for output
+                    metricLabels.Value = "'" + metricLabelsString.Replace( ",", "','" ) + "'";
+
+                    // Create an array of data points (Current Year)
+                    //var metricDataPointSumsCurrentYear = churchMetricValue
+                    //    .Where( a => a.MetricValueDateTime > DateTime.Now.AddMonths( -6 ) )
+                    //    .Select( a => new { Month = a.MetricValueDateTime.Value.Month, YValue = a.YValue } )
+                    //    .GroupBy( a => a.Month )
+                    //    .Select( a => new { a.Key, Sum = a.Sum( v => v.YValue ).ToString() } )
+                    //    .OrderBy( a => a.Key )
+                    //    .Select( a => a.Sum)
+                    //    .ToArray();
+
+                    var metricDataPointSumsCurrentYear = churchMetricValue
+                        .Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) > calendar.GetWeekOfYear( a.MetricValueDateTime.Value.AddDays( -42 ).Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) && a.MetricValueDateTime.Value.Year == DateTime.Now.Year )
+                        .OrderBy( a => a.MetricValueDateTime )
+                        .Select( a => string.Format( "{0:0}", a.YValue ) )
+                        .ToArray();
+
+                    var metricDataPointStringCurrent = string.Join( ",", metricDataPointSumsCurrentYear );
+
+                    // Format the array of sums for output
+                    metricDataPointsCurrent.Value = "'" + metricDataPointStringCurrent.Replace( ",", "','" ) + "'";
+
+                    // Create an array of data points (Current Year)
+                    var metricDataPointSumsPreviousYear = churchMetricValue
+                        .Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) > calendar.GetWeekOfYear( a.MetricValueDateTime.Value.AddDays( -42 ).Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) && a.MetricValueDateTime.Value.Year == DateTime.Now.AddYears( -1 ).Year )
+                        .OrderBy( a => a.MetricValueDateTime )
+                        .Select( a => string.Format( "{0:0}", a.YValue ) )
+                        .ToArray();
+
+                    var metricDataPointStringPrevious = string.Join( ",", metricDataPointSumsPreviousYear );
+
+                    // Format the array of sums for output
+                    metricDataPointsPrevious.Value = "'" + metricDataPointStringPrevious.Replace( ",", "','" ) + "'";
+                    //}
+                }
+                else if ( GetAttributeValue( "MetricDisplayType" ) == "Donut" && newMetric != null )
+                {
+                    var donutMetrics = new MetricService( new RockContext() ).GetByIds( churchMetricSource ).ToArray();
+
                     var calendar = DateTimeFormatInfo.CurrentInfo.Calendar;
 
                     // Current Week of Year
                     var currentWeekOfYear = calendar.GetWeekOfYear( DateTime.Now, CalendarWeekRule.FirstDay, DayOfWeek.Sunday );
 
-                    // Last Week
-                    var lastWeekOfYear = calendar.GetWeekOfYear( DateTime.Now.AddDays( -7 ), CalendarWeekRule.FirstDay, DayOfWeek.Sunday );
+                    var blockValues = new List<MetricValue>();
 
-                    // Search DB Based on Current Week of Year
-                    var currentWeekMetric = churchMetricValue.Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) == currentWeekOfYear && a.MetricValueDateTime.Value.Year == DateTime.Now.Year ).Select( a => a.YValue ).FirstOrDefault();
-
-                    // Search DB Based on Last Week
-                    var lastWeekMetric = churchMetricValue.Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) == lastWeekOfYear && a.MetricValueDateTime.Value.Year == DateTime.Now.Year ).Select( a => a.YValue ).FirstOrDefault();
-
-                    if ( churchMetricPeriod == "This Week" && currentWeekMetric != null )
+                    // Get the metric values from the donutMetrics
+                    foreach ( var metricItem in donutMetrics )
                     {
-                        // This Week Metric Value
-                        metricNumber.Value = string.Format( "{0:n0}", currentWeekMetric );
+                        // var metricItemCount = i++.ToString();
+                        var metricItemTitle = metricItem.Title;
 
-                        // Get The CSS Classes For The Trend Arrow
-                        if ( currentWeekMetric > lastWeekMetric )
+                        // Search DB Based on Current Week of Year
+                        var currentWeekMetric = metricItem.MetricValues
+                            .Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) == currentWeekOfYear && a.MetricValueDateTime.Value.Year == DateTime.Now.Year )
+                            .Select( a => a.YValue )
+                            .FirstOrDefault();
+
+                        if ( currentWeekMetric != null )
                         {
-                            metricClass.Value = "fa-caret-up brand-success";
+                            blockValues.Add( new MetricValue() { value = (int)currentWeekMetric.Value, color = "#6bac43", highlight = "#6bac43", label = metricItemTitle } );
                         }
                         else
                         {
-                            metricClass.Value = "fa-caret-down brand-danger";
+                            blockValues.Add( new MetricValue() { value = 0, color = "#6bac43", highlight = "#6bac43", label = metricItemTitle } );
                         }
                     }
-                    else if ( churchMetricPeriod == "Last Week" && lastWeekMetric != null )
-                    {
-                        // Last Week Metric Value
-                        metricNumber.Value = string.Format( "{0:n0}", lastWeekMetric );
-                    }
-                    else if ( churchMetricPeriod == "One Year Ago" )
-                    {
-                        // Search DD For Metric From This Week Last Year
-                        var lastYearMetric = churchMetricValue.Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) == currentWeekOfYear && a.MetricValueDateTime.Value.Year == DateTime.Now.AddYears( -1 ).Year ).Select( a => a.YValue ).FirstOrDefault();
 
-                        if ( lastYearMetric != null )
-                        {
-                            // This Week Last Year Metric
-                            metricNumber.Value = string.Format( "{0:n0}", lastYearMetric );
-                        }
-                        else
-                        {
-                            // This Week Last Year Metric
-                            metricNumber.Value = "0";
-                        }
-                    }
-                    else
-                    {
-                        metricNumber.Value = "0";
-                    }
+                    metricBlockValues = JsonConvert.SerializeObject( blockValues.ToArray() );
                 }
-            }
-            else if ( GetAttributeValue( "MetricDisplayType" ) == "Line" )
-            {
-                //foreach ( var metric in newMetric )
-                //{
-                var churchMetricValue = newMetric;
-
-                var calendar = DateTimeFormatInfo.CurrentInfo.Calendar;
-
-                // var lastYearMetric = churchMetricValue.Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) == currentWeekOfYear && a.MetricValueDateTime.Value.Year == DateTime.Now.AddYears( -1 ).Year ).Select( a => a.YValue ).ToList();
-
-                currentYear.Value = DateTime.Now.Year.ToString();
-                previousYear.Value = DateTime.Now.AddYears( -1 ).Year.ToString();
-
-                // Create an array of of labels
-                var metricLabelsArray = churchMetricValue
-                    .Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) > calendar.GetWeekOfYear( a.MetricValueDateTime.Value.AddDays(-42).Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) && a.MetricValueDateTime.Value.Year == DateTime.Now.Year )
-                    .OrderBy( a => a.MetricValueDateTime )
-                    .Select( a => new DateTime( a.MetricValueDateTime.Value.Year, a.MetricValueDateTime.Value.Month, a.MetricValueDateTime.Value.Day ).ToString( "MMMM dd" ) )
-                    .ToArray();
-
-                var metricLabelsString = string.Join( ",", metricLabelsArray );
-
-                // Format the array of labels for output
-                metricLabels.Value = "'" + metricLabelsString.Replace( ",", "','" ) + "'";
-
-                // Create an array of data points (Current Year)
-                //var metricDataPointSumsCurrentYear = churchMetricValue
-                //    .Where( a => a.MetricValueDateTime > DateTime.Now.AddMonths( -6 ) )
-                //    .Select( a => new { Month = a.MetricValueDateTime.Value.Month, YValue = a.YValue } )
-                //    .GroupBy( a => a.Month )
-                //    .Select( a => new { a.Key, Sum = a.Sum( v => v.YValue ).ToString() } )
-                //    .OrderBy( a => a.Key )
-                //    .Select( a => a.Sum)
-                //    .ToArray();
-
-                var metricDataPointSumsCurrentYear = churchMetricValue
-                    .Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) > calendar.GetWeekOfYear( a.MetricValueDateTime.Value.AddDays( -42 ).Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) && a.MetricValueDateTime.Value.Year == DateTime.Now.Year )
-                    .OrderBy( a => a.MetricValueDateTime )
-                    .Select( a => string.Format( "{0:0}", a.YValue ) )
-                    .ToArray();
-
-                var metricDataPointStringCurrent = string.Join( ",", metricDataPointSumsCurrentYear );
-
-                // Format the array of sums for output
-                metricDataPointsCurrent.Value = "'" + metricDataPointStringCurrent.Replace( ",", "','" ) + "'";
-
-                // Create an array of data points (Current Year)
-                var metricDataPointSumsPreviousYear = churchMetricValue
-                    .Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) > calendar.GetWeekOfYear( a.MetricValueDateTime.Value.AddDays( -42 ).Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) && a.MetricValueDateTime.Value.Year == DateTime.Now.AddYears(-1).Year )
-                    .OrderBy( a => a.MetricValueDateTime )
-                    .Select( a => string.Format( "{0:0}", a.YValue ) )
-                    .ToArray();
-
-                var metricDataPointStringPrevious = string.Join( ",", metricDataPointSumsPreviousYear );
-
-                // Format the array of sums for output
-                metricDataPointsPrevious.Value = "'" + metricDataPointStringPrevious.Replace( ",", "','" ) + "'";
-                //}
-            }
-            else if ( GetAttributeValue( "MetricDisplayType" ) == "Donut" )
-            {
-
             }
         }
 
         #endregion
+
+        #region Classes
+
+        /// <summary>
+        /// Check-In information class used to bind the selected grid.
+        /// </summary>
+        [Serializable]
+        protected class MetricValue
+        {
+            public int value { get; set; }
+
+            public string color { get; set; }
+
+            public string highlight { get; set; }
+
+            public string label { get; set; }
+        }
+
+        #endregion Classes
 
         #region Internal Methods
 
