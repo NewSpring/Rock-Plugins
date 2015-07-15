@@ -1,4 +1,4 @@
-<%@ Control Language="C#" AutoEventWireup="true" CodeFile="NewSpringDashboardWidget.ascx.cs" Inherits="RockWeb.Blocks.Reporting.Dashboard.NewSpringDashboardWidget" %>
+<%@ Control Language="C#" AutoEventWireup="true" CodeFile="NewSpringDashboardWidget.ascx.cs" Inherits="RockWeb.Plugins.cc_newspring.Blocks.Dashboard.NewSpringDashboardWidget" %>
 
 <asp:UpdatePanel ID="upnlContent" runat="server">
     <ContentTemplate>

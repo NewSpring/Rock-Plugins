@@ -25,10 +25,10 @@ using Rock.Web;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
-namespace RockWeb.Plugins.cc_newspring.AllStaffLive
+namespace RockWeb.Plugins.cc_newspring.Blocks.AllStaffLive
 {
     [DisplayName( "All Staff Live" )]
-    [Category( "Video" )]
+    [Category( "NewSpring" )]
     [Description( "Live video all staff display" )]
     [TextField( "Ooyala Content ID", "Paste the Ooyala Content ID For All Staff Live Here" )]
     [SchedulesField( "Live Schedule", "Choose a schedule for all staff to be live" )]

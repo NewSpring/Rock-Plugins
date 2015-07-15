@@ -12,8 +12,14 @@ using Rock.Model;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
-namespace RockWeb.Plugins.cc_newspring.Video
+namespace RockWeb.Plugins.cc_newspring.Blocks.Video
 {
+    /// <summary>
+    /// All Church Metrics Block
+    /// </summary>
+    [DisplayName( "Ooyala Video Block" )]
+    [Category( "NewSpring" )]
+    [Description( "Ooyala Video Block" )]
     [TextField( "Ooyala Content ID", "Paste the Ooyala Content ID here" )]
     public partial class Ooyala : Rock.Web.UI.RockBlock
     {
