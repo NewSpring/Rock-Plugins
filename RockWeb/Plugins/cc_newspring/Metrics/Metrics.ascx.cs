@@ -240,6 +240,9 @@ namespace RockWeb.Plugins.cc_newspring.Metrics
                     // Current Week of Year
                     var currentWeekOfYear = calendar.GetWeekOfYear( DateTime.Now, CalendarWeekRule.FirstDay, DayOfWeek.Sunday );
 
+                    // Last Week
+                    var lastWeekOfYear = calendar.GetWeekOfYear( DateTime.Now.AddDays( -7 ), CalendarWeekRule.FirstDay, DayOfWeek.Sunday );
+
                     var blockValues = new List<MetricValue>();
 
                     // Get the metric values from the donutMetrics
@@ -254,9 +257,18 @@ namespace RockWeb.Plugins.cc_newspring.Metrics
                             .Select( a => a.YValue )
                             .FirstOrDefault();
 
+                        var previousWeekMetric = metricItem.MetricValues
+                                .Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.AddDays( -1 ).Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) == lastWeekOfYear && a.MetricValueDateTime.Value.Year == DateTime.Now.Year )
+                                .Select( a => a.YValue )
+                                .FirstOrDefault();
+
                         if ( currentWeekMetric != null )
                         {
                             blockValues.Add( new MetricValue() { value = (int)currentWeekMetric.Value, color = "#6bac43", highlight = "#6bac43", label = metricItemTitle } );
+                        }
+                        else if ( previousWeekMetric != null)
+                        {
+                            blockValues.Add( new MetricValue() { value = (int)previousWeekMetric.Value, color = "#6bac43", highlight = "#6bac43", label = metricItemTitle } );
                         }
                         else
                         {
