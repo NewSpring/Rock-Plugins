@@ -5924,10 +5924,6 @@ table {
 /*#endregion */
 /*#region
 // 4. Rock Overrides         */
-.personprofile {
-  margin-top: 0px;
-  overflow: hidden;
-}
 .tt-query {
   vertical-align: baseline !important;
 }
@@ -6215,6 +6211,17 @@ table tr td {
 .rock-modal .modal-title {
   color: #ffffff;
 }
+.personprofile {
+  margin-top: 0px;
+  overflow: hidden;
+}
+.personprofilebar-bio {
+  padding: 30px 15px;
+  background-color: #dddddd;
+}
+.pagetabs {
+  margin-bottom: 15px;
+}
 /*#endregion */
 /*#endregion */
 /*#region
@@ -6259,7 +6266,7 @@ body.navbar-side-open #content-wrapper {
   position: absolute;
   top: 50%;
   padding: 0 8px;
-  margin-top: -14px;
+  margin-top: -15px;
   font-size: 20px;
   color: #ffffff;
   cursor: pointer;
@@ -6323,6 +6330,34 @@ body.navbar-side-open #content-wrapper {
   width: 260px;
   padding-bottom: 80px;
   overflow-y: auto;
+}
+.navbar-static-side .home {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  padding: 17px 15px 16px;
+  font-size: 16px;
+  line-height: 1.42857143;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  text-indent: 38px;
+  text-decoration: none;
+}
+.navbar-static-side .home:after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  margin-top: -15px;
+  height: 30px;
+  width: 30px;
+  background-image: url('../Assets/Images/newspring-logo.png');
+  background-size: cover;
+}
+.navbar-static-side .home:hover {
+  background-color: #2d2d2d;
+  cursor: pointer;
 }
 body.navbar-side-open .navbar-static-side {
   left: 0px;

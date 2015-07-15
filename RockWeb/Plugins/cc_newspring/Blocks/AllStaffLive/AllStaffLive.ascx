@@ -1,4 +1,4 @@
-<%@ Control Language="C#" AutoEventWireup="true" CodeFile="AllStaffLive.ascx.cs" Inherits="RockWeb.Plugins.cc_newspring.AllStaffLive.AllStaffLive" %>
+<%@ Control Language="C#" AutoEventWireup="true" CodeFile="AllStaffLive.ascx.cs" Inherits="RockWeb.Plugins.cc_newspring.Blocks.AllStaffLive.AllStaffLive" %>
 
 <!-- 16:9 aspect ratio -->
 
@@ -21,7 +21,7 @@
         <div>Please enable Javascript to watch this video</div>
     </noscript>
 
-    <script type="text/javascript" src="../plugins/cc_newspring/AllStaffLive/scripts.js"></script>
+    <script type="text/javascript" src="../plugins/cc_newspring/Blocks/AllStaffLive/scripts.js"></script>
 </div>
 <% }
    else if ( liveFeedStatus.Value.Equals( "off" ) )

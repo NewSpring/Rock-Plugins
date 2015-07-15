@@ -31,13 +31,13 @@ using Rock.Security;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 
-namespace RockWeb.Plugins.cc_newspring.WorkflowAlert
+namespace RockWeb.Plugins.cc_newspring.Blocks.WorkflowAlert
 {
     /// <summary>
     /// Block to display the workflow types that user is authorized to view, and the activities that are currently assigned to the user.
     /// </summary>
     [DisplayName( "My Workflows Alerts" )]
-    [Category( "WorkFlow" )]
+    [Category( "NewSpring" )]
     [Description( "Block to display the workflow types that user is authorized to view, and the activities that are currently assigned to the user." )]
     [LinkedPage( "Listing Page", "Page used to view all workflows assigned to the current user." )]
     public partial class WorkflowAlert : Rock.Web.UI.RockBlock

@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="WorkflowAlert.ascx.cs" Inherits="RockWeb.Plugins.cc_newspring.WorkflowAlert.WorkflowAlert" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="WorkflowAlert.ascx.cs" Inherits="RockWeb.Plugins.cc_newspring.Blocks.WorkflowAlert.WorkflowAlert" %>
 
 <asp:HiddenField ID="workflowAlertNumber" runat="server" />
 
@@ -16,4 +16,4 @@
    <% } %>
 </asp:LinkButton>
 
-<script type="text/javascript" src="../plugins/cc_newspring/workflowalert/loadcss.js"></script>
+<script type="text/javascript" src="../plugins/cc_newspring/Blocks/WorkflowAlert/loadcss.js"></script>

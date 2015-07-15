@@ -366,11 +366,6 @@ table {
 // 4. Rock Overrides         */
 // -------------------------
 
-.personprofile {
-  margin-top: 0px;
-  overflow: hidden;
-}
-
 // type ahead styles
 .tt-query {
   vertical-align: baseline !important;
@@ -919,6 +914,22 @@ table {
 //   }
 // }
 
+// Person Profile
+
+.personprofile {
+  margin-top: 0px;
+  overflow: hidden;
+}
+
+.personprofilebar-bio {
+  padding: 30px 15px;
+  background-color: @light-tertiary;
+}
+
+.pagetabs {
+  margin-bottom: 15px;
+}
+
 /*#endregion */
 
 
@@ -982,7 +993,7 @@ body {
     position: absolute;
     top: 50%;
     padding: 0 8px;
-    margin-top: -14px;
+    margin-top: -15px;
     font-size: @font-size-large;
     color: @light-primary;
     cursor: pointer;
@@ -1062,6 +1073,38 @@ body {
   width: @sidebar-width;
   padding-bottom: 80px;
   overflow-y: auto;
+
+  // Home Link
+  .home {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    padding: 17px 15px 16px;
+    font-size: @font-size-base;
+    line-height: @line-height-base;
+    font-weight: @font-weight-semibold;
+    border-bottom: 1px solid rgba(255,255,255,.05);
+    color: @accent-bold-text-color;
+    text-indent: 38px;
+    text-decoration: none;
+
+    &:after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 10px;
+      margin-top: -15px;
+      height: 30px;
+      width: 30px;
+      background-image: url('../Assets/Images/newspring-logo.png');
+      background-size: cover;
+    }
+
+    &:hover {
+      background-color: lighten(@accent-bold-color, 5%);
+      cursor: pointer;
+    }
+  }
 
   body.navbar-side-open & {
     left: 0px;

@@ -22,21 +22,25 @@
         </div>
 
         <div class="personprofilebar-badge">
-            <div class="row">
-                <div class="badge-group col-sm-4">
-                    <Rock:Zone Name="Badge Bar Left" runat="server" />
-                </div>
-                <div class="badge-group col-sm-4">
-                    <Rock:Zone Name="Badge Bar Middle" runat="server" />
-                </div>
-                <div class="badge-group col-sm-4">
-                    <Rock:Zone Name="Badge Bar Right" runat="server" />
+            <div class="container">
+                <div class="row">
+                    <div class="badge-group col-sm-4">
+                        <Rock:Zone Name="Badge Bar Left" runat="server" />
+                    </div>
+                    <div class="badge-group col-sm-4">
+                        <Rock:Zone Name="Badge Bar Middle" runat="server" />
+                    </div>
+                    <div class="badge-group col-sm-4">
+                        <Rock:Zone Name="Badge Bar Right" runat="server" />
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="personprofilebar-family">
-            <Rock:Zone Name="Family Detail" runat="server" />
+            <div class="container">
+                <Rock:Zone Name="Family Detail" runat="server" />
+            </div>
         </div>
 
 		<div class="pagetabs">

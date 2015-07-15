@@ -33,13 +33,13 @@ using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 using Newtonsoft.Json;
 
-namespace RockWeb.Plugins.cc_newspring.Metrics
+namespace RockWeb.Plugins.cc_newspring.Blocks.Metrics
 {
     /// <summary>
     /// All Church Metrics Block
     /// </summary>
     [DisplayName( "All Church Metrics Block" )]
-    [Category( "Metrics" )]
+    [Category( "NewSpring" )]
     [Description( "All Church Metrics Block" )]
     [TextField( "Number of Columns", "", false, DefaultValue = "3", Order = 1 )]
     [CustomDropdownListField( "Metric Display Type", "", "Text,Line,Donut", Order = 2 )]
