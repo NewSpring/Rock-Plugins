@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="Metrics.ascx.cs" Inherits="RockWeb.Plugins.cc_newspring.Metrics.Metrics" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="Metrics.ascx.cs" Inherits="RockWeb.Plugins.cc_newspring.Blocks.Metrics.Metrics" %>
 
 <div class="col-md-<%= metricWidth.Value %>">
 
@@ -10,6 +10,7 @@
             <asp:HiddenField ID="metricDisplay" runat="server" />
             <asp:HiddenField ID="metricNumber" runat="server" />
             <asp:HiddenField ID="metricTitle" runat="server" />
+            <asp:HiddenField ID="metricBlockId" runat="server" />
 
             <% if ( metricDisplay.Value.Equals( "Text" ) )
                { %>
@@ -31,10 +32,8 @@
             <asp:HiddenField ID="metricLabels" runat="server" />
             <asp:HiddenField ID="metricDataPointsCurrent" runat="server" />
             <asp:HiddenField ID="metricDataPointsPrevious" runat="server" />
-            
 
             <script>
-                var randomScalingFactor = function () { return Math.round(Math.random() * (36000 - 45000) + 36000) };
 
                 var lineOptions = {
                     responsive: true,
@@ -46,18 +45,7 @@
                     pointDotStrokeWidth: 3,
                 }
 
-                var pieOptions = {
-                    animation: false,
-                    responsive: true,
-                    scaleFontSize: 16,
-                    tooltipFontSize: 16,
-                    bezierCurve: false,
-                    datasetStrokeWidth: 3,
-                    pointDotRadius: 6,
-                    pointDotStrokeWidth: 3,
-                }
-
-                var overallAttendanceData = {
+                var <%= metricBlockId.Value %>Data = {
                     labels: [<%= metricLabels.Value %>],
                     datasets: [
                         {
@@ -79,55 +67,10 @@
                     ]
                 }
 
-                var kidspringData = [
-                    {
-                        value: 28526,
-                        color: "#6bac43",
-                        highlight: "#6bac43",
-                        label: "Adults"
-                    },
-                    {
-                        value: 7258,
-                        color: "#1c683e",
-                        highlight: "#1c683e",
-                        label: "KidSpring"
-                    }
-                ]
-
-                var fuseData = [
-                    {
-                        value: 28526,
-                        color: "#6bac43",
-                        highlight: "#6bac43",
-                        label: "Adults"
-                    },
-                    {
-                        value: 14295,
-                        color: "#1c683e",
-                        highlight: "#1c683e",
-                        label: "Fuse"
-                    }
-                ]
-
-                var vipData = [
-                    {
-                        value: 28526,
-                        color: "#6bac43",
-                        highlight: "#6bac43",
-                        label: "Sunday Attendance"
-                    },
-                    {
-                        value: 328,
-                        color: "#1c683e",
-                        highlight: "#1c683e",
-                        label: "VIP Visits"
-                    }
-                ]
-
                 window.onload = function () {
-                    var overallAttendance = document.getElementById("attendanceChart").getContext("2d");
+                    var <%= metricBlockId.Value %> = document.getElementById("<%= metricBlockId.Value %>").getContext("2d");
 
-                    window.attendanceChart = new Chart(overallAttendance).Line(overallAttendanceData, lineOptions);
+                    window.<%= metricBlockId.Value %>Chart = new Chart(<%= metricBlockId.Value %>).Line(<%= metricBlockId.Value %>Data, lineOptions);
                 }
             </script>
 
@@ -136,7 +79,37 @@
                     <h1 class="panel-title pull-left"><%= metricTitle.Value %></h1>
                 </div>
                 <div class="panel-body">
-                    <canvas id="attendanceChart"></canvas>
+                    <canvas id="<%= metricBlockId.Value %>Chart"></canvas>
+                </div>
+            </div>
+
+            <% } else if ( metricDisplay.Value.Equals( "Donut" ) ) { %>
+
+            <script>
+
+                var pieOptions = {
+                    animation: false,
+                    responsive: true,
+                    scaleFontSize: 16,
+                    tooltipFontSize: 16,
+                    bezierCurve: false,
+                    datasetStrokeWidth: 3,
+                    pointDotRadius: 6,
+                    pointDotStrokeWidth: 3,
+                }
+
+                window.onload = function () {
+                    var <%= metricBlockId.Value %> = document.getElementById("<%= metricBlockId.Value %>Chart").getContext("2d");
+                    window.<%= metricBlockId.Value %>Chart = new Chart(<%= metricBlockId.Value %>).Doughnut(<%= metricBlockValues %>, pieOptions);
+                    }
+            </script>
+
+            <div class="panel panel-block panel-chart">
+                <div class="panel-heading clearfix">
+                    <h1 class="panel-title pull-left"><%= metricTitle.Value %></h1>
+                </div>
+                <div class="panel-body">
+                    <canvas id="<%= metricBlockId.Value %>Chart"></canvas>
                 </div>
             </div>
 

@@ -22,13 +22,13 @@ using Rock.Reporting.Dashboard;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 
-namespace RockWeb.Blocks.Reporting.Dashboard
+namespace RockWeb.Plugins.cc_newspring.Blocks.Dashboard
 {
     /// <summary>
     /// NOTE: Most of the logic for processing the Attributes is in Rock.Rest.MetricsController.GetHtmlForBlock
     /// </summary>
     [DisplayName( "NewSpring Dashboard Widget" )]
-    [Category( "Reporting > Dashboard" )]
+    [Category( "NewSpring" )]
     [Description( "Dashboard Widget from Liquid using YTD metric values" )]
     [EntityField( "Series Partition", "Select the series partition entity (Campus, Group, etc) to be used to limit the metric values for the selected metrics.", "Either select a specific {0} or leave {0} blank to get it from the page context.", Key = "Entity", Order = 3 )]
     [MetricCategoriesField( "Metric", "Select the metric(s) to be made available to liquid", Key = "MetricCategories", Order = 4 )]

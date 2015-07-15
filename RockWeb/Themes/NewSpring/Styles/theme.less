@@ -143,6 +143,7 @@ p, li, small, a {
 // container
 .container {
   width: auto;
+  margin-left: 0;
 }
 
 // links
@@ -365,40 +366,35 @@ table {
 // 4. Rock Overrides         */
 // -------------------------
 
-// .person-image {
-//   border-radius: 4px;
-// }
-
 // type ahead styles
 .tt-query {
   vertical-align: baseline !important;
 }
 
-// .tt-dropdown-menu {
-//   padding: 5px;
-//   box-shadow: none;
-//   color: @dark-primary;
+.tt-dropdown-menu {
+  padding: 5px;
+  box-shadow: none;
+  color: @dark-primary;
 
-//   .smartsearch & {
-//     margin-left: 0px;
-//   }
+  .smartsearch & {
+    margin-left: 0px;
+  }
     
-//   .tt-suggestion {
-//     p {
-//       padding: 5px 8px;
-//       font-weight: 500;
+  .tt-suggestion {
+    p {
+      text-align: left;
+      padding: 5px 8px;
+      font-weight: 500;
+    }
 
-//       &:hover {
-//         background-color: @green-primary;
-//         color: @light-primary;
-//       }
-//     }
-
-//     &.tt-is-under-cursor {
-//       color: @dark-primary;
-//     }
-//   }
-// }
+    &:hover, &.tt-is-under-cursor {
+      p {
+        background-color: @green-primary;
+        color: @light-primary;
+      }
+    }
+  }
+}
 
 // dropdown styles
 .dropdown-toggle {
@@ -450,8 +446,10 @@ table {
 
   input.searchinput {
     color: @dark-primary;
-    font-size: @font-size-large;
-    padding-left: 38px;
+    font-size: @font-size-base;
+    padding-left: 30px;
+    padding-top: 7px;
+    padding-bottom: 7px;
     font-weight: 500;
   }
 
@@ -518,6 +516,8 @@ table {
 
 .list-as-blocks {
   ul {
+    margin-top: 0px;
+
     li {
       width: 100%;
       margin: 0px;
@@ -531,6 +531,10 @@ table {
         padding: 30px 0;
         height: auto;
         border-radius: @border-radius-base;
+
+        &:focus {
+          text-decoration: none;
+        }
 
         &:hover {
           background-color: @green-primary;
@@ -826,8 +830,8 @@ table {
   margin-right: 0px;
 
   .dropdown-toggle {
-    &:hover {
-      background-color: transparent;
+    &:hover, &:focus {
+      background-color: transparent !important;
     }
   }
 
@@ -910,6 +914,22 @@ table {
 //   }
 // }
 
+// Person Profile
+
+.personprofile {
+  margin-top: 0px;
+  overflow: hidden;
+}
+
+.personprofilebar-bio {
+  padding: 30px 15px;
+  background-color: @light-tertiary;
+}
+
+.pagetabs {
+  margin-bottom: 15px;
+}
+
 /*#endregion */
 
 
@@ -973,7 +993,7 @@ body {
     position: absolute;
     top: 50%;
     padding: 0 8px;
-    margin-top: -14px;
+    margin-top: -15px;
     font-size: @font-size-large;
     color: @light-primary;
     cursor: pointer;
@@ -1053,6 +1073,38 @@ body {
   width: @sidebar-width;
   padding-bottom: 80px;
   overflow-y: auto;
+
+  // Home Link
+  .home {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    padding: 17px 15px 16px;
+    font-size: @font-size-base;
+    line-height: @line-height-base;
+    font-weight: @font-weight-semibold;
+    border-bottom: 1px solid rgba(255,255,255,.05);
+    color: @accent-bold-text-color;
+    text-indent: 38px;
+    text-decoration: none;
+
+    &:after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 10px;
+      margin-top: -15px;
+      height: 30px;
+      width: 30px;
+      background-image: url('../Assets/Images/newspring-logo.png');
+      background-size: cover;
+    }
+
+    &:hover {
+      background-color: lighten(@accent-bold-color, 5%);
+      cursor: pointer;
+    }
+  }
 
   body.navbar-side-open & {
     left: 0px;
