@@ -6082,6 +6082,34 @@ table {
   width: 100%;
   text-align: center;
 }
+.constrained {
+  max-width: 1000px;
+}
+.list-entry {
+  clear: both;
+}
+.list-entry img {
+  max-width: 350px;
+  width: 100%;
+  /*float: left;*/
+  margin: 15px 30px 30px 0;
+}
+.list-entry h3,
+.list-entry h4 {
+  margin-bottom: 15px;
+}
+.list-entry .link--arrow {
+  margin-bottom: 0;
+}
+.list-entry:after {
+  content: '';
+  clear: both;
+  float: left;
+  border-bottom: 1px solid #dddddd;
+  width: 100%;
+  padding-bottom: 20px;
+  margin-bottom: 30px;
+}
 .soft {
   padding: 40px 26px;
 }
@@ -6462,6 +6490,9 @@ body.navbar-side-open .navbar-static-side {
 @media (max-width: 767px) {
   .soft {
     padding: 0px;
+  }
+  .nav-trigger {
+    margin-top: -10px;
   }
   #content-wrapper {
     width: 100%;
