@@ -1,0 +1,27 @@
+﻿{% for item in Items %}
+
+	<div class="constrained list-entry">
+		<div class="row">
+			<div class="col-md-8">
+				<h2>{{ item.Title }}</h2>
+
+				{% if item.Image != '' %}		
+					{{ item.Image }}
+				{% endif %}
+
+				<h4>{{ item.StartDateTime | Date:'MMMM d, yyyy' }}</h4>
+
+				<p>{{ item.Content }}</p>
+
+				<a href="/page/423" class="link--arrow-back">Back To Staff News</a>
+
+			</div>
+			<div class="col-md-2">
+			</div>
+		</div>
+	</div>
+
+{% endfor -%}
+
+
+

@@ -2,19 +2,20 @@
 
 <asp:Content ID="ctMain" ContentPlaceHolderID="main" runat="server">
 
-    <main class="container">
-                
-        <!-- Start Content Area -->
-        
-        <!-- Page Title -->
-        <section id="page-title">
-            <Rock:PageIcon ID="PageIcon" runat="server" /> <h1><Rock:PageTitle ID="PageTitle" runat="server" /></h1>
+    <!-- Start Content Area -->
+
+    <!-- Page Title -->
+    <section id="page-title">
+        <Rock:PageIcon ID="PageIcon" runat="server" />
+        <h1>
+            <Rock:PageTitle ID="PageTitle" runat="server" />
             <Rock:PageBreadCrumbs ID="PageBreadCrumbs" runat="server" />
             <Rock:PageDescription ID="PageDescription" runat="server" />
-        </section>
-                    
+    </section>
+
+    <section id="page-content">
         <!-- Ajax Error -->
-        <div class="alert alert-danger ajax-error" style="display:none">
+        <div class="alert alert-danger ajax-error" style="display: none">
             <p><strong>Error</strong></p>
             <span class="ajax-error-message"></span>
         </div>
@@ -26,14 +27,11 @@
         </div>
 
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <Rock:Zone Name="Sidebar 1" runat="server" />
             </div>
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <Rock:Zone Name="Main" runat="server" />
-            </div>
-            <div class="col-md-4">
-                <Rock:Zone Name="Sidebar 2" runat="server" />
             </div>
         </div>
 
@@ -56,7 +54,5 @@
         </div>
 
         <!-- End Content Area -->
-
-    </main>
-
+    </section>
 </asp:Content>
