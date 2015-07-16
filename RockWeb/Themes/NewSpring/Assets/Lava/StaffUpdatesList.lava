@@ -1,0 +1,46 @@
+﻿{% for item in Items %}
+
+	<div class="list-entry constrained">
+		<div class="row">
+			<div class="col-lg-8 col-md-8 col-sm-8">
+
+					<h3>{{ item.Title }}</h3>
+
+					<h4>{{ item.StartDateTime | Date:'MMMM d, yyyy' }}</h4>
+
+					<p>{{ item.Content }}</p>
+
+					{{ item.Image }}
+
+			</div>
+		</div>
+	</div>
+
+{% endfor %}
+
+<div class="clearfix constrained">
+
+  {% assign nextPageString = Pagination.NextPage | ToString %}
+  {% assign prevPageString = Pagination.PreviousPage | ToString %}
+
+  {% if {{Pagination.PreviousPage == -1 }} %}
+	  <div class="btn btn-default pull-left">
+		<i class="fa fa-chevron-left"></i> Prev
+	  </div>
+  {% else %}
+	  <a class="btn btn-primary pull-left" href="{{Pagination.UrlTemplate | Replace:'PageNum', prevPageString}}">
+		<i class="fa fa-chevron-left"></i> Prev
+	  </a>
+  {% endif %}
+
+  {% if {{Pagination.NextPage == -1 }} %}
+	  <div class="btn btn-default pull-right">
+		Next <i class="fa fa-chevron-right"></i> 
+	  </div>
+  {% else %}
+	  <a class="btn btn-primary pull-right" href="{{Pagination.UrlTemplate | Replace:'PageNum', nextPageString}}">
+		Next <i class="fa fa-chevron-right"></i>
+	  </a>
+  {% endif %}
+
+</div>
