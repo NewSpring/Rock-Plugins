@@ -48,8 +48,11 @@ DECLARE @F1 nvarchar(255) = 'F1'
 -- Start value lookups
 /* ====================================================== */
 declare @IsSystem int = 0, @Order int = 0,  @TextFieldTypeId int = 1, @True int = 1, @False int = 0,
-	@PersonEntityTypeId int = 15, @AttributeEntityTypeId int = 49, @DocumentFieldTypeId int = 32,
-	@DateFieldTypeId int = 11, @DDLFieldTypeId int = 6
+	@PersonEntityTypeId int = 15, @AttributeEntityTypeId int = 49, @BooleanFieldTypeId int = 3,
+	@DDLFieldTypeId int = 6, @DateFieldTypeId int = 11, @DocumentFieldTypeId int = 32, @VideoFieldTypeId int = 80,
+	@BackgroundCategoryId int, @FuseCategoryId int, @CSCategoryId int, @CreativeCategoryId int, @FCCategoryId int,
+	@ProductionCategoryId int, @GSCategoryId int, @CareCategoryId int, @KidSpringCategoryId int
+
 
 /* ====================================================== */
 -- Create requirement types
@@ -91,6 +94,93 @@ values
 ('Video Release Form'),
 ('Worship Interview')
 
+/* ====================================================== */
+-- Get or create the attribute categories
+/* ====================================================== */
+
+-- Background Checks
+select @BackgroundCategoryId = [Id] from Category
+where EntityTypeId = @AttributeEntityTypeId 
+and name = 'Background Check Information'
+
+if @BackgroundCategoryId is null
+begin
+	insert Category ( IsSystem, EntityTypeId, EntityTypeQualifierColumn, EntityTypeQualifierValue, Name, [Description], [Order], [IconCssClass], [Guid] )
+	select @IsSystem, @AttributeEntityTypeId, 'EntityTypeId', @PersonEntityTypeId, 'Background Check Information', 'Information related to safety and security of organization', 
+		@Order, 'fa fa-check-square-o', NEWID()
+
+	select @BackgroundCategoryId = SCOPE_IDENTITY()
+end
+
+-- Campus Safety
+select @CSCategoryId = [Id] from Category
+where EntityTypeId = @AttributeEntityTypeId
+and name = 'Campus Safety New Serve'
+
+if @CSCategoryId is null
+begin
+	insert Category ( IsSystem, EntityTypeId, EntityTypeQualifierColumn, EntityTypeQualifierValue, Name, [Description], [Order], [IconCssClass], [Guid] )
+	select @IsSystem, @AttributeEntityTypeId, 'EntityTypeId', @PersonEntityTypeId, 'Campus Safety New Serve', 'Information related to Campus Safety New Serve', 
+		@Order, 'fa fa-cab', NEWID()
+
+	select @CSCategoryId = SCOPE_IDENTITY()
+end
+
+-- Care
+select @CareCategoryId = [Id] from Category
+where EntityTypeId = @AttributeEntityTypeId
+and name = 'Care New Serve'
+
+if @CareCategoryId is null
+begin
+	insert Category ( IsSystem, EntityTypeId, EntityTypeQualifierColumn, EntityTypeQualifierValue, Name, [Description], [Order], [IconCssClass], [Guid] )
+	select @IsSystem, @AttributeEntityTypeId, 'EntityTypeId', @PersonEntityTypeId, 'Care New Serve', 'Information related to Care New Serve', 
+		@Order, 'fa fa-heartbeat', NEWID()
+
+	select @CareCategoryId = SCOPE_IDENTITY()
+end
+
+-- Financial Coaching
+select @KidSpringCategoryId = [Id] from Category
+where EntityTypeId = @AttributeEntityTypeId
+and name = 'Financial Coaching New Serve'
+
+if @KidSpringCategoryId is null
+begin
+	insert Category ( IsSystem, EntityTypeId, EntityTypeQualifierColumn, EntityTypeQualifierValue, Name, [Description], [Order], [IconCssClass], [Guid] )
+	select @IsSystem, @AttributeEntityTypeId, 'EntityTypeId', @PersonEntityTypeId, 'Financial Coaching New Serve', 'Information related to Financial Coaching New Serve', 
+		@Order, 'fa fa-money', NEWID()
+
+	select @KidSpringCategoryId = SCOPE_IDENTITY()
+end
+
+-- KidSpring
+select @KidSpringCategoryId = [Id] from Category
+where EntityTypeId = @AttributeEntityTypeId
+and name = 'KidSpring New Serve'
+
+if @KidSpringCategoryId is null
+begin
+	insert Category ( IsSystem, EntityTypeId, EntityTypeQualifierColumn, EntityTypeQualifierValue, Name, [Description], [Order], [IconCssClass], [Guid] )
+	select @IsSystem, @AttributeEntityTypeId, 'EntityTypeId', @PersonEntityTypeId, 'KidSpring New Serve', 'Information related to KidSpring New Serve', 
+		@Order, 'fa fa-child', NEWID()
+
+	select @KidSpringCategoryId = SCOPE_IDENTITY()
+end
+
+-- Production/Worship
+select @ProductionCategoryId = [Id] from Category
+where EntityTypeId = @AttributeEntityTypeId 
+and name = 'Service Production New Serve'
+
+if @ProductionCategoryId is null
+begin
+	insert Category ( IsSystem, EntityTypeId, EntityTypeQualifierColumn, EntityTypeQualifierValue, Name, [Description], [Order], [IconCssClass], [Guid] )
+	select @IsSystem, @AttributeEntityTypeId, 'EntityTypeId', @PersonEntityTypeId, 'Service Production New Serve', 'Information related to Production New Serve', 
+		@Order, 'fa fa-microphone', NEWID()
+
+	select @ProductionCategoryId = SCOPE_IDENTITY()
+end
 
 /* ====================================================== */
 -- Create attribute lookup
@@ -99,10 +189,11 @@ if object_id('tempdb..#attributeAssignment') is not null
 begin
 	drop table #attributeAssignment
 end
-create table #attributeAssignment (
-	attributeId int,
+create table #attributeAssignment (	
 	personid int,
-	value nvarchar(255)
+	attributeId int,
+	value nvarchar(255),
+	filterDate datetime
 )
 
 declare @scopeIndex int, @numItems int
@@ -111,8 +202,8 @@ select @numItems = count(1) + @scopeIndex from #requirements
 
 while @scopeIndex < @numItems
 begin
-	declare @msg nvarchar(255), @AssignmentType nvarchar(255), @MainAttributeId int, @SecondaryAttributeId int,
-		@TertiaryAttributeId int, @AttributeCategoryId int, @CategoryId int
+	declare @msg nvarchar(255), @AssignmentType nvarchar(255), @CategoryId int,
+		@DocumentAttributeId int, @DateAttributeId int, @AttributeName nvarchar(255)
 
 	select @AssignmentType = requirementType
 	from #requirements
@@ -127,108 +218,536 @@ begin
 		-- depending on what assignment this is, take different actions
 		if @AssignmentType = 'Background Check'
 		begin
+
+			declare @CheckedAttributeId int, @ResultAttributeId int
 			
-			-- get or create the attribute category
-			select @AttributeCategoryId = [Id] from Category
-			where EntityTypeId = @AttributeEntityTypeId 
-			and name = 'Background Check Information'
+			select @AttributeName = 'Background Checked'
 
-			if @AttributeCategoryId is null
-			begin
-				insert Category ( IsSystem, EntityTypeId, EntityTypeQualifierColumn, EntityTypeQualifierValue, Name, [Description], [Order], [IconCssClass], [Guid] )
-				select @IsSystem, @AttributeEntityTypeId, 'EntityTypeId', @PersonEntityTypeId, 'Background Check Information', 'Information related to safety and security of organization', 
-					@Order, 'fa fa-check-square-o', NEWID()
-
-				select @AttributeCategoryId = SCOPE_IDENTITY()
-			end
-
-			select @MainAttributeId = [Id] from Attribute
+			-- Background Checked
+			select @CheckedAttributeId = [Id] from Attribute
 			where EntityTypeId = @PersonEntityTypeId
-			and name = 'Background Check Date'
+			and name = @AttributeName
 			
-			if @MainAttributeId is null
+			if @CheckedAttributeId is null
 			begin
 				insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
 					[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
-				select @IsSystem, @DateFieldTypeId, @PersonEntityTypeId, '', '', 'BackgroundCheckDate', 'Background Check Date', 
+				select @IsSystem, @BooleanFieldTypeId, @PersonEntityTypeId, '', '', REPLACE(@AttributeName, ' ', ''), @AttributeName, 
+					'Does person have a valid background check on record', '', @Order, @False, @False, @False, NEWID()
+
+				select @CheckedAttributeId = SCOPE_IDENTITY()
+
+				insert AttributeCategory (AttributeId, CategoryId)
+				values (@CheckedAttributeId, @BackgroundCategoryId)
+			end
+
+			select @AttributeName = 'Background Check Date'
+
+			-- Background Check Date
+			select @DateAttributeId = [Id] from Attribute
+			where EntityTypeId = @PersonEntityTypeId
+			and name = @AttributeName
+			
+			if @DateAttributeId is null
+			begin
+				insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
+					[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
+				select @IsSystem, @DateFieldTypeId, @PersonEntityTypeId, '', '', REPLACE(@AttributeName, ' ', ''), @AttributeName, 
 					'Date person last passed/failed a background check', '', @Order, @False, @False, @False, NEWID()
 
-				select @MainAttributeId = SCOPE_IDENTITY()
+				select @DateAttributeId = SCOPE_IDENTITY()
 
 				-- set additional attribute fields
 				insert AttributeQualifier (IsSystem, AttributeId, [Key], Value, [Guid])
-				select @IsSystem, @MainAttributeId, 'displayDiff', 'False', NEWID()
+				select @IsSystem, @DateAttributeId, 'displayDiff', 'False', NEWID()
 
 				insert AttributeQualifier (IsSystem, AttributeId, [Key], Value, [Guid])
-				select @IsSystem, @MainAttributeId, 'format', '', NEWID()
+				select @IsSystem, @DateAttributeId, 'format', '', NEWID()
 
 				insert AttributeCategory (AttributeId, CategoryId)
-				select @MainAttributeId, @AttributeCategoryId
+				values (@DateAttributeId, @BackgroundCategoryId)
 			end
-
-			select @SecondaryAttributeId = [Id] from Attribute
-			where EntityTypeId = @PersonEntityTypeId
-			and name = 'Background Check Result'
 			
-			if @SecondaryAttributeId is null
+			select @AttributeName = 'Background Check Result'
+
+			-- Background Check Result
+			select @ResultAttributeId = [Id] from Attribute
+			where EntityTypeId = @PersonEntityTypeId
+			and name = @AttributeName
+			
+			if @ResultAttributeId is null
 			begin
 				insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
 					[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
-				select @IsSystem, @DDLFieldTypeId, @PersonEntityTypeId, '', '', 'Background Check Result', 'Background Check Result', 
+				select @IsSystem, @DDLFieldTypeId, @PersonEntityTypeId, '', '', REPLACE(@AttributeName, ' ', ''), @AttributeName, 
 					'Result of last background check', '', @Order, @False, @False, @False, NEWID()
 
-				select @SecondaryAttributeId = SCOPE_IDENTITY()
+				select @ResultAttributeId = SCOPE_IDENTITY()
 
 				-- set additional attribute fields
 				insert AttributeQualifier (IsSystem, AttributeId, [Key], Value, [Guid])
-				select @IsSystem, @SecondaryAttributeId, 'fieldtype', 'ddl', NEWID()
+				select @IsSystem, @ResultAttributeId, 'fieldtype', 'ddl', NEWID()
 
 				insert AttributeQualifier (IsSystem, AttributeId, [Key], Value, [Guid])
-				select @IsSystem, @SecondaryAttributeId, 'values', 'Pass,Fail', NEWID()
+				select @IsSystem, @ResultAttributeId, 'values', 'Pass,Fail', NEWID()
 
 				insert AttributeCategory (AttributeId, CategoryId)
-				select @SecondaryAttributeId, @SecondaryAttributeId
+				values (@ResultAttributeId, @BackgroundCategoryId)
 			end
 
+			select @AttributeName = 'Background Check Document'
 
-			select @TertiaryAttributeId = [Id] from Attribute
+			-- Background Check Document
+			select @DocumentAttributeId = [Id] from Attribute
 			where EntityTypeId = @PersonEntityTypeId
-			and name = 'Background Check Document'
+			and name = @AttributeName
 			
-			if @TertiaryAttributeId is null
+			if @DocumentAttributeId is null
 			begin
 				insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
 					[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
-				select @IsSystem, @DocumentFieldTypeId, @PersonEntityTypeId, '', '', 'BackgroundCheckDocument', 'Background Check Document', 
+				select @IsSystem, @DocumentFieldTypeId, @PersonEntityTypeId, '', '', REPLACE(@AttributeName, ' ', ''), @AttributeName, 
 					'The last background check', '', @Order, @False, @False, @False, NEWID()
 
-				select @TertiaryAttributeId = SCOPE_IDENTITY()
+				select @DocumentAttributeId = SCOPE_IDENTITY()
 
 				-- set additional attribute fields
 				insert AttributeQualifier (IsSystem, AttributeId, [Key], Value, [Guid])
-				select @IsSystem, @TertiaryAttributeId, 'binaryFileType', '5c701472-8a6b-4bbe-aec6-ec833c859f2d', NEWID()
+				select @IsSystem, @DocumentAttributeId, 'binaryFileType', '5c701472-8a6b-4bbe-aec6-ec833c859f2d', NEWID()
 
 				insert AttributeCategory (AttributeId, CategoryId)
-				select @MainAttributeId, @TertiaryAttributeId
+				values (@DocumentAttributeId, @BackgroundCategoryId)
 			end
-
+			
+			-- Start inserting attribute assignments
 			insert #attributeAssignment
-			select @MainAttributeId, pa.PersonId, r.Requirement_Date
+			select pa.PersonId, @CheckedAttributeId, 'True', r.Requirement_Date
 			from F1..Requirement r
 			inner join PersonAlias pa
 				on r.Individual_ID = pa.ForeignId
 			where r.Requirement_Name = @AssignmentType
-			and datediff(year, r.requirement_date, getdate()) < 3
+				and r.Requirement_Status_Name like '%Approved%'
+				and datediff(year, r.requirement_date, getdate()) < 3
 
+			insert #attributeAssignment
+			select pa.PersonId, @DateAttributeId, r.Requirement_Date, r.Requirement_Date
+			from F1..Requirement r
+			inner join PersonAlias pa
+				on r.Individual_ID = pa.ForeignId
+			where r.Requirement_Name = @AssignmentType
+				and r.Requirement_Status_Name like '%Approved%'
+				and datediff(year, r.requirement_date, getdate()) < 3
 
+			insert #attributeAssignment
+			select pa.PersonId, @ResultAttributeId, 
+				CASE r.Requirement_Status_Name 
+					WHEN 'Approved' THEN 'Pass'
+					WHEN 'Not Approved' THEN 'Fail'
+					ELSE '' 
+				END as value, r.Requirement_Date
+			from F1..Requirement r
+			inner join PersonAlias pa
+				on r.Individual_ID = pa.ForeignId
+			where r.Requirement_Name = @AssignmentType
+				and r.Requirement_Status_Name like '%Approved%'
+				and datediff(year, r.requirement_date, getdate()) < 3
+
+			insert #attributeAssignment
+			select pa.PersonId, @DocumentAttributeId, '', r.Requirement_Date
+			from F1..Requirement r
+			inner join PersonAlias pa
+				on r.Individual_ID = pa.ForeignId
+			where r.Requirement_Name = @AssignmentType
+				and r.Requirement_Status_Name like '%Approved%'
+				and datediff(year, r.requirement_date, getdate()) < 3			
 		end
+		-- Band Audition
+		else if @AssignmentType = 'Band Audition'
+		begin
 	
+			select @DocumentAttributeId = [Id] from Attribute
+			where EntityTypeId = @PersonEntityTypeId
+			and name = 'Band Audition'
+			
+			if @DocumentAttributeId is null
+			begin
+				insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
+					[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
+				select @IsSystem, @VideoFieldTypeId, @PersonEntityTypeId, '', '', REPLACE(@AttributeName, ' ', ''), @AttributeName, 
+					'Requirement for Worship volunteers/contractors', '', @Order, @False, @False, @False, NEWID()
+
+				select @DocumentAttributeId = SCOPE_IDENTITY()
+
+				insert AttributeCategory (AttributeId, CategoryId)
+				values (@DocumentAttributeId, @ProductionCategoryId)
+			end
+
+			insert #attributeAssignment
+			select pa.PersonId, @DocumentAttributeId, '', r.Requirement_Date
+			from F1..Requirement r
+			inner join PersonAlias pa
+				on r.Individual_ID = pa.ForeignId
+			where r.Requirement_Name = @AssignmentType
+		end
+		-- Band Next Steps Conversation
+		else if @AssignmentType = 'Band Next Steps Conversation'
+		begin
+
+			select @DocumentAttributeId = [Id] from Attribute
+			where EntityTypeId = @PersonEntityTypeId
+			and name = 'SP Next Steps Convo'
+			
+			if @DocumentAttributeId is null
+			begin
+				insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
+					[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
+				select @IsSystem, @VideoFieldTypeId, @PersonEntityTypeId, '', '', REPLACE(@AttributeName, ' ', ''), @AttributeName, 
+					'Conversation for Worship Next Steps', '', @Order, @False, @False, @False, NEWID()
+
+				select @DocumentAttributeId = SCOPE_IDENTITY()
+
+				insert AttributeCategory (AttributeId, CategoryId)
+				values (@DocumentAttributeId, @ProductionCategoryId)
+			end
+
+			insert #attributeAssignment
+			select pa.PersonId, @DocumentAttributeId, '', r.Requirement_Date
+			from F1..Requirement r
+			inner join PersonAlias pa
+				on r.Individual_ID = pa.ForeignId
+			where r.Requirement_Name = @AssignmentType
+		end
+		-- Campus Safety Field Training
+		else if @AssignmentType = 'Campus Safety Field Training'
+		begin
+	
+			select @DocumentAttributeId = [Id] from Attribute
+			where EntityTypeId = @PersonEntityTypeId
+			and name = 'Field Training'
+			
+			if @DocumentAttributeId is null
+			begin
+				insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
+					[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
+				select @IsSystem, @DocumentFieldTypeId, @PersonEntityTypeId, '', '', REPLACE(@AttributeName, ' ', ''), @AttributeName, 
+					'Requirement for Campus Safety volunteers', '', @Order, @False, @False, @False, NEWID()
+
+				select @DocumentAttributeId = SCOPE_IDENTITY()
+
+				-- set additional attribute fields
+				insert AttributeQualifier (IsSystem, AttributeId, [Key], Value, [Guid])
+				select @IsSystem, @DocumentAttributeId, 'binaryFileType', '', NEWID()
+
+				insert AttributeCategory (AttributeId, CategoryId)
+				values (@DocumentAttributeId, @CSCategoryId)
+			end
+
+			insert #attributeAssignment
+			select pa.PersonId, @DocumentAttributeId, '', r.Requirement_Date
+			from F1..Requirement r
+			inner join PersonAlias pa
+				on r.Individual_ID = pa.ForeignId
+			where r.Requirement_Name = @AssignmentType
+		end
+		-- Campus Safety Next Steps Conversation
+		else if @AssignmentType = 'Campus Safety Next Steps Conversation'
+		begin
+			
+			select @DocumentAttributeId = [Id] from Attribute
+			where EntityTypeId = @PersonEntityTypeId
+			and name = 'CS Next Steps Convo'
+			
+			if @DocumentAttributeId is null
+			begin
+				insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
+					[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
+				select @IsSystem, @DocumentFieldTypeId, @PersonEntityTypeId, '', '', REPLACE(@AttributeName, ' ', ''), @AttributeName, 
+					'Requirement for Campus Safety volunteers', '', @Order, @False, @False, @False, NEWID()
+
+				select @DocumentAttributeId = SCOPE_IDENTITY()
+
+				-- set additional attribute fields
+				insert AttributeQualifier (IsSystem, AttributeId, [Key], Value, [Guid])
+				select @IsSystem, @DocumentAttributeId, 'binaryFileType', '', NEWID()
+
+				insert AttributeCategory (AttributeId, CategoryId)
+				values (@DocumentAttributeId, @CSCategoryId)
+			end
+
+			insert #attributeAssignment
+			select pa.PersonId, @DocumentAttributeId, '', r.Requirement_Date
+			from F1..Requirement r
+			inner join PersonAlias pa
+				on r.Individual_ID = pa.ForeignId
+			where r.Requirement_Name = @AssignmentType
+		end
+		-- Care Interview
+		else if @AssignmentType = 'Care Interview'
+		begin
+	
+			select @DocumentAttributeId = [Id] from Attribute
+			where EntityTypeId = @PersonEntityTypeId
+			and name = 'Care Next Steps Convo'
+			
+			if @DocumentAttributeId is null
+			begin
+				insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
+					[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
+				select @IsSystem, @DocumentFieldTypeId, @PersonEntityTypeId, '', '', REPLACE(@AttributeName, ' ', ''), @AttributeName, 
+					'Requirement for Care volunteers', '', @Order, @False, @False, @False, NEWID()
+
+				select @DocumentAttributeId = SCOPE_IDENTITY()
+
+				-- set additional attribute fields
+				insert AttributeQualifier (IsSystem, AttributeId, [Key], Value, [Guid])
+				select @IsSystem, @DocumentAttributeId, 'binaryFileType', '', NEWID()
+
+				insert AttributeCategory (AttributeId, CategoryId)
+				values (@DocumentAttributeId, @CareCategoryId)
+			end
+
+			insert #attributeAssignment
+			select pa.PersonId, @DocumentAttributeId, '', r.Requirement_Date
+			from F1..Requirement r
+			inner join PersonAlias pa
+				on r.Individual_ID = pa.ForeignId
+			where r.Requirement_Name = @AssignmentType
+		end
+		-- Child Protection Policy
+		else if @AssignmentType = 'Child Protection Policy'
+		begin
+			
+			select @DocumentAttributeId = [Id] from Attribute
+			where EntityTypeId = @PersonEntityTypeId
+			and name = 'Child Protection Policy'
+			
+			if @DocumentAttributeId is null
+			begin
+				insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
+					[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
+				select @IsSystem, @DocumentFieldTypeId, @PersonEntityTypeId, '', '', REPLACE(@AttributeName, ' ', ''), @AttributeName,  
+					'Requirement for KidSpring volunteers', '', @Order, @False, @False, @False, NEWID()
+
+				select @DocumentAttributeId = SCOPE_IDENTITY()
+
+				-- set additional attribute fields
+				insert AttributeQualifier (IsSystem, AttributeId, [Key], Value, [Guid])
+				select @IsSystem, @DocumentAttributeId, 'binaryFileType', '', NEWID()
+
+				insert AttributeCategory (AttributeId, CategoryId)
+				values (@DocumentAttributeId, @KidSpringCategoryId)
+			end
+
+			insert #attributeAssignment
+			select pa.PersonId, @DocumentAttributeId, '', r.Requirement_Date
+			from F1..Requirement r
+			inner join PersonAlias pa
+				on r.Individual_ID = pa.ForeignId
+			where r.Requirement_Name = @AssignmentType
+		end
+		-- Confidentiality Agreement Signed
+		else if @AssignmentType = 'Confidentiality Agreement Signed'
+		begin
+	
+			select @DocumentAttributeId = [Id] from Attribute
+			where EntityTypeId = @PersonEntityTypeId
+			and name = 'Care Confidentiality Agreement'
+			
+			if @DocumentAttributeId is null
+			begin
+				insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
+					[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
+				select @IsSystem, @DocumentFieldTypeId, @PersonEntityTypeId, '', '', REPLACE(@AttributeName, ' ', ''), @AttributeName,  
+					'Requirement for Care volunteers', '', @Order, @False, @False, @False, NEWID()
+
+				select @DocumentAttributeId = SCOPE_IDENTITY()
+
+				-- set additional attribute fields
+				insert AttributeQualifier (IsSystem, AttributeId, [Key], Value, [Guid])
+				select @IsSystem, @DocumentAttributeId, 'binaryFileType', '', NEWID()
+
+				insert AttributeCategory (AttributeId, CategoryId)
+				values (@DocumentAttributeId, @CareCategoryId)
+			end
+
+			insert #attributeAssignment
+			select pa.PersonId, @DocumentAttributeId, '', r.Requirement_Date
+			from F1..Requirement r
+			inner join PersonAlias pa
+				on r.Individual_ID = pa.ForeignId
+			where r.Requirement_Name = @AssignmentType
+		end
+		-- Driver Agreement
+		else if @AssignmentType = 'Driver Agreement'
+		begin
+			
+			select @DocumentAttributeId = [Id] from Attribute
+			where EntityTypeId = @PersonEntityTypeId
+			and name = 'Driver Agreement'
+			
+			if @DocumentAttributeId is null
+			begin
+				insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
+					[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
+				select @IsSystem, @DocumentFieldTypeId, @PersonEntityTypeId, '', '', REPLACE(@AttributeName, ' ', ''), @AttributeName, 
+					'Occasional requirement for multiple ministries. One agreement applies to all ministries.', '', @Order, @False, @False, @False, NEWID()
+
+				select @DocumentAttributeId = SCOPE_IDENTITY()
+
+				-- set additional attribute fields
+				insert AttributeQualifier (IsSystem, AttributeId, [Key], Value, [Guid])
+				select @IsSystem, @DocumentAttributeId, 'binaryFileType', '', NEWID()
+
+				insert AttributeCategory (AttributeId, CategoryId)
+				values 
+					(@DocumentAttributeId, @CreativeCategoryId),
+					(@DocumentAttributeId, @CSCategoryId),
+					(@DocumentAttributeId, @FuseCategoryId),
+					(@DocumentAttributeId, @GSCategoryId),
+					(@DocumentAttributeId, @ProductionCategoryId)
+			end
+
+			insert #attributeAssignment
+			select pa.PersonId, @DocumentAttributeId, '', r.Requirement_Date
+			from F1..Requirement r
+			inner join PersonAlias pa
+				on r.Individual_ID = pa.ForeignId
+			where r.Requirement_Name = @AssignmentType
+		end
+		-- Financial Coaching Confidentiality Agree
+		else if @AssignmentType = 'Financial Coaching Confidentiality Agree'
+		begin
+			
+			select @DocumentAttributeId = [Id] from Attribute
+			where EntityTypeId = @PersonEntityTypeId
+			and name = 'FC Confidentiality Agreement'
+			
+			if @DocumentAttributeId is null
+			begin
+				insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
+					[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
+				select @IsSystem, @DocumentFieldTypeId, @PersonEntityTypeId, '', '', 'FCConfidentialityAgreement', 'FC Confidentiality Agreement', 
+					'Requirement for Financial Coaches.', '', @Order, @False, @False, @False, NEWID()
+
+				select @DocumentAttributeId = SCOPE_IDENTITY()
+
+				-- set additional attribute fields
+				insert AttributeQualifier (IsSystem, AttributeId, [Key], Value, [Guid])
+				select @IsSystem, @DocumentAttributeId, 'binaryFileType', '', NEWID()
+
+				insert AttributeCategory (AttributeId, CategoryId)
+				values (@DocumentAttributeId, @FCCategoryId)
+			end
+
+			insert #attributeAssignment
+			select pa.PersonId, @DocumentAttributeId, '', r.Requirement_Date
+			from F1..Requirement r
+			inner join PersonAlias pa
+				on r.Individual_ID = pa.ForeignId
+			where r.Requirement_Name = @AssignmentType
+		end
+		-- Financial Coaching Interview
+		else if @AssignmentType = 'Financial Coaching Interview'
+		begin
+			
+			select @DocumentAttributeId = [Id] from Attribute
+			where EntityTypeId = @PersonEntityTypeId
+			and name = 'FC Next Steps Convo'
+			
+			if @DocumentAttributeId is null
+			begin
+				insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
+					[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
+				select @IsSystem, @DocumentFieldTypeId, @PersonEntityTypeId, '', '', 'FCNextStepsConvo', 'FC Next Steps Convo', 
+					'Requirement for Financial Coaches.', '', @Order, @False, @False, @False, NEWID()
+
+				select @DocumentAttributeId = SCOPE_IDENTITY()
+
+				-- set additional attribute fields
+				insert AttributeQualifier (IsSystem, AttributeId, [Key], Value, [Guid])
+				select @IsSystem, @DocumentAttributeId, 'binaryFileType', '', NEWID()
+
+				insert AttributeCategory (AttributeId, CategoryId)
+				values (@DocumentAttributeId, @FCCategoryId)
+			end
+
+			insert #attributeAssignment
+			select pa.PersonId, @DocumentAttributeId, '', r.Requirement_Date
+			from F1..Requirement r
+			inner join PersonAlias pa
+				on r.Individual_ID = pa.ForeignId
+			where r.Requirement_Name = @AssignmentType
+		end
+		-- Fuse GL Interview
+		else if @AssignmentType = 'Fuse GL Interview'
+		begin
+			
+			select @DocumentAttributeId = [Id] from Attribute
+			where EntityTypeId = @PersonEntityTypeId
+			and name = 'FC Confidentiality Agreement'
+			
+			if @DocumentAttributeId is null
+			begin
+				insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
+					[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
+				select @IsSystem, @DocumentFieldTypeId, @PersonEntityTypeId, '', '', 'FCNextStepsConvo', 'FC Next Steps Convo', 
+					'Requirement for Financial Coaches.', '', @Order, @False, @False, @False, NEWID()
+
+				select @DocumentAttributeId = SCOPE_IDENTITY()
+
+				-- set additional attribute fields
+				insert AttributeQualifier (IsSystem, AttributeId, [Key], Value, [Guid])
+				select @IsSystem, @DocumentAttributeId, 'binaryFileType', '', NEWID()
+
+				insert AttributeCategory (AttributeId, CategoryId)
+				values (@DocumentAttributeId, @FCCategoryId)
+			end
+
+			insert #attributeAssignment
+			select pa.PersonId, @DocumentAttributeId, '', r.Requirement_Date
+			from F1..Requirement r
+			inner join PersonAlias pa
+				on r.Individual_ID = pa.ForeignId
+			where r.Requirement_Name = @AssignmentType
+		end
+
+	
+	-- reset variables
+	select @AssignmentType = null, @CategoryId = null, @DocumentAttributeId = null, @DateAttributeId = null
+
 	select @scopeIndex = @scopeIndex + 1
 end
 -- end while requirements
+
+-- remove duplicate attributes and values
+;WITH duplicates (personId, attributeId, id) 
+AS (
+    SELECT personId, attributeId, ROW_NUMBER() OVER (
+		PARTITION BY personId, attributeId
+		ORDER BY filterDate desc
+    ) AS id
+    FROM #attributeAssignment
+)
+delete from duplicates
+where id > 1
+
+-- remove the existing value for this person/attribute
+delete av
+from AttributeValue av
+inner join #attributeAssignment a
+on a.personId = av.EntityId
+and a.attributeId = av.AttributeId
+
+-- insert attribute values
+insert AttributeValue ( [IsSystem], [AttributeId], [EntityId], [Value], [CreatedDateTime], [ModifiedDateTime], [Guid] )
+select @False, attributeId, personId, value, filterDate, NULL, NEWID()
+from #attributeAssignment
 
 
 -- completed successfully
 RAISERROR ( N'Completed successfully.', 0, 0 ) WITH NOWAIT
 
 use master
+
+
+
