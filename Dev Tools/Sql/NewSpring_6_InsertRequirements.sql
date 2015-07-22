@@ -141,17 +141,31 @@ begin
 end
 
 -- Financial Coaching
-select @KidSpringCategoryId = [Id] from Category
+select @FCCategoryId = [Id] from Category
 where EntityTypeId = @AttributeEntityTypeId
 and name = 'Financial Coaching New Serve'
 
-if @KidSpringCategoryId is null
+if @FCCategoryId is null
 begin
 	insert Category ( IsSystem, EntityTypeId, EntityTypeQualifierColumn, EntityTypeQualifierValue, Name, [Description], [Order], [IconCssClass], [Guid] )
 	select @IsSystem, @AttributeEntityTypeId, 'EntityTypeId', @PersonEntityTypeId, 'Financial Coaching New Serve', 'Information related to Financial Coaching New Serve', 
 		@Order, 'fa fa-money', NEWID()
 
-	select @KidSpringCategoryId = SCOPE_IDENTITY()
+	select @FCCategoryId = SCOPE_IDENTITY()
+end
+
+-- Fuse
+select @FuseCategoryId = [Id] from Category
+where EntityTypeId = @AttributeEntityTypeId
+and name = 'Fuse New Serve'
+
+if @FuseCategoryId is null
+begin
+	insert Category ( IsSystem, EntityTypeId, EntityTypeQualifierColumn, EntityTypeQualifierValue, Name, [Description], [Order], [IconCssClass], [Guid] )
+	select @IsSystem, @AttributeEntityTypeId, 'EntityTypeId', @PersonEntityTypeId, 'Fuse New Serve', 'Information related to Fuse New Serve', 
+		@Order, 'fa fa-bomb', NEWID()
+
+	select @FuseCategoryId = SCOPE_IDENTITY()
 end
 
 -- KidSpring
@@ -364,10 +378,12 @@ begin
 		-- Band Audition
 		else if @AssignmentType = 'Band Audition'
 		begin
-	
+			
+			select @AttributeName = 'Band Audition'
+
 			select @DocumentAttributeId = [Id] from Attribute
 			where EntityTypeId = @PersonEntityTypeId
-			and name = 'Band Audition'
+			and name = @AttributeName
 			
 			if @DocumentAttributeId is null
 			begin
@@ -392,11 +408,13 @@ begin
 		-- Band Next Steps Conversation
 		else if @AssignmentType = 'Band Next Steps Conversation'
 		begin
+			
+			select @AttributeName = 'SP Next Steps Convo'
 
 			select @DocumentAttributeId = [Id] from Attribute
 			where EntityTypeId = @PersonEntityTypeId
-			and name = 'SP Next Steps Convo'
-			
+			and name = @AttributeName
+
 			if @DocumentAttributeId is null
 			begin
 				insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
@@ -420,10 +438,12 @@ begin
 		-- Campus Safety Field Training
 		else if @AssignmentType = 'Campus Safety Field Training'
 		begin
-	
+
+			select @AttributeName = 'Field Training'
+
 			select @DocumentAttributeId = [Id] from Attribute
 			where EntityTypeId = @PersonEntityTypeId
-			and name = 'Field Training'
+			and name = @AttributeName 
 			
 			if @DocumentAttributeId is null
 			begin
@@ -453,9 +473,11 @@ begin
 		else if @AssignmentType = 'Campus Safety Next Steps Conversation'
 		begin
 			
+			select @AttributeName = 'CS Next Steps Convo'
+
 			select @DocumentAttributeId = [Id] from Attribute
 			where EntityTypeId = @PersonEntityTypeId
-			and name = 'CS Next Steps Convo'
+			and name = @AttributeName 
 			
 			if @DocumentAttributeId is null
 			begin
@@ -485,9 +507,11 @@ begin
 		else if @AssignmentType = 'Care Interview'
 		begin
 	
+			select @AttributeName = 'Care Next Steps Convo'
+
 			select @DocumentAttributeId = [Id] from Attribute
 			where EntityTypeId = @PersonEntityTypeId
-			and name = 'Care Next Steps Convo'
+			and name = @AttributeName  
 			
 			if @DocumentAttributeId is null
 			begin
@@ -517,9 +541,11 @@ begin
 		else if @AssignmentType = 'Child Protection Policy'
 		begin
 			
+			select @AttributeName = 'Child Protection Policy'
+
 			select @DocumentAttributeId = [Id] from Attribute
 			where EntityTypeId = @PersonEntityTypeId
-			and name = 'Child Protection Policy'
+			and name = @AttributeName  
 			
 			if @DocumentAttributeId is null
 			begin
@@ -549,9 +575,11 @@ begin
 		else if @AssignmentType = 'Confidentiality Agreement Signed'
 		begin
 	
+			select @AttributeName = 'Care Confidentiality Agreement'
+
 			select @DocumentAttributeId = [Id] from Attribute
 			where EntityTypeId = @PersonEntityTypeId
-			and name = 'Care Confidentiality Agreement'
+			and name = @AttributeName
 			
 			if @DocumentAttributeId is null
 			begin
@@ -581,9 +609,11 @@ begin
 		else if @AssignmentType = 'Driver Agreement'
 		begin
 			
+			select @AttributeName = 'Driver Agreement'
+
 			select @DocumentAttributeId = [Id] from Attribute
 			where EntityTypeId = @PersonEntityTypeId
-			and name = 'Driver Agreement'
+			and name = @AttributeName
 			
 			if @DocumentAttributeId is null
 			begin
@@ -618,15 +648,17 @@ begin
 		else if @AssignmentType = 'Financial Coaching Confidentiality Agree'
 		begin
 			
+			select @AttributeName = 'FC Confidentiality Agreement'
+
 			select @DocumentAttributeId = [Id] from Attribute
 			where EntityTypeId = @PersonEntityTypeId
-			and name = 'FC Confidentiality Agreement'
+			and name = @AttributeName
 			
 			if @DocumentAttributeId is null
 			begin
 				insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
 					[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
-				select @IsSystem, @DocumentFieldTypeId, @PersonEntityTypeId, '', '', 'FCConfidentialityAgreement', 'FC Confidentiality Agreement', 
+				select @IsSystem, @DocumentFieldTypeId, @PersonEntityTypeId, '', '', REPLACE(@AttributeName, ' ', ''), @AttributeName, 
 					'Requirement for Financial Coaches.', '', @Order, @False, @False, @False, NEWID()
 
 				select @DocumentAttributeId = SCOPE_IDENTITY()
@@ -650,15 +682,17 @@ begin
 		else if @AssignmentType = 'Financial Coaching Interview'
 		begin
 			
+			select @AttributeName = 'FC Next Steps Convo'
+
 			select @DocumentAttributeId = [Id] from Attribute
 			where EntityTypeId = @PersonEntityTypeId
-			and name = 'FC Next Steps Convo'
+			and name = @AttributeName
 			
 			if @DocumentAttributeId is null
 			begin
 				insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
 					[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
-				select @IsSystem, @DocumentFieldTypeId, @PersonEntityTypeId, '', '', 'FCNextStepsConvo', 'FC Next Steps Convo', 
+				select @IsSystem, @DocumentFieldTypeId, @PersonEntityTypeId, '', '', REPLACE(@AttributeName, ' ', ''), @AttributeName, 
 					'Requirement for Financial Coaches.', '', @Order, @False, @False, @False, NEWID()
 
 				select @DocumentAttributeId = SCOPE_IDENTITY()
@@ -682,16 +716,18 @@ begin
 		else if @AssignmentType = 'Fuse GL Interview'
 		begin
 			
+			select @AttributeName = 'Group Leader Interview'
+
 			select @DocumentAttributeId = [Id] from Attribute
 			where EntityTypeId = @PersonEntityTypeId
-			and name = 'FC Confidentiality Agreement'
+			and name = @AttributeName
 			
 			if @DocumentAttributeId is null
 			begin
 				insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
 					[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
-				select @IsSystem, @DocumentFieldTypeId, @PersonEntityTypeId, '', '', 'FCNextStepsConvo', 'FC Next Steps Convo', 
-					'Requirement for Financial Coaches.', '', @Order, @False, @False, @False, NEWID()
+				select @IsSystem, @DocumentFieldTypeId, @PersonEntityTypeId, '', '', REPLACE(@AttributeName, ' ', ''), @AttributeName, 
+					'Occasional requirement for Fuse volunteers.', '', @Order, @False, @False, @False, NEWID()
 
 				select @DocumentAttributeId = SCOPE_IDENTITY()
 
@@ -700,7 +736,75 @@ begin
 				select @IsSystem, @DocumentAttributeId, 'binaryFileType', '', NEWID()
 
 				insert AttributeCategory (AttributeId, CategoryId)
-				values (@DocumentAttributeId, @FCCategoryId)
+				values (@DocumentAttributeId, @FuseCategoryId)
+			end
+
+			insert #attributeAssignment
+			select pa.PersonId, @DocumentAttributeId, '', r.Requirement_Date
+			from F1..Requirement r
+			inner join PersonAlias pa
+				on r.Individual_ID = pa.ForeignId
+			where r.Requirement_Name = @AssignmentType
+		end
+		-- Fuse GL Training
+		else if @AssignmentType = 'Fuse GL Training'
+		begin
+			
+			select @AttributeName = 'Group Leader Interview'
+
+			select @DocumentAttributeId = [Id] from Attribute
+			where EntityTypeId = @PersonEntityTypeId
+			and name = @AttributeName
+			
+			if @DocumentAttributeId is null
+			begin
+				insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
+					[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
+				select @IsSystem, @DocumentFieldTypeId, @PersonEntityTypeId, '', '', REPLACE(@AttributeName, ' ', ''), @AttributeName, 
+					'Occasional requirement for Fuse volunteers.', '', @Order, @False, @False, @False, NEWID()
+
+				select @DocumentAttributeId = SCOPE_IDENTITY()
+
+				-- set additional attribute fields
+				insert AttributeQualifier (IsSystem, AttributeId, [Key], Value, [Guid])
+				select @IsSystem, @DocumentAttributeId, 'binaryFileType', '', NEWID()
+
+				insert AttributeCategory (AttributeId, CategoryId)
+				values (@DocumentAttributeId, @FuseCategoryId)
+			end
+
+			insert #attributeAssignment
+			select pa.PersonId, @DocumentAttributeId, '', r.Requirement_Date
+			from F1..Requirement r
+			inner join PersonAlias pa
+				on r.Individual_ID = pa.ForeignId
+			where r.Requirement_Name = @AssignmentType
+		end
+		-- Fuse NS Conversation
+		else if @AssignmentType = 'Fuse NS Conversation'
+		begin
+			
+			select @AttributeName = 'Fuse Next Steps Convo'
+
+			select @DocumentAttributeId = [Id] from Attribute
+			where EntityTypeId = @PersonEntityTypeId
+			and name = @AttributeName
+			
+			if @DocumentAttributeId is null
+			begin
+				insert Attribute ( [IsSystem], [FieldTypeId], [EntityTypeId], [EntityTypeQualifierColumn], [EntityTypeQualifierValue], 
+					[Key], [Name], [Description], [DefaultValue], [Order], [IsGridColumn], [IsMultiValue], [IsRequired], [Guid] )
+				select @IsSystem, @DocumentFieldTypeId, @PersonEntityTypeId, '', '', REPLACE(@AttributeName, ' ', ''), @AttributeName, 
+					'Requirement for Fuse volunteers.', '', @Order, @False, @False, @False, NEWID()
+
+				select @DocumentAttributeId = SCOPE_IDENTITY()
+
+				-- set additional attribute fields
+				insert AttributeQualifier (IsSystem, AttributeId, [Key], Value, [Guid])
+				select @IsSystem, @DocumentAttributeId, 'binaryFileType', '', NEWID()
+
+				insert AttributeCategory (AttributeId, CategoryId)
+				values (@DocumentAttributeId, @FuseCategoryId)
 			end
 
 			insert #attributeAssignment
@@ -713,7 +817,7 @@ begin
 
 	
 	-- reset variables
-	select @AssignmentType = null, @CategoryId = null, @DocumentAttributeId = null, @DateAttributeId = null
+	select @AssignmentType = null, @CategoryId = null, @DocumentAttributeId = null, @DateAttributeId = null, @AttributeName = null
 
 	select @scopeIndex = @scopeIndex + 1
 end
