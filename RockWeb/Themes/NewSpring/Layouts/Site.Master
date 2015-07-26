@@ -1,16 +1,22 @@
 ﻿<%@ Master Language="C#" AutoEventWireup="true" Inherits="Rock.Web.UI.RockMasterPage" %>
+
 <%@ Import Namespace="System.Web.Optimization" %>
+
 <!DOCTYPE html>
 
 <!--
-  _______       _____           _   ____         _______ _             _____ _
- |__   __|     / ____|         | | |  _ \       |__   __| |           / ____| |
-    | | ___   | |  __  ___   __| | | |_) | ___     | |  | |__   ___  | |  __| | ___  _ __ _   _
-    | |/ _ \  | | |_ |/ _ \ / _` | |  _ < / _ \    | |  | '_ \ / _ \ | | |_ | |/ _ \| '__| | | |
-    | | (_) | | |__| | (_) | (_| | | |_) |  __/    | |  | | | |  __/ | |__| | | (_) | |  | |_| |
-    |_|\___/   \_____|\___/ \__,_| |____/ \___|    |_|  |_| |_|\___|  \_____|_|\___/|_|   \__, |
-                                                                                           __/ |
-                                                                                          |___/
+
+  @@@   @@@@@@@@    @@@@@@@@         @@@@@@@@    @@@@@@@@    @@@@@@@@
+ @@@@  @@@@@@@@@@  @@@@@@@@@@       @@@@@@@@@@  @@@@@@@@@@  @@@@@@@@@@
+@@@!!  @@!   @@@@  @@!   @@@@       @@!   @@@@  @@!   @@@@  @@!   @@@@
+  !@!  !@!  @!@!@  !@!  @!@!@       !@!  @!@!@  !@!  @!@!@  !@!  @!@!@
+  @!@  @!@ @! !@!  @!@ @! !@!       @!@ @! !@!  @!@ @! !@!  @!@ @! !@!
+  !@!  !@!!!  !!!  !@!!!  !!!       !@!!!  !!!  !@!!!  !!!  !@!!!  !!!
+  !!:  !!:!   !!!  !!:!   !!!       !!:!   !!!  !!:!   !!!  !!:!   !!!
+  :!:  :!:    !:!  :!:    !:!  :!:  :!:    !:!  :!:    !:!  :!:    !:!
+  :::  ::::::: ::  ::::::: ::   ::  ::::::: ::  ::::::: ::  ::::::: ::
+   ::   : : :  :    : : :  :   ::    : : :  :    : : :  :    : : :  :
+
 -->
 
 <script runat="server">
@@ -25,9 +31,11 @@
     {
         base.OnInit( e );
 
-        lLogoSvg.Text = System.IO.File.ReadAllText( HttpContext.Current.Request.MapPath("~/Assets/Images/rock-logo.svg") );
-    }
+        lLogoSvg.Text = System.IO.File.ReadAllText( HttpContext.Current.Request.MapPath( "~/Assets/Images/rock-logo.svg" ) );
+        
+        siteUrl.Text = String.Format( Request.Url.Authority );
 
+    }
 </script>
 
 <html class="no-js">
@@ -37,6 +45,8 @@
     <meta charset="utf-8">
     <title></title>
 
+    <script type="text/javascript">var _sf_startpt = (new Date()).getTime()</script>
+
     <script src="<%# ResolveRockUrl("~/Scripts/jquery-1.10.2.min.js" ) %>"></script>
     <script src="<%# ResolveRockUrl("~/Scripts/jquery.jquery-dotimeout.js" ) %>"></script>
 
@@ -44,19 +54,19 @@
 
     <!-- Typekit -->
     <script src="//use.typekit.net/oby6bqi.js"></script>
-    <script>try{Typekit.load();}catch(e){}</script>
+    <script>try { Typekit.load(); } catch (e) { }</script>
 
     <!-- Set the viewport width to device width for mobile -->
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
     <asp:ContentPlaceHolder ID="css" runat="server" />
 
-	<!-- Included CSS Files -->
-    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/bootstrap.css", true) %>"/>
-	<link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/theme.css", true) %>"/>
-	<link rel="stylesheet" href="<%# ResolveRockUrl("~/Styles/developer.css", true) %>"/>
+    <!-- Included CSS Files -->
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/bootstrap.css", true) %>" />
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/theme.css", true) %>" />
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~/Styles/developer.css", true) %>" />
 
-    <script src="<%# ResolveRockUrl("~/Scripts/modernizr.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~/Scripts/modernizr.js" ) %>"></script>
 
     <asp:ContentPlaceHolder ID="head" runat="server"></asp:ContentPlaceHolder>
 
@@ -66,7 +76,6 @@
     <link rel="apple-touch-icon-precomposed" sizes="114x114" href="<%# ResolveRockUrl("~/Assets/Icons/touch-icon-iphone-retina.png", true) %>">
     <link rel="apple-touch-icon-precomposed" sizes="72x72" href="<%# ResolveRockUrl("~/Assets/Icons/touch-icon-ipad.png", true) %>">
     <link rel="apple-touch-icon-precomposed" href="<%# ResolveRockUrl("~/Assets/Icons/touch-icon-iphone.png", true) %>">
-
 </head>
 <body>
 
@@ -98,10 +107,12 @@
 
                         <div class="navbar-content">
                             <div class="nav-trigger"><i class="fa fa-bars"></i></div>
-                            <div class="navbar-zone-header"><Rock:Zone Name="Header" runat="server" /><Rock:Zone Name="Login" runat="server" /></div>
-		                </div>
+                            <div class="navbar-zone-header">
+                                <Rock:Zone Name="Header" runat="server" />
+                                <Rock:Zone Name="Login" runat="server" />
+                            </div>
+                        </div>
                     </nav>
-
                 </header>
 
                 <main>
@@ -110,43 +121,37 @@
                     <asp:ContentPlaceHolder ID="main" runat="server"></asp:ContentPlaceHolder>
                 </main>
 
-                 <footer>
+                <footer>
 
+                    <hr />
 
-                        <hr />
-
-                        <div class="row">
-                            <div class="col-md-8">
-                                <Rock:Zone Name="Footer" runat="server" />
-                            </div>
-                            <div class="col-md-4">
-
-                            </div>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <Rock:Zone Name="Footer" runat="server" />
                         </div>
-
-	            </footer>
-
-            </div>
-
-	    </div>
-
-        <%-- controls for scriptmanager and update panel --%>
-        <asp:ScriptManager ID="sManager" runat="server"/>
-        <asp:UpdateProgress id="updateProgress" runat="server" DisplayAfter="800">
-		        <ProgressTemplate>
-		            <div class="updateprogress-status">
-                        <div class="spinner">
-                          <div class="rect1"></div>
-                          <div class="rect2"></div>
-                          <div class="rect3"></div>
-                          <div class="rect4"></div>
-                          <div class="rect5"></div>
+                        <div class="col-md-4">
                         </div>
                     </div>
-                    <div class="updateprogress-bg modal-backdrop"></div>
-		        </ProgressTemplate>
-        </asp:UpdateProgress>
+                </footer>
+            </div>
+        </div>
 
+        <%-- controls for scriptmanager and update panel --%>
+        <asp:ScriptManager ID="sManager" runat="server" />
+        <asp:UpdateProgress ID="updateProgress" runat="server" DisplayAfter="800">
+            <ProgressTemplate>
+                <div class="updateprogress-status">
+                    <div class="spinner">
+                        <div class="rect1"></div>
+                        <div class="rect2"></div>
+                        <div class="rect3"></div>
+                        <div class="rect4"></div>
+                        <div class="rect5"></div>
+                    </div>
+                </div>
+                <div class="updateprogress-bg modal-backdrop"></div>
+            </ProgressTemplate>
+        </asp:UpdateProgress>
     </form>
 
     <script>
@@ -160,12 +165,12 @@
             }
         });
 
-        $("body").on("click", "#content-wrapper", function(event){
+        $("body").on("click", "#content-wrapper", function (event) {
             $('.navbar-side li').removeClass('open');
         });
 
         // show/hide sidebar nav
-        $("body").on("click", ".nav-trigger", function(event){
+        $("body").on("click", ".nav-trigger", function (event) {
             if ($('body').hasClass("navbar-side-open")) {
                 $('body').addClass('navbar-side-close');
                 $('body').removeClass('navbar-side-open');
@@ -176,8 +181,22 @@
 
             $(this).find('i').toggleClass('fa-bars').toggleClass('fa-arrow-left');
         });
+
+        // Chartbeat Analytics
+        var _sf_async_config = { uid: 36438, domain: '<asp:Literal ID="siteUrl" runat="server" />', useCanonical: true };
+        (function () {
+            function loadChartbeat() {
+                window._sf_endpt = (new Date()).getTime();
+                var e = document.createElement('script');
+                e.setAttribute('language', 'javascript');
+                e.setAttribute('type', 'text/javascript');
+                e.setAttribute('src', '//static.chartbeat.com/js/chartbeat.js');
+                document.body.appendChild(e);
+            };
+            var oldonload = window.onload;
+            window.onload = (typeof window.onload != 'function') ?
+                loadChartbeat : function () { oldonload(); loadChartbeat(); };
+        })();
     </script>
-
 </body>
-
 </html>
