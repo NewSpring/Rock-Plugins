@@ -71,6 +71,20 @@ namespace cc.newspring.CyberSource
         }
 
         /// <summary>
+        /// Determines if this gateway supports saved accounts of the type indicated by currencyType
+        /// </summary>
+        /// <param name="currencyType">The currency type</param>
+        /// <returns></returns>
+        public override bool SupportsSavedAccount( DefinedValueCache currencyType )
+        {
+            var ach = Rock.SystemGuid.DefinedValue.CURRENCY_TYPE_ACH.AsGuid();
+            var creditCard = Rock.SystemGuid.DefinedValue.CURRENCY_TYPE_CREDIT_CARD.AsGuid();
+            var currencyTypeGuid = currencyType.Guid;
+
+            return currencyTypeGuid.Equals(ach) || currencyTypeGuid.Equals(creditCard);
+        }
+
+        /// <summary>
         /// Gets the supported payment schedules.
         /// </summary>
         /// <value>
