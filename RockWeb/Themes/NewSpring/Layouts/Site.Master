@@ -1,17 +1,22 @@
 ﻿<%@ Master Language="C#" AutoEventWireup="true" Inherits="Rock.Web.UI.RockMasterPage" %>
 
 <%@ Import Namespace="System.Web.Optimization" %>
+
 <!DOCTYPE html>
 
 <!--
-  _______       _____           _   ____         _______ _             _____ _
- |__   __|     / ____|         | | |  _ \       |__   __| |           / ____| |
-    | | ___   | |  __  ___   __| | | |_) | ___     | |  | |__   ___  | |  __| | ___  _ __ _   _
-    | |/ _ \  | | |_ |/ _ \ / _` | |  _ < / _ \    | |  | '_ \ / _ \ | | |_ | |/ _ \| '__| | | |
-    | | (_) | | |__| | (_) | (_| | | |_) |  __/    | |  | | | |  __/ | |__| | | (_) | |  | |_| |
-    |_|\___/   \_____|\___/ \__,_| |____/ \___|    |_|  |_| |_|\___|  \_____|_|\___/|_|   \__, |
-                                                                                           __/ |
-                                                                                          |___/
+
+  @@@   @@@@@@@@    @@@@@@@@         @@@@@@@@    @@@@@@@@    @@@@@@@@
+ @@@@  @@@@@@@@@@  @@@@@@@@@@       @@@@@@@@@@  @@@@@@@@@@  @@@@@@@@@@
+@@@!!  @@!   @@@@  @@!   @@@@       @@!   @@@@  @@!   @@@@  @@!   @@@@
+  !@!  !@!  @!@!@  !@!  @!@!@       !@!  @!@!@  !@!  @!@!@  !@!  @!@!@
+  @!@  @!@ @! !@!  @!@ @! !@!       @!@ @! !@!  @!@ @! !@!  @!@ @! !@!
+  !@!  !@!!!  !!!  !@!!!  !!!       !@!!!  !!!  !@!!!  !!!  !@!!!  !!!
+  !!:  !!:!   !!!  !!:!   !!!       !!:!   !!!  !!:!   !!!  !!:!   !!!
+  :!:  :!:    !:!  :!:    !:!  :!:  :!:    !:!  :!:    !:!  :!:    !:!
+  :::  ::::::: ::  ::::::: ::   ::  ::::::: ::  ::::::: ::  ::::::: ::
+   ::   : : :  :    : : :  :   ::    : : :  :    : : :  :    : : :  :
+
 -->
 
 <script runat="server">
@@ -27,6 +32,8 @@
         base.OnInit( e );
 
         lLogoSvg.Text = System.IO.File.ReadAllText( HttpContext.Current.Request.MapPath( "~/Assets/Images/rock-logo.svg" ) );
+        
+        siteUrl.Text = String.Format( Request.Url.Authority );
     }
 </script>
 
@@ -36,6 +43,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=10" />
     <meta charset="utf-8">
     <title></title>
+
+    <script type="text/javascript">var _sf_startpt = (new Date()).getTime()</script>
 
     <script src="<%# ResolveRockUrl("~/Scripts/jquery-1.10.2.min.js" ) %>"></script>
     <script src="<%# ResolveRockUrl("~/Scripts/jquery.jquery-dotimeout.js" ) %>"></script>
@@ -171,6 +180,22 @@
 
             $(this).find('i').toggleClass('fa-bars').toggleClass('fa-arrow-left');
         });
+
+        // Chartbeat Analytics
+        var _sf_async_config = { uid: 36438, domain: '<asp:Literal ID="siteUrl" runat="server" />', useCanonical: true };
+        (function () {
+            function loadChartbeat() {
+                window._sf_endpt = (new Date()).getTime();
+                var e = document.createElement('script');
+                e.setAttribute('language', 'javascript');
+                e.setAttribute('type', 'text/javascript');
+                e.setAttribute('src', '//static.chartbeat.com/js/chartbeat.js');
+                document.body.appendChild(e);
+            };
+            var oldonload = window.onload;
+            window.onload = (typeof window.onload != 'function') ?
+                loadChartbeat : function () { oldonload(); loadChartbeat(); };
+        })();
     </script>
 </body>
 </html>
