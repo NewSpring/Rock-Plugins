@@ -193,6 +193,16 @@ namespace cc.newspring.Apollos.Rest.Controllers
             }
             else
             {
+                if ( !giveParameters.CampusId.HasValue )
+                {
+                    return GenerateResponse( HttpStatusCode.BadRequest, "CampusId is required when creating a new person" );
+                }
+
+                if ( new CampusService( rockContext ).Get( giveParameters.CampusId.Value ) == null )
+                {
+                    return GenerateResponse( HttpStatusCode.BadRequest, "CampusId must be an existing campus's id" );
+                }
+
                 person = CreatePerson( giveParameters, rockContext );
 
                 if ( person == null )
