@@ -56,8 +56,8 @@ and GroupTypeId = @FuseGroupTypeId
 
 if @FuseGroupId is null
 BEGIN
-	insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name, [Description], IsSecurityRole, IsActive, [Order], IsPublic, AcceptAlternatePlacements, [Guid])
-	select @False, NULL, @FuseGroupTypeId, NULL, 'Fuse Groups', 'Parent group for Fuse Groups', @False, @True, @Order, @True, @True, NEWID()
+	insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name, [Description], IsSecurityRole, IsActive, [Order], IsPublic, [Guid])
+	select @False, NULL, @FuseGroupTypeId, NULL, 'Fuse Groups', 'Parent group for Fuse Groups', @False, @True, @Order, @True, NEWID()
 
 	select @FuseGroupId = SCOPE_IDENTITY()
 end
@@ -92,8 +92,8 @@ and GroupTypeId = @HomeGroupTypeId
 
 if @HomeGroupId is null
 begin
-	insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name, [Description], IsSecurityRole, IsActive, [Order], IsPublic, AcceptAlternatePlacements, [Guid])
-	select @False, NULL, @HomeGroupTypeId, NULL, 'Home Groups', 'Parent group for Home Groups', @False, @True, @Order, @True, @True, NEWID()
+	insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name, [Description], IsSecurityRole, IsActive, [Order], IsPublic, [Guid])
+	select @False, NULL, @HomeGroupTypeId, NULL, 'Home Groups', 'Parent group for Home Groups', @False, @True, @Order, @True, NEWID()
 
 	select @HomeGroupId = SCOPE_IDENTITY()
 end
@@ -134,8 +134,8 @@ begin
 	
 	if @CampusFuseGroupId is null
 	begin
-		insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name, [Description], IsSecurityRole, IsActive, [Order], IsPublic, AcceptAlternatePlacements, [Guid])
-		select @False, @FuseGroupId, @FuseGroupTypeId, @CampusId, @CampusName, @CampusName + ' Fuse Groups', @False, @True, @Order, @True, @False, NEWID()
+		insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name, [Description], IsSecurityRole, IsActive, [Order], IsPublic, [Guid])
+		select @False, @FuseGroupId, @FuseGroupTypeId, @CampusId, @CampusName, @CampusName + ' Fuse Groups', @False, @True, @Order, @True, NEWID()
 
 		select @CampusFuseGroupId = SCOPE_IDENTITY()
 	end
@@ -148,8 +148,8 @@ begin
 	
 	if @CampusHomeGroupId is null
 	begin
-		insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name, [Description], IsSecurityRole, IsActive, [Order], IsPublic, AcceptAlternatePlacements, [Guid])
-		select @False, @HomeGroupid, @HomeGroupTypeId, @CampusId, @CampusName, @CampusName + ' Home Groups', @False, @True, @Order, @True, @False, NEWID()
+		insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name, [Description], IsSecurityRole, IsActive, [Order], IsPublic, [Guid])
+		select @False, @HomeGroupid, @HomeGroupTypeId, @CampusId, @CampusName, @CampusName + ' Home Groups', @False, @True, @Order, @True, NEWID()
 
 		select @CampusHomeGroupId = SCOPE_IDENTITY()
 	end
@@ -211,8 +211,8 @@ begin
 		if @ChildGroupId is null
 		begin
 
-			insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name, [Description], IsSecurityRole, IsActive, [Order], CreatedDateTime, IsPublic, AcceptAlternatePlacements, ForeignId, [Guid])
-			select @False, @ParentGroupId, @GroupTypeId, @CampusId, @GroupName, @CampusName + ' ' + @GroupName, @False, @True, @Order, @CreatedDate, @True, @False, @F1GroupId, NEWID()
+			insert [Group] (IsSystem, ParentGroupId, GroupTypeId, CampusId, Name, [Description], IsSecurityRole, IsActive, [Order], CreatedDateTime, IsPublic, ForeignId, [Guid])
+			select @False, @ParentGroupId, @GroupTypeId, @CampusId, @GroupName, @CampusName + ' ' + @GroupName, @False, @True, @Order, @CreatedDate, @True, @F1GroupId, NEWID()
 
 			select @ChildGroupId = SCOPE_IDENTITY()
 		end
