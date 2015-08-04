@@ -6094,65 +6094,6 @@ table {
   font-size: 14px;
   width: 160px;
 }
-.personprofile small {
-  color: #dddddd;
-  opacity: .7;
-}
-.personprofile .personprofilebar-bio {
-  position: relative;
-  background-image: url('../Assets/Images/newlook.mark.jpg');
-  background-size: cover;
-  background-repeat: no-repeat;
-  color: #ffffff;
-  font-weight: 500;
-  padding: 60px;
-}
-.personprofile .personprofilebar-bio:before {
-  content: '';
-  position: absolute;
-  top: 0px;
-  right: 0px;
-  bottom: 0px;
-  left: 0px;
-  background-color: rgba(0, 0, 0, 0.6);
-}
-.personprofile .personprofilebar-bio .photo {
-  position: relative;
-  top: 7px;
-  width: 95%;
-  background-color: transparent;
-  padding: 0px;
-  border: 0px;
-  margin-bottom: 30px;
-}
-.personprofile .personprofilebar-bio .title {
-  color: #ffffff;
-  margin-bottom: 15px;
-}
-.personprofile .personprofilebar-bio .label {
-  font-size: 16px;
-}
-.personprofile .personprofilebar-bio .label-campus {
-  background-color: #6bac43;
-}
-.personprofile .personprofilebar-bio .summary {
-  margin-top: 10px;
-}
-.personprofile .personprofilebar-bio p,
-.personprofile .personprofilebar-bio a,
-.personprofile .personprofilebar-bio li {
-  color: #ffffff;
-}
-.personprofile .personprofilebar-bio .dropdown {
-  width: auto;
-  display: inline-block;
-}
-.personprofile .personprofilebar-bio .dropdown-menu a {
-  color: #202020;
-}
-.personprofile .personprofilebar-bio .dropdown-menu a:hover {
-  color: #ffffff;
-}
 .updateprogress-status {
   left: 50%;
   padding: 15px 10px;
@@ -6392,9 +6333,64 @@ table tr td {
   margin-top: 0px;
   overflow: hidden;
 }
-.personprofilebar-bio {
-  padding: 30px 15px;
-  background-color: #dddddd;
+.personprofile small {
+  color: #dddddd;
+  opacity: .7;
+}
+.personprofile .personprofilebar-bio {
+  position: relative;
+  background-image: url('../Assets/Images/newlook.mark.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  color: #ffffff;
+  font-weight: 500;
+  padding: 60px;
+}
+.personprofile .personprofilebar-bio:before {
+  content: '';
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  bottom: 0px;
+  left: 0px;
+  background-color: rgba(0, 0, 0, 0.6);
+}
+.personprofile .personprofilebar-bio .photo {
+  position: relative;
+  top: 7px;
+  width: 95%;
+  background-color: transparent;
+  padding: 0px;
+  border: 0px;
+  margin-bottom: 30px;
+}
+.personprofile .personprofilebar-bio .title {
+  color: #ffffff;
+  margin-bottom: 15px;
+}
+.personprofile .personprofilebar-bio .label {
+  font-size: 16px;
+}
+.personprofile .personprofilebar-bio .label-campus {
+  background-color: #6bac43;
+}
+.personprofile .personprofilebar-bio .summary {
+  margin-top: 10px;
+}
+.personprofile .personprofilebar-bio p,
+.personprofile .personprofilebar-bio a,
+.personprofile .personprofilebar-bio li {
+  color: #ffffff;
+}
+.personprofile .personprofilebar-bio .dropdown {
+  width: auto;
+  display: inline-block;
+}
+.personprofile .personprofilebar-bio .dropdown-menu a {
+  color: #202020;
+}
+.personprofile .personprofilebar-bio .dropdown-menu a:hover {
+  color: #ffffff;
 }
 .personprofilebar-family {
   padding: 40px 30px;
@@ -6704,9 +6700,6 @@ body.navbar-side-open .navbar-static-side {
   }
   .panel {
     margin-bottom: 20px;
-  }
-  .personprofile .personprofilebar-bio {
-    padding: 50px 0;
   }
 }
 @media (max-width: 768px) {

@@ -479,75 +479,6 @@ table {
 //   }
 // }
 
-.personprofile small {
-    color: @light-tertiary;
-    opacity: .7;
-}
-
-.personprofile .personprofilebar-bio {
-    position: relative;
-    background-image: url('../Assets/Images/newlook.mark.jpg');
-    background-size: cover;
-    background-repeat: no-repeat;
-    color: @light-primary;
-    font-weight: 500;
-    padding: 60px;
-
-    &:before {
-        content: '';
-        position: absolute;
-        top: 0px;
-        right: 0px;
-        bottom: 0px;
-        left: 0px;
-        background-color: rgba(0,0,0,.6);
-    }
-
-    .photo {
-        position: relative;
-        top: 7px;
-        width: 95%;
-        background-color: transparent;
-        padding: 0px;
-        border: 0px;
-        margin-bottom: 30px;
-    }
-
-    .title {
-        color: @light-primary;
-        margin-bottom: 15px;
-    }
-
-    .label {
-        font-size: 16px;
-    }
-
-    .label-campus {
-        background-color: @green-primary;
-    }
-
-    .summary {
-        margin-top: 10px;
-    }
-
-    p, a, li {
-        color: @light-primary;
-    }
-
-    .dropdown {
-        width: auto;
-        display: inline-block;
-    }
-
-    .dropdown-menu a {
-        color: @dark-primary;
-
-        &:hover {
-            color: @light-primary;
-        }
-    }
-}
-
 .updateprogress-status {
     left: 50%;
     padding: 15px 10px;
@@ -1017,9 +948,73 @@ table {
     overflow: hidden;
 }
 
-.personprofilebar-bio {
-    padding: 30px 15px;
-    background-color: @light-tertiary;
+.personprofile small {
+    color: @light-tertiary;
+    opacity: .7;
+}
+
+.personprofile .personprofilebar-bio {
+    position: relative;
+    background-image: url('../Assets/Images/newlook.mark.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    color: @light-primary;
+    font-weight: 500;
+    padding: 60px;
+
+    &:before {
+        content: '';
+        position: absolute;
+        top: 0px;
+        right: 0px;
+        bottom: 0px;
+        left: 0px;
+        background-color: rgba(0,0,0,.6);
+    }
+
+    .photo {
+        position: relative;
+        top: 7px;
+        width: 95%;
+        background-color: transparent;
+        padding: 0px;
+        border: 0px;
+        margin-bottom: 30px;
+    }
+
+    .title {
+        color: @light-primary;
+        margin-bottom: 15px;
+    }
+
+    .label {
+        font-size: 16px;
+    }
+
+    .label-campus {
+        background-color: @green-primary;
+    }
+
+    .summary {
+        margin-top: 10px;
+    }
+
+    p, a, li {
+        color: @light-primary;
+    }
+
+    .dropdown {
+        width: auto;
+        display: inline-block;
+    }
+
+    .dropdown-menu a {
+        color: @dark-primary;
+
+        &:hover {
+            color: @light-primary;
+        }
+    }
 }
 
 .personprofilebar-family {
@@ -1426,10 +1421,6 @@ body {
     // Panels
     .panel {
         margin-bottom: 20px;
-    }
-
-    .personprofile .personprofilebar-bio {
-        padding: 50px 0;
     }
 }
 
