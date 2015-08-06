@@ -69,7 +69,7 @@ namespace cc.newspring.Apollos.Migrations
 
         private string activeAttributeGuid = "65CB1840-9F36-4369-AC8E-7AB94BF18D1B";
         private string actionAttributeGuid = "B5B78DE9-41ED-4175-9DF5-E3E62ADEC388";
-        private string syncAttributeGuid = "C166C5D7-FE59-45ED-B38A-5B7B08124CF2";
+        private string syncUrlAttributeGuid = "C166C5D7-FE59-45ED-B38A-5B7B08124CF2";
         private string tokenNameAttributeGuid = "3AF3C584-8687-495C-A474-8568AF5D44B4";
         private string tokenValueAttributeGuid = "8DF06A26-0544-436F-8034-BF86C465AD2B";
         private string restUserAttributeGuid = "120B0006-D1C9-42FA-A4E4-4039D7AF2C5B";
@@ -165,9 +165,9 @@ namespace cc.newspring.Apollos.Migrations
 
         private void SetupAttributeValues( string actionGuid, string actionName, string entityName )
         {
-            RockMigrationHelper.AddActionTypeAttributeValue( actionGuid, syncAttributeGuid, @"" );
+            RockMigrationHelper.AddActionTypeAttributeValue( actionGuid, syncUrlAttributeGuid, @"" );
             RockMigrationHelper.AddActionTypeAttributeValue( actionGuid, tokenValueAttributeGuid, @"" );
-            RockMigrationHelper.AddActionTypeAttributeValue( actionGuid, tokenNameAttributeGuid, @".apollos" );
+            RockMigrationHelper.AddActionTypeAttributeValue( actionGuid, tokenNameAttributeGuid, @"apollos" );
             RockMigrationHelper.AddActionTypeAttributeValue( actionGuid, orderAttributeGuid, @"" );
             RockMigrationHelper.AddActionTypeAttributeValue( actionGuid, activeAttributeGuid, @"False" );
             RockMigrationHelper.AddActionTypeAttributeValue( actionGuid, restUserAttributeGuid, restPersonAliasGuid );
@@ -253,7 +253,7 @@ namespace cc.newspring.Apollos.Migrations
 
             RockMigrationHelper.UpdateWorkflowActionEntityAttribute( apiSyncGuid, "1EDAFDED-DFE6-4334-B019-6EECBA89E05A", "Active", "Active", "Should Service be used?", 0, @"False", activeAttributeGuid ); // Active
             RockMigrationHelper.UpdateWorkflowActionEntityAttribute( apiSyncGuid, "7525C4CB-EE6B-41D4-9B64-A08048D5A5C0", "Action", "Action", "The workflow that this action is under is triggered by what type of event", 0, @"", actionAttributeGuid ); // Action
-            RockMigrationHelper.UpdateWorkflowActionEntityAttribute( apiSyncGuid, "9C204CD0-1233-41C5-818A-C5DA439445AA", "Sync URL", "SyncURL", "The specific URL endpoint this related entity type should synchronize with", 0, @"", syncAttributeGuid ); // Sync URL
+            RockMigrationHelper.UpdateWorkflowActionEntityAttribute( apiSyncGuid, "9C204CD0-1233-41C5-818A-C5DA439445AA", "Sync URL", "SyncURL", "The specific URL endpoint this related entity type should synchronize with", 0, @"", syncUrlAttributeGuid ); // Sync URL
             RockMigrationHelper.UpdateWorkflowActionEntityAttribute( apiSyncGuid, "9C204CD0-1233-41C5-818A-C5DA439445AA", "Token Name", "TokenName", "The key by which the token should be identified in the header of HTTP requests", 0, @"", tokenNameAttributeGuid ); // Token Name
             RockMigrationHelper.UpdateWorkflowActionEntityAttribute( apiSyncGuid, "9C204CD0-1233-41C5-818A-C5DA439445AA", "Token Value", "TokenValue", "The value of the token to authenticate with the URL endpoint", 0, @"", tokenValueAttributeGuid ); // Token Value
             RockMigrationHelper.UpdateWorkflowActionEntityAttribute( apiSyncGuid, "E4EAB7B2-0B76-429B-AFE4-AD86D7428C70", "Rest User", "RestUser", "The associated REST user that handles sync from the third party", 0, @"", restUserAttributeGuid ); // Rest User
