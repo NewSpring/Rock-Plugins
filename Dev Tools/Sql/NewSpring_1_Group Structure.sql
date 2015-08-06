@@ -242,7 +242,7 @@ values
 ('Fuse Volunteer', 'Fuse Guest', 'Fuse Guest'), 
 ('Fuse Volunteer', 'Game Room', 'Game Room'), 
 ('Fuse Volunteer', 'Greeter', 'Greeter'), 
-('Fuse Volunteer', 'Jump Off', 'Jump Off'), 
+('Fuse Volunteer', 'VIP Room', 'VIP Room'), 
 ('Fuse Volunteer', 'Leadership Team', 'Leadership Team'), 
 ('Fuse Volunteer', 'Load In/Load Out', 'Load In/Load Out'), 
 ('Fuse Volunteer', 'Lounge', 'Lounge'), 
