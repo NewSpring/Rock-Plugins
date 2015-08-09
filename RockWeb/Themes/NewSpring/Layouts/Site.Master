@@ -32,8 +32,9 @@
         base.OnInit( e );
 
         lLogoSvg.Text = System.IO.File.ReadAllText( HttpContext.Current.Request.MapPath( "~/Assets/Images/rock-logo.svg" ) );
-        
+
         siteUrl.Text = String.Format( Request.Url.Authority );
+
     }
 </script>
 
@@ -49,7 +50,7 @@
     <script src="<%# ResolveRockUrl("~/Scripts/jquery-1.10.2.min.js" ) %>"></script>
     <script src="<%# ResolveRockUrl("~/Scripts/jquery.jquery-dotimeout.js" ) %>"></script>
 
-    <script src="<%# ResolveRockUrl("~/Plugins/cc_newspring/Blocks/Dashboards/chart.js" ) %>"></script>
+    <script src="../../../Plugins/cc_newspring/Blocks/Dashboards/chart.js"></script>
 
     <!-- Typekit -->
     <script src="//use.typekit.net/oby6bqi.js"></script>
