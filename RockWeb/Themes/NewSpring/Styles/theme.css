@@ -1,4 +1,4 @@
-﻿/*
+/*
    Rock's Core CSS
 
     1. Imports - Used to import the various core less files
@@ -1774,7 +1774,7 @@ table.attribute-grid tr th:nth-child(3) {
   overflow: hidden;
   text-align: left;
   text-indent: -999px;
-  background: url(../../../../../Assets/Images/sprite-cards.png) 0 0 no-repeat;
+  background: url(../../../Assets/Images/sprite-cards.png) 0 0 no-repeat;
 }
 .card-mastercard {
   background-position: -55px 0;
@@ -2801,6 +2801,55 @@ iframe.email-body {
 .amount-to-pay input {
   text-align: right;
 }
+/*
+    
+
+    table.calendar th.calendar-day-header {
+        text-align: center;
+        color: #6a6a6a !important;
+    }
+
+    
+    table.calendar td.calendar-last-month,
+    table.calendar td.calendar-day {
+        padding: 5px;
+    }
+    
+        table.calendar td.calendar-last-month a {
+            color: #dfdfdf !important;
+            font-size: 12px;
+        }
+        
+        table.calendar td.calendar-day a,
+        table.calendar td.calendar-today a,
+        table.calendar td.calendar-selected a {
+            font-size: 14px;
+            color: #6a6a6a;
+        }
+
+        table.calendar td.calendar-today {  
+            background-color: #FCF8E3!important; 
+        }
+
+        table.calendar td.calendar-today a {
+            color:#c09853 !important;
+            font-weight:bold;
+        }
+
+        table.calendar td.calendar-today a:after {
+            content:"TODAY"; 
+            color:#000; 
+            font-size:0.5em;
+            pointer-events:none; 
+            width:100%; 
+            float:left;
+        }
+
+        table.calendar td.calendar-today a:hover {  
+            background-color: #fcf8e3;  
+        }
+
+    */
 /*
   Used to manage styles related to reusable components / widgets.
 
@@ -3906,7 +3955,6 @@ fieldset .actions {
   text-rendering: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transform: translate(0, 0);
   content: "\f093";
   padding-right: .25em;
 }
@@ -5017,16 +5065,20 @@ a.help {
   font-weight: 900;
 }
 .badge-danger {
-  background-color: #c64f55;
+  background-color: #c64f55 !important;
+  color: #fff !important;
 }
 .badge-warning {
-  background-color: #f3d066;
+  background-color: #f3d066 !important;
+  color: #fff !important;
 }
 .badge-success {
-  background-color: #6bac43;
+  background-color: #6bac43 !important;
+  color: #fff !important;
 }
 .badge-info {
-  background-color: #3bc2df;
+  background-color: #3bc2df !important;
+  color: #fff !important;
 }
 .popover-content header {
   margin: -9px -14px 8px -14px;
@@ -6200,11 +6252,6 @@ table tr td {
 #content-wrapper .container {
   max-width: 1400px;
 }
-#content-wrapper .container p,
-#content-wrapper .container a:not(.btn),
-#content-wrapper .container li {
-  font-size: 19.2px;
-}
 #content-wrapper .table thead th,
 #content-wrapper .table thead a {
   font-size: 16px;
@@ -6286,9 +6333,73 @@ table tr td {
   margin-top: 0px;
   overflow: hidden;
 }
-.personprofilebar-bio {
-  padding: 30px 15px;
-  background-color: #dddddd;
+.personprofile small {
+  color: #dddddd;
+  opacity: .7;
+}
+.personprofile .personprofilebar-bio {
+  position: relative;
+  background-image: url('../Assets/Images/newlook.mark.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  color: #ffffff;
+  font-weight: 500;
+  padding: 60px;
+}
+.personprofile .personprofilebar-bio:before {
+  content: '';
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  bottom: 0px;
+  left: 0px;
+  background-color: rgba(0, 0, 0, 0.6);
+}
+.personprofile .personprofilebar-bio .photo {
+  position: relative;
+  top: 7px;
+  width: 95%;
+  background-color: transparent;
+  padding: 0px;
+  border: 0px;
+  margin-bottom: 30px;
+}
+.personprofile .personprofilebar-bio .title {
+  color: #ffffff;
+  margin-bottom: 15px;
+}
+.personprofile .personprofilebar-bio .label {
+  font-size: 16px;
+}
+.personprofile .personprofilebar-bio .label-campus {
+  background-color: #6bac43;
+}
+.personprofile .personprofilebar-bio .summary {
+  margin-top: 10px;
+}
+.personprofile .personprofilebar-bio p,
+.personprofile .personprofilebar-bio a,
+.personprofile .personprofilebar-bio li {
+  color: #ffffff;
+}
+.personprofile .personprofilebar-bio .dropdown {
+  width: auto;
+  display: inline-block;
+}
+.personprofile .personprofilebar-bio .dropdown-menu a {
+  color: #202020;
+}
+.personprofile .personprofilebar-bio .dropdown-menu a:hover {
+  color: #ffffff;
+}
+.personprofilebar-family {
+  padding: 40px 30px;
+}
+.personprofilebar-family .addresses ul li.address {
+  margin-bottom: 15px;
+}
+.personprofilebar-family .addresses ul li.address:last-child {
+  margin-bottom: 0px;
 }
 .pagetabs {
   margin-bottom: 15px;
@@ -6591,6 +6702,11 @@ body.navbar-side-open .navbar-static-side {
     margin-bottom: 20px;
   }
 }
+@media (max-width: 768px) {
+  .personprofile .personprofilebar-bio {
+    text-align: center;
+  }
+}
 @media (min-width: 768px) {
   .list-as-blocks ul li {
     width: 50%;
@@ -6633,3 +6749,4 @@ body.navbar-side-open .navbar-static-side {
     margin-right: 0px;
   }
 }
+/*#endregion */
