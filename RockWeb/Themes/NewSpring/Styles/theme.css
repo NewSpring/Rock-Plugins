@@ -1,4 +1,4 @@
-﻿/*
+/*
    Rock's Core CSS
 
     1. Imports - Used to import the various core less files
@@ -1324,6 +1324,17 @@ tr.row-highlight td {
   margin-top: 12px;
 }
 /*
+    JME 7/23/2015
+    .security {
+    .nav.nav-pagelist {
+        .nav.nav-pills {
+            li {
+                float: left; // lock security naviagtion to always be horizontal tabs
+            }
+        }
+    }
+}*/
+/*
     Used to manage styles for specific blocks.
 
     1. SQL Command - block to query database directly
@@ -1791,7 +1802,7 @@ table.attribute-grid tr th:nth-child(3) {
   overflow: hidden;
   text-align: left;
   text-indent: -999px;
-  background: url(../../../../../Assets/Images/sprite-cards.png) 0 0 no-repeat;
+  background: url(../../../Assets/Images/sprite-cards.png) 0 0 no-repeat;
 }
 .card-mastercard {
   background-position: -55px 0;
@@ -2797,6 +2808,55 @@ iframe.email-body {
 .amount-to-pay input {
   text-align: right;
 }
+/*
+    
+
+    table.calendar th.calendar-day-header {
+        text-align: center;
+        color: #6a6a6a !important;
+    }
+
+    
+    table.calendar td.calendar-last-month,
+    table.calendar td.calendar-day {
+        padding: 5px;
+    }
+    
+        table.calendar td.calendar-last-month a {
+            color: #dfdfdf !important;
+            font-size: 12px;
+        }
+        
+        table.calendar td.calendar-day a,
+        table.calendar td.calendar-today a,
+        table.calendar td.calendar-selected a {
+            font-size: 14px;
+            color: #6a6a6a;
+        }
+
+        table.calendar td.calendar-today {  
+            background-color: #FCF8E3!important; 
+        }
+
+        table.calendar td.calendar-today a {
+            color:#c09853 !important;
+            font-weight:bold;
+        }
+
+        table.calendar td.calendar-today a:after {
+            content:"TODAY"; 
+            color:#000; 
+            font-size:0.5em;
+            pointer-events:none; 
+            width:100%; 
+            float:left;
+        }
+
+        table.calendar td.calendar-today a:hover {  
+            background-color: #fcf8e3;  
+        }
+
+    */
 /*
   Used to manage styles related to reusable components / widgets.
 
@@ -5947,6 +6007,10 @@ table {
   background-color: #f7f7f7;
   border-bottom: 0px;
 }
+.table-hover tbody tr:hover td,
+.table-hover tbody tr:hover th {
+  background-color: #dddddd;
+}
 .panel {
   border-radius: 0;
   border-top-width: 0;
@@ -6062,9 +6126,11 @@ table {
   padding: 5px;
   box-shadow: none;
   color: #202020;
+  background-color: #ffffff;
 }
 .smartsearch .tt-dropdown-menu {
   margin-left: 0px;
+  margin-top: 0px;
 }
 .tt-dropdown-menu .tt-suggestion p {
   text-align: left;
@@ -6369,10 +6435,6 @@ table tr td {
   margin-top: 0px;
   overflow: hidden;
 }
-.personprofile small {
-  color: #dddddd;
-  opacity: .7;
-}
 .personprofile .personprofilebar-bio {
   position: relative;
   background-image: url('../Assets/Images/newlook.mark.jpg');
@@ -6391,6 +6453,10 @@ table tr td {
   left: 0px;
   background-color: rgba(0, 0, 0, 0.6);
 }
+.personprofile .personprofilebar-bio small {
+  color: #dddddd;
+  opacity: .7;
+}
 .personprofile .personprofilebar-bio .photo {
   position: relative;
   top: 7px;
@@ -6399,6 +6465,12 @@ table tr td {
   padding: 0px;
   border: 0px;
   margin-bottom: 30px;
+}
+.personprofile .personprofilebar-bio .social-icons .icon {
+  float: none;
+}
+.personprofile .personprofilebar-bio .nav li .persondetails-actions {
+  padding-left: 0px;
 }
 .personprofile .personprofilebar-bio .title {
   color: #ffffff;
@@ -6429,7 +6501,10 @@ table tr td {
   color: #ffffff;
 }
 .personprofilebar-family {
-  padding: 40px 30px;
+  padding: 60px 45px;
+}
+.personprofilebar-family .member {
+  border: 1px solid #dddddd;
 }
 .personprofilebar-family .addresses ul li.address {
   margin-bottom: 15px;
@@ -6484,7 +6559,7 @@ body.navbar-side-open #content-wrapper {
   position: absolute;
   top: 50%;
   padding: 0 8px;
-  margin-top: -15px;
+  margin-top: -14px;
   font-size: 20px;
   color: #ffffff;
   cursor: pointer;
@@ -6737,6 +6812,10 @@ body.navbar-side-open .navbar-static-side {
   .panel {
     margin-bottom: 20px;
   }
+  .personprofile .personprofilebar-bio .persondetails-actions {
+    margin-top: 10px;
+    margin-bottom: 20px;
+  }
 }
 @media (max-width: 768px) {
   .personprofile .personprofilebar-bio {
@@ -6785,3 +6864,4 @@ body.navbar-side-open .navbar-static-side {
     margin-right: 0px;
   }
 }
+/*#endregion */

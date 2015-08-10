@@ -199,6 +199,12 @@ table {
     }
 }
 
+.table-hover tbody tr:hover {
+    td, th {
+        background-color: @light-tertiary;
+    }
+}
+
 // panel tweaks
 .panel {
     border-radius: 0;
@@ -380,9 +386,11 @@ table {
     padding: 5px;
     box-shadow: none;
     color: @dark-primary;
+    background-color: @light-primary;
 
     .smartsearch & {
         margin-left: 0px;
+        margin-top: 0px;
     }
 
     .tt-suggestion {
@@ -941,16 +949,15 @@ table {
 //   }
 // }
 
+// .rollover-container > .rollover-item {
+//     opacity: 1;
+// }
+
 // Person Profile
 
 .personprofile {
     margin-top: 0px;
     overflow: hidden;
-}
-
-.personprofile small {
-    color: @light-tertiary;
-    opacity: .7;
 }
 
 .personprofile .personprofilebar-bio {
@@ -972,6 +979,11 @@ table {
         background-color: rgba(0,0,0,.6);
     }
 
+    small {
+        color: @light-tertiary;
+        opacity: .7;
+    }
+
     .photo {
         position: relative;
         top: 7px;
@@ -980,6 +992,14 @@ table {
         padding: 0px;
         border: 0px;
         margin-bottom: 30px;
+    }
+
+    .social-icons .icon {
+        float: none;
+    }
+
+    .nav li .persondetails-actions {
+        padding-left: 0px;
     }
 
     .title {
@@ -1018,7 +1038,11 @@ table {
 }
 
 .personprofilebar-family {
-    padding: 40px 30px;
+    padding: 60px 45px;
+
+    .member {
+        border: 1px solid @light-tertiary;
+    }
 }
 
 .personprofilebar-family .addresses ul li.address {
@@ -1091,7 +1115,7 @@ body {
         position: absolute;
         top: 50%;
         padding: 0 8px;
-        margin-top: -15px;
+        margin-top: -14px;
         font-size: @font-size-large;
         color: @light-primary;
         cursor: pointer;
@@ -1420,6 +1444,11 @@ body {
 
     // Panels
     .panel {
+        margin-bottom: 20px;
+    }
+
+    .personprofile .personprofilebar-bio .persondetails-actions {
+        margin-top: 10px;
         margin-bottom: 20px;
     }
 }
