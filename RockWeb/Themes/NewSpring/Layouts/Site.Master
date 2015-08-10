@@ -46,19 +46,19 @@
     <meta charset="utf-8">
     <title></title>
 
-    <!-- Moved non-criticial JS code to end of document -->
-    
-    <!-- jQuery -->
-    <script src="<%# ResolveRockUrl("~/Scripts/jquery-1.10.2.min.js" ) %>"></script>    
-
-    <!-- Typekit -->
-    <script src="//use.typekit.net/oby6bqi.js"></script>
-    <script>try { Typekit.load(); } catch (e) { }</script>
-
     <!-- Included CSS Files -->
     <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/bootstrap.css", true) %>" />
     <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/theme.css", true) %>" />
     <link rel="stylesheet" href="<%# ResolveRockUrl("~/Styles/developer.css", true) %>" />
+
+    <!-- Moved non-criticial JS code to end of document -->
+
+    <!-- jQuery -->
+    <script src="<%# ResolveRockUrl("~/Scripts/jquery-1.10.2.min.js" ) %>"></script>
+
+    <!-- Typekit -->
+    <script src="//use.typekit.net/oby6bqi.js"></script>
+    <script>try { Typekit.load(); } catch (e) { }</script>
 
     <asp:ContentPlaceHolder ID="css" runat="server" />
     <asp:ContentPlaceHolder ID="head" runat="server"></asp:ContentPlaceHolder>
@@ -146,7 +146,6 @@
             </ProgressTemplate>
         </asp:UpdateProgress>
     </form>
-
 </body>
 </html>
 
@@ -202,4 +201,3 @@
 <script src="<%# ResolveRockUrl("~/Scripts/modernizr.js" ) %>"></script>
 
 <script src="../../../Plugins/cc_newspring/Blocks/Dashboards/chart.js"></script>
-
