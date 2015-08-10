@@ -2235,17 +2235,18 @@ begin
 	and Name = @GroupName
 
 	;with locationChildren as (
-		select l.id, l.parentLocationId, l.name
+		select l.id, l.parentLocationId, l.name, l.name as 'ParentName'
 		from location l
 		where name = @CampusName
 		union all 
-		select l2.id, l2.parentlocationId, l2.name
+		select l2.id, l2.parentlocationId, l2.name, lc.name as 'ParentName'
 		from location l2
 		inner join locationChildren lc
 		on lc.id = l2.ParentLocationId				
 	)
 	select @LocationId = Id from locationChildren
-	where name = @GroupName
+	where Name = @GroupName
+	and ParentName = @GroupTypeName
 	
 	if @GroupId is not null
 	begin
