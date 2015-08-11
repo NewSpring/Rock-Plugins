@@ -619,7 +619,7 @@ begin
 		/* ====================================================== */
 		insert [Group] (IsSystem, ParentGroupId, GroupTypeId, Name,
 			[Description], IsSecurityRole, IsActive, [Order], [Guid], [IsPublic])
-		select @IsSystem, NULL, @AreaId, @AreaName, @AreaName + ' Group', @False, @True, @Order, NEWID(), @True
+		select @IsSystem, NULL, @AreaId, @AreaName, @AreaName + ' Group', @False, @True, @scopeIndex, NEWID(), @True
 
 		/* ====================================================== */
 		-- create group locations under campus locations
@@ -647,8 +647,8 @@ end
 -- insert campus groups
 /* ====================================================== */
 declare @GroupTypeName nvarchar(255), @GroupTypeId int, @GroupTypeGroupId int, 
-		@GroupName nvarchar(255), @GroupId int, @LocationName nvarchar(255),
-		@ParentGroupTypeName nvarchar(255), @ParentGroupTypeId int, @ParentLocationId int
+		@GroupName nvarchar(255), @GroupId int, @LocationName nvarchar(255), @LocationId int,
+		@ParentGroupTypeName nvarchar(255), @ParentGroupTypeId int, @ParentLocationId int, @GroupLocationId int
 
 declare @campusGroupId int, @numCampusGroups int
 select @campusGroupId = min(Id) from #campusGroups
@@ -659,7 +659,7 @@ begin
 	
 	select @GroupTypeName = '', @GroupTypeId = null, @GroupTypeGroupId = null, @LocationName = '',
 		@GroupName = '', @GroupId = null, @LocationName = '', @ParentGroupTypeName = '', 
-		@ParentGroupTypeId = null, @ParentLocationId = null
+		@LocationId = null, @ParentGroupTypeId = null, @ParentLocationId = null, @GroupLocationId = null
 
 	select @GroupTypeName = groupTypeName, @GroupName = groupName, @LocationName = locationName
 	from #campusGroups
@@ -708,20 +708,33 @@ begin
 		on gt.Id = gta.GroupTypeId
 		and gta.ChildGroupTypeId = @GroupTypeId
 		and gta.GroupTypeId <> @GroupTypeId
-		
-		/* ====================================================== */
-		-- insert campus level locations
-		/* ====================================================== */
-		insert Location (ParentLocationId, Name, IsActive, [Guid])
-		select l.Id, @LocationName, 1, NEWID()
-		from Location l		
-		inner join Campus c
-		on c.LocationId = l.ParentLocationId
-		and l.Name = @ParentGroupTypeName
-		where c.IsActive = @True
 
 		/* ====================================================== */
-		-- insert group locations
+		-- create campus level locations if they don't exist
+		/* ====================================================== */
+
+		select @LocationId = l.[Id]
+		from Location l
+		inner join Location l2
+		on l.ParentLocationId = l2.Id
+		where l.name = @LocationName 
+		and l2.name = @ParentGroupTypeName
+
+		if @LocationId is null and @LocationName <> ''
+		begin
+
+			insert Location (ParentLocationId, Name, IsActive, [Guid])
+			select l.Id, @LocationName, 1, NEWID()
+			from Location l
+			inner join Campus c
+			on c.LocationId = l.ParentLocationId
+			and l.Name = @ParentGroupTypeName
+			where c.IsActive = @True
+		end
+
+		/* ====================================================== */
+		-- NOTE: either the group or the location was just created,
+		-- so a groupLocation needs to be created
 		/* ====================================================== */
 		insert GroupLocation (Groupid, LocationId, IsMailingLocation, IsMappedLocation, [Guid])
 		select @GroupId, l.Id, @False, @False, NEWID()
@@ -772,7 +785,6 @@ select @numItems = @scopeIndex + count(1) from #centralGroups
 while @scopeIndex < @numItems
 begin
 	
-	declare @LocationId int
 	select @GroupTypeName = '', @GroupTypeId = null, @GroupTypeGroupId = null, @LocationName = '',
 		@GroupName = '', @GroupId = null, @LocationName = '', @ParentGroupTypeName = '', 
 		@LocationId = null, @ParentGroupTypeId = null, @ParentLocationId = null
@@ -808,10 +820,9 @@ begin
 		begin
 		
 			insert [Group] (IsSystem, ParentGroupId, GroupTypeId, Name, [Description], IsSecurityRole, IsActive, [Order], [Guid])
-			select @IsSystem, @GroupTypeGroupId, @GroupTypeId, @GroupName, @GroupName + ' Group', 0, 1, @Order, NEWID()
+			select @IsSystem, @GroupTypeGroupId, @GroupTypeId, @GroupName, @GroupName + ' Group', 0, 1, @scopeIndex, NEWID()
 
 			select @GroupId = SCOPE_IDENTITY()
-			select @Order = @Order + 1
 		end
 
 		/* ====================================================== */
@@ -949,7 +960,7 @@ set @ParentLocationId = SCOPE_IDENTITY()
 /* ====================================================== */
 -- create college groups
 /* ====================================================== */
-select @scopeIndex = 0, @numItems = 0
+select @scopeIndex = 0, @numItems = 0, @Order = 0
 select @scopeIndex = min(Id) from #collegeGroups
 select @numItems = @scopeIndex + count(1) from #collegeGroups
 		
@@ -969,7 +980,7 @@ begin
 		-- create child group
 		/* ====================================================== */
 		insert [Group] (IsSystem, ParentGroupId, GroupTypeId, Name, [Description], IsSecurityRole, IsActive, [Order], [Guid])
-		select @IsSystem, @AreaGroupId, @AreaId, @GroupName, @GroupName + ' Group', @False, @True, 0, NEWID()
+		select @IsSystem, @AreaGroupId, @AreaId, @GroupName, @GroupName + ' Group', @False, @True, @scopeIndex, NEWID()
 
 		select @GroupId = SCOPE_IDENTITY()
 
