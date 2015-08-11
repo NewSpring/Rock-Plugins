@@ -18,6 +18,7 @@ declare @Delimiter nvarchar(5) = ' - '
 declare @CollegeName nvarchar(50) = 'NewSpring College'
 declare @True bit = 1
 declare @False bit = 0
+declare @Order int = 0
 declare @BooleanFieldTypeId int
 declare @GroupEntityTypeId int
 declare @CheckInAreaPurposeId int
@@ -194,14 +195,32 @@ values
 ('Nursery Attendee', 'Young Walkers', ''), 
 ('Nursery Attendee', 'Older Walkers', ''), 
 ('Nursery Attendee', 'Toddlers', 'Wonder Way 8'), 
+('Preschool Attendee', '24-29 mo.', 'Fire Station'),
+('Preschool Attendee', '24-29 mo.', 'Lil'' Spring'),
+('Preschool Attendee', '24-29 mo.', 'Pop''s Garage'),
+('Preschool Attendee', '30-31 mo.', 'Fire Station'),
+('Preschool Attendee', '30-31 mo.', 'Lil'' Spring'),
+('Preschool Attendee', '30-31 mo.', 'Pop''s Garage'),
+('Preschool Attendee', '32-33 mo.', 'Fire Station'),
+('Preschool Attendee', '32-33 mo.', 'Lil'' Spring'),
+('Preschool Attendee', '32-33 mo.', 'Pop''s Garage'),
+('Preschool Attendee', '34-35 mo.', 'Fire Station'),
+('Preschool Attendee', '34-35 mo.', 'Lil'' Spring'),
+('Preschool Attendee', '34-35 mo.', 'Pop''s Garage'),
+('Preschool Attendee', '36-37 mo.', 'Spring Fresh'),
+('Preschool Attendee', '38-39 mo.', 'Spring Fresh'),
+('Preschool Attendee', '40-41 mo.', 'SpringTown Toys'),
+('Preschool Attendee', '42-43 mo.', 'SpringTown Toys'),
+('Preschool Attendee', '44-45 mo.', 'SpringTown Toys'),
+('Preschool Attendee', '46-47 mo.', 'SpringTown Toys'),
+('Preschool Attendee', '48-49 mo.', 'Treehouse'),
+('Preschool Attendee', '50-51 mo.', 'Treehouse'),
+('Preschool Attendee', '52-53 mo.', 'Treehouse'),
+('Preschool Attendee', '54-55 mo.', 'Treehouse'),
+('Preschool Attendee', '56-57 mo.', 'Treehouse'),
+('Preschool Attendee', '58-59 mo.', 'Treehouse'),
+('Preschool Attendee', '60-72 mo.', 'Treehouse'),
 ('Preschool Attendee', 'Base Camp Jr.', 'Base Camp Jr.'), 
-('Preschool Attendee', 'Fire Station', 'Fire Station'), 
-('Preschool Attendee', 'Lil'' Spring', 'Lil'' Spring'), 
-('Preschool Attendee', 'SpringTown Police', 'SpringTown Police'), 
-('Preschool Attendee', 'Pop''s Garage', 'Pop''s Garage'), 
-('Preschool Attendee', 'Spring Fresh', 'Spring Fresh'), 
-('Preschool Attendee', 'SpringTown Toys', 'SpringTown Toys'), 
-('Preschool Attendee', 'Treehouse', 'Treehouse'), 
 ('Special Needs Attendee', 'Spring Zone Jr.', 'Spring Zone Jr.'), 
 ('Special Needs Attendee', 'Spring Zone', 'Spring Zone'), 
 
@@ -600,8 +619,7 @@ begin
 		/* ====================================================== */
 		insert [Group] (IsSystem, ParentGroupId, GroupTypeId, Name,
 			[Description], IsSecurityRole, IsActive, [Order], [Guid], [IsPublic])
-		select @IsSystem, NULL, @AreaId, @AreaName, @AreaName + ' Group', @False, @True, 0, NEWID(), @True
-
+		select @IsSystem, NULL, @AreaId, @AreaName, @AreaName + ' Group', @False, @True, @Order, NEWID(), @True
 
 		/* ====================================================== */
 		-- create group locations under campus locations
@@ -616,8 +634,8 @@ begin
 			select c.LocationId, @ParentAreaName, 1, NEWID()
 			from Campus c
 			where c.IsActive = @True
-
 		end
+
 	end
 	-- end empty area name
 
@@ -675,9 +693,10 @@ begin
 
 			insert [Group] (IsSystem, ParentGroupId, GroupTypeId, Name,
 				[Description], IsSecurityRole, IsActive, [Order], [Guid], [IsPublic])
-			select @IsSystem, @GroupTypeGroupId, @GroupTypeId, @GroupName, @GroupName + ' Group', @False, @True, 0, NEWID(), @True
+			select @IsSystem, @GroupTypeGroupId, @GroupTypeId, @GroupName, @GroupName + ' Group', @False, @True, @Order, NEWID(), @True
 
 			select @GroupId = SCOPE_IDENTITY()
+			select @Order = @Order + 1
 		end
 
 		/* ====================================================== */
@@ -734,7 +753,7 @@ FROM [Group] WHERE Name = 'Spring Zone' or Name = 'Spring Zone Jr.'
 RAISERROR ( 'Starting Central grouptypes & groups', 0, 0 ) WITH NOWAIT
 
 DECLARE @CampusName nvarchar(255), @CampusCode nvarchar(255), @CampusId int = 0, @CampusLocationId int = 0
-select @CampusName = 'Central', @CampusCode = 'CEN'
+select @CampusName = 'Central', @CampusCode = 'CEN', @Order = 0
 
 select @CampusId = [Id] from Campus
 where Name = @CampusName
@@ -789,9 +808,10 @@ begin
 		begin
 		
 			insert [Group] (IsSystem, ParentGroupId, GroupTypeId, Name, [Description], IsSecurityRole, IsActive, [Order], [Guid])
-			select @IsSystem, @GroupTypeGroupId, @GroupTypeId, @GroupName, @GroupName + ' Group', 0, 1, 0, NEWID()
+			select @IsSystem, @GroupTypeGroupId, @GroupTypeId, @GroupName, @GroupName + ' Group', 0, 1, @Order, NEWID()
 
 			select @GroupId = SCOPE_IDENTITY()
+			select @Order = @Order + 1
 		end
 
 		/* ====================================================== */
