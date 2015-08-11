@@ -6426,7 +6426,7 @@ table tr td {
   color: #ffffff;
 }
 body#splash {
-  background-color: #202020;
+  background-color: #ffffff;
 }
 body#splash #content {
   position: absolute;
@@ -6452,7 +6452,7 @@ body#splash #content #logo .rock-logo {
 body#splash #content #content-box {
   margin: 0 auto;
   max-width: 400px;
-  color: #ffffff;
+  color: #202020;
 }
 body#splash #content #content-box legend {
   display: none;
