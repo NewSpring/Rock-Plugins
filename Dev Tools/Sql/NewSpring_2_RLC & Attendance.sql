@@ -2204,7 +2204,7 @@ values
 declare @scopeIndex int, @numItems int
 declare @GroupTypeName nvarchar(255), @GroupName nvarchar(255), @GroupLocation nvarchar(255), @GroupMemberId bigint, @IsBreakoutTag bit,
 	@JobTitle nvarchar(255), @ScheduleName nvarchar(255), @CampusName nvarchar(255), @CampusCode nvarchar(255), @CampusGuid uniqueidentifier,
-	@JobId bigint, @GroupRoleId bigint, @BreakoutGroup nvarchar(255), @CampusAssignmentId bigint
+	@JobId bigint, @GroupRoleId bigint, @BreakoutGroup nvarchar(255), @CampusAssignmentId bigint, @LocationName nvarchar(255)
 
 select @scopeIndex = min(ID) from #rlcMap
 select @numItems = count(1) + @scopeIndex from #rlcMap
@@ -2213,9 +2213,9 @@ while @scopeIndex <= @numItems
 begin
 	
 	select @RLCID = null, @CampusCode = '', @CampusName = '', @GroupTypeName = '', @GroupName = '', @GroupTypeId = null, 
-		@GroupId = null, @CampusId = null, @CampusGuid = null, @LocationId = null, @CampusAssignmentId = null
+		@GroupId = null, @CampusId = null, @CampusGuid = null, @LocationId = null, @CampusAssignmentId = null, @LocationName = null
 
-	select @RLCID = RLC_ID, @CampusCode = Code, @GroupTypeName = GroupType, @GroupName = GroupName
+	select @RLCID = RLC_ID, @CampusCode = Code, @GroupTypeName = GroupType, @GroupName = GroupName, @LocationName = LocationName
 	from #rlcMap where ID = @scopeIndex
 	
 	declare @msg nvarchar(500)
@@ -2235,6 +2235,11 @@ begin
 	where GroupTypeId = @GroupTypeId
 	and Name = @GroupName
 
+	if @LocationName is null
+	begin
+		set @LocationName = @GroupName
+	end
+
 	;with locationChildren as (
 		select l.id, l.parentLocationId, l.name, l.name as 'ParentName'
 		from location l
@@ -2246,7 +2251,7 @@ begin
 		on lc.id = l2.ParentLocationId				
 	)
 	select @LocationId = Id from locationChildren
-	where Name = @GroupName
+	where Name = @LocationName
 	and ParentName = @GroupTypeName
 	
 	if @GroupId is not null
@@ -2256,9 +2261,9 @@ begin
 		-- Create attendances that match this RLC
 		-- Note: Attendance is tied to Person Alias Id
 		/* ====================================================== */
-		insert [Attendance] (LocationId, GroupId, SearchTypeValueId, StartDateTime, 
+		insert [Attendance] (LocationId, ScheduleId, GroupId, SearchTypeValueId, StartDateTime, 
 			DidAttend, Note, [Guid], CreatedDateTime, CampusId, PersonAliasId, RSVP)
-		select @LocationId, @GroupId, @NameSearchValueId, Start_Date_Time, @True,
+		select @LocationId, NULL, @GroupId, @NameSearchValueId, Start_Date_Time, @True,
 			 Tag_Comment, NEWID(), Check_In_Time, @CampusId, p.Id, @False
 		from F1..Attendance a
 		inner join PersonAlias p
@@ -2496,6 +2501,12 @@ begin
 		-- end child items loop
 
 		delete from #assignments
+	end
+	else begin
+		
+		select @msg = 'Could not find Group ID for ' + @GroupName + ' (' + ltrim(str(@RLCID, 25, 0)) + ')'
+		RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
+
 	end
 	-- end groupId not null
 
