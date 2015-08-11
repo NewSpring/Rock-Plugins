@@ -6007,10 +6007,6 @@ table {
   background-color: #f7f7f7;
   border-bottom: 0px;
 }
-.table-hover tbody tr:hover td,
-.table-hover tbody tr:hover th {
-  background-color: #dddddd;
-}
 .panel {
   border-radius: 0;
   border-top-width: 0;
@@ -6126,11 +6122,9 @@ table {
   padding: 5px;
   box-shadow: none;
   color: #202020;
-  background-color: #ffffff;
 }
 .smartsearch .tt-dropdown-menu {
   margin-left: 0px;
-  margin-top: 0px;
 }
 .tt-dropdown-menu .tt-suggestion p {
   text-align: left;
@@ -6282,6 +6276,28 @@ table {
 .constrained {
   max-width: 1000px;
 }
+.soft {
+  padding: 40px 26px;
+}
+.uppercase {
+  text-transform: uppercase;
+}
+.brand-success {
+  color: #6bac43;
+}
+.brand-danger {
+  color: #c64f55;
+}
+table {
+  width: 100%;
+  margin-bottom: 30px;
+}
+table tr {
+  border-bottom: 1px solid #dddddd;
+}
+table tr td {
+  padding: 10px 0;
+}
 .list-entry {
   clear: both;
 }
@@ -6306,28 +6322,6 @@ table {
   width: 100%;
   padding-bottom: 20px;
   margin-bottom: 30px;
-}
-.soft {
-  padding: 40px 26px;
-}
-.uppercase {
-  text-transform: uppercase;
-}
-.brand-success {
-  color: #6bac43;
-}
-.brand-danger {
-  color: #c64f55;
-}
-table {
-  width: 100%;
-  margin-bottom: 30px;
-}
-table tr {
-  border-bottom: 1px solid #dddddd;
-}
-table tr td {
-  padding: 10px 0;
 }
 .card {
   background-color: #ffffff;
@@ -6431,9 +6425,57 @@ table tr td {
 .rock-modal .modal-title {
   color: #ffffff;
 }
+body#splash {
+  background-color: #202020;
+}
+body#splash #content {
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  margin: 0 auto;
+  margin-top: -300px;
+  padding: 15px;
+}
+body#splash #content #logo {
+  width: 100px;
+  height: 100px;
+  display: block;
+  margin: 0 auto 40px;
+}
+body#splash #content #logo svg {
+  width: 100%;
+  height: 100%;
+}
+body#splash #content #logo .rock-logo {
+  fill: #6bac43;
+}
+body#splash #content #content-box {
+  margin: 0 auto;
+  max-width: 400px;
+  color: #ffffff;
+}
+body#splash #content #content-box legend {
+  display: none;
+}
+body#splash.error #content {
+  margin: 12px auto 0;
+  max-width: 800px;
+}
+body#splash.error #content #logo {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto;
+}
+.error-wrap .error-icon.warning {
+  color: #dab751;
+}
 .personprofile {
   margin-top: 0px;
   overflow: hidden;
+}
+.personprofile small {
+  color: #dddddd;
+  opacity: .7;
 }
 .personprofile .personprofilebar-bio {
   position: relative;
@@ -6453,10 +6495,6 @@ table tr td {
   left: 0px;
   background-color: rgba(0, 0, 0, 0.6);
 }
-.personprofile .personprofilebar-bio small {
-  color: #dddddd;
-  opacity: .7;
-}
 .personprofile .personprofilebar-bio .photo {
   position: relative;
   top: 7px;
@@ -6465,12 +6503,6 @@ table tr td {
   padding: 0px;
   border: 0px;
   margin-bottom: 30px;
-}
-.personprofile .personprofilebar-bio .social-icons .icon {
-  float: none;
-}
-.personprofile .personprofilebar-bio .nav li .persondetails-actions {
-  padding-left: 0px;
 }
 .personprofile .personprofilebar-bio .title {
   color: #ffffff;
@@ -6501,10 +6533,7 @@ table tr td {
   color: #ffffff;
 }
 .personprofilebar-family {
-  padding: 60px 45px;
-}
-.personprofilebar-family .member {
-  border: 1px solid #dddddd;
+  padding: 40px 30px;
 }
 .personprofilebar-family .addresses ul li.address {
   margin-bottom: 15px;
@@ -6559,7 +6588,7 @@ body.navbar-side-open #content-wrapper {
   position: absolute;
   top: 50%;
   padding: 0 8px;
-  margin-top: -14px;
+  margin-top: -15px;
   font-size: 20px;
   color: #ffffff;
   cursor: pointer;
@@ -6810,10 +6839,6 @@ body.navbar-side-open .navbar-static-side {
     color: #ffffff;
   }
   .panel {
-    margin-bottom: 20px;
-  }
-  .personprofile .personprofilebar-bio .persondetails-actions {
-    margin-top: 10px;
     margin-bottom: 20px;
   }
 }

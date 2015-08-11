@@ -31,8 +31,8 @@
     <script src="<%# ResolveRockUrl("~/Scripts/jquery-1.10.2.min.js", true) %>"></script>
 
     <!-- Included CSS Files -->
-    <link rel="stylesheet" href="<%# ResolveRockUrl("~/Themes/Rock/Styles/bootstrap.css", true) %>"/>
-	<link rel="stylesheet" href="<%# ResolveRockUrl("~/Themes/Rock/Styles/theme.css", true) %>"/>
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~/Themes/NewSpring/Styles/bootstrap.css", true) %>"/>
+	<link rel="stylesheet" href="<%# ResolveRockUrl("~/Themes/NewSpring/Styles/theme.css", true) %>"/>
 	<link rel="stylesheet" href="<%# ResolveRockUrl("~/Styles/developer.css", true) %>"/>
 
     <script src="<%# ResolveRockUrl("~/Scripts/bootstrap.min.js", true) %>" ></script>

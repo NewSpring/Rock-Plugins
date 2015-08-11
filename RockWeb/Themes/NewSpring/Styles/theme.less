@@ -627,35 +627,6 @@ table {
     max-width: 1000px;
 }
 
-.list-entry {
-    clear: both;
-
-    img {
-        max-width: 350px;
-        width: 100%;
-        /*float: left;*/
-        margin: 15px 30px 30px 0;
-    }
-
-    h3, h4 {
-        margin-bottom: 15px;
-    }
-
-    .link--arrow {
-        margin-bottom: 0;
-    }
-
-    &:after {
-        content: '';
-        clear: both;
-        float: left;
-        border-bottom: 1px solid @light-tertiary;
-        width: 100%;
-        padding-bottom: 20px;
-        margin-bottom: 30px;
-    }
-}
-
 .soft {
     padding: 40px 26px;
 }
@@ -687,6 +658,35 @@ table {
     }
 }
 
+.list-entry {
+    clear: both;
+
+    img {
+        max-width: 350px;
+        width: 100%;
+        /*float: left;*/
+        margin: 15px 30px 30px 0;
+    }
+
+    h3, h4 {
+        margin-bottom: 15px;
+    }
+
+    .link--arrow {
+        margin-bottom: 0;
+    }
+
+    &:after {
+        content: '';
+        clear: both;
+        float: left;
+        border-bottom: 1px solid @light-tertiary;
+        width: 100%;
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+    }
+}
+
 .card {
     background-color: @light-primary;
     border: 1px solid @light-tertiary;
@@ -706,83 +706,12 @@ table {
     }
 }
 
-// Notifications
-// .navbar-top-links {
-//   float: left;
-//   margin-left: 12px;
-//   color: @text-color;
-// }
-// .navbar-top-links > li {
-//   display: inline-block;
-// }
-// .navbar-top-links > li > a {
-//   padding: 15px;
-//   color: @navbar-default-link-color;
-//   &:hover, &:focus {
-//     color: @accent-bold-text-color;
-//     background-color: lighten(@accent-bold-color, 5%);
-//     @media @sm {
-//       color: @navbar-default-link-hover-color;
-//       background-color: darken(@header-bg, 5%);
-//     }
-//   }
-// }
-
-// .navbar-top-links > li.open > a {
-//   &, &:hover, &:focus {
-//     background-color: lighten(@accent-bold-color, 5%);
-//     @media @sm {
-//       background-color: darken(@header-bg, 10%);
-//     }
-//   }
-// }
-
-// .navbar-top-links ul .divider {
-//   background-color: @gray-light!important;
-// }
-
-// .navbar-top-links .dropdown-menu {
-//   width: 310px;
-//   padding: 10px 0;
-// }
-
-// .navbar-top-links .dropdown-messages .media {
-//   padding: 3px 15px;
-// }
-
-// .count-info .label {
-//   line-height: 12px;
-//   padding: 2px 4px;
-//   position: absolute;
-//   right: 3px;
-//   top: 6px;
-// }
-
-// a.link-block,
-// .link-block > a {
-//   display: block;
-//   padding: @grid-gutter-width/4;
-// }
-
-// #page-wrapper {
-//   width: 100%;
-//   //overflow: hidden;
-// }
-
-// .navbar {
-//   min-height: 0px;
-// }
-
 #content-wrapper {
     background-color: @body-bg;
     overflow-y: auto;
 
     .container {
         max-width: 1400px;
-
-        // p, a:not(.btn), li {
-        //     font-size: @font-size-base*1.2;
-        // }
     }
 
     .table {
@@ -897,49 +826,63 @@ table {
 //   }
 // }
 
-// body#splash {
-//   background-color: @accent-color;
-//   border-top: 36px solid @accent-bold-color;
+// Splash Screen
 
-//   #content {
-//     max-width: 400px;
-//     margin: 24px auto 0;
-//     padding: 15px;
+body#splash {
+  background-color: @dark-primary;
 
-//     #logo {
-//       width: 100px;
-//       height: 100px;
-//       display: block;
-//       margin: 0 auto;
+  #content {
+    position: absolute;
+    top: 50%;
+    width: 100%;
+    margin: 0 auto;
+    margin-top: -300px;
+    padding: 15px;
 
-//       svg {
-//         width: 100%;
-//         height: 100%;
-//       }
+    #logo {
+        width: 100px;
+        height: 100px;
+        display: block;
+        margin: 0 auto 40px;
 
-//       .rock-logo {
-//         fill: darken(@accent-color, 5%);
-//       }
-//     }
-//   }
+        svg {
+            width: 100%;
+            height: 100%;
+        }
 
-//   &.error #content {
-//     margin: 12px auto 0;
-//     max-width: 800px;
+        .rock-logo {
+            fill: @green-primary;
+        }
+    }
 
-//     #logo {
-//       width: 100px;
-//       height: 100px;
-//       margin: 0 auto;
-//     }
-//   }
-// }
+    #content-box {
+        margin: 0 auto;
+        max-width: 400px;
+        color: @light-primary;
 
-// .error-wrap .error-icon {
-//   &.warning {
-//     color: #dab751;
-//   }
-// }
+        legend {
+            display: none;
+        }
+    }
+  }
+
+  &.error #content {
+    margin: 12px auto 0;
+    max-width: 800px;
+
+    #logo {
+      width: 100px;
+      height: 100px;
+      margin: 0 auto;
+    }
+  }
+}
+
+.error-wrap .error-icon {
+  &.warning {
+    color: #dab751;
+  }
+}
 
 // Person Profile
 
