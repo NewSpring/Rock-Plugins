@@ -6122,9 +6122,13 @@ table {
   padding: 5px;
   box-shadow: none;
   color: #202020;
+  background-color: #ffffff;
 }
 .smartsearch .tt-dropdown-menu {
   margin-left: 0px;
+  margin-top: 0px;
+  border: 1px solid #dddddd;
+  border-top: 0px;
 }
 .tt-dropdown-menu .tt-suggestion p {
   text-align: left;
@@ -6259,6 +6263,11 @@ table {
 }
 .list-as-blocks ul li:last-child a {
   margin-bottom: 0px;
+}
+.panel-note article {
+  background-color: #f7f7f7;
+  border-color: #dddddd;
+  color: #202020;
 }
 /*#endregion */
 /*#region
@@ -6477,7 +6486,7 @@ body#splash.error #content #logo {
   color: #dddddd;
   opacity: .7;
 }
-.personprofile .personprofilebar-bio {
+.personprofilebar-bio {
   position: relative;
   background-image: url('../Assets/Images/newlook.mark.jpg');
   background-size: cover;
@@ -6486,7 +6495,7 @@ body#splash.error #content #logo {
   font-weight: 500;
   padding: 60px;
 }
-.personprofile .personprofilebar-bio:before {
+.personprofilebar-bio:before {
   content: '';
   position: absolute;
   top: 0px;
@@ -6495,7 +6504,7 @@ body#splash.error #content #logo {
   left: 0px;
   background-color: rgba(0, 0, 0, 0.6);
 }
-.personprofile .personprofilebar-bio .photo {
+.personprofilebar-bio .photo {
   position: relative;
   top: 7px;
   width: 95%;
@@ -6504,33 +6513,37 @@ body#splash.error #content #logo {
   border: 0px;
   margin-bottom: 30px;
 }
-.personprofile .personprofilebar-bio .title {
+.personprofilebar-bio .title {
   color: #ffffff;
   margin-bottom: 15px;
 }
-.personprofile .personprofilebar-bio .label {
+.personprofilebar-bio .label {
   font-size: 16px;
 }
-.personprofile .personprofilebar-bio .label-campus {
+.personprofilebar-bio .label-campus {
   background-color: #6bac43;
 }
-.personprofile .personprofilebar-bio .summary {
+.personprofilebar-bio .summary {
   margin-top: 10px;
 }
-.personprofile .personprofilebar-bio p,
-.personprofile .personprofilebar-bio a,
-.personprofile .personprofilebar-bio li {
+.personprofilebar-bio p,
+.personprofilebar-bio a,
+.personprofilebar-bio li {
   color: #ffffff;
 }
-.personprofile .personprofilebar-bio .dropdown {
+.personprofilebar-bio .dropdown {
   width: auto;
   display: inline-block;
 }
-.personprofile .personprofilebar-bio .dropdown-menu a {
+.personprofilebar-bio .dropdown-menu a {
   color: #202020;
 }
-.personprofile .personprofilebar-bio .dropdown-menu a:hover {
+.personprofilebar-bio .dropdown-menu a:hover {
   color: #ffffff;
+}
+.personprofilebar-badge {
+  background-color: #dddddd;
+  border-color: #dddddd;
 }
 .personprofilebar-family {
   padding: 40px 30px;

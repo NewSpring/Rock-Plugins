@@ -380,9 +380,13 @@ table {
     padding: 5px;
     box-shadow: none;
     color: @dark-primary;
+    background-color: @light-primary;
 
     .smartsearch & {
         margin-left: 0px;
+        margin-top: 0px;
+        border: 1px solid @light-tertiary;
+        border-top: 0px;
     }
 
     .tt-suggestion {
@@ -574,13 +578,13 @@ table {
 // }
 
 // personal notes styling
-// .panel-note {
-//   article.personal {
-//     background-color: @accent-blue;
-//     border-color: darken(@accent-blue, 5%);
-//     color: #fff;
-//   }
-// }
+.panel-note {
+  article {
+    background-color: @light-secondary;
+    border-color: @light-tertiary;
+    color: @dark-primary;
+  }
+}
 
 // duplicate person
 // .grid-table tbody tr.duplicate-source td,
@@ -812,20 +816,6 @@ table {
     }
 }
 
-// .not-found h2 {
-//   font-size: 200px;
-//   font-weight: @font-weight-bold;
-//   letter-spacing: -5px;
-//   line-height: 210px;
-
-//   i {
-//     color: #F03;
-//     font-size: 210px;
-//     position: relative;
-//     top: -12px;
-//   }
-// }
-
 // Splash Screen
 
 body#splash {
@@ -896,7 +886,7 @@ body#splash {
     opacity: .7;
 }
 
-.personprofile .personprofilebar-bio {
+.personprofilebar-bio {
     position: relative;
     background-image: url('../Assets/Images/newlook.mark.jpg');
     background-size: cover;
@@ -958,6 +948,11 @@ body#splash {
             color: @light-primary;
         }
     }
+}
+
+.personprofilebar-badge {
+    background-color: @light-tertiary;
+    border-color: @light-tertiary;
 }
 
 .personprofilebar-family {
