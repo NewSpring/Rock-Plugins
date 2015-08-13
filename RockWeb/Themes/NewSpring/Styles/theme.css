@@ -4948,6 +4948,50 @@ ul.list-group-panel .list-group-item:first-child,
     overflow: hidden;
   }
 }
+@media (max-width: 767px) {
+  .xs-text-center {
+    text-align: center;
+  }
+  .xs-text-left {
+    text-align: left;
+  }
+  .xs-text-right {
+    text-align: right;
+  }
+}
+@media (min-width: 768px) {
+  .sm-text-center {
+    text-align: center;
+  }
+  .sm-text-left {
+    text-align: left;
+  }
+  .sm-text-right {
+    text-align: right;
+  }
+}
+@media (min-width: 992px) {
+  .md-text-center {
+    text-align: center;
+  }
+  .md-text-left {
+    text-align: left;
+  }
+  .md-text-right {
+    text-align: right;
+  }
+}
+@media (min-width: 1200px) {
+  .lg-text-center {
+    text-align: center;
+  }
+  .lg-text-left {
+    text-align: left;
+  }
+  .lg-text-right {
+    text-align: right;
+  }
+}
 .cke_dialog_contents {
   background-color: #f3f3f4 !important;
 }
@@ -6084,12 +6128,6 @@ table {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.panel-heading .btn-group {
-  position: absolute;
-  top: 50%;
-  margin-top: -14px;
-  right: 10px;
-}
 .btn-success:hover,
 .btn-success:focus,
 .btn-success:active,
@@ -6232,22 +6270,28 @@ table {
   border: 0px;
 }
 .list-as-blocks ul li a {
-  background-color: #f2f2f2;
+  background-color: #f7f7f7;
   color: #555555;
   margin-bottom: 15px;
   padding: 30px 0;
   height: auto;
   border-radius: 4px;
+  transition: none;
 }
 .list-as-blocks ul li a:focus {
   text-decoration: none;
 }
-.list-as-blocks ul li a:hover {
-  background-color: #6bac43;
-  color: #ffffff;
+.list-as-blocks ul li a h3,
+.list-as-blocks ul li a i {
+  color: #555555;
 }
-.list-as-blocks ul li a:hover h3 {
-  color: #ffffff;
+.list-as-blocks ul li a:hover {
+  background-color: #dddddd;
+  color: #202020;
+}
+.list-as-blocks ul li a:hover h3,
+.list-as-blocks ul li a:hover i {
+  color: #202020;
 }
 .list-as-blocks ul li a i {
   font-size: 30px;
@@ -6260,6 +6304,26 @@ table {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.list-as-blocks ul li a div.notification {
+  top: 0px;
+  right: 15px;
+}
+.list-as-blocks ul li a div.notification .label {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  padding: 6px 8px 5px;
+  border-radius: 0px;
+  border-top-right-radius: 3px;
+  border-bottom-left-radius: 5px;
+}
+.list-as-blocks ul li.active a {
+  background-color: #202020;
+}
+.list-as-blocks ul li.active a h3,
+.list-as-blocks ul li.active a i {
+  color: #ffffff;
 }
 .list-as-blocks ul li:last-child a {
   margin-bottom: 0px;

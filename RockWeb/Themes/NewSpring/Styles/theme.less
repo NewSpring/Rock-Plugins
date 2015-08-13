@@ -301,14 +301,14 @@ table {
     text-overflow: ellipsis;
 }
 
-.btn-group {
-    .panel-heading & {
-        position: absolute;
-        top: 50%;
-        margin-top: -14px;
-        right: 10px;
-    }
-}
+// .btn-group {
+//     .panel-heading & {
+//         position: absolute;
+//         top: 50%;
+//         margin-top: -14px;
+//         right: 10px;
+//     }
+// }
 
 .btn-success:hover,
 .btn-success:focus,
@@ -528,23 +528,28 @@ table {
             border: 0px;
 
             a {
-                background-color: darken(@light-secondary, 2);
+                background-color: @light-secondary;
                 color: @dark-secondary;
                 margin-bottom: 15px;
                 padding: 30px 0;
                 height: auto;
                 border-radius: @border-radius-base;
+                transition: none;
 
                 &:focus {
                     text-decoration: none;
                 }
 
-                &:hover {
-                    background-color: @green-primary;
-                    color: @light-primary;
+                h3, i {
+                    color: @dark-secondary;
+                }
 
-                    h3 {
-                        color: @light-primary;
+                &:hover {
+                    background-color: @light-tertiary;
+                    color: @dark-primary;
+
+                    h3, i {
+                        color: @dark-primary;
                     }
                 }
 
@@ -560,6 +565,31 @@ table {
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
+                }
+
+                div.notification {
+                    top: 0px;
+                    right: 15px;
+
+                    .label {
+                        position: absolute;
+                        top: 0px;
+                        right: 0px;
+                        padding: 6px 8px 5px;
+                        border-radius: 0px;
+                        border-top-right-radius: 3px;
+                        border-bottom-left-radius: 5px;
+                    }
+                }
+            }
+
+            &.active {
+                a {
+                    background-color: @dark-primary;
+
+                    h3, i {
+                        color: @light-primary;
+                    }
                 }
             }
 
