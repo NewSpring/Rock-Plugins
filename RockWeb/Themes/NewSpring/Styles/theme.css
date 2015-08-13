@@ -6081,11 +6081,11 @@ table {
 .panel.panel-chart .panel-body {
   padding: 30px;
 }
-.panel .panel-labels {
-  position: absolute;
-  top: 50%;
-  margin-top: -13px;
-  right: 13px;
+.panel.panel-widget .panel-heading {
+  background-color: #efefef;
+}
+.panel.panel-workflowitem .panel-heading i:not(.panel-navigation) {
+  top: 3px;
 }
 .panel .panel-labels .label {
   font-size: 14.4px;
@@ -6094,11 +6094,17 @@ table {
 .panel .panel-labels .label-type {
   background-color: #6bac43;
 }
-.panel.panel-widget .panel-heading {
-  background-color: #efefef;
+.panel .panel-follow-status:before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -11px;
+  margin-left: -7.5px;
 }
-.panel.panel-workflowitem .panel-heading i:not(.panel-navigation) {
-  top: 3px;
+.panel .panel-follow-status.following {
+  background-color: #dddddd;
+  border-color: #d0d0d0;
+  color: #aaaaaa;
 }
 .panel-dashboard {
   background-color: #ffffff;
