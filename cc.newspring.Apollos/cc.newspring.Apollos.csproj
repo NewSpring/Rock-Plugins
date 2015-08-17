@@ -80,6 +80,7 @@
     <Compile Include="Migrations\001_SetupWorkflowsAndTriggers.cs" />
     <Compile Include="Models\GiveParameters.cs" />
     <Compile Include="Models\ApollosUserLogin.cs" />
+    <Compile Include="Models\ScheduleParamaters.cs" />
     <Compile Include="Rest\Controllers\ApollosUserLoginsController.cs" />
     <Compile Include="Rest\Controllers\GiveController.cs" />
     <Compile Include="Utilities\NewtonsoftJsonSerializer.cs" />
