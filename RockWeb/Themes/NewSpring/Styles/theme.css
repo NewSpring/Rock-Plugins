@@ -6674,7 +6674,7 @@ body {
   font-size: 20px;
   color: #ffffff;
   cursor: pointer;
-  opacity: 0;
+  display: none;
 }
 .navbar-static-top .navbar-zone-header {
   text-align: right;
@@ -6735,6 +6735,7 @@ body {
   width: 260px;
   padding-bottom: 80px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .navbar-static-side .home {
   position: relative;
@@ -6875,7 +6876,8 @@ body {
     padding: 0px;
   }
   .navbar-static-top .nav-trigger {
-    opacity: 1;
+    margin-top: -13px;
+    display: block;
   }
   #content-wrapper {
     left: 0;
@@ -6891,7 +6893,8 @@ body {
     padding: 0 15px;
   }
   .navbar-static-top #zone-header {
-    width: 65%;
+    width: auto;
+    max-width: 185px;
   }
   .navbar-static-top #zone-header .smartsearch input.searchinput {
     padding-left: 28px;
