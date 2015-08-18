@@ -23,25 +23,89 @@ namespace cc.newspring.Apollos.Rest.Controllers
         /// <returns></returns>
         [Authenticate, Secured]
         [HttpPost]
+        [System.Web.Http.Route( "api/ScheduleGiving/Stop/{id}" )]
+        public HttpResponseMessage StopScheduledGiving( int id )
+        {
+            var rockContext = new RockContext();
+            var gatewayComponent = GatewayContainer.GetComponent( gatewayName );
+
+            if ( gatewayComponent == null )
+            {
+                return GenerateResponse( HttpStatusCode.InternalServerError, "There was a problem creating the gateway component" );
+            }
+
+            var financialGateway = new FinancialGatewayService( rockContext ).Queryable().FirstOrDefault( g => g.EntityTypeId == gatewayComponent.EntityType.Id );
+
+            if ( financialGateway == null )
+            {
+                return GenerateResponse( HttpStatusCode.InternalServerError, "There was a problem creating the financial gateway" );
+            }
+
+            var schedule = ( new FinancialScheduledTransactionService( rockContext ) ).Get( id );
+
+            if ( schedule == null )
+            {
+                return GenerateResponse( HttpStatusCode.BadRequest, "No schedule with Id: " + id );
+            }
+
+            string errorMessage;
+            var error = gatewayComponent.CancelScheduledPayment(schedule, out errorMessage);
+
+            if ( error || errorMessage != null )
+            {
+                return GenerateResponse( HttpStatusCode.InternalServerError, errorMessage ?? "There was an error with the gateway" );
+            }
+
+            schedule.IsActive = false;
+            rockContext.SaveChanges();
+            return GenerateResponse( HttpStatusCode.BadRequest, "Stopping " + id );  
+        }
+
+        /// <summary>
+        /// Schedules the giving.
+        /// </summary>
+        /// <returns></returns>
+        [Authenticate, Secured]
+        [HttpPost]
         [System.Web.Http.Route( "api/ScheduleGiving" )]
         public HttpResponseMessage ScheduleGiving( [FromBody]ScheduleParameters scheduleParameters )
         {
+            var errorResponse = ValidateGiveParams( scheduleParameters );
+
+            if ( errorResponse != null )
+            {
+                return errorResponse;
+            }
+
             var rockContext = new RockContext();
 
-            if ( scheduleParameters.StartDate == null )
+            if ( !scheduleParameters.StartDate.HasValue )
             {
-                return GenerateResponse( HttpStatusCode.BadRequest, "Schedule must contain a valid StartDate" );
+                return GenerateResponse( HttpStatusCode.BadRequest, "Schedule must contain a StartDate" );
+            }
+
+            var timeSpan = DateTime.Now - scheduleParameters.StartDate.Value;
+
+            if ( timeSpan > TimeSpan.FromDays(0) )
+            {
+                return GenerateResponse( HttpStatusCode.BadRequest, "Schedule must contain a StartDate that occurs in the future" );
             }
 
             var paymentSchedule = new PaymentSchedule();
-            paymentSchedule.StartDate = scheduleParameters.StartDate;
 
-            if ( scheduleParameters.FrequencyValueGuid == null )
+            paymentSchedule.StartDate = scheduleParameters.StartDate.Value;
+
+            if ( !scheduleParameters.FrequencyValueGuid.HasValue )
+            {
+                return GenerateResponse( HttpStatusCode.BadRequest, "Schedule must contain a FrequencyValueGuid" );
+            }
+
+            paymentSchedule.TransactionFrequencyValue = DefinedValueCache.Read( scheduleParameters.FrequencyValueGuid.Value );
+
+            if ( paymentSchedule.TransactionFrequencyValue == null )
             {
                 return GenerateResponse( HttpStatusCode.BadRequest, "Schedule must contain a valid FrequencyValueGuid" );
             }
-
-            paymentSchedule.TransactionFrequencyValue = DefinedValueCache.Read( scheduleParameters.FrequencyValueGuid );
 
             var gatewayComponent = GatewayContainer.GetComponent( gatewayName );
 
@@ -57,7 +121,6 @@ namespace cc.newspring.Apollos.Rest.Controllers
                 return GenerateResponse( HttpStatusCode.InternalServerError, "There was a problem creating the financial gateway" );
             }
 
-            HttpResponseMessage errorResponse;
             var person = GetGiverPerson( scheduleParameters, rockContext, out errorResponse );
 
             if ( errorResponse != null )
@@ -103,6 +166,33 @@ namespace cc.newspring.Apollos.Rest.Controllers
                 return GenerateResponse( HttpStatusCode.InternalServerError, errorMessage ?? "The gateway had a problem and/or did not create a transaction as expected" );
             }
 
+            schedule.TransactionFrequencyValueId = paymentSchedule.TransactionFrequencyValue.Id;
+
+            if ( person.PrimaryAliasId.HasValue )
+            {
+                schedule.AuthorizedPersonAliasId = person.PrimaryAliasId.Value;
+            }
+
+            schedule.FinancialPaymentDetail = new FinancialPaymentDetail {
+                CurrencyTypeValueId = paymentInfo.CurrencyTypeValue.Id
+            };
+
+            if ( paymentInfo.CreditCardTypeValue != null )
+            {
+                schedule.FinancialPaymentDetail.CreditCardTypeValueId = paymentInfo.CreditCardTypeValue.Id;
+            }
+
+            foreach ( var accountAmount in scheduleParameters.AmountDetails )
+            {
+                schedule.ScheduledTransactionDetails.Add( new FinancialScheduledTransactionDetail()
+                {
+                    Amount = accountAmount.Amount,
+                    AccountId = accountAmount.TargetAccountId
+                } );
+            }
+
+            new FinancialScheduledTransactionService( rockContext ).Add( schedule );
+            rockContext.SaveChanges();
             return GenerateResponse( HttpStatusCode.NoContent );
         }
 
@@ -116,101 +206,15 @@ namespace cc.newspring.Apollos.Rest.Controllers
         [System.Web.Http.Route( "api/Give" )]
         public HttpResponseMessage Give( [FromBody]GiveParameters giveParameters )
         {
-            // Non-required fields should be empty strings to prevent null reference exceptions in the gateway
-            giveParameters.PhoneNumber = giveParameters.PhoneNumber ?? string.Empty;
+            var errorResponse = ValidateGiveParams( giveParameters );
 
-            // Validate required fields for all cases
-            if ( string.IsNullOrWhiteSpace( giveParameters.Email ) )
+            if ( errorResponse != null )
             {
-                return GenerateResponse( HttpStatusCode.BadRequest, "Email is required" );
-            }
-
-            if ( string.IsNullOrWhiteSpace( giveParameters.FirstName ) || string.IsNullOrWhiteSpace( giveParameters.LastName ) )
-            {
-                return GenerateResponse( HttpStatusCode.BadRequest, "FirstName and LastName are required" );
-            }
-
-            if ( giveParameters.State != null && giveParameters.State.Length != 2 )
-            {
-                return GenerateResponse( HttpStatusCode.BadRequest, "State must be a 2 letter string" );
-            }
-
-            if ( giveParameters.SourceAccountId.HasValue )
-            {
-                // Validate saved account case
-                if ( !giveParameters.PersonId.HasValue )
-                {
-                    return GenerateResponse( HttpStatusCode.BadRequest, "PersonId is required to use an existing account (SourceAccountId)" );
-                }
-            }
-            else
-            {
-                // No existing account case
-                if ( string.IsNullOrWhiteSpace( giveParameters.AccountNumber ) && !giveParameters.SourceAccountId.HasValue )
-                {
-                    return GenerateResponse( HttpStatusCode.BadRequest, "AccountNumber is required" );
-                }
-
-                if ( string.IsNullOrWhiteSpace( giveParameters.AccountType ) && !giveParameters.SourceAccountId.HasValue )
-                {
-                    return GenerateResponse( HttpStatusCode.BadRequest, "AccountType is required and must be one of checking, savings, or credit" );
-                }
-
-                switch ( giveParameters.AccountType.ToLower() )
-                {
-                    case "checking":
-                    case "savings":
-                        if ( string.IsNullOrWhiteSpace( giveParameters.RoutingNumber ) )
-                        {
-                            return GenerateResponse( HttpStatusCode.BadRequest, "RoutingNumber is required for ACH transactions" );
-                        }
-                        break;
-
-                    case "credit":
-                        // Non-required fields should be empty strings to prevent null reference exceptions in the gateway
-                        giveParameters.CCV = giveParameters.CCV ?? string.Empty;
-
-                        if ( giveParameters.ExpirationMonth < 1 || giveParameters.ExpirationMonth > 12 )
-                        {
-                            return GenerateResponse( HttpStatusCode.BadRequest, "ExpirationMonth is required and must be between 1 and 12 for credit transactions" );
-                        }
-
-                        var currentDate = DateTime.Now;
-                        var maxYear = currentDate.Year + 30;
-
-                        if ( giveParameters.ExpirationYear < currentDate.Year || giveParameters.ExpirationYear > maxYear )
-                        {
-                            return GenerateResponse( HttpStatusCode.BadRequest, string.Format( "ExpirationYear is required and must be between {0} and {1} for credit transactions", currentDate.Year, maxYear ) );
-                        }
-
-                        if ( giveParameters.ExpirationYear <= currentDate.Year && giveParameters.ExpirationMonth < currentDate.Month )
-                        {
-                            return GenerateResponse( HttpStatusCode.BadRequest, "The ExpirationMonth and ExpirationYear combination must not have already elapsed for credit transactions" );
-                        }
-
-                        if ( string.IsNullOrWhiteSpace( giveParameters.Street1 ) ||
-                            string.IsNullOrWhiteSpace( giveParameters.City ) ||
-                            string.IsNullOrWhiteSpace( giveParameters.State ) ||
-                            string.IsNullOrWhiteSpace( giveParameters.PostalCode ) )
-                        {
-                            return GenerateResponse( HttpStatusCode.BadRequest, "Street1, City, State, and PostalCode are required for credit transactions" );
-                        }
-
-                        break;
-
-                    default:
-                        return GenerateResponse( HttpStatusCode.BadRequest, "AccountType is required and must be one of checking, savings, or credit" );
-                }
-            }
-
-            if ( giveParameters.AmountDetails == null || giveParameters.AmountDetails.Length == 0 )
-            {
-                return GenerateResponse( HttpStatusCode.BadRequest, "AmountDetails are required and the sum of them must be greater than or equal to 1" );
+                return errorResponse;
             }
 
             var rockContext = new RockContext();
             decimal? totalAmount = 0m;
-            HttpResponseMessage errorResponse;
 
             totalAmount = CalculateTotalAmount(giveParameters, rockContext, out errorResponse);
 
@@ -275,11 +279,15 @@ namespace cc.newspring.Apollos.Rest.Controllers
             transaction.AuthorizedPersonAlias = person.PrimaryAlias;
             transaction.FinancialGatewayId = financialGateway.Id;
             transaction.TransactionTypeValueId = DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.TRANSACTION_TYPE_CONTRIBUTION ) ).Id;
-            transaction.CurrencyTypeValueId = paymentInfo.CurrencyTypeValue.Id;
+
+            transaction.FinancialPaymentDetail = new FinancialPaymentDetail {
+                CurrencyTypeValueId = paymentInfo.CurrencyTypeValue.Id
+            };
+            var detail = transaction.FinancialPaymentDetail;
 
             if ( paymentInfo.CreditCardTypeValue != null )
             {
-                transaction.CreditCardTypeValueId = paymentInfo.CreditCardTypeValue.Id;
+                detail.CreditCardTypeValueId = paymentInfo.CreditCardTypeValue.Id;
             }
 
             foreach ( var accountAmount in giveParameters.AmountDetails )
@@ -292,6 +300,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
             }
 
             new FinancialTransactionService( rockContext ).Add( transaction );
+            rockContext.SaveChanges();
 
             if ( !giveParameters.SourceAccountId.HasValue )
             {
@@ -307,20 +316,19 @@ namespace cc.newspring.Apollos.Rest.Controllers
                     // Check for an account belonging to this person with the same mask that already has a reference
                     var savedAccount = savedAccountService.Queryable().Where( a =>
                         a.PersonAliasId == person.PrimaryAliasId.Value &&
-                        a.MaskedAccountNumber == maskedAccountNumber &&
+                        a.FinancialPaymentDetail.AccountNumberMasked == maskedAccountNumber &&
                         a.ReferenceNumber != null ).FirstOrDefault();
 
                     // If that account does not exist, save this account for future giving ease
                     if ( savedAccount == null )
                     {
                         savedAccount = new FinancialPersonSavedAccount();
+                        savedAccount.FinancialPaymentDetailId = transaction.FinancialPaymentDetailId;
                         savedAccount.PersonAliasId = person.PrimaryAliasId;
-                        savedAccount.MaskedAccountNumber = maskedAccountNumber;
                         savedAccount.TransactionCode = transaction.TransactionCode;
                         savedAccount.FinancialGatewayId = financialGateway.Id;
-                        savedAccount.CurrencyTypeValueId = transaction.CurrencyTypeValueId;
-                        savedAccount.CreditCardTypeValueId = transaction.CreditCardTypeValueId;
                         savedAccount.ReferenceNumber = newReferenceNumber;
+                        transaction.FinancialPaymentDetail.AccountNumberMasked = maskedAccountNumber;                        
 
                         if ( paymentInfo.CreditCardTypeValue != null )
                         {
@@ -599,6 +607,103 @@ namespace cc.newspring.Apollos.Rest.Controllers
             }
 
             return totalAmount;
+        }
+
+        private HttpResponseMessage ValidateGiveParams(GiveParameters giveParameters)
+        {
+            // Non-required fields should be empty strings to prevent null reference exceptions in the gateway
+            giveParameters.PhoneNumber = giveParameters.PhoneNumber ?? string.Empty;
+
+            // Validate required fields for all cases
+            if ( string.IsNullOrWhiteSpace( giveParameters.Email ) )
+            {
+                return GenerateResponse( HttpStatusCode.BadRequest, "Email is required" );
+            }
+
+            if ( string.IsNullOrWhiteSpace( giveParameters.FirstName ) || string.IsNullOrWhiteSpace( giveParameters.LastName ) )
+            {
+                return GenerateResponse( HttpStatusCode.BadRequest, "FirstName and LastName are required" );
+            }
+
+            if ( giveParameters.State != null && giveParameters.State.Length != 2 )
+            {
+                return GenerateResponse( HttpStatusCode.BadRequest, "State must be a 2 letter string" );
+            }
+
+            if ( giveParameters.SourceAccountId.HasValue )
+            {
+                // Validate saved account case
+                if ( !giveParameters.PersonId.HasValue )
+                {
+                    return GenerateResponse( HttpStatusCode.BadRequest, "PersonId is required to use an existing account (SourceAccountId)" );
+                }
+            }
+            else
+            {
+                // No existing account case
+                if ( string.IsNullOrWhiteSpace( giveParameters.AccountNumber ) && !giveParameters.SourceAccountId.HasValue )
+                {
+                    return GenerateResponse( HttpStatusCode.BadRequest, "AccountNumber is required" );
+                }
+
+                if ( string.IsNullOrWhiteSpace( giveParameters.AccountType ) && !giveParameters.SourceAccountId.HasValue )
+                {
+                    return GenerateResponse( HttpStatusCode.BadRequest, "AccountType is required and must be one of checking, savings, or credit" );
+                }
+
+                switch ( giveParameters.AccountType.ToLower() )
+                {
+                    case "checking":
+                    case "savings":
+                        if ( string.IsNullOrWhiteSpace( giveParameters.RoutingNumber ) )
+                        {
+                            return GenerateResponse( HttpStatusCode.BadRequest, "RoutingNumber is required for ACH transactions" );
+                        }
+                        break;
+
+                    case "credit":
+                        // Non-required fields should be empty strings to prevent null reference exceptions in the gateway
+                        giveParameters.CCV = giveParameters.CCV ?? string.Empty;
+
+                        if ( giveParameters.ExpirationMonth < 1 || giveParameters.ExpirationMonth > 12 )
+                        {
+                            return GenerateResponse( HttpStatusCode.BadRequest, "ExpirationMonth is required and must be between 1 and 12 for credit transactions" );
+                        }
+
+                        var currentDate = DateTime.Now;
+                        var maxYear = currentDate.Year + 30;
+
+                        if ( giveParameters.ExpirationYear < currentDate.Year || giveParameters.ExpirationYear > maxYear )
+                        {
+                            return GenerateResponse( HttpStatusCode.BadRequest, string.Format( "ExpirationYear is required and must be between {0} and {1} for credit transactions", currentDate.Year, maxYear ) );
+                        }
+
+                        if ( giveParameters.ExpirationYear <= currentDate.Year && giveParameters.ExpirationMonth < currentDate.Month )
+                        {
+                            return GenerateResponse( HttpStatusCode.BadRequest, "The ExpirationMonth and ExpirationYear combination must not have already elapsed for credit transactions" );
+                        }
+
+                        if ( string.IsNullOrWhiteSpace( giveParameters.Street1 ) ||
+                            string.IsNullOrWhiteSpace( giveParameters.City ) ||
+                            string.IsNullOrWhiteSpace( giveParameters.State ) ||
+                            string.IsNullOrWhiteSpace( giveParameters.PostalCode ) )
+                        {
+                            return GenerateResponse( HttpStatusCode.BadRequest, "Street1, City, State, and PostalCode are required for credit transactions" );
+                        }
+
+                        break;
+
+                    default:
+                        return GenerateResponse( HttpStatusCode.BadRequest, "AccountType is required and must be one of checking, savings, or credit" );
+                }
+            }
+
+            if ( giveParameters.AmountDetails == null || giveParameters.AmountDetails.Length == 0 )
+            {
+                return GenerateResponse( HttpStatusCode.BadRequest, "AmountDetails are required and the sum of them must be greater than or equal to 1" );
+            }
+
+            return null;
         }
     }
 }

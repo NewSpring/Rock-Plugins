@@ -5,8 +5,8 @@ namespace cc.newspring.Apollos
 {
     public class ScheduleParameters : GiveParameters
     {
-        public DateTime StartDate { get; set; }
+        public DateTime? StartDate { get; set; }
 
-        public Guid FrequencyValueGuid { get; set; }
+        public Guid? FrequencyValueGuid { get; set; }
     }
 }

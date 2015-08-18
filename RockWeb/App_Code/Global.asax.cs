@@ -439,6 +439,7 @@ namespace RockWeb
                     
                     // NOTE: we need to specify the last migration vs null so it won't detect/complain about pending changes
                     migrator.Update( lastMigration );
+                    //migrator.
                     result = true;
                 }
 
@@ -491,6 +492,12 @@ namespace RockWeb
                             if ( !assemblies.ContainsKey( assemblyName ) )
                             {
                                 assemblies.Add( assemblyName, new Dictionary<int, Type>() );
+                            }
+
+                            // Check to make sure no another migration has same number
+                            if ( assemblies[assemblyName].ContainsKey( migrationNumberAttr.Number ) )
+                            {
+                                throw new Exception( string.Format( "The '{0}' plugin assembly contains duplicate migration numbers ({1}).", assemblyName, migrationNumberAttr.Number ) );
                             }
                             assemblies[assemblyName].Add( migrationNumberAttr.Number, migrationType );
                         }
