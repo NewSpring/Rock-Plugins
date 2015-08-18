@@ -83,7 +83,7 @@
                         <div class="logo"></div>
                     </asp:HyperLink>
                 </div> -->
-                <a href="/" class="home">Home</a>
+                <a href="/" class="home"><p>Home</p></a>
 
                 <Rock:Zone Name="Navigation" runat="server" />
             </nav>
@@ -160,21 +160,21 @@
         }
     });
 
-    $("body").on("click", "#content-wrapper", function (event) {
+    $("body").on("click", "#page-content", function (event) {
         $('.navbar-side li').removeClass('open');
+        $('body').removeClass('navbar-side-open');
     });
 
-    // Show/hide sidebar nav
-    $("body").on("click", ".nav-trigger", function (event) {
-        if ($('body').hasClass("navbar-side-open")) {
-            $('body').addClass('navbar-side-close');
+    $('.navbar-side > li').on('click', function(){
+        if ($(this).hasClass('open')) {
             $('body').removeClass('navbar-side-open');
         } else {
             $('body').addClass('navbar-side-open');
-            $('body').removeClass('navbar-side-close');
         }
+    });
 
-        $(this).find('i').toggleClass('fa-bars').toggleClass('fa-arrow-left');
+    $('.nav-trigger').on('click', function(){
+        $('body').toggleClass('navbar-side-open');
     });
 
     // Chartbeat Analytics
