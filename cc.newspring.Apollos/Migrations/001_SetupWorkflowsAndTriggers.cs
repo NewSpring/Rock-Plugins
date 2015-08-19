@@ -53,6 +53,20 @@ namespace cc.newspring.Apollos.Migrations
         private string accountDeleteActionGuid = "133A88F3-FD89-4302-9F9C-4ED15859D720";
         private string accountSaveActionGuid = "F9CE1B54-27D2-46F8-91EA-AB0C00F4D7C3";
 
+        private string scheduledDeleteTypeGuid = "631D9D0D-9C34-4EEC-9167-254E7EE27EB1";
+        private string scheduledSaveTypeGuid = "890AE615-0927-460F-AE9B-423CF2DE23B8";
+        private string scheduledDeleteActivityGuid = "6A1D2B99-F41D-421F-8D58-7CE33A7FE1F5";
+        private string scheduledSaveActivityGuid = "A7B4201F-E7A3-46D1-8877-84E00ED27A80";
+        private string scheduledDeleteActionGuid = "42674CD5-C9DF-4334-88BA-5B747810BFA7";
+        private string scheduledSaveActionGuid = "C91133B0-AC65-4651-B012-6F452D090511";
+
+        private string scheduledDetailDeleteTypeGuid = "531D9D0D-9C34-4EEC-9167-254E7EE27EB1";
+        private string scheduledDetailSaveTypeGuid = "790AE615-0927-460F-AE9B-423CF2DE23B8";
+        private string scheduledDetailDeleteActivityGuid = "5A1D2B99-F41D-421F-8D58-7CE33A7FE1F5";
+        private string scheduledDetailSaveActivityGuid = "97B4201F-E7A3-46D1-8877-84E00ED27A80";
+        private string scheduledDetailDeleteActionGuid = "32674CD5-C9DF-4334-88BA-5B747810BFA7";
+        private string scheduledDetailSaveActionGuid = "B91133B0-AC65-4651-B012-6F452D090511";
+
         private string transactionDeleteTypeGuid = "6D419224-0F09-4C6F-84DD-1DFB680D907F";
         private string transactionSaveTypeGuid = "176DA7CC-2E79-4333-A460-E156DA660828";
         private string transactionDeleteActivityGuid = "37098907-0BBD-4CB2-A018-9DDC4EE214C8";
@@ -281,6 +295,14 @@ namespace cc.newspring.Apollos.Migrations
             entityName = "FinancialAccount";
             SetupWorkflow( entityName, accountDeleteTypeGuid, accountSaveTypeGuid, accountDeleteActivityGuid, accountSaveActivityGuid, accountDeleteActionGuid, accountSaveActionGuid );
             CreateTriggers( entityName, string.Empty, "''", accountSaveTypeGuid, accountDeleteTypeGuid );
+
+            entityName = "FinancialScheduledTransaction";
+            SetupWorkflow( entityName, scheduledDeleteTypeGuid, scheduledSaveTypeGuid, scheduledDeleteActivityGuid, scheduledSaveActivityGuid, scheduledDeleteActionGuid, scheduledSaveActionGuid );
+            CreateTriggers( entityName, string.Empty, "''", scheduledSaveTypeGuid, scheduledDeleteTypeGuid );
+
+            entityName = "FinancialScheduledTransactionDetail";
+            SetupWorkflow( entityName, scheduledDetailDeleteTypeGuid, scheduledDetailSaveTypeGuid, scheduledDetailDeleteActivityGuid, scheduledDetailSaveActivityGuid, scheduledDetailDeleteActionGuid, scheduledDetailSaveActionGuid );
+            CreateTriggers( entityName, string.Empty, "''", scheduledDetailSaveTypeGuid, scheduledDetailDeleteTypeGuid );
         }
 
         /// <summary>
@@ -302,6 +324,10 @@ namespace cc.newspring.Apollos.Migrations
             DeleteAttributeValuesByAction( transactionDetailDeleteActionGuid );
             DeleteAttributeValuesByAction( accountSaveActionGuid );
             DeleteAttributeValuesByAction( accountDeleteActionGuid );
+            DeleteAttributeValuesByAction( scheduledSaveActionGuid );
+            DeleteAttributeValuesByAction( scheduledDeleteActionGuid );
+            DeleteAttributeValuesByAction( scheduledDetailSaveActionGuid );
+            DeleteAttributeValuesByAction( scheduledDetailDeleteActionGuid );
 
             DeleteWorkflowActionType( userSaveActionGuid );
             DeleteWorkflowActionType( userDeleteActionGuid );
@@ -313,6 +339,10 @@ namespace cc.newspring.Apollos.Migrations
             DeleteWorkflowActionType( transactionDetailDeleteActionGuid );
             DeleteWorkflowActionType( accountSaveActionGuid );
             DeleteWorkflowActionType( accountDeleteActionGuid );
+            DeleteWorkflowActionType( scheduledSaveActionGuid );
+            DeleteWorkflowActionType( scheduledDeleteActionGuid );
+            DeleteWorkflowActionType( scheduledDetailSaveActionGuid );
+            DeleteWorkflowActionType( scheduledDetailDeleteActionGuid );
 
             DeleteWorkflowActivityType( userSaveActivityGuid );
             DeleteWorkflowActivityType( userDeleteActivityGuid );
@@ -324,6 +354,10 @@ namespace cc.newspring.Apollos.Migrations
             DeleteWorkflowActivityType( transactionDetailDeleteActivityGuid );
             DeleteWorkflowActivityType( accountSaveActivityGuid );
             DeleteWorkflowActivityType( accountDeleteActivityGuid );
+            DeleteWorkflowActivityType( scheduledSaveActivityGuid );
+            DeleteWorkflowActivityType( scheduledDeleteActivityGuid );
+            DeleteWorkflowActivityType( scheduledDetailSaveActivityGuid );
+            DeleteWorkflowActivityType( scheduledDetailDeleteActivityGuid );
 
             DeleteWorkflowType( userSaveTypeGuid );
             DeleteWorkflowType( userDeleteTypeGuid );
@@ -335,6 +369,10 @@ namespace cc.newspring.Apollos.Migrations
             DeleteWorkflowType( transactionDetailDeleteTypeGuid );
             DeleteWorkflowType( accountSaveTypeGuid );
             DeleteWorkflowType( accountDeleteTypeGuid );
+            DeleteWorkflowType( scheduledSaveTypeGuid );
+            DeleteWorkflowType( scheduledDeleteTypeGuid );
+            DeleteWorkflowType( scheduledDetailSaveTypeGuid );
+            DeleteWorkflowType( scheduledDetailDeleteTypeGuid );
 
             RockMigrationHelper.DeleteCategory( categoryGuid );
 

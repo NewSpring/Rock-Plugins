@@ -439,6 +439,7 @@ namespace RockWeb
                     
                     // NOTE: we need to specify the last migration vs null so it won't detect/complain about pending changes
                     migrator.Update( lastMigration );
+                    //migrator.
                     result = true;
                 }
 
