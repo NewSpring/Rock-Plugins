@@ -97,8 +97,8 @@ namespace cc.newspring.Apollos.Migrations
         {
             Sql( string.Format( @"
                 DELETE
-                FROM WorkflowTrigger t
-                WHERE t.WorkflowTypeId IN (
+                FROM WorkflowTrigger
+                WHERE WorkflowTypeId IN (
 	                SELECT w.Id
 	                FROM WorkflowType w
 	                JOIN Category c ON c.Id = w.CategoryId
@@ -136,9 +136,9 @@ namespace cc.newspring.Apollos.Migrations
         private void DeleteAttributesByEntity( string guid )
         {
             Sql( string.Format( @"
-                SELECT a.*
-                FROM Attribute a
-                WHERE a.EntityTypeId IN (
+                DELETE
+                FROM Attribute
+                WHERE EntityTypeId IN (
 	                SELECT w.Id
 	                FROM EntityType w
 	                WHERE w.Guid = '{0}'
@@ -149,8 +149,8 @@ namespace cc.newspring.Apollos.Migrations
         {
             Sql( string.Format( @"
                 DELETE
-                FROM AttributeValue v
-                WHERE v.EntityId IN (
+                FROM AttributeValue
+                WHERE EntityId IN (
 	                SELECT t.Id
 	                FROM WorkflowActionType t
 	                WHERE t.Guid = '{0}'
@@ -169,11 +169,13 @@ namespace cc.newspring.Apollos.Migrations
 
         private void DeleteWorkflowActivityType( string guid )
         {
+            Sql( string.Format( "DELETE WorkFlowActivity WHERE [ActivityTypeId] IN (SELECT Id FROM WorkflowActivityType WHERE Guid = '{0}')", guid ) );
             DeleteByGuid( guid, "WorkflowActivityType" );
         }
 
         private void DeleteWorkflowActionType( string guid )
         {
+            Sql( string.Format( "DELETE WorkFlowAction WHERE [ActionTypeId] IN (SELECT Id FROM WorkflowActionType WHERE Guid = '{0}')", guid ) );
             DeleteByGuid( guid, "WorkflowActionType" );
         }
 
@@ -312,8 +314,6 @@ namespace cc.newspring.Apollos.Migrations
         {
             DeleteTriggersByCategory( categoryGuid );
 
-            RockMigrationHelper.DeleteEntityType( apollosAuthGuid );
-
             DeleteAttributeValuesByAction( userSaveActionGuid );
             DeleteAttributeValuesByAction( userDeleteActionGuid );
             DeleteAttributeValuesByAction( transactionSaveActionGuid );
@@ -381,6 +381,7 @@ namespace cc.newspring.Apollos.Migrations
             RockMigrationHelper.DeleteEntityType( apiSyncGuid );
 
             Sql( string.Format( @"DELETE FROM [dbo].[UserLogin] WHERE [Guid] = '{0}'", restUserGuid ) );
+            Sql( string.Format( @"DELETE FROM PersonAlias WHERE AliasPersonGuid = '{0}'", restPersonGuid ) );
             Sql( string.Format( @"DELETE FROM [dbo].[Person] WHERE [Guid] = '{0}'", restPersonGuid ) );
         }
     }
