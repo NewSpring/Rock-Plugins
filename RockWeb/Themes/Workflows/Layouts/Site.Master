@@ -32,7 +32,7 @@
         base.OnInit( e );
 
         lLogoSvg.Text = System.IO.File.ReadAllText( HttpContext.Current.Request.MapPath( "~/Assets/Images/rock-logo.svg" ) );
-        
+
         siteUrl.Text = String.Format( Request.Url.Authority );
 
     }
@@ -63,8 +63,7 @@
 
     <!-- Included CSS Files -->
     <link rel="stylesheet" href="<%# ResolveRockUrl("~/Styles/developer.css", true) %>" />
-    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/rock.css", true) %>" />
-    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/theme.css", true) %>" />
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/junction.css", true) %>" />
 
     <script src="<%# ResolveRockUrl("~/Scripts/modernizr.js" ) %>"></script>
 
@@ -82,8 +81,6 @@
     <form id="form1" runat="server">
 
         <nav class="navbar-default navbar-static-side" role="navigation">
-
-            
         </nav>
 
         <div id="content-wrapper">
@@ -95,7 +92,6 @@
                     <!-- <div class="navbar-mobile-logo">
                         <asp:Literal ID="lLogoSvg" runat="server" />
                     </div> -->
-                    
                 </nav>
             </header>
 
@@ -110,7 +106,6 @@
                             <Rock:Zone Name="Footer" runat="server" />
                         </div>
                         <div class="grid__item one-quarter">
-
                         </div>
                     </div>
                 </div>
