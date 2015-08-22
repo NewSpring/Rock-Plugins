@@ -315,8 +315,9 @@ namespace cc.newspring.CyberSource
             RequestMessage request = GetMerchantInfo();
             request.recurringSubscriptionInfo = new RecurringSubscriptionInfo();
             request.recurringSubscriptionInfo.subscriptionID = transaction.TransactionCode;
-            request.paySubscriptionDeleteService = new PaySubscriptionDeleteService();
-            request.paySubscriptionDeleteService.run = "true";
+            request.recurringSubscriptionInfo.status = "cancel";
+            request.paySubscriptionUpdateService = new PaySubscriptionUpdateService();
+            request.paySubscriptionUpdateService.run = "true";
 
             ReplyMessage reply = SubmitTransaction( request );
             if ( reply != null )
@@ -627,20 +628,23 @@ namespace cc.newspring.CyberSource
         /// Gets the merchant information.
         /// </summary>
         /// <returns></returns>
-        private RequestMessage GetMerchantInfo()
+        private RequestMessage GetMerchantInfo( bool includeEnvironment = true )
         {
             RequestMessage request = new RequestMessage();
             request.merchantID = GetAttributeValue( "MerchantID" );
             request.merchantReferenceCode = Guid.NewGuid().ToString();
-            request.clientLibraryVersion = Environment.Version.ToString();
 
-            request.clientApplication = VersionInfo.GetRockProductVersionFullName();
-            request.clientApplicationVersion = VersionInfo.GetRockProductVersionNumber();
-            request.clientApplicationUser = GetAttributeValue( "OrganizationName" );
-            request.clientEnvironment =
-                Environment.OSVersion.Platform +
-                Environment.OSVersion.Version.ToString() + "-CLR" +
-                Environment.Version.ToString();
+            if ( includeEnvironment )
+            {
+                request.clientLibraryVersion = Environment.Version.ToString();
+                request.clientApplication = VersionInfo.GetRockProductVersionFullName();
+                request.clientApplicationVersion = VersionInfo.GetRockProductVersionNumber();
+                request.clientApplicationUser = GetAttributeValue( "OrganizationName" );
+                request.clientEnvironment =
+                    Environment.OSVersion.Platform +
+                    Environment.OSVersion.Version.ToString() + "-CLR" +
+                    Environment.Version.ToString();
+            }
 
             return request;
         }
