@@ -8,12 +8,14 @@ using Rock.Data;
 using Rock.Model;
 using Rock.Rest.Controllers;
 using Rock.Rest.Filters;
+using System;
 
 namespace cc.newspring.Apollos.Rest.Controllers
 {
     public class ApollosUserLoginsController : UserLoginsController
     {
         private string UserNameKey = "UserName";
+        private string PersonIdKey = "PersonId";
         private string HashKey = "ApollosHash";
         private string ApollosAuthName = "cc.newspring.Apollos.Security.Authentication.Apollos";
 
@@ -131,6 +133,32 @@ namespace cc.newspring.Apollos.Rest.Controllers
 
                 changes = true;
                 userLogin.Password = hash;
+            }
+
+            if ( data.ContainsKey( PersonIdKey ) )
+            {
+                var personIdAsString = data[PersonIdKey];
+                var personId = 0;
+                var isValid = !string.IsNullOrWhiteSpace(personIdAsString) && Int32.TryParse( personIdAsString, out personId );
+
+                if ( !isValid )
+                {
+                    response.StatusCode = HttpStatusCode.BadRequest;
+                    response.Content = new StringContent( string.Format( "{0} must be a valid PersonId", personIdAsString ) );
+                    return response;
+                }
+
+                var person = new PersonService( context ).Get( personId );
+
+                if ( person == null )
+                {
+                    response.StatusCode = HttpStatusCode.BadRequest;
+                    response.Content = new StringContent( string.Format( "{0} does not have a corresponding person", personId ) );
+                    return response;
+                }
+
+                changes = true;
+                userLogin.PersonId = personId;
             }
 
             if ( changes )
