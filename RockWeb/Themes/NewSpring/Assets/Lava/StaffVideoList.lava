@@ -1,0 +1,70 @@
+{% for item in Items %}
+
+<div class="list-entry">
+    <div class="row">
+        <div class="col-lg-8 col-md-8 col-sm-8">
+            <h3>{{ item.Title }}</h3>
+
+            <h4>{{ item.StartDateTime | Date:'MMMM d, yyyy' }}</h4>
+            <p>{{ item.Content }}</p>
+
+            {% if item.VideoID != '' %}
+
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".{{ item.Title | ToCssClass}}" data-videoId="{{ item.VideoID }}">Play Video</button>
+
+                <div class="modal fade {{ item.Title | ToCssClass}} videoModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            <p>
+                                <script src='//player.ooyala.com/v3/ZmJmNTVlNDk1NjcwYTVkMzAzODkyMjg0'></script>
+                                <div id='{{ item.Title | ToCssClass}}'></div>
+                                <script>OO.ready(function() { OO.Player.create('{{ item.Title | ToCssClass}}', '{{ item.VideoID }}'); });</script>
+                                <noscript>
+                                    <div>Please enable Javascript to watch this video</div>
+                                </noscript>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!--
+        <a href="{{ LinkedPages.DetailPage }}?Item={{ item.Id }}" class="link--arrow">
+        View Post</a>
+      -->
+
+        </div>
+    </div>
+</div>
+
+{% endfor %}
+
+<div class="clearfix constrained">
+
+    {% assign nextPageString = Pagination.NextPage | ToString %}
+    {% assign prevPageString = Pagination.PreviousPage | ToString %}
+
+    {% if {{Pagination.PreviousPage == -1 }} %}
+    <!--<div class="btn btn-default pull-left">
+		<i class="fa fa-chevron-left"></i> Prev
+	  </div>-->
+    {% else %}
+    <a class="btn btn-primary pull-left" href="{{Pagination.UrlTemplate | Replace:'PageNum', prevPageString}}">
+        <i class="fa fa-chevron-left"></i> Prev
+    </a>
+    {% endif %}
+
+    {% if {{Pagination.NextPage == -1 }} %}
+    <!--<div class="btn btn-default pull-right">
+		Next <i class="fa fa-chevron-right"></i> 
+	  </div>-->
+    {% else %}
+    <a class="btn btn-primary pull-right" href="{{Pagination.UrlTemplate | Replace:'PageNum', nextPageString}}">
+        Next <i class="fa fa-chevron-right"></i>
+    </a>
+    {% endif %}
+
+</div>
