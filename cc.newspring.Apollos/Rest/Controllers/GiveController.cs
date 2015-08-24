@@ -620,6 +620,11 @@ namespace cc.newspring.Apollos.Rest.Controllers
                 return GenerateResponse( HttpStatusCode.BadRequest, "Email is required" );
             }
 
+            if ( !giveParameters.Email.IsValidEmail() )
+            {
+                return GenerateResponse( HttpStatusCode.BadRequest, "Email must be valid" );
+            }
+
             if ( string.IsNullOrWhiteSpace( giveParameters.FirstName ) || string.IsNullOrWhiteSpace( giveParameters.LastName ) )
             {
                 return GenerateResponse( HttpStatusCode.BadRequest, "FirstName and LastName are required" );

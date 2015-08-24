@@ -15,6 +15,32 @@ DECLARE @tokenValue AS NVARCHAR(MAX) = 'PUT TOKEN VALUE HERE';
 
 -- ========================================================================= --
 
+IF object_id('tempdb..#actionToUrl') IS NOT NULL
+BEGIN
+	DROP TABLE #actionToUrl
+END
+
+CREATE TABLE #actionToUrl (
+	actionName NVARCHAR(255),
+	url NVARCHAR(255)
+);
+
+-- Check-in Area, GroupType, Inherited Type
+INSERT #actionToUrl VALUES
+	('UserLogin Delete Action', 'users'),
+	('UserLogin Save Action', 'users'),
+	('Person Delete Action', 'people'),
+	('Person Save Action', 'people'),
+	('FinancialTransaction Delete Action', 'transactions'),
+	('FinancialTransaction Save Action', 'transactions'),
+	('FinancialTransactionDetail Delete Action', 'transactionDetails'),
+	('FinancialTransactionDetail Save Action', 'transactionDetails'),
+	('FinancialAccount Delete Action', 'accounts'),
+	('FinancialAccount Save Action', 'accounts'),
+	('FinancialScheduledTransaction Delete Action', 'scheduledTransactions'),
+	('FinancialScheduledTransaction Save Action', 'scheduledTransactions'),
+	('FinancialScheduledTransactionDetail Delete Action', 'scheduledTransactionDetails'),
+	('FinancialScheduledTransactionDetail Save Action', 'scheduledTransactionDetails');
 
 DECLARE @syncEntityName AS NVARCHAR(MAX) = 'cc.newspring.Apollos.Workflow.Action.APISync';
 DECLARE @syncEntityId AS INT;
@@ -32,7 +58,12 @@ WHERE Name = @categoryName;
 
 -- Update sync URL
 UPDATE AttributeValue
-SET Value = @syncUrl
+SET Value = (
+	SELECT CONCAT(@syncUrl, atu.url, '/')
+	FROM WorkflowActionType wat
+	JOIN #actionToUrl atu ON atu.actionName = wat.Name
+	WHERE EntityId = wat.Id
+)
 WHERE 
 	EntityId IN (
 		SELECT Id FROM WorkflowActionType WHERE ActivityTypeId IN (
