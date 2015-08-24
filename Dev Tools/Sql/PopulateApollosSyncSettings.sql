@@ -40,7 +40,9 @@ INSERT #actionToUrl VALUES
 	('FinancialScheduledTransaction Delete Action', 'scheduledTransactions'),
 	('FinancialScheduledTransaction Save Action', 'scheduledTransactions'),
 	('FinancialScheduledTransactionDetail Delete Action', 'scheduledTransactionDetails'),
-	('FinancialScheduledTransactionDetail Save Action', 'scheduledTransactionDetails');
+	('FinancialScheduledTransactionDetail Save Action', 'scheduledTransactionDetails'),
+	('PersonAlias Save Action', 'aliases'),
+	('PersonAlias Delete Action', 'aliases');
 
 DECLARE @syncEntityName AS NVARCHAR(MAX) = 'cc.newspring.Apollos.Workflow.Action.APISync';
 DECLARE @syncEntityId AS INT;
