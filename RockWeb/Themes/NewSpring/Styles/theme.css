@@ -6649,14 +6649,13 @@ body {
   top: 0px;
   right: 0px;
   bottom: 0px;
-  left: 0;
+  left: 68px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   background-color: #f7f7f7;
 }
-body.navbar-side-open #content-wrapper {
+.navbar-side-open #content-wrapper {
   left: 260px;
-  right: -260px;
 }
 .navbar {
   min-height: 0px;
@@ -6670,11 +6669,12 @@ body.navbar-side-open #content-wrapper {
 .navbar-static-top .nav-trigger {
   position: absolute;
   top: 50%;
-  padding: 0 8px;
-  margin-top: -15px;
+  padding: 0 7px;
+  margin-top: -14px;
   font-size: 20px;
   color: #ffffff;
   cursor: pointer;
+  display: none;
 }
 .navbar-static-top .navbar-zone-header {
   text-align: right;
@@ -6730,42 +6730,43 @@ body.navbar-side-open #content-wrapper {
   color: #ffffff;
   position: absolute;
   top: 0px;
-  left: -260px;
+  left: 0;
   bottom: 0px;
   width: 260px;
   padding-bottom: 80px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .navbar-static-side .home {
   position: relative;
   display: inline-block;
   width: 100%;
-  padding: 17px 15px 16px;
+  padding: 15px 18px 18px 19px;
   font-size: 16px;
   line-height: 1.42857143;
   font-weight: 700;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   color: #ffffff;
-  text-indent: 38px;
   text-decoration: none;
 }
-.navbar-static-side .home:after {
+.navbar-static-side .home:before {
   content: '';
-  position: absolute;
-  top: 50%;
-  left: 10px;
-  margin-top: -15px;
+  float: left;
   height: 30px;
   width: 30px;
   background-image: url('../Assets/Images/newspring-logo.png');
   background-size: cover;
+  margin-right: 20px;
+}
+.navbar-static-side .home p {
+  font-size: 16px;
+  line-height: 30px;
+  color: #ffffff;
+  margin-bottom: 0;
 }
 .navbar-static-side .home:hover {
   background-color: #2d2d2d;
   cursor: pointer;
-}
-body.navbar-side-open .navbar-static-side {
-  left: 0px;
 }
 .navbar-static-side .navbar-side {
   display: inline-block;
@@ -6774,7 +6775,7 @@ body.navbar-side-open .navbar-static-side {
 .navbar-static-side .navbar-side > li {
   text-align: left;
   margin-top: 0;
-  padding: 13px 15px 17px 12px;
+  padding: 15px 18px 18px 19px;
   font-size: 16px;
   line-height: 1.42857143;
   font-weight: 700;
@@ -6785,13 +6786,19 @@ body.navbar-side-open .navbar-static-side {
   background-color: #2d2d2d;
   cursor: pointer;
 }
-.navbar-static-side .navbar-side > li > i {
-  position: relative;
-  top: 3px;
-  font-size: 24px;
+.navbar-static-side .navbar-side > li p,
+.navbar-static-side .navbar-side > li i {
+  font-size: 16px;
+  line-height: 30px;
   color: #ffffff;
+  margin-bottom: 0;
+}
+.navbar-static-side .navbar-side > li > i {
+  float: left;
+  position: relative;
+  font-size: 24px;
   display: inline-block;
-  margin-right: 5px;
+  margin-right: 20px;
 }
 .navbar-static-side .navbar-side > li > i:hover {
   background-color: #2d2d2d;
@@ -6868,14 +6875,16 @@ body.navbar-side-open .navbar-static-side {
   .soft {
     padding: 0px;
   }
-  .nav-trigger {
-    margin-top: -10px;
+  .navbar-static-top .nav-trigger {
+    margin-top: -13px;
+    display: block;
   }
   #content-wrapper {
-    width: 100%;
+    left: 0;
   }
   body.navbar-side-open #content-wrapper {
-    left: 85%;
+    left: 260px;
+    right: -260px;
   }
   #content-wrapper #page-content {
     padding: 15px;
@@ -6883,15 +6892,9 @@ body.navbar-side-open .navbar-static-side {
   #content-wrapper > footer {
     padding: 0 15px;
   }
-  .navbar-static-side {
-    width: 85%;
-    left: -85%;
-  }
-  .navbar-static-side body.navbar-side-open {
-    left: 0;
-  }
   .navbar-static-top #zone-header {
-    width: 65%;
+    width: auto;
+    max-width: 185px;
   }
   .navbar-static-top #zone-header .smartsearch input.searchinput {
     padding-left: 28px;

@@ -1044,14 +1044,13 @@ body {
     top: 0px;
     right: 0px;
     bottom: 0px;
-    left: 0;
+    left: 68px;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     background-color: darken(@light-primary, 3);
 
-    body.navbar-side-open & {
+    .navbar-side-open & {
         left: @sidebar-width;
-        right: -@sidebar-width;
     }
 }
 
@@ -1069,11 +1068,12 @@ body {
     .nav-trigger {
         position: absolute;
         top: 50%;
-        padding: 0 8px;
-        margin-top: -15px;
+        padding: 0 7px;
+        margin-top: -14px;
         font-size: @font-size-large;
         color: @light-primary;
         cursor: pointer;
+        display: none;
     }
 
     .navbar-zone-header {
@@ -1145,45 +1145,47 @@ body {
     color: @accent-bold-text-color;
     position: absolute;
     top: 0px;
-    left: -@sidebar-width;
+    left: 0;
     bottom: 0px;
     width: @sidebar-width;
     padding-bottom: 80px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+
     // Home Link
     .home {
         position: relative;
         display: inline-block;
         width: 100%;
-        padding: 17px 15px 16px;
+        padding: 15px 18px 18px 19px;
         font-size: @font-size-base;
         line-height: @line-height-base;
         font-weight: @font-weight-semibold;
         border-bottom: 1px solid rgba(255,255,255,.05);
         color: @accent-bold-text-color;
-        text-indent: 38px;
         text-decoration: none;
 
-        &:after {
+        &:before {
             content: '';
-            position: absolute;
-            top: 50%;
-            left: 10px;
-            margin-top: -15px;
+            float: left;
             height: 30px;
             width: 30px;
             background-image: url('../Assets/Images/newspring-logo.png');
             background-size: cover;
+            margin-right: 20px;
+        }
+
+        p {
+            font-size: 16px;
+            line-height: 30px;
+            color: @accent-bold-text-color;
+            margin-bottom: 0;
         }
 
         &:hover {
             background-color: lighten(@accent-bold-color, 5%);
             cursor: pointer;
         }
-    }
-
-    body.navbar-side-open & {
-        left: 0px;
     }
 
     .navbar-side {
@@ -1193,7 +1195,7 @@ body {
         & > li {
             text-align: left;
             margin-top: 0;
-            padding: 13px 15px 17px 12px;
+            padding: 15px 18px 18px 19px;
             font-size: @font-size-base;
             line-height: @line-height-base;
             font-weight: @font-weight-semibold;
@@ -1205,13 +1207,19 @@ body {
                 cursor: pointer;
             }
 
-            > i {
-                position: relative;
-                top: 3px;
-                font-size: 24px;
+            p, i {
+                font-size: 16px;
+                line-height: 30px;
                 color: @accent-bold-text-color;
+                margin-bottom: 0;
+            }
+
+            > i {
+                float: left;
+                position: relative;
+                font-size: 24px;
                 display: inline-block;
-                margin-right: 5px;
+                margin-right: 20px;
 
                 &:hover {
                     background-color: lighten(@accent-bold-color, 5%);
@@ -1279,6 +1287,13 @@ body {
     }
 }
 
+
+// .block-content {
+//     .col-xs-1, .col-sm-1, .col-md-1, .col-lg-1, .col-xs-2, .col-sm-2, .col-md-2, .col-lg-2, .col-xs-3, .col-sm-3, .col-md-3, .col-lg-3, .col-xs-4, .col-sm-4, .col-md-4, .col-lg-4, .col-xs-5, .col-sm-5, .col-md-5, .col-lg-5, .col-xs-6, .col-sm-6, .col-md-6, .col-lg-6, .col-xs-7, .col-sm-7, .col-md-7, .col-lg-7, .col-xs-8, .col-sm-8, .col-md-8, .col-lg-8, .col-xs-9, .col-sm-9, .col-md-9, .col-lg-9, .col-xs-10, .col-sm-10, .col-md-10, .col-lg-10, .col-xs-11, .col-sm-11, .col-md-11, .col-lg-11, .col-xs-12, .col-sm-12, .col-md-12, .col-lg-12 {
+//         padding: 0px;
+//     }
+// }
+
 /*#endregion */
 
 /*#region
@@ -1316,15 +1331,20 @@ body {
         padding: 0px;
     }
 
-    .nav-trigger {
-        margin-top: -10px;
+    .navbar-static-top {
+        .nav-trigger {
+            margin-top: -13px;
+            display: block;
+        }
     }
 
     #content-wrapper {
-        width: 100%;
+        left: 0;
+        // width: 100%;
 
         body.navbar-side-open & {
-            left: 85%;
+            left: @sidebar-width;
+            right: -@sidebar-width;
         }
 
         #page-content {
@@ -1336,19 +1356,11 @@ body {
         }
     }
 
-    .navbar-static-side {
-        width: 85%;
-        left: -85%;
-
-        body.navbar-side-open {
-            left: 0;
-        }
-    }
-
     // Admin Menu Overrides for Mobile
     .navbar-static-top {
         #zone-header {
-            width: 65%;
+            width: auto;
+            max-width: 185px;
 
             .smartsearch {
                 input.searchinput {
