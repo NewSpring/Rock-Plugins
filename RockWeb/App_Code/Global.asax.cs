@@ -439,7 +439,6 @@ namespace RockWeb
                     
                     // NOTE: we need to specify the last migration vs null so it won't detect/complain about pending changes
                     migrator.Update( lastMigration );
-                    //migrator.
                     result = true;
                 }
 
@@ -671,6 +670,11 @@ namespace RockWeb
                     Rock.Web.Cache.AttributeCache.Read( attribute, new Dictionary<string, string>() );
             }
 
+            // cache all the Country Defined Values since those can be loaded in just a few millisecond here, but take around 1-2 seconds if first loaded when formatting an address
+            foreach (var definedValue in new Rock.Model.DefinedValueService(rockContext).GetByDefinedTypeGuid(Rock.SystemGuid.DefinedType.LOCATION_COUNTRIES.AsGuid()))
+            {
+                DefinedValueCache.Read( definedValue, rockContext );
+            }
         }
 
 
