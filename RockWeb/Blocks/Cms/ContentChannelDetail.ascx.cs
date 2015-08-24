@@ -552,7 +552,7 @@ namespace RockWeb.Blocks.Cms
                 bool readOnly = false;
                 nbEditModeMessage.Text = string.Empty;
 
-                if ( !editAllowed || !IsUserAuthorized( Authorization.EDIT ) )
+                if ( !editAllowed )
                 {
                     readOnly = true;
                     nbEditModeMessage.Text = EditModeMessage.ReadOnlyEditActionNotAllowed( ContentChannel.FriendlyTypeName );
@@ -700,7 +700,7 @@ namespace RockWeb.Blocks.Cms
             contentChannel.ContentChannelTypeId = typeId;
             contentChannel.LoadAttributes();
             phAttributes.Controls.Clear();
-            Rock.Attribute.Helper.AddEditControls( contentChannel, phAttributes, true );
+            Rock.Attribute.Helper.AddEditControls( contentChannel, phAttributes, true, BlockValidationGroup );
         }
 
         /// <summary>

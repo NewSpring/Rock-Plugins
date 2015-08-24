@@ -108,7 +108,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
         /// </summary>
         private void AttemptKioskMatchByIpOrName()
         {
-            // match kiosk by ip/name.            
+            // match kiosk by ip/name.
             string hostIp = Request.ServerVariables["REMOTE_ADDR"];
             string forwardedIp = Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
             string ipAddress = forwardedIp ?? hostIp;
@@ -131,7 +131,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                 hostName = "Unknown";
             }
 
-            lblInfo.Text = string.Format( "Device IP: {0} {1} Name: {2}", ipAddress, Environment.NewLine, hostName );
+            lblInfo.Text = string.Format( "Device IP: {0}     Name: {1}", ipAddress, hostName );
 
             if ( device != null )
             {

@@ -31,7 +31,7 @@
 
 </script>
 
-<ul class="nav nav-pills" >
+<ul class="nav nav-pills margin-b-md" >
     <li class='active'><a pill="version-info" class="show-pill" href="#">Version Info</a></li>
     <li><a pill="diagnostics-tab" class="show-pill" href="#">Diagnostics</a></li>
 </ul>
@@ -64,12 +64,17 @@
         
         <p>
             <strong>System Date Time:</strong><br />
-            <%= DateTime.Now.ToString("G") + " " + DateTime.Now.ToString("zzz") %>
+            <asp:Literal ID="lSystemDateTime" runat="server" />
         </p>
 
         <p>
             <strong>Rock Time:</strong><br /> 
-            <%= Rock.RockDateTime.Now.ToString("G") + " " + Rock.RockDateTime.OrgTimeZoneInfo.BaseUtcOffset %>
+            <asp:Literal ID="lRockTime" runat="server" />
+        </p>
+
+        <p>
+            <strong>Process Start Time:</strong><br /> 
+            <asp:Literal ID="lProcessStartTime" runat="server" />
         </p>
 
         <p>

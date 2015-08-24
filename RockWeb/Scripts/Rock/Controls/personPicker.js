@@ -19,9 +19,17 @@
 
             var includeBusinesses = $('#' + controlId).find('.js-include-businesses').val() == '1' ? 'true' : 'false';
 
+            var promise = null;
+
             $('#' + controlId + '_personPicker').autocomplete({
                 source: function (request, response) {
-                    var promise = $.ajax({
+
+                    // abort any searches that haven't returned yet, so that we don't get a pile of results in random order
+                    if (promise && promise.state() === 'pending') {
+                        promise.abort();
+                    }
+
+                    promise = $.ajax({
                         url: restUrl + "?name=" + encodeURIComponent(request.term) + "&includeHtml=false&includeDetails=false&includeBusinesses=" + includeBusinesses + "&includeDeceased=true",
                         dataType: 'json'
                     });
@@ -141,14 +149,8 @@
                 $selectedItemLabel.text(selectedText);
             });
 
-            $('#' + controlId + '_btnSelect').click(function () {
-                var radInput = $('#' + controlId).find('input:checked'),
-
-                    selectedValue = radInput.val(),
-                    selectedText = radInput.closest('.picker-select-item').find('label').text(),
-
-                    selectedPersonLabel = $('#' + controlId + '_selectedPersonLabel'),
-
+            var setSelectedPerson = function (selectedValue, selectedText) {
+                var selectedPersonLabel = $('#' + controlId + '_selectedPersonLabel'),
                     hiddenPersonId = $('#' + controlId + '_hfPersonId'),
                     hiddenPersonName = $('#' + controlId + '_hfPersonName');
 
@@ -158,7 +160,22 @@
                 selectedPersonLabel.val(selectedValue);
                 selectedPersonLabel.text(selectedText);
 
-                $(this).closest('.picker-menu').slideUp();
+                $('#' + controlId).find('.picker-menu').slideUp();
+            }
+
+            $('#' + controlId + '_btnSelect').click(function () {
+                var radInput = $('#' + controlId).find('input:checked'),
+                    selectedValue = radInput.val(),
+                    selectedText = radInput.closest('.picker-select-item').find('label').text();
+
+                setSelectedPerson(selectedValue, selectedText);
+            });
+
+            $('#' + controlId + ' .js-select-self').on('click', function () {
+                var selectedValue = $('#' + controlId + ' .js-self-person-id').val(),
+                    selectedText = $('#' + controlId + ' .js-self-person-name').val();
+
+                setSelectedPerson(selectedValue, selectedText);
             });
         };
 

@@ -25,6 +25,7 @@ using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Financial;
+using Rock.Security;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI;
@@ -802,7 +803,7 @@ namespace RockWeb.Blocks.Finance
                                 var recipients = new List<Rock.Communication.RecipientData>();
                                 recipients.Add( new Rock.Communication.RecipientData( authorizedPersonAlias.Person.Email, mergeObjects ) );
 
-                                Rock.Communication.Email.Send( GetAttributeValue( "ConfirmAccountTemplate" ).AsGuid(), recipients, ResolveRockUrl( "~/" ), ResolveRockUrl( "~~/" ) );
+                                Rock.Communication.Email.Send( GetAttributeValue( "ConfirmAccountTemplate" ).AsGuid(), recipients, ResolveRockUrl( "~/" ), ResolveRockUrl( "~~/" ), false );
                             }
 
                             var paymentInfo = GetPaymentInfo();
@@ -822,11 +823,10 @@ namespace RockWeb.Blocks.Finance
                                     savedAccount.PersonAliasId = authorizedPersonAlias.Id;
                                     savedAccount.ReferenceNumber = referenceNumber;
                                     savedAccount.Name = txtSaveAccount.Text;
-                                    savedAccount.MaskedAccountNumber = paymentInfo.MaskedNumber;
                                     savedAccount.TransactionCode = TransactionCode;
                                     savedAccount.FinancialGatewayId = financialGateway.Id;
-                                    savedAccount.CurrencyTypeValueId = currencyTypeValueId;
-                                    savedAccount.CreditCardTypeValueId = CreditCardTypeValueId;
+                                    savedAccount.FinancialPaymentDetail = new FinancialPaymentDetail();
+                                    savedAccount.FinancialPaymentDetail.SetFromPaymentInfo( paymentInfo, gateway, rockContext );
 
                                     var savedAccountService = new FinancialPersonSavedAccountService( rockContext );
                                     savedAccountService.Add( savedAccount );
@@ -1082,12 +1082,13 @@ namespace RockWeb.Blocks.Finance
                         rblSavedCC.DataSource = savedAccounts
                             .Where( a =>
                                 a.FinancialGatewayId == _ccGateway.Id &&
-                                a.CurrencyTypeValueId == ccCurrencyType.Id )
+                                a.FinancialPaymentDetail != null &&
+                                a.FinancialPaymentDetail.CurrencyTypeValueId == ccCurrencyType.Id )
                             .OrderBy( a => a.Name )
                             .Select( a => new
                             {
                                 Id = a.Id,
-                                Name = "Use " + a.Name + " (" + a.MaskedAccountNumber + ")"
+                                Name = "Use " + a.Name + " (" + a.FinancialPaymentDetail.AccountNumberMasked + ")"
                             } ).ToList();
                         rblSavedCC.DataBind();
                         if ( rblSavedCC.Items.Count > 0 )
@@ -1106,12 +1107,13 @@ namespace RockWeb.Blocks.Finance
                         rblSavedAch.DataSource = savedAccounts
                             .Where( a =>
                                 a.FinancialGatewayId == _achGateway.Id &&
-                                a.CurrencyTypeValueId == achCurrencyType.Id )
+                                a.FinancialPaymentDetail != null &&
+                                a.FinancialPaymentDetail.CurrencyTypeValueId == achCurrencyType.Id )
                             .OrderBy( a => a.Name )
                             .Select( a => new
                             {
                                 Id = a.Id,
-                                Name = "Use " + a.Name + " (" + a.MaskedAccountNumber + ")"
+                                Name = "Use " + a.Name + " (" + a.FinancialPaymentDetail.AccountNumberMasked + ")"
                             } ).ToList();
                         rblSavedAch.DataBind();
                         if ( rblSavedAch.Items.Count > 0 )
@@ -1499,8 +1501,12 @@ namespace RockWeb.Blocks.Finance
                         scheduledTransaction.TransactionFrequencyValueId = schedule.TransactionFrequencyValue.Id;
                         scheduledTransaction.AuthorizedPersonAliasId = person.PrimaryAliasId.Value;
                         scheduledTransaction.FinancialGatewayId = financialGateway.Id;
-                        scheduledTransaction.CurrencyTypeValueId = paymentInfo.CurrencyTypeValue.Id;
-                        scheduledTransaction.CreditCardTypeValueId = CreditCardTypeValueId;
+
+                        if ( scheduledTransaction.FinancialPaymentDetail == null )
+                        {
+                            scheduledTransaction.FinancialPaymentDetail = new FinancialPaymentDetail();
+                        }
+                        scheduledTransaction.FinancialPaymentDetail.SetFromPaymentInfo( paymentInfo, gateway, rockContext );
 
                         var changeSummary = new StringBuilder();
                         changeSummary.AppendFormat( "{0} starting {1}", schedule.TransactionFrequencyValue.Value, schedule.StartDate.ToShortDateString() );
@@ -1572,15 +1578,11 @@ namespace RockWeb.Blocks.Finance
                         transaction.TransactionTypeValueId = txnType.Id;
                         History.EvaluateChange( txnChanges, "Type", string.Empty, txnType.Value );
 
-                        transaction.CurrencyTypeValueId = paymentInfo.CurrencyTypeValue.Id;
-                        History.EvaluateChange( txnChanges, "Currency Type", string.Empty, paymentInfo.CurrencyTypeValue.Value );
-
-                        transaction.CreditCardTypeValueId = CreditCardTypeValueId;
-                        if ( CreditCardTypeValueId.HasValue )
+                        if ( transaction.FinancialPaymentDetail == null )
                         {
-                            var ccType = DefinedValueCache.Read( CreditCardTypeValueId.Value );
-                            History.EvaluateChange( txnChanges, "Credit Card Type", string.Empty, ccType.Value );
+                            transaction.FinancialPaymentDetail = new FinancialPaymentDetail();
                         }
+                        transaction.FinancialPaymentDetail.SetFromPaymentInfo( paymentInfo, gateway, rockContext, txnChanges );
 
                         Guid sourceGuid = Guid.Empty;
                         if ( Guid.TryParse( GetAttributeValue( "Source" ), out sourceGuid ) )

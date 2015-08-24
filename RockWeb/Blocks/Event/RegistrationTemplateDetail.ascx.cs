@@ -56,10 +56,10 @@ namespace RockWeb.Blocks.Event
 {% for registrant in Registration.Registrants %}
     <li>
     
-        {{ registrant.PersonAlias.Person.FullName }}
+        <strong>{{ registrant.PersonAlias.Person.FullName }}</strong>
         
         {% if registrant.Cost > 0 %}
-            - {{ currencySymbol }}{{ registrant.Cost | Format'#,##0.00' }}
+            - {{ currencySymbol }}{{ registrant.Cost | Format:'#,##0.00' }}
         {% endif %}
         
         {% assign feeCount = registrant.Fees | Size %}
@@ -69,7 +69,7 @@ namespace RockWeb.Blocks.Event
             {% for fee in registrant.Fees %}
                 <li>
                     {{ fee.RegistrationTemplateFee.Name }} {{ fee.Option }}
-                    {% if fee.Quantity > 1 %} ({{ fee.Quantity }} @ {{ currencySymbol }}{{ fee.Cost | Format'#,##0.00' }}){% endif %}: {{ currencySymbol }}{{ fee.TotalCost | Format'#,##0.00' }}
+                    {% if fee.Quantity > 1 %} ({{ fee.Quantity }} @ {{ currencySymbol }}{{ fee.Cost | Format:'#,##0.00' }}){% endif %}: {{ currencySymbol }}{{ fee.TotalCost | Format:'#,##0.00' }}
                 </li>
             {% endfor %}
             </ul>
@@ -81,31 +81,72 @@ namespace RockWeb.Blocks.Event
 
 {% if Registration.TotalCost > 0 %}
 <p>
-    Total Due: {{ currencySymbol }}{{ Registration.TotalCost | Format'#,##0.00' }}<br/>
+    Total Cost: {{ currencySymbol }}{{ Registration.TotalCost | Format:'#,##0.00' }}<br/>
+    {% if Registration.DiscountedCost != Registration.TotalCost %}
+        Discounted Cost: {{ currencySymbol }}{{ Registration.DiscountedCost | Format:'#,##0.00' }}<br/>
+    {% endif %}
     {% for payment in Registration.Payments %}
-        Paid {{ currencySymbol }}{{ payment.Amount | Format'#,##0.00' }} on {{ payment.Transaction.TransactionDateTime| Date:'M/d/yyyy' }} <small>(Ref #: {{ payment.Transaction.TransactionCode }})</small><br/>
+        Paid {{ currencySymbol }}{{ payment.Amount | Format:'#,##0.00' }} on {{ payment.Transaction.TransactionDateTime| Date:'M/d/yyyy' }} <small>(Ref #: {{ payment.Transaction.TransactionCode }})</small><br/>
     {% endfor %}
     
     {% assign paymentCount = Registration.Payments | Size %}
     
     {% if paymentCount > 1 %}
-        Total Paid: {{ currencySymbol }}{{ Registration.TotalPaid | Format'#,##0.00' }}<br/>
+        Total Paid: {{ currencySymbol }}{{ Registration.TotalPaid | Format:'#,##0.00' }}<br/>
     {% endif %}
     
-    Balance Due: {{ currencySymbol }}{{ Registration.BalanceDue | Format'#,##0.00' }}
+    Balance Due: {{ currencySymbol }}{{ Registration.BalanceDue | Format:'#,##0.00' }}
 </p>
 {% endif %}
 
-{{ RegistrationInstance.AdditionalConfirmationDetails }}
+<p>
+    {{ RegistrationInstance.AdditionalConfirmationDetails }}
+</p>
+
+<p>
+    If you have any questions please contact {{ RegistrationInstance.ContactPersonAlias.Person.FullName }} at {{ RegistrationInstance.ContactEmail }}.
+</p>
+
+{{ 'Global' | Attribute:'EmailFooter' }}", "", 0 )]
+
+    [CodeEditorField( "Default Reminder Email", "The default Reminder Email Template value to use for a new template", CodeEditorMode.Liquid, CodeEditorTheme.Rock, 300, false, @"{{ 'Global' | Attribute:'EmailHeader' }}
+{% capture currencySymbol %}{{ 'Global' | Attribute:'CurrencySymbol' }}{% endcapture %}
+{% capture externalSite %}{{ 'Global' | Attribute:'PublicApplicationRoot' }}{% endcapture %}
+{% assign registrantCount = Registration.Registrants | Size %}
+
+<h1>{{ RegistrationInstance.RegistrationTemplate.RegistrationTerm }} Reminder</h1>
+
+<p>
+    {{ RegistrationInstance.AdditionalReminderDetails }}
+</p>
+
+<p>
+    The following {{ RegistrationInstance.RegistrationTemplate.RegistrantTerm | PluralizeForQuantity:registrantCount | Downcase }}
+    {% if registrantCount > 1 %}have{% else %}has{% endif %} been registered:
+</p>
+
+<ul>
+{% for registrant in Registration.Registrants %}
+    <li>{{ registrant.PersonAlias.Person.FullName }}</li>
+{% endfor %}
+</ul>
+
+
+{% if Registration.BalanceDue > 0 %}
+<p>
+    This {{ RegistrationInstance.RegistrationTemplate.RegistrationTerm | Downcase  }} has a remaining balance 
+    of {{ currencySymbol }}{{ Registration.BalanceDue | Format:'#,##0.00' }}.
+    You can complete the payment for this {{ RegistrationInstance.RegistrationTemplate.RegistrationTerm | Downcase }}
+    using our <a href='{{ externalSite }}/Registration?RegistrationInstanceId={{ RegistrationInstance.Id }}'>
+    online registration page</a>.
+</p>
+{% endif %}
 
 <p>
     If you have any questions please contact {{ RegistrationInstance.ContactName }} at {{ RegistrationInstance.ContactEmail }}.
 </p>
 
 {{ 'Global' | Attribute:'EmailFooter' }}
-", "", 0 )]
-
-    [CodeEditorField( "Default Reminder Email", "The default Reminder Email Template value to use for a new template", CodeEditorMode.Liquid, CodeEditorTheme.Rock, 300, false, @"
 ", "", 1 )]
 
     [CodeEditorField( "Default Success Text", "The success text default to use for a new template", CodeEditorMode.Liquid, CodeEditorTheme.Rock, 300, false, @"
@@ -124,7 +165,7 @@ namespace RockWeb.Blocks.Event
         <strong>{{ registrant.PersonAlias.Person.FullName }}</strong>
         
         {% if registrant.Cost > 0 %}
-            - {{ currencySymbol }}{{ registrant.Cost | Format'#,##0.00' }}
+            - {{ currencySymbol }}{{ registrant.Cost | Format:'#,##0.00' }}
         {% endif %}
         
         {% assign feeCount = registrant.Fees | Size %}
@@ -134,7 +175,7 @@ namespace RockWeb.Blocks.Event
             {% for fee in registrant.Fees %}
                 <li>
                     {{ fee.RegistrationTemplateFee.Name }} {{ fee.Option }}
-                    {% if fee.Quantity > 1 %} ({{ fee.Quantity }} @ {{ currencySymbol }}{{ fee.Cost | Format'#,##0.00' }}){% endif %}: {{ currencySymbol }}{{ fee.TotalCost | Format'#,##0.00' }}
+                    {% if fee.Quantity > 1 %} ({{ fee.Quantity }} @ {{ currencySymbol }}{{ fee.Cost | Format:'#,##0.00' }}){% endif %}: {{ currencySymbol }}{{ fee.TotalCost | Format:'#,##0.00' }}
                 </li>
             {% endfor %}
             </ul>
@@ -146,22 +187,25 @@ namespace RockWeb.Blocks.Event
 
 {% if Registration.TotalCost > 0 %}
 <p>
-    Total Due: {{ currencySymbol }}{{ Registration.TotalCost | Format''#,##0.00'' }}<br/>
+    Total Cost: {{ currencySymbol }}{{ Registration.TotalCost | Format:'#,##0.00' }}<br/>
+    {% if Registration.DiscountedCost != Registration.TotalCost %}
+        Discounted Cost: {{ currencySymbol }}{{ Registration.DiscountedCost | Format:'#,##0.00' }}<br/>
+    {% endif %}
     {% for payment in Registration.Payments %}
-        Paid {{ currencySymbol }}{{ payment.Amount | Format''#,##0.00'' }} on {{ payment.Transaction.TransactionDateTime| Date:'M/d/yyyy' }} 
+        Paid {{ currencySymbol }}{{ payment.Amount | Format:'#,##0.00' }} on {{ payment.Transaction.TransactionDateTime| Date:'M/d/yyyy' }} 
         <small>(Ref #: {{ payment.Transaction.TransactionCode }})</small><br/>
     {% endfor %}
     {% assign paymentCount = Registration.Payments | Size %}
     {% if paymentCount > 1 %}
-        Total Paid: {{ currencySymbol }}{{ Registration.TotalPaid | Format''#,##0.00'' }}<br/>
+        Total Paid: {{ currencySymbol }}{{ Registration.TotalPaid | Format:'#,##0.00' }}<br/>
     {% endif %}
-    Balance Due: {{ currencySymbol }}{{ Registration.BalanceDue | Format''#,##0.00'' }}
+    Balance Due: {{ currencySymbol }}{{ Registration.BalanceDue | Format:'#,##0.00' }}
 </p>
 {% endif %}
 
 <p>
     A confirmation email has been sent to {{ Registration.ConfirmationEmail }}. If you have any questions 
-    please contact {{ RegistrationInstance.ContactName }} at {{ RegistrationInstance.ContactEmail }}.
+    please contact {{ RegistrationInstance.ContactPersonAlias.Person.FullName }} at {{ RegistrationInstance.ContactEmail }}.
 </p>
 ", "", 2 )]
     public partial class RegistrationTemplateDetail : RockBlock
@@ -581,7 +625,7 @@ namespace RockWeb.Blocks.Event
             RegistrationTemplate.MaxRegistrants = nbMaxRegistrants.Text.AsInteger();
             RegistrationTemplate.RegistrantsSameFamily = rblRegistrantsInSameFamily.SelectedValueAsEnum<RegistrantsSameFamily>();
             RegistrationTemplate.Cost = cbCost.Text.AsDecimal();
-            RegistrationTemplate.MinimumInitialPayment = cbMinimumInitialPayment.Text.AsDecimal();
+            RegistrationTemplate.MinimumInitialPayment = cbMinimumInitialPayment.Text.AsDecimalOrNull();
             RegistrationTemplate.FinancialGatewayId = fgpFinancialGateway.SelectedValueAsInt();
 
             RegistrationTemplate.ConfirmationFromName = tbConfirmationFromName.Text;
@@ -1614,11 +1658,11 @@ namespace RockWeb.Blocks.Event
                 registrationTemplate.Id = 0;
                 registrationTemplate.IsActive = true;
                 registrationTemplate.CategoryId = parentCategoryId;
-                registrationTemplate.ConfirmationFromName = "{{ RegistrationInstance.ContactName }}";
+                registrationTemplate.ConfirmationFromName = "{{ RegistrationInstance.ContactPersonAlias.Person.FullName }}";
                 registrationTemplate.ConfirmationFromEmail = "{{ RegistrationInstance.ContactEmail }}";
                 registrationTemplate.ConfirmationSubject = "{{ RegistrationInstance.Name }} Confirmation";
                 registrationTemplate.ConfirmationEmailTemplate = GetAttributeValue( "DefaultConfirmationEmail" );
-                registrationTemplate.ReminderFromName = "{{ RegistrationInstance.ContactName }}";
+                registrationTemplate.ReminderFromName = "{{ RegistrationInstance.ContactPersonAlias.Person.FullName }}";
                 registrationTemplate.ReminderFromEmail = "{{ RegistrationInstance.ContactEmail }}";
                 registrationTemplate.ReminderSubject = "{{ RegistrationInstance.Name }} Reminder";
                 registrationTemplate.ReminderEmailTemplate = GetAttributeValue( "DefaultReminderEmail" );
@@ -1804,7 +1848,7 @@ namespace RockWeb.Blocks.Event
             nbMaxRegistrants.Text = RegistrationTemplate.MaxRegistrants.ToString();
             rblRegistrantsInSameFamily.SetValue( RegistrationTemplate.RegistrantsSameFamily.ConvertToInt() );
             cbCost.Text = RegistrationTemplate.Cost.ToString();
-            cbMinimumInitialPayment.Text = RegistrationTemplate.MinimumInitialPayment.ToString();
+            cbMinimumInitialPayment.Text = RegistrationTemplate.MinimumInitialPayment.HasValue ? RegistrationTemplate.MinimumInitialPayment.Value.ToString( "N2" ) : "";
             fgpFinancialGateway.SetValue( RegistrationTemplate.FinancialGatewayId );
 
             tbConfirmationFromName.Text = RegistrationTemplate.ConfirmationFromName;
@@ -1888,8 +1932,8 @@ namespace RockWeb.Blocks.Event
 
             lCost.Text = RegistrationTemplate.Cost.ToString( "C2" );
 
-            lMinimumInitialPayment.Visible = RegistrationTemplate.MinimumInitialPayment > 0.0m;
-            lMinimumInitialPayment.Text = RegistrationTemplate.MinimumInitialPayment.ToString( "C2" );
+            lMinimumInitialPayment.Visible = RegistrationTemplate.MinimumInitialPayment.HasValue;
+            lMinimumInitialPayment.Text = RegistrationTemplate.MinimumInitialPayment.HasValue ? RegistrationTemplate.MinimumInitialPayment.Value.ToString( "C2" ) : "";
 
             rFees.DataSource = RegistrationTemplate.Fees.OrderBy( f => f.Order ).ToList();
             rFees.DataBind();
