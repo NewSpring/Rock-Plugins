@@ -213,6 +213,9 @@ namespace RockWeb.Blocks.Finance
                 History.EvaluateChange( changes, "Accounting System Code", batch.AccountingSystemCode, tbAccountingCode.Text );
                 batch.AccountingSystemCode = tbAccountingCode.Text;
 
+                History.EvaluateChange( changes, "Notes", batch.Note, tbNote.Text );
+                batch.Note = tbNote.Text;
+
                 cvBatch.IsValid = batch.IsValid;
                 if ( !Page.IsValid || !batch.IsValid )
                 {
@@ -392,6 +395,7 @@ namespace RockWeb.Blocks.Finance
                     .Add( "Date Range", new DateRange( batch.BatchStartDateTime, batch.BatchEndDateTime ).ToString( "g" ) )
                     .Add( "Transaction / Control / Variance", amountFormat )
                     .Add( "Accounting Code", batch.AccountingSystemCode )
+                    .Add( "Notes", batch.Note )
                     .Html;
                 //Account Summary
                 gAccounts.DataSource = batch.Transactions
@@ -415,8 +419,8 @@ namespace RockWeb.Blocks.Finance
                 gCurrencyTypes.DataSource = batch.Transactions
                     .Select( t => new
                     {
-                        CurrencyId = t.CurrencyTypeValue != null ? t.CurrencyTypeValue.Id : 0,
-                        CurrencyName = t.CurrencyTypeValue != null ? t.CurrencyTypeValue.Value : "None",
+                        CurrencyId = t.FinancialPaymentDetail != null && t.FinancialPaymentDetail.CurrencyTypeValue != null ? t.FinancialPaymentDetail.CurrencyTypeValue.Id : 0,
+                        CurrencyName = t.FinancialPaymentDetail != null && t.FinancialPaymentDetail.CurrencyTypeValue != null ? t.FinancialPaymentDetail.CurrencyTypeValue.Value : "None",
                         TotalAmount = t.TotalAmount
                     } )
                     .GroupBy( c => new
@@ -470,6 +474,7 @@ namespace RockWeb.Blocks.Finance
                 dtpEnd.SelectedDateTime = batch.BatchEndDateTime;
 
                 tbAccountingCode.Text = batch.AccountingSystemCode;
+                tbNote.Text = batch.Note;
             }
         }
 

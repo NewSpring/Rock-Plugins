@@ -345,9 +345,9 @@ namespace RockWeb.Blocks.Finance
                     string currencyType = string.Empty;
                     string creditCardType = string.Empty;
 
-                    if ( txn.CurrencyTypeValueId.HasValue )
+                    if ( txn.FinancialPaymentDetail != null && txn.FinancialPaymentDetail.CurrencyTypeValueId.HasValue )
                     {
-                        int currencyTypeId = txn.CurrencyTypeValueId.Value;
+                        int currencyTypeId = txn.FinancialPaymentDetail.CurrencyTypeValueId.Value;
                         if ( _currencyTypes.ContainsKey( currencyTypeId ) )
                         {
                             currencyType = _currencyTypes[currencyTypeId];
@@ -359,9 +359,9 @@ namespace RockWeb.Blocks.Finance
                             _currencyTypes.Add( currencyTypeId, currencyType );
                         }
 
-                        if ( txn.CreditCardTypeValueId.HasValue )
+                        if ( txn.FinancialPaymentDetail.CreditCardTypeValueId.HasValue )
                         {
-                            int creditCardTypeId = txn.CreditCardTypeValueId.Value;
+                            int creditCardTypeId = txn.FinancialPaymentDetail.CreditCardTypeValueId.Value;
                             if ( _creditCardTypes.ContainsKey( creditCardTypeId ) )
                             {
                                 creditCardType = _creditCardTypes[creditCardTypeId];
@@ -715,8 +715,8 @@ namespace RockWeb.Blocks.Finance
             }
 
             // Qry
-            var qry = new FinancialTransactionService( new RockContext() )
-                .Queryable( "AuthorizedPersonAlias.Person,ProcessedByPersonAlias.Person" );
+            var rockContext = new RockContext();
+            var qry = new FinancialTransactionService( rockContext ).Queryable();
 
             // Set up the selection filter
             if ( _batch != null )
@@ -758,7 +758,9 @@ namespace RockWeb.Blocks.Finance
                 // otherwise set the selection based on filter settings
                 if ( _person != null )
                 {
-                    qry = qry.Where( t => t.AuthorizedPersonAlias.PersonId == _person.Id );
+                    // get the transactions for the person or all the members in the person's giving group (Family)
+                    qry = qry.InnerJoinPerson( a => a.AuthorizedPersonAlias.PersonId, rockContext );
+                    qry = qry.Where( t => t.AuthorizedPersonAlias.Person.GivingId == _person.GivingId );
                 }
 
                 // Date Range
@@ -813,14 +815,14 @@ namespace RockWeb.Blocks.Finance
                 int currencyTypeId = int.MinValue;
                 if ( int.TryParse( gfTransactions.GetUserPreference( "Currency Type" ), out currencyTypeId ) )
                 {
-                    qry = qry.Where( t => t.CurrencyTypeValueId == currencyTypeId );
+                    qry = qry.Where( t => t.FinancialPaymentDetail != null && t.FinancialPaymentDetail.CurrencyTypeValueId == currencyTypeId );
                 }
 
                 // Credit Card Type
                 int creditCardTypeId = int.MinValue;
                 if ( int.TryParse( gfTransactions.GetUserPreference( "Credit Card Type" ), out creditCardTypeId ) )
                 {
-                    qry = qry.Where( t => t.CreditCardTypeValueId == creditCardTypeId );
+                    qry = qry.Where( t => t.FinancialPaymentDetail != null && t.FinancialPaymentDetail.CreditCardTypeValueId == creditCardTypeId );
                 }
 
                 // Source Type
@@ -863,6 +865,10 @@ namespace RockWeb.Blocks.Finance
                     qry = qry.OrderByDescending( t => t.TransactionDateTime ).ThenByDescending( t => t.Id );
                 }
             }
+
+
+            // specify the items we don't want lazy loaded
+            qry = qry.Include( a => a.FinancialPaymentDetail ).Include( a => a.AuthorizedPersonAlias.Person ).Include( a => a.ProcessedByPersonAlias );
 
             gTransactions.SetLinqDataSource( qry.AsNoTracking() );
             gTransactions.DataBind();

@@ -119,8 +119,6 @@
                                             Help="Check this option if more than one location should be allowed for groups of this type." />
                                         <Rock:RockCheckBox ID="cbEnableLocationSchedules" runat="server" Label="Enable Location Schedules" Text="Yes" 
                                             Help="Check this option if group locations should be associated with one or more pre-defined schedules." />
-                                        <Rock:RockCheckBox ID="cbEnableAlternatePlacements" runat="server" Label="Enable Alternate Placements" Text="Yes" 
-                                            Help="Check this option if groups of this type can use the Alternate Placements feature" />
                                     </div>
                                 </div>
                                 <Rock:RockControlWrapper ID="rcLocationTypes" runat="server" Label="Location Types"
@@ -136,6 +134,8 @@
                                 </Rock:RockControlWrapper>
                                 <Rock:GroupTypePicker ID="gtpInheritedGroupType" runat="server" Label="Inherited Group Type" 
                                     Help="Group Type to inherit attributes from" AutoPostBack="true" OnSelectedIndexChanged="gtpInheritedGroupType_SelectedIndexChanged" />
+                                <Rock:RockCheckBox ID="cbDontInactivateMembers" runat="server" Label="Don't Inactivate Members" 
+                                    Help="By default, whenever a person record is inactivated, all of that person's group memberships are also inactivated. Check this option if members in groups of this type should not be inactivated when their person record is inactivated." />
                             </div>
                         </div>
                     </Rock:PanelWidget>
@@ -410,6 +410,10 @@
                         <Rock:RockDropDownList ID="ddlTriggerToRole" runat="server" Label="To Role of" ValidationGroup="Trigger" DataTextField="Name" DataValueField="Guid" />
                         <Rock:RockCheckBox ID="cbTriggerFirstTime" runat="server" Label="First Time" Text="Yes" ValidationGroup="Trigger" 
                             Help="Select this option if workflow should only be started when a person attends a group of this type for the first time. Leave this option unselected if the workflow should be started whenever a person attends a group of this type."/>
+                        <Rock:RockCheckBox ID="cbTriggerPlacedElsewhereShowNote" runat="server" Label="Show Note" Text="Yes" ValidationGroup="Trigger"
+                            Help="Select this option if workflow should show UI for entering a note when the member is placed." />
+                        <Rock:RockCheckBox ID="cbTriggerPlacedElsewhereRequireNote" runat="server" Label="Require Note" Text="Yes" ValidationGroup="Trigger"
+                            Help="Select this option if workflow should show UI for entering a note and make it required when the member is placed." />
                     </div>
                 </div>
             </Content>

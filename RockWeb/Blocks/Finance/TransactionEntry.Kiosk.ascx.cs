@@ -417,6 +417,7 @@ namespace RockWeb.Blocks.Finance
 
                         if ( transaction != null )
                         {
+
                             var txnChanges = new List<string>();
                             txnChanges.Add( "Created Transaction (from kiosk)" );
 
@@ -442,14 +443,11 @@ namespace RockWeb.Blocks.Finance
                             transaction.TransactionTypeValueId = txnType.Id;
                             History.EvaluateChange( txnChanges, "Type", string.Empty, txnType.Value );
 
-                            transaction.CurrencyTypeValueId = swipeInfo.CurrencyTypeValue.Id;
-                            History.EvaluateChange( txnChanges, "Currency Type", string.Empty, swipeInfo.CurrencyTypeValue.Value );
-
-                            if ( swipeInfo.CreditCardTypeValue != null )
+                            if ( transaction.FinancialPaymentDetail == null )
                             {
-                                transaction.CreditCardTypeValueId = swipeInfo.CreditCardTypeValue.Id;
-                                History.EvaluateChange( txnChanges, "Credit Card Type", string.Empty, swipeInfo.CreditCardTypeValue.Value );
+                                transaction.FinancialPaymentDetail = new FinancialPaymentDetail();
                             }
+                            transaction.FinancialPaymentDetail.SetFromPaymentInfo( swipeInfo, gateway, rockContext, txnChanges );
 
                             Guid sourceGuid = Guid.Empty;
                             if ( Guid.TryParse( GetAttributeValue( "Source" ), out sourceGuid ) )

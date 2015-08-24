@@ -73,7 +73,7 @@
 
                         <div class="row">
                             <div class="col-md-6">
-                                <Rock:PersonPicker ID="ppPerson" runat="server" Label="Registered By" OnSelectPerson="ppPerson_SelectPerson" />
+                                <Rock:PersonPicker ID="ppPerson" runat="server" Label="Registered By" OnSelectPerson="ppPerson_SelectPerson" EnableSelfSelection="true" />
                                 <Rock:EmailBox ID="ebConfirmationEmail" runat="server" Label="Confirmation Email" />
                             </div>
                             <div class="col-md-6">
@@ -86,7 +86,7 @@
                             <div class="col-md-6">
                             </div>
                             <div class="col-md-6">
-                                <Rock:RockTextBox ID="tbDiscountCode" runat="server" Label="Discount Code" />
+                                <Rock:RockDropDownList ID="ddlDiscountCode" runat="server" Label="Discount Code" DataValueField="Key" DataTextField="Value" AutoPostBack="true" OnSelectedIndexChanged="ddlDiscountCode_SelectedIndexChanged" />
                                 <Rock:NumberBox ID="nbDiscountPercentage" runat="server" AppendText="%" CssClass="input-width-md" Label="Discount Percentage" NumberType="Integer" />
                                 <Rock:CurrencyBox ID="cbDiscountAmount" runat="server" CssClass="input-width-md" Label="Discount Amount (per Registrant)" />
                             </div>

@@ -46,11 +46,13 @@ namespace RockWeb.Blocks.Cms
     {
         #region Fields
 
+        private const string STATUS_FILTER_SETTING = "ContentChannelItemView_StatusFilter";
+        private const string SELECTED_CHANNEL_SETTING = "ContentChannelItemView_SelectedChannelId";
+
         #endregion
 
         #region Properties
 
-        protected bool? StatusFilter { get; set; }
         protected int? SelectedChannelId { get; set; }
 
         #endregion
@@ -65,10 +67,7 @@ namespace RockWeb.Blocks.Cms
         {
             base.LoadViewState( savedState );
 
-            StatusFilter = ViewState["StatusFilter"] as bool?;
             SelectedChannelId = ViewState["SelectedChannelId"] as int?;
-
-            //GetData();
         }
 
         protected override void OnInit( EventArgs e )
@@ -99,7 +98,14 @@ namespace RockWeb.Blocks.Cms
             {
                 BindFilter();
 
+                tglStatus.Checked = GetUserPreference( STATUS_FILTER_SETTING ).AsBoolean();
+
                 SelectedChannelId = PageParameter( "contentChannelId" ).AsIntegerOrNull();
+                if ( !SelectedChannelId.HasValue )
+                {
+                    SelectedChannelId = GetUserPreference( SELECTED_CHANNEL_SETTING ).AsIntegerOrNull();
+                }
+
                 GetData();
             }
             else if ( eventTarget.StartsWith( gContentChannelItems.UniqueID ) )
@@ -117,7 +123,6 @@ namespace RockWeb.Blocks.Cms
         /// </returns>
         protected override object SaveViewState()
         {
-            ViewState["StatusFilter"] = StatusFilter;
             ViewState["SelectedChannelId"] = SelectedChannelId;
             return base.SaveViewState();
         }
@@ -143,7 +148,7 @@ namespace RockWeb.Blocks.Cms
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void tgl_CheckedChanged( object sender, EventArgs e )
         {
-            StatusFilter = tglStatus.Checked;
+            SetUserPreference( STATUS_FILTER_SETTING, tglStatus.Checked.ToString() );
             GetData();
         }
 
@@ -154,11 +159,10 @@ namespace RockWeb.Blocks.Cms
         /// <param name="e">The <see cref="RepeaterCommandEventArgs"/> instance containing the event data.</param>
         protected void rptChannels_ItemCommand( object source, RepeaterCommandEventArgs e )
         {
-            int? channelId = e.CommandArgument.ToString().AsIntegerOrNull();
-            if (channelId.HasValue)
-            {
-                SelectedChannelId = channelId.Value;
-            }
+            string selectedChannelValue = e.CommandArgument.ToString();
+            SetUserPreference( SELECTED_CHANNEL_SETTING, selectedChannelValue );
+
+            SelectedChannelId = selectedChannelValue.AsIntegerOrNull();
 
             GetData();
         }
@@ -342,7 +346,7 @@ namespace RockWeb.Blocks.Cms
                 } );
 
             // If displaying active only, update query to exclude those content channels without any items
-            if ( StatusFilter.HasValue && StatusFilter.Value )
+            if ( tglStatus.Checked )
             {
                 qry = qry.Where( c => c.Count > 0 );
             }
@@ -433,7 +437,8 @@ namespace RockWeb.Blocks.Cms
                     i.StartDateTime,
                     i.ExpireDateTime,
                     i.Priority,
-                    Status = DisplayStatus( i.Status )
+                    Status = DisplayStatus( i.Status ),
+                    Occurrences = i.EventItemOccurrences.Count()
                 } ).ToList();
                 gContentChannelItems.DataBind();
 
@@ -522,6 +527,7 @@ namespace RockWeb.Blocks.Cms
                 priorityField.ItemStyle.HorizontalAlign = HorizontalAlign.Right;
                 gContentChannelItems.Columns.Add( priorityField );
 
+
                 // Status column
                 if ( channel.RequiresApproval )
                 {
@@ -533,6 +539,20 @@ namespace RockWeb.Blocks.Cms
                     statusField.HtmlEncode = false;
                 }
 
+                // Add Occurences Count column
+                var occurrencesField = new BadgeField();
+                occurrencesField.ImportantMin = int.MaxValue;
+                occurrencesField.WarningMin = int.MaxValue;
+                occurrencesField.SuccessMin = int.MaxValue;
+                occurrencesField.InfoMin = 1;
+                occurrencesField.InfoMax = int.MaxValue;
+                occurrencesField.HideMin = int.MinValue;
+                occurrencesField.HideMax = 0;
+                occurrencesField.DataField = "Occurrences";
+                occurrencesField.HeaderText = "Event Occurrences";
+                occurrencesField.HtmlEncode = false;
+                gContentChannelItems.Columns.Add( occurrencesField );
+                
                 bool canEditChannel = channel.IsAuthorized( Rock.Security.Authorization.EDIT, CurrentPerson );
                 gContentChannelItems.Actions.ShowAdd = canEditChannel;
                 gContentChannelItems.IsDeleteEnabled = canEditChannel;

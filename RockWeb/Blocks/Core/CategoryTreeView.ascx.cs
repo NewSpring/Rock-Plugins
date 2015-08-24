@@ -41,11 +41,14 @@ namespace RockWeb.Blocks.Core
     [TextField( "Entity type Qualifier Value", "", false )]
     [BooleanField( "Show Unnamed Entity Items", "Set to false to hide any EntityType items that have a blank name.", true )]
     [TextField( "Page Parameter Key", "The page parameter to look for" )]
+    [TextField("Default Icon CSS Class", "The icon CSS class to use when the treeview displays items that do not have an IconCSSClass property", false, "fa fa-list-ol" )]
 
     [CategoryField( "Root Category", "Select the root category to use as a starting point for the tree view.", false, Category = "CustomSetting" )]
     [CategoryField( "Exclude Categories", "Select any category that you need to exclude from the tree view", true, Category = "CustomSetting" )]
     public partial class CategoryTreeView : RockBlockCustomSettings
     {
+        public const string CategoryNodePrefix = "C";
+
         /// <summary>
         /// Gets the settings tool tip.
         /// </summary>
@@ -109,11 +112,36 @@ namespace RockWeb.Blocks.Core
         {
             base.OnLoad( e );
 
+            mdCategoryTreeConfig.Visible = false;
+
             bool canEditBlock = IsUserAuthorized( Authorization.EDIT );
 
             // hide all the actions if user doesn't have EDIT to the block
             divTreeviewActions.Visible = canEditBlock;
-            hfPageRouteTemplate.Value = ( this.RockPage.RouteData.Route as System.Web.Routing.Route ).Url;
+
+            var detailPageReference = new Rock.Web.PageReference( GetAttributeValue( "DetailPage" ) );
+            
+            // NOTE: if the detail page is the current page, use the current route instead of route specified in the DetailPage (to preserve old behavior)
+            if ( detailPageReference == null || detailPageReference.PageId == this.RockPage.PageId )
+            {
+                hfPageRouteTemplate.Value = ( this.RockPage.RouteData.Route as System.Web.Routing.Route ).Url;
+                hfDetailPageUrl.Value = new Rock.Web.PageReference( this.RockPage.PageId ).BuildUrl().RemoveLeadingForwardslash();
+            }
+            else
+            {
+                hfPageRouteTemplate.Value = string.Empty;
+                var pageCache = PageCache.Read( detailPageReference.PageId );
+                if ( pageCache != null )
+                {
+                    var route = pageCache.PageRoutes.FirstOrDefault( a => a.Id == detailPageReference.RouteId );
+                    if ( route != null )
+                    {
+                        hfPageRouteTemplate.Value = route.Route;
+                    }
+                }
+
+                hfDetailPageUrl.Value = detailPageReference.BuildUrl().RemoveLeadingForwardslash();
+            }
 
             // Get EntityTypeName
             Guid? entityTypeGuid = GetAttributeValue( "EntityType" ).AsGuidOrNull();
@@ -163,6 +191,12 @@ namespace RockWeb.Blocks.Core
                     parms += string.Format( "&excludedCategoryIds={0}", excludedCategoriesIds.AsDelimited(",") );
                 }
 
+                string defaultIconCssClass = GetAttributeValue("DefaultIconCSSClass");
+                if ( !string.IsNullOrWhiteSpace( defaultIconCssClass ) )
+                {
+                    parms += string.Format( "&defaultIconCssClass={0}", defaultIconCssClass );
+                }
+
                 RestParms = parms;
 
                 var cachedEntityType = Rock.Web.Cache.EntityTypeCache.Read( entityTypeId );
@@ -178,12 +212,24 @@ namespace RockWeb.Blocks.Core
                     lAddItem.Text = entityTypeFriendlyName;
                 }
 
+                // Attempt to retrieve an EntityId from the Page URL parameters.
                 PageParameterName = GetAttributeValue( "PageParameterKey" );
+
+                string selectedNodeId = null;
+                
                 int? itemId = PageParameter( PageParameterName ).AsIntegerOrNull();
-                string selectedEntityType = cachedEntityType.Name;
-                if ( !itemId.HasValue )
+                string selectedEntityType;
+                if (itemId.HasValue)
                 {
+                    selectedNodeId = itemId.ToString();
+                    selectedEntityType = (cachedEntityType != null) ? cachedEntityType.Name : string.Empty;
+                }
+                else
+                {
+                    // If an EntityId was not specified, check for a CategoryId.
                     itemId = PageParameter( "CategoryId" ).AsIntegerOrNull();
+
+                    selectedNodeId = CategoryNodePrefix + itemId;
                     selectedEntityType = "category";
                 }
 
@@ -193,14 +239,14 @@ namespace RockWeb.Blocks.Core
 
                 CategoryCache selectedCategory = null;
 
-                if ( itemId.HasValue )
+                if ( !string.IsNullOrEmpty( selectedNodeId ) )
                 {
-                    hfSelectedItemId.Value = itemId.Value.ToString();
+                    hfSelectedItemId.Value = selectedNodeId;
                     List<string> parentIdList = new List<string>();
 
                     if ( selectedEntityType.Equals( "category" ) )
                     {
-                        selectedCategory = CategoryCache.Read( itemId.Value );
+                        selectedCategory = CategoryCache.Read( itemId.GetValueOrDefault() );
                     }
                     else
                     {
@@ -224,7 +270,8 @@ namespace RockWeb.Blocks.Core
                                         selectedCategory = CategoryCache.Read( entity.CategoryId.Value );
                                         if ( selectedCategory != null )
                                         {
-                                            parentIdList.Insert( 0, selectedCategory.Id.ToString() );
+                                            string categoryExpandedID = CategoryNodePrefix + selectedCategory.Id.ToString();
+                                            parentIdList.Insert( 0, CategoryNodePrefix + categoryExpandedID );
                                         }
                                     }
                                 }
@@ -239,9 +286,10 @@ namespace RockWeb.Blocks.Core
                         category = category.ParentCategory;
                         if ( category != null )
                         {
-                            if ( !parentIdList.Contains( category.Id.ToString() ) )
+                            string categoryExpandedID = CategoryNodePrefix + category.Id.ToString();
+                            if ( !parentIdList.Contains( categoryExpandedID ) )
                             {
-                                parentIdList.Insert( 0, category.Id.ToString() );
+                                parentIdList.Insert( 0, categoryExpandedID );
                             }
                             else
                             {
@@ -350,6 +398,7 @@ namespace RockWeb.Blocks.Core
         /// </summary>
         protected override void ShowSettings()
         {
+            mdCategoryTreeConfig.Visible = true;
             var entityType = EntityTypeCache.Read( this.GetAttributeValue( "EntityType" ).AsGuid() );
             var rootCategory = new CategoryService( new RockContext() ).Get( this.GetAttributeValue( "RootCategory" ).AsGuid() );
             
@@ -413,6 +462,8 @@ namespace RockWeb.Blocks.Core
 
             mdCategoryTreeConfig.Hide();
             Block_BlockUpdated( sender, e );
+
+            mdCategoryTreeConfig.Visible = false;
         }
     }
 }

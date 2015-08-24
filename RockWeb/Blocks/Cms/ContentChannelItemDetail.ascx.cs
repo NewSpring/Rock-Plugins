@@ -18,7 +18,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.UI;
+
 using Rock;
+using Rock.Attribute;
 using Rock.Constants;
 using Rock.Data;
 using Rock.Model;
@@ -40,6 +42,8 @@ namespace RockWeb.Blocks.Cms
     [DisplayName("Content Channel Item Detail")]
     [Category("CMS")]
     [Description("Displays the details for a content channel item.")]
+
+    [LinkedPage( "Event Occurrence Page" )]
     public partial class ContentChannelItemDetail : RockBlock, IDetailBlock
     {
 
@@ -196,6 +200,28 @@ namespace RockWeb.Blocks.Cms
                 {
                     rockContext.SaveChanges();
                     contentItem.SaveAttributeValues( rockContext );
+
+                    int? eventItemOccurrenceId = PageParameter( "EventItemOccurrenceId" ).AsIntegerOrNull();
+                    if ( eventItemOccurrenceId.HasValue )
+                    {
+                        var occurrenceChannelItemService = new EventItemOccurrenceChannelItemService( rockContext );
+                        var occurrenceChannelItem = occurrenceChannelItemService
+                            .Queryable()
+                            .Where( c =>
+                                c.ContentChannelItemId == contentItem.Id &&
+                                c.EventItemOccurrenceId == eventItemOccurrenceId.Value) 
+                            .FirstOrDefault();
+
+                        if ( occurrenceChannelItem == null )
+                        {
+                            occurrenceChannelItem = new EventItemOccurrenceChannelItem();
+                            occurrenceChannelItem.ContentChannelItemId = contentItem.Id;
+                            occurrenceChannelItem.EventItemOccurrenceId = eventItemOccurrenceId.Value;
+                            occurrenceChannelItemService.Add( occurrenceChannelItem );
+                            rockContext.SaveChanges();
+                        }
+                    }
+
                 } );
 
                 ReturnToParentPage();
@@ -324,28 +350,25 @@ namespace RockWeb.Blocks.Cms
                 hlStatus.Text = contentItem.Status.ConvertToString();
 
                 hlStatus.LabelType = LabelType.Default;
-                if ( contentItem.Status == ContentChannelItemStatus.Approved )
+                switch( contentItem.Status )
                 {
-                    hlStatus.LabelType = LabelType.Success;
-                } 
-                else if ( contentItem.Status == ContentChannelItemStatus.Denied )
-                {
-                    hlStatus.LabelType = LabelType.Danger;
+                    case ContentChannelItemStatus.Approved: hlStatus.LabelType = LabelType.Success; break;
+                    case ContentChannelItemStatus.Denied: hlStatus.LabelType = LabelType.Danger; break;
+                    case ContentChannelItemStatus.PendingApproval: hlStatus.LabelType = LabelType.Warning; break;
+                    default: hlStatus.LabelType = LabelType.Default; break;
                 }
-                if ( contentItem.Status != ContentChannelItemStatus.PendingApproval )
+
+                var statusDetail = new System.Text.StringBuilder();
+                if ( contentItem.ApprovedByPersonAlias != null && contentItem.ApprovedByPersonAlias.Person != null )
                 {
-                    var statusDetail = new System.Text.StringBuilder();
-                    if ( contentItem.ApprovedByPersonAlias != null && contentItem.ApprovedByPersonAlias.Person != null )
-                    {
-                        statusDetail.AppendFormat( "by {0} ", contentItem.ApprovedByPersonAlias.Person.FullName );
-                    }
-                    if ( contentItem.ApprovedDateTime.HasValue )
-                    {
-                        statusDetail.AppendFormat( "on {0} at {1}", contentItem.ApprovedDateTime.Value.ToShortDateString(),
-                            contentItem.ApprovedDateTime.Value.ToShortTimeString() );
-                    }
-                    hlStatus.ToolTip = statusDetail.ToString();
+                    statusDetail.AppendFormat( "by {0} ", contentItem.ApprovedByPersonAlias.Person.FullName );
                 }
+                if ( contentItem.ApprovedDateTime.HasValue )
+                {
+                    statusDetail.AppendFormat( "on {0} at {1}", contentItem.ApprovedDateTime.Value.ToShortDateString(),
+                        contentItem.ApprovedDateTime.Value.ToShortTimeString() );
+                }
+                hlStatus.ToolTip = statusDetail.ToString();
 
                 tbTitle.Text = contentItem.Title;
 
@@ -390,6 +413,20 @@ namespace RockWeb.Blocks.Cms
                 contentItem.LoadAttributes();
                 phAttributes.Controls.Clear();
                 Rock.Attribute.Helper.AddEditControls( contentItem, phAttributes, true, BlockValidationGroup );
+
+                phOccurrences.Controls.Clear();
+                foreach ( var occurrence in contentItem.EventItemOccurrences
+                    .Where( o => o.EventItemOccurrence != null )
+                    .Select( o => o.EventItemOccurrence ) )
+                {
+                    var qryParams = new Dictionary<string, string> { { "EventItemOccurrenceId", occurrence.Id.ToString() } };
+                    string url = LinkedPageUrl( "EventOccurrencePage", qryParams );
+                    var hlOccurrence = new HighlightLabel();
+                    hlOccurrence.LabelType = LabelType.Info;
+                    hlOccurrence.ID = string.Format( "hlOccurrence_{0}", occurrence.Id );
+                    hlOccurrence.Text = string.Format( "<a href='{0}'>{1}</a>", url, occurrence.ToString() );
+                    phOccurrences.Controls.Add( hlOccurrence );
+                }
             }
             else
             {
@@ -435,7 +472,16 @@ namespace RockWeb.Blocks.Cms
         private void ReturnToParentPage()
         {
             var qryParams = new Dictionary<string,string>();
-            qryParams.Add( "contentChannelId", hfChannelId.Value );
+
+            int? eventItemOccurrenceId = PageParameter( "EventItemOccurrenceId" ).AsIntegerOrNull();
+            if ( eventItemOccurrenceId.HasValue )
+            {
+                qryParams.Add( "EventCalendarId", PageParameter( "EventCalendarId" ) );
+                qryParams.Add( "EventItemId", PageParameter( "EventItemId" ) );
+                qryParams.Add( "EventItemOccurrenceId", eventItemOccurrenceId.Value.ToString() );
+            }
+            
+            qryParams.Add( "ContentChannelId", hfChannelId.Value );
             NavigateToParentPage( qryParams );
         }
 
