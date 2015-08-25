@@ -1,3 +1,9 @@
+{% comment %} 
+    {% include '/Themes/NewSpring/Assets/Lava/StaffVideoList.lava' %}
+{% endcomment %}
+
+<script src="//player.ooyala.com/v3/ZmJmNTVlNDk1NjcwYTVkMzAzODkyMjg0"></script>
+
 {% for item in Items %}
 
 <div class="list-entry">
@@ -8,33 +14,33 @@
             <h4>{{ item.StartDateTime | Date:'MMMM d, yyyy' }}</h4>
             <p>{{ item.Content }}</p>
 
+            <p>{% if item.VideoID != '' %}<button type="button" class="btn btn-primary videoCreate" data-video-id="{{ item.VideoID }}" data-video-name="{{ item.Title | ToCssClass}}" data-toggle="modal" data-target=".{{ item.Title | ToCssClass}}-video" data-videoId="{{ item.VideoID }}">Play Video</button>{% endif %}{% if item.AudioURL != '' %}<button type="button" class="btn btn-primary" data-toggle="modal" data-target=".{{ item.Title | ToCssClass}}-audio" data-AudioURL="{{ item.AudioURL }}">Play Audio</button>{% endif %}<a href="{{ LinkedPages.DetailPage }}?Item={{ item.Id }}" class="btn btn-default">View Entry</a></p>
+
             {% if item.VideoID != '' %}
-
-                <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".{{ item.Title | ToCssClass}}" data-videoId="{{ item.VideoID }}">Play Video</button>
-
-                <div class="modal fade {{ item.Title | ToCssClass}} videoModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
+                <div class="modal fade {{ item.Title | ToCssClass}}-video videoModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" data-video-id="{{ item.VideoID }}">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                            <p>
-                                <script src='//player.ooyala.com/v3/ZmJmNTVlNDk1NjcwYTVkMzAzODkyMjg0'></script>
-                                <div id='{{ item.Title | ToCssClass}}'></div>
-                                <script>OO.ready(function() { OO.Player.create('{{ item.Title | ToCssClass}}', '{{ item.VideoID }}'); });</script>
-                                <noscript>
-                                    <div>Please enable Javascript to watch this video</div>
-                                </noscript>
-                            </p>
+                            <div id="{{ item.Title | ToCssClass}}"></div>
                         </div>
                     </div>
                 </div>
             {% endif %}
 
-            <!--
-        <a href="{{ LinkedPages.DetailPage }}?Item={{ item.Id }}" class="link--arrow">
-        View Post</a>
-      -->
+            {% if item.AudioURL != '' %}
+                <div class="modal fade {{ item.Title | ToCssClass}}-audio audioModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            {{ item.AudioURL }}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
 
         </div>
     </div>
@@ -68,3 +74,21 @@
     {% endif %}
 
 </div>
+
+<script>
+    $(document).ready(function() {
+
+        var player = null;
+
+        $(document).on('click', '.videoCreate', function(){
+            name = $(this).attr("data-video-name");
+            id = $(this).attr("data-video-id");
+            player = OO.Player.create(name, id);
+        });
+
+        $(document).on('click', '.modal-scrollable', function(){
+            id = $(this).find('.videoModal').attr("data-video-id");
+            player.destroy(id);
+        });
+    });
+</script>
