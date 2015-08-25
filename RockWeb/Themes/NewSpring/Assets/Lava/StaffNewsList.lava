@@ -1,50 +1,56 @@
-﻿{% for item in Items %}
+﻿{% comment %}
 
-	<div class="list-entry">
-		<div class="row">
-			<div class="col-lg-8 col-md-8 col-sm-8">
-				<h3>{{ item.Title }}</h3>
-		
-				{{ item.Image }}
+    <div class="col-md-12">
+        <div class="card">
+            <h2>News</h2>
 
-				<h4>{{ item.StartDateTime | Date:'MMMM d, yyyy' }}</h4>
+            {% include '/Themes/NewSpring/Assets/Lava/StaffNewsList.lava' %}
 
-				<p>{{ item.Content }}</p>
+            <p class="flush">
+                <a class="btn btn-primary" href="#" role="button">View More News</a>
+            </p>
 
+        </div>
+    </div>
 
-					<a href="{{ LinkedPages.DetailPage }}?Item={{ item.Id }}" class="link--arrow">
-						View Post
-					</a>
+{% endcomment %}
+{% for item in Items %}
 
-			</div>
-		</div>
-	</div>
+    <h3>{{ item.Title }}</h3>
+    {% assign contentLength = item.Summary | Size %}
+    {% if contentLength > 75 %}
+    <div class="content small content--small long">
+        <p>{{ item.Summary | Truncate:75 }}  <span class="link--arrow actions--expand flush">Read More</span></p>
+        <div class="actions actions--expand">
+        <i class="fa fa-chevron-down"></i>
+        </div>
+    </div>
+    <div class="content overflow content--overflow long">
+        <p>{{ item.Summary }}</p>
+        <div class="actions actions--collapse">
+        <i class="fa fa-chevron-up"></i>
+        </div>
+    </div>
+    {% else %}
+    <p>{{ item.Summary }}</p>
+    {% comment %}
+        <a href="{{ LinkedPages.DetailPage }}?Item={{ item.Id }}" class="link--arrow">Read More</a>
+    {% endcomment %}
+    {% endif %}
+    
+    <p class="content--time">{{ item.StartDateTime | Date:'h:mmtt - MMM d, yyyy' }}</p>
 
+    <hr>
+    
 {% endfor %}
-
-<div class="clearfix constrained">
-
-  {% assign nextPageString = Pagination.NextPage | ToString %}
-  {% assign prevPageString = Pagination.PreviousPage | ToString %}
-
-  {% if {{Pagination.PreviousPage == -1 }} %}
-	  <div class="btn btn-default pull-left">
-		<i class="fa fa-chevron-left"></i> Prev
-	  </div>
-  {% else %}
-	  <a class="btn btn-primary pull-left" href="{{Pagination.UrlTemplate | Replace:'PageNum', prevPageString}}">
-		<i class="fa fa-chevron-left"></i> Prev
-	  </a>
-  {% endif %}
-
-  {% if {{Pagination.NextPage == -1 }} %}
-	  <div class="btn btn-default pull-right">
-		Next <i class="fa fa-chevron-right"></i> 
-	  </div>
-  {% else %}
-	  <a class="btn btn-primary pull-right" href="{{Pagination.UrlTemplate | Replace:'PageNum', nextPageString}}">
-		Next <i class="fa fa-chevron-right"></i>
-	  </a>
-  {% endif %}
-
-</div>
+    
+<script>
+    $('.actions--expand').on('click', function() {
+        $(this).closest('.content--small').toggleClass('hidden');
+        $(this).closest('.content--small').next('.content--overflow').toggleClass('visible');
+    });
+    $('.actions--collapse').on('click', function() {
+        $(this).closest('.content--overflow').removeClass('visible');
+        $(this).closest('.content--overflow').prev('.content--small').removeClass('hidden');
+    });
+</script>

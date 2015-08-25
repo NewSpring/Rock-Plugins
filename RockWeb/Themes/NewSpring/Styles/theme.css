@@ -6051,6 +6051,40 @@ table {
   background-color: #f7f7f7;
   border-bottom: 0px;
 }
+.content--small .actions--expand {
+  color: #6bac43;
+}
+.content--small .actions--expand:hover {
+  cursor: pointer;
+  color: #3d6326;
+}
+.actions {
+  text-align: right;
+  font-size: 1.5em;
+  margin-bottom: 12px;
+}
+.actions:hover {
+  color: #6bac43;
+  cursor: pointer;
+}
+.actions--collapse {
+  color: #6bac43;
+}
+.actions--collapse:hover {
+  color: #3d6326;
+}
+.content--overflow {
+  display: none;
+}
+.content--overflow.visible {
+  display: block;
+}
+.content--time {
+  color: #555555;
+  font-size: 0.95em !important;
+  font-weight: 500;
+  text-transform: uppercase;
+}
 .modal.fade.in.videoModal {
   width: 100%;
   height: 100%;

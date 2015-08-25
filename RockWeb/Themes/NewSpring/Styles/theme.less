@@ -199,6 +199,54 @@ table {
     }
 }
 
+// read more
+
+.content--small {
+
+    .actions--expand {
+        color: @brand-primary;
+
+        &:hover {
+            cursor : pointer;
+            color: darken(@brand-primary, 20);
+        }
+    }
+}
+
+.actions {
+    text-align: right;
+    font-size: 1.5em;
+    margin-bottom: @padding-base-vertical*2;
+
+    &:hover {
+        color: @brand-primary;
+        cursor: pointer;
+    }
+
+    &--collapse {
+      color: @brand-primary;
+
+      &:hover {
+        color: darken(@brand-primary, 20);
+      }
+    }
+}
+
+.content--overflow {
+    display: none;
+
+    &.visible {
+        display: block;
+    }
+}
+
+.content--time {
+    color: @gray;
+    font-size: 0.95em !important;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
 // video modal tweaks
 
 .modal.fade.in.videoModal {
