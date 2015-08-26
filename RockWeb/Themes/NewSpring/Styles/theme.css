@@ -6176,9 +6176,6 @@ table {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.btn + .btn {
-  margin-left: 10px;
-}
 .btn-success:hover,
 .btn-success:focus,
 .btn-success:active,
@@ -6445,7 +6442,6 @@ table tr td {
 .list-entry img {
   max-width: 350px;
   width: 100%;
-  /*float: left;*/
   margin: 15px 30px 30px 0;
 }
 .list-entry h3,
@@ -6688,6 +6684,143 @@ body#splash.error #content #logo {
 }
 .pagetabs {
   margin-bottom: 15px;
+}
+.player {
+  position: absolute;
+  bottom: 0px;
+  height: 90px;
+  z-index: 1000;
+  width: 100%;
+  background-color: #aaaaaa;
+}
+.audiojs {
+  position: absolute;
+  bottom: 0px;
+  height: 90px;
+  z-index: 1000;
+  width: 100%;
+  background-color: #aaaaaa;
+}
+@-webkit-keyframes rotation {
+  from {
+    -webkit-transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(359deg);
+  }
+}
+.audiojs {
+  background: #202020;
+}
+.audiojs .play-pause {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  height: 90px;
+  width: 90px;
+  padding: 0px;
+  float: none;
+  border-right: 0px;
+  background-color: #6bac43;
+  z-index: 2;
+}
+.audiojs .play-pause p {
+  background: none;
+  height: 100%;
+  width: 100%;
+}
+.audiojs .play-pause p:after {
+  position: absolute;
+  top: 27px;
+  left: 0px;
+  width: 100%;
+  margin-top: -15px;
+  font-family: 'FontAwesome';
+  font-size: 48px;
+  color: #ffffff;
+  text-align: center;
+}
+.audiojs .play-pause p.play:after {
+  content: '\f04b';
+}
+.audiojs .play-pause p.pause:after {
+  content: '\f04c';
+}
+.audiojs .play-pause p.loading:after {
+  content: '\f1ce';
+  -webkit-animation: rotation .5s infinite linear;
+}
+.audiojs .play-pause p.error {
+  background: rgba(0, 0, 0, 0.2);
+}
+.audiojs .play-pause p.error:after {
+  content: '\f12a';
+}
+.audiojs .error-message {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  padding: 0 30px 0 120px;
+  margin: 0px;
+  font-size: 24px;
+  line-height: 90px;
+  font-weight: 600;
+  color: #ffffff;
+  z-index: 2;
+}
+.audiojs .scrubber {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  bottom: 0px;
+  left: 90px;
+  width: auto;
+  margin: 0px;
+  border-top: 0px;
+  height: 100%;
+  background-color: #202020;
+  cursor: pointer;
+  z-index: 1;
+}
+.audiojs .scrubber .progress,
+.audiojs .scrubber .loaded {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 0%;
+  height: 100%;
+  background: #6bac43;
+  z-index: 1;
+}
+.audiojs .scrubber .progress:after {
+  content: '';
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  bottom: 0px;
+  left: 0px;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+.audiojs .scrubber .loaded {
+  background-color: #3a3a3a;
+  z-index: 0;
+}
+.audiojs .time {
+  position: absolute;
+  top: 50%;
+  right: 39px;
+  z-index: 10;
+  margin: 0px;
+  margin-top: -18px;
+  padding: 0px;
+  border: 0px;
+  text-shadow: none;
+  float: none;
+  font-size: 24px;
+  font-weight: 600;
+  color: #ffffff;
 }
 /*#endregion */
 /*#endregion */

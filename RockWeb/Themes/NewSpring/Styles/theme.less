@@ -449,20 +449,7 @@ table {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-
-    & + .btn {
-        margin-left: 10px;
-    }
 }
-
-// .btn-group {
-//     .panel-heading & {
-//         position: absolute;
-//         top: 50%;
-//         margin-top: -14px;
-//         right: 10px;
-//     }
-// }
 
 .btn-success:hover,
 .btn-success:focus,
@@ -487,37 +474,6 @@ table {
 .tag-letterlist a {
     color: @brand-primary;
 }
-
-// .nav.nav-pagelist {
-//   background-color: @accent-blue-light;
-//   border: 1px solid darken(@accent-blue-light, 10%);
-
-//   .pill-help {
-//     a {
-//       color: @accent-blue;
-//     }
-//   }
-
-//   .nav.nav-pills {
-//     li a:hover {
-//       background-color: lighten(@accent-blue, 30%);
-//     }
-
-//     li.active a {
-//       background-color: @accent-blue;
-//       color: #fff;
-//       border-color: darken(@accent-blue, 5%);
-//     }
-//   }
-// }
-
-// .rock-modal-frame {
-//   border: 1px solid @accent-bold-color;
-// }
-
-// .close {
-//   opacity: 0.6;
-// }
 
 /*#endregion */
 
@@ -625,17 +581,6 @@ table {
         width: 160px;
     }
 }
-
-// rocktree
-// .rocktree {
-//   .rocktree-item {
-//     font-weight: 500;
-
-//     span {
-//       padding: 5px 10px;
-//     }
-//   }
-// }
 
 .updateprogress-status {
     left: 50%;
@@ -756,11 +701,6 @@ table {
     }
 }
 
-// .table-hover tbody tr:hover td,
-// .table-hover tbody tr:hover th {
-//   background-color: #ecf2e2;
-// }
-
 // personal notes styling
 .panel-note {
   article {
@@ -769,26 +709,6 @@ table {
     color: @dark-primary;
   }
 }
-
-// duplicate person
-// .grid-table tbody tr.duplicate-source td,
-// .grid-table tbody tr.duplicate-source:hover td {
-//    background-color: @accent-blue;
-//    color: #fff;
-// }
-
-// .discchart {
-//   li {
-//     background-color: lighten(@brand-primary, 10%);
-//     color: #fff;
-//   }
-
-//   .discbar {
-//     &.discbar-primary {
-//       background: @brand-primary;
-//     }
-//   }
-// }
 
 /*#endregion */
 
@@ -879,7 +799,6 @@ table {
     img {
         max-width: 350px;
         width: 100%;
-        /*float: left;*/
         margin: 15px 30px 30px 0;
     }
 
@@ -1180,6 +1099,252 @@ body#splash {
 
 .pagetabs {
     margin-bottom: 15px;
+}
+
+// Audio Player
+
+@player-size: 60px;
+@base-font-size: 24px;
+
+// @include media-query(lap-and-up) {
+//     .window.player-enabled {
+//         bottom: @player-size*1.5;
+
+//         .primary-content {
+//             padding-bottom: 5%;
+//         }
+//     }
+// }
+
+// @include media-query(handheld) {
+//     .window.player-enabled .secondary {
+//         padding-bottom: @player-size*1.25;
+//     }
+// }
+
+.player {
+    position: absolute;
+    bottom: 0px;
+    height: @player-size*1.5;
+    z-index: 1000;
+    width: 100%;
+    background-color: @dark-tertiary;
+
+    // @include media-query(portable) {
+    //     position: fixed;
+    //     height: @player-size*1.5;
+    // }
+
+    // @include media-query(handheld) {
+    //     position: fixed;
+    //     height: @player-size*1.5;
+    // }
+
+    // @include media-query(palm) {
+    //     height: @player-size*1.25;
+    // }
+}
+
+
+// audio.js implementation
+
+.audiojs {
+    position: absolute;
+    bottom: 0px;
+    height: @player-size*1.5;
+    z-index: 1000;
+    width: 100%;
+    background-color: @dark-tertiary;
+
+    // @include media-query(portable) {
+    //     position: fixed;
+    //     height: @player-size*1.5;
+    // }
+
+    // @include media-query(handheld) {
+    //     position: fixed;
+    //     height: @player-size*1.5;
+    // }
+
+    // @include media-query(palm) {
+    //     height: @player-size*1.25;
+    // }
+}
+
+@-webkit-keyframes rotation {
+    from {-webkit-transform: rotate(0deg);}
+    to   {-webkit-transform: rotate(359deg);}
+}
+
+.audiojs {
+    background: @dark-primary;
+
+    .play-pause {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        height: @player-size*1.5;
+        width: @player-size*1.5;
+        padding: 0px;
+        float: none;
+        border-right: 0px;
+        background-color: @green-primary;
+        z-index: 2;
+
+        p {
+            background: none;
+            height: 100%;
+            width: 100%;
+
+            &:after {
+                position: absolute;
+                top: @player-size*.45;
+                left: 0px;
+                width: 100%;
+                margin-top: -@player-size/4;
+                font-family: 'FontAwesome';
+                font-size: @base-font-size*2;
+                color: @light-primary;
+                text-align: center;
+            }
+
+            &.play:after {
+                content: '\f04b';
+            }
+
+            &.pause:after {
+                content: '\f04c';
+            }
+
+            &.loading:after {
+                content: '\f1ce';
+                -webkit-animation: rotation .5s infinite linear;
+            }
+
+            &.error {
+                background: rgba(0,0,0,.2);
+                
+                &:after {
+                    content: '\f12a';
+                }
+            }
+        }
+
+        // @include media-query(palm) {
+        //     height: @player-size*1.25;
+        //     width: @player-size*1.25;
+
+        //     p {
+        //         &:after {
+        //             top: @player-size*.5;
+        //             margin-top: -@player-size/8;
+        //         }
+        //     }
+        // }
+    }
+}
+
+.audiojs {
+    &.error {
+        // background-color: $pinterest;
+    }
+
+    .error-message {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        width: 100%;
+        height: 100%;
+        padding: 0 @player-size/2 0 @player-size*2;
+        margin: 0px;
+        // font-family: $base-heading-font;
+        font-size: @base-font-size;
+        line-height: @player-size*1.5;
+        font-weight: 600;
+        color: @light-primary;
+        z-index: 2;
+    }
+
+    // @include media-query(palm) {
+    //     .error-message {
+    //         padding: 0 @player-size*.5 0 @player-size*1.75;
+    //         line-height: @player-size*1.25;
+    //     }
+    // }
+}
+
+.audiojs .scrubber {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    left: @player-size*1.5;
+    width: auto;
+    margin: 0px;
+    border-top: 0px;
+    height: 100%;
+    background-color: @dark-primary;
+    cursor: pointer;
+    z-index: 1;
+
+    .progress, .loaded {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        width: 0%;
+        height: 100%;
+        background: @green-primary;
+        z-index: 1;
+
+        // @include media-query(handheld) {
+        //     height: @player-size*1.5;
+        // }
+
+        // @include media-query(palm) {
+        //     height: @player-size*1.25;
+        // }
+    }
+
+    .progress:after {
+        content: '';
+        position: absolute;
+        top: 0px;
+        right: 0px;
+        bottom: 0px;
+        left: 0px;
+        background-color: rgba(0,0,0,.2);
+    }
+
+    .loaded {
+        background-color: lighten(@dark-primary,10);
+        z-index: 0;
+    }
+
+    // @include media-query(palm) {
+    //     left: @player-size*1.25;
+    // }
+}
+
+.audiojs .time {
+    position: absolute;
+    top: 50%;
+    right: @player-size*.65;
+    z-index: 10;
+    margin: 0px;
+    margin-top: -18px;
+    padding: 0px;
+    border: 0px;
+    text-shadow: none;
+    float: none;
+    // font-family: $base-heading-font;
+    font-size: @base-font-size;
+    font-weight: 600;
+    color: @light-primary;
+
+    // @include media-query(palm) {
+    //     font-size: @base-font-size*.85;
+    //     right: @player-size/2
+    // }
 }
 
 /*#endregion */

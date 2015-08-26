@@ -14,7 +14,10 @@
             <h4>{{ item.StartDateTime | Date:'MMMM d, yyyy' }}</h4>
             <p>{{ item.Content }}</p>
 
-            <p>{% if item.VideoID != '' %}<button type="button" class="btn btn-primary videoCreate" data-video-id="{{ item.VideoID }}" data-video-name="{{ item.Title | ToCssClass}}" data-toggle="modal" data-target=".{{ item.Title | ToCssClass}}-video" data-videoId="{{ item.VideoID }}">Play Video</button>{% endif %}{% if item.AudioURL != '' %}<button type="button" class="btn btn-primary" data-toggle="modal" data-target=".{{ item.Title | ToCssClass}}-audio" data-AudioURL="{{ item.AudioURL }}">Play Audio</button>{% endif %}<a href="{{ LinkedPages.DetailPage }}?Item={{ item.Id }}" class="btn btn-default">View Entry</a></p>
+            <audio src="{{ item.AudioURL }}" preload="auto" />
+
+            <p>{% if item.VideoID != '' %}<button type="button" class="btn btn-primary videoCreate" data-video-id="{{ item.VideoID }}" data-video-name="{{ item.Title | ToCssClass}}" data-toggle="modal" data-target=".{{ item.Title | ToCssClass}}-video" data-videoId="{{ item.VideoID }}">Play Video</button>{% endif %}
+                {% if item.AudioURL != '' %}<button type="button" class="btn btn-primary" data-toggle="modal" data-target=".{{ item.Title | ToCssClass}}-audio" data-AudioURL="{{ item.AudioURL }}">Play Audio</button>{% endif %} <a href="{{ LinkedPages.DetailPage }}?Item={{ item.Id }}" class="btn btn-default">View Entry</a></p>
 
             {% if item.VideoID != '' %}
                 <div class="modal fade {{ item.Title | ToCssClass}}-video videoModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" data-video-id="{{ item.VideoID }}">
@@ -86,7 +89,7 @@
             player = OO.Player.create(name, id);
         });
 
-        $(document).on('click', '.modal-scrollable', function(){
+        $(document).on("click", ".modal-scrollable:not('.modal-scrollable .modal-content')", function(){
             id = $(this).find('.videoModal').attr("data-video-id");
             player.destroy(id);
         });
