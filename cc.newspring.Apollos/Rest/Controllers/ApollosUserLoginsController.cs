@@ -163,6 +163,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
 
             if ( changes )
             {
+                userLogin.ModifiedByPersonAliasId = GetPerson().PrimaryAliasId;
                 context.SaveChanges();
             }
 
@@ -241,6 +242,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
                 UserName = userName
             };
 
+            userLogin.CreatedByPersonAliasId = GetPerson().PrimaryAliasId;
             userLoginService.Add( userLogin );
             context.SaveChanges();
 
