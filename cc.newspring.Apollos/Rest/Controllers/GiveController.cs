@@ -124,15 +124,16 @@ namespace cc.newspring.Apollos.Rest.Controllers
                     if ( savedAccount == null )
                     {
                         locationId = CreateLocation( scheduleParameters, rockContext );
-                        paymentDetail = CreatePaymentDetail( scheduleParameters, locationId.Value, rockContext );
+                        paymentDetail = CreatePaymentDetail( scheduleParameters, person, locationId.Value, rockContext );
                         savedAccount = CreateSavedAccount( scheduleParameters, paymentDetail, financialGateway, person, rockContext );
-                        paymentInfo = GetPaymentInfo( scheduleParameters, rockContext, totalAmount.Value, paymentDetail );
+                        paymentInfo = GetPaymentInfo( scheduleParameters, person, rockContext, totalAmount.Value, paymentDetail );
                     }
                     else
                     {
                         paymentDetail = savedAccount.FinancialPaymentDetail;
                         locationId = paymentDetail.BillingLocationId;
                         paymentInfo = savedAccount.GetReferencePayment();
+                        UpdatePaymentInfoForSavedAccount(scheduleParameters, paymentInfo, person, rockContext, paymentDetail.BillingLocationId.Value, totalAmount.Value);
                     }
 
                     string errorMessage;
@@ -250,16 +251,17 @@ namespace cc.newspring.Apollos.Rest.Controllers
 
                     if ( savedAccount == null )
                     {
-                        paymentDetail = CreatePaymentDetail( giveParameters, locationId.Value, rockContext );
+                        paymentDetail = CreatePaymentDetail( giveParameters, person, locationId.Value, rockContext );
                         savedAccount = CreateSavedAccount( giveParameters, paymentDetail, financialGateway, person, rockContext );
                         newSavedAccount = true;
-                        paymentInfo = GetPaymentInfo( giveParameters, rockContext, totalAmount.Value, paymentDetail );
+                        paymentInfo = GetPaymentInfo( giveParameters, person, rockContext, totalAmount.Value, paymentDetail );
                     }
                     else
                     {
                         paymentDetail = savedAccount.FinancialPaymentDetail;
                         locationId = paymentDetail.BillingLocationId;
                         paymentInfo = savedAccount.GetReferencePayment();
+                        UpdatePaymentInfoForSavedAccount( giveParameters, paymentInfo, person, rockContext, locationId.Value, totalAmount.Value );
                     }
 
                     string errorMessage;
@@ -330,6 +332,8 @@ namespace cc.newspring.Apollos.Rest.Controllers
         private string Mask( string unmasked, int charsToShow = 4, char maskChar = '*' )
         {
             var lengthOfUnmasked = unmasked.Length;
+            var maxCharsToShow = lengthOfUnmasked / 2;
+            charsToShow = charsToShow > maxCharsToShow ? maxCharsToShow : charsToShow;
             var charsToMask = lengthOfUnmasked - charsToShow;
 
             if ( lengthOfUnmasked <= charsToShow )
@@ -471,7 +475,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
             return location.Id;
         }
 
-        private FinancialPaymentDetail CreatePaymentDetail( GiveParameters giveParameters, int billingLocationId, RockContext rockContext )
+        private FinancialPaymentDetail CreatePaymentDetail( GiveParameters giveParameters, Person person, int billingLocationId, RockContext rockContext )
         {
             if ( string.IsNullOrWhiteSpace(giveParameters.AccountNumber ))
             {
@@ -495,7 +499,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
             }
 
             var maskedAccountNumber = Mask( giveParameters.AccountNumber );
-            var nameOnCard = giveParameters.FirstName + " " + giveParameters.LastName;
+            var nameOnCard = (giveParameters.FirstName ?? person.FirstName) + " " + (giveParameters.LastName ?? person.LastName);
             
             var paymentDetail = new FinancialPaymentDetail
             {
@@ -552,7 +556,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
             };
         }
 
-        private PaymentInfo GetPaymentInfo( GiveParameters giveParameters, RockContext rockContext, decimal totalAmount, FinancialPaymentDetail paymentDetail )
+        private PaymentInfo GetPaymentInfo( GiveParameters giveParameters, Person person, RockContext rockContext, decimal totalAmount, FinancialPaymentDetail paymentDetail )
         {
             PaymentInfo paymentInfo = null;
 
@@ -614,9 +618,9 @@ namespace cc.newspring.Apollos.Rest.Controllers
             }
             
             paymentInfo.Amount = totalAmount;
-            paymentInfo.FirstName = giveParameters.FirstName;
-            paymentInfo.LastName = giveParameters.LastName;
-            paymentInfo.Email = giveParameters.Email;
+            paymentInfo.FirstName = giveParameters.FirstName ?? person.FirstName;
+            paymentInfo.LastName = giveParameters.LastName ?? person.LastName;
+            paymentInfo.Email = giveParameters.Email ?? person.Email;
             paymentInfo.Phone = giveParameters.PhoneNumber ?? string.Empty;
             paymentInfo.Street1 = giveParameters.Street1 ?? string.Empty;
             paymentInfo.Street2 = giveParameters.Street2 ?? string.Empty;
@@ -636,6 +640,23 @@ namespace cc.newspring.Apollos.Rest.Controllers
             }
 
             return paymentInfo;
+        }
+
+        private void UpdatePaymentInfoForSavedAccount( GiveParameters giveParameters, PaymentInfo paymentInfo, Person person, RockContext rockContext, int billingLocationId, decimal totalAmount )
+        {
+            var billingLocation = new LocationService( rockContext ).Get(billingLocationId);
+
+            paymentInfo.FirstName = giveParameters.FirstName ?? person.FirstName;
+            paymentInfo.LastName = giveParameters.LastName ?? person.LastName;
+            paymentInfo.Email = giveParameters.Email ?? person.Email;
+            paymentInfo.Phone = giveParameters.PhoneNumber ?? string.Empty;
+            paymentInfo.Street1 = giveParameters.Street1 ?? billingLocation.Street1;
+            paymentInfo.Street2 = giveParameters.Street2 ?? billingLocation.Street2;
+            paymentInfo.City = giveParameters.City ?? billingLocation.City;
+            paymentInfo.State = giveParameters.State ?? billingLocation.State;
+            paymentInfo.PostalCode = giveParameters.PostalCode ?? billingLocation.PostalCode;
+            paymentInfo.Country = giveParameters.Country ?? billingLocation.Country;
+            paymentInfo.Amount = totalAmount;
         }
 
         private decimal? CalculateTotalAmount( GiveParameters giveParameters, RockContext rockContext )
