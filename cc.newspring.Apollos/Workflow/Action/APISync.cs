@@ -38,6 +38,15 @@ namespace cc.newspring.Apollos.Workflow.Action
                         return true;
                     }
                 }
+                else if ( castedModel.CreatedByPersonAliasId.HasValue )
+                {
+                    var modifier = new PersonAliasService( new RockContext() ).Get( castedModel.CreatedByPersonAliasId.Value );
+
+                    if ( modifier.Guid == restUserGuid )
+                    {
+                        return true;
+                    }
+                }
             }
 
             var castedEntity = entity as IEntity;
