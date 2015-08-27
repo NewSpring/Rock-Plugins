@@ -437,7 +437,8 @@ namespace RockWeb.Blocks.Cms
                     i.StartDateTime,
                     i.ExpireDateTime,
                     i.Priority,
-                    Status = DisplayStatus( i.Status )
+                    Status = DisplayStatus( i.Status ),
+                    Occurrences = i.EventItemOccurrences.Any()
                 } ).ToList();
                 gContentChannelItems.DataBind();
 
@@ -526,6 +527,7 @@ namespace RockWeb.Blocks.Cms
                 priorityField.ItemStyle.HorizontalAlign = HorizontalAlign.Right;
                 gContentChannelItems.Columns.Add( priorityField );
 
+
                 // Status column
                 if ( channel.RequiresApproval )
                 {
@@ -537,6 +539,12 @@ namespace RockWeb.Blocks.Cms
                     statusField.HtmlEncode = false;
                 }
 
+                // Add Occurences Count column
+                var occurrencesField = new BoolField();
+                occurrencesField.DataField = "Occurrences";
+                occurrencesField.HeaderText = "Event Occurrences";
+                gContentChannelItems.Columns.Add( occurrencesField );
+                
                 bool canEditChannel = channel.IsAuthorized( Rock.Security.Authorization.EDIT, CurrentPerson );
                 gContentChannelItems.Actions.ShowAdd = canEditChannel;
                 gContentChannelItems.IsDeleteEnabled = canEditChannel;

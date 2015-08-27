@@ -400,7 +400,6 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                     var scheduleId = Convert.ToInt32( dataKey["ScheduleId"] );
 
                     // Make sure only the current item is selected in the merge object
-
                     if ( printIndividually )
                     {
                         int groupTypeId = selectedGroupTypes.Where( gt => gt.Groups.Any( g => g.Group.Id == groupId ) )
@@ -424,17 +423,25 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                         SaveState();
                     }
 
-                    // Add all labels and exclude one-time label
-                    if ( selectedGroupTypes.Any( gt => gt.Labels != null ) )
+                    // Add valid grouptype labels, excluding the one-time label (if set)
+                    if ( printIndividually )
                     {
-                        var asdf = selectedGroupTypes.SelectMany( gt => gt.Labels );
-                        labels.AddRange( asdf.Where( l => ( !RemoveFromQueue || l.FileGuid != designatedLabelGuid ) ) );
+                        var selectedPerson = selectedPeople.FirstOrDefault( p => p.Person.Id == personId );
+                        labels.AddRange( selectedPerson.GroupTypes.Where( gt => gt.Labels != null )
+                            .SelectMany( gt => gt.Labels )
+                            .Where( l => ( !RemoveFromQueue || l.FileGuid != designatedLabelGuid ) )
+                        );
+
                         RemoveFromQueue = RemoveFromQueue || labels.Any( l => l.FileGuid == designatedLabelGuid );
                     }
-
-                    if ( !printIndividually )
+                    else
                     {
-                        // only iterate once if printing the entire family
+                        labels.AddRange( selectedGroupTypes.Where( gt => gt.Labels != null )
+                            .SelectMany( gt => gt.Labels )
+                            .Where( l => ( !RemoveFromQueue || l.FileGuid != designatedLabelGuid ) )
+                        );
+
+                        // don't continue processing if printing all info on one label
                         break;
                     }
                 }
@@ -451,10 +458,13 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                 // Print server labels
                 if ( labels.Any( l => l.PrintFrom == Rock.Model.PrintFrom.Server ) )
                 {
+                    string delayCut = @"^XB";
+                    string endingTag = @"^XZ";
                     var printerIp = string.Empty;
                     var labelContent = new StringBuilder();
 
                     // make sure labels have a valid ip
+                    var lastLabel = labels.Last();
                     foreach ( var label in labels.Where( l => l.PrintFrom == PrintFrom.Server && !string.IsNullOrEmpty( l.PrinterAddress ) ) )
                     {
                         var labelCache = KioskLabel.Read( label.FileGuid );
@@ -468,7 +478,6 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                             }
 
                             var printContent = labelCache.FileContent;
-
                             foreach ( var mergeField in label.MergeFields )
                             {
                                 if ( !string.IsNullOrWhiteSpace( mergeField.Value ) )
@@ -480,6 +489,12 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                                     printContent = Regex.Replace( printContent, string.Format( @"\^FO.*\^FS\s*(?=\^FT.*\^FD{0}\^FS)", mergeField.Key ), string.Empty );
                                     printContent = Regex.Replace( printContent, string.Format( @"\^FD{0}\^FS", mergeField.Key ), "^FD^FS" );
                                 }
+                            }
+
+                            // send a Delay Cut command at the end to prevent cutting intermediary labels
+                            if ( label != lastLabel )
+                            {
+                                printContent = Regex.Replace( printContent.Trim(), @"\" + endingTag + @"$", delayCut + endingTag );
                             }
 
                             labelContent.Append( printContent );
@@ -620,7 +635,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
         /// <summary>
         /// Check-In information class used to bind the selected grid.
         /// </summary>
-        protected class Activity
+        public class Activity
         {
             public int PersonId { get; set; }
 

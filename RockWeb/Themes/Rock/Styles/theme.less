@@ -86,9 +86,14 @@
 // 1. HTML Overrides         */
 // -------------------------
 
+@-ms-viewport {
+  width: device-width;
+}
+
 html {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  -ms-overflow-style: scrollbar; // need for IE 10 issue with scrollbars being on TOP of the content
 }
 
 main {
@@ -128,6 +133,16 @@ pre {
   background-color: @theme-6;
   border-color: darken(@theme-6, 15%);
   color: @theme-6-text;
+}
+
+// text selection color
+::selection {
+  background: @text-selection-bg;
+    color: @text-selection-color;
+}
+::-moz-selection {
+  background: @text-selection-bg;
+    color: @text-selection-color;
 }
 
 /*#endregion */
@@ -174,7 +189,7 @@ h4, .h4 {
   border-radius: 0;
   border-top-width: 3px;
 
-  .panel-heading {  
+  .panel-heading {
 
     .panel-title {
       font-weight: @font-weight-semibold;
@@ -190,13 +205,39 @@ h4, .h4 {
     }
   }
 
-  
+
+}
+.panel-info {
+  border-top-color: @panel-top-border-color;
+
+  .panel-body {
+    background-color: @body-bg;
+  }
+
+  .list-group-item {
+    background-color: @body-bg;
+  }
 }
 
 .tag-letterlist a {
   color: @brand-primary;
 }
 
+// change the color of the none selected links
+// by default bootsrap does not allow the color of a link roll-over to be a different color. Modified it to allow this.
+.nav-pills {
+  > li {
+    > a {
+      color: @nav-pills-link-color;
+
+      &:hover,
+      &:focus {
+        color: lighten(@nav-pills-active-link-hover-color, 20%);
+        background-color: lighten(@nav-pills-active-link-hover-bg, 20%);
+      }
+    }
+  }
+}
 
 /*#region
 // 3. Rock Overrides         */
@@ -204,7 +245,7 @@ h4, .h4 {
 
 // make the no image svgs take on a bit of their background color
 .photo img[src*=no-photo],
-.person-image[style*=no-photo], 
+.person-image[style*=no-photo],
 .profile-photo[style*=no-photo] {
     opacity: .5;
 }
@@ -378,7 +419,7 @@ a.link-block,
       .navbar-nav > .open > a,
       .navbar-nav > .open > a:hover,
       .navbar-nav > .open > a:focus {
-        background-color: @theme-8;
+        background-color: @theme-2;
       }
 
       .navbar-nav > li > a {
@@ -387,7 +428,7 @@ a.link-block,
 
       .dropdown-menu {
         li.divider {
-          background-color: lighten(@nav-color, 5%);
+          background-color: darken(@theme-2-text, 20%);
         }
       }
 
@@ -599,7 +640,7 @@ body#splash {
 
         .dropdown-menu {
           li.divider {
-            background-color: @gray-light;
+            background-color: @gray-lighter;
           }
         }
       }

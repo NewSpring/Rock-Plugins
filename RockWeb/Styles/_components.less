@@ -2,7 +2,7 @@
   Used to manage styles related to reusable components / widgets.
 
   1. Pickers - used to pick complex data types
-  2. Banner - used as the primary heading for a page or large section
+  2. Number Increment
   3. Tree - used for tree control
   4. Person List - used to show a list of people
   5. Rollover - Used to hide/show items in the UI has the mouse rolls-over a container.
@@ -36,6 +36,7 @@
   33. Wizard
   34. Checkbox
   35. Follow button
+  36. Range Editors
 
   xx. Misc
 */
@@ -217,41 +218,70 @@
 }
 
 
-// 2. Banner
+// 2. Number Increment
 // -------------------------
+.numberincrement {
 
-/*.banner
-{
-  color: @banner-text-color;
-  background-color: @banner-bg;
-  border-radius: @banner-border-radius;
-  border: @banner-border-size solid @banner-border-color;
-  font-weight: @banner-font-weight;
-  font-size: @banner-font-size;
-  padding: @banner-padding;
-  margin: 0 0 @spacing-md-px;
-  .clearfix;
+    -webkit-user-select: none;    
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
 
-  h1 {
-    float: left;
-    margin: 0;
-    font-weight: @banner-font-weight;
+    .numberincrement-up,
+    .numberincrement-down {
+        background-color: @input-group-addon-bg;
+        padding: 6px 12px;
+        border: 1px solid @input-group-addon-border-color;
+        color: @input-color;
+        cursor: pointer;
 
-    .first-word {
-      font-weight: @banner-firstword-weight;
+        &.disabled {
+            color: lighten(@input-color, 20%);
+            cursor: default;
+        }
     }
 
-    i {
-      margin-right: @spacing-md-px;
+    .numberincrement-down {
+        border-radius: @border-radius-base 0 0 @border-radius-base;
     }
-  }
 
-  .label {
-    float: right;
-    margin-top: @spacing-md-px;
-    margin-left: @spacing-md-px;
-  }
-}*/
+    .numberincrement-up {
+        border-radius: 0 @border-radius-base @border-radius-base 0;
+    }
+
+    .numberincrement-value {
+        padding: 6px 18px;
+        border-color: @input-group-addon-border-color;
+        border-width: 1px 0;
+        border-style: solid;
+    }
+
+    // adjustments for different sizes    
+    &.input-sm {
+        .numberincrement-up,
+        .numberincrement-down {
+            padding: 5px 8px;
+        }
+
+        .numberincrement-value {
+            padding: 5px 12px;
+        }
+    }
+
+    &.input-lg {
+        .numberincrement-up,
+        .numberincrement-down {
+            padding: 12px 20px;
+        }
+
+        .numberincrement-value {
+            padding: 12px 18px;
+        }
+    }
+}
+
+
 
 // 3. Tree
 // -------------------------
@@ -410,6 +440,10 @@ ul.rocktree ul {
 // 6. Pagelist
 // -------------------------
 
+.block-title {
+    margin: 0;
+}
+
 .list-as-blocks {
 
   h3 {
@@ -438,7 +472,7 @@ ul.rocktree ul {
         background-color: @listasblocks-bg;
         display: block;
         color: @listasblocks-color;
-        height: 80px;
+        height: 90px;
         padding: @spacing-md-px;
         border-radius: @border-radius-base;
         -webkit-transition: background-color 200ms linear;
@@ -578,6 +612,10 @@ div.tagsinput
     border-bottom-right-radius: @tag-border-radius;
     border-top-right-radius: @tag-border-radius;
 
+    &:first-child {
+        margin-left: 10px;
+    }
+
     span {
       white-space: nowrap;
       overflow: hidden;
@@ -622,6 +660,16 @@ div.tagsinput
       box-shadow: -1px -1px 2px @tag-bg;
     }
   }
+}
+
+div.tagsinput {
+    div[id$=addTag] {
+     
+        @media @sm {
+            float: left;
+            margin-left: 12px;
+        }
+    }
 }
 
 div.tagsinput span.tag.personal
@@ -919,6 +967,12 @@ fieldset .actions {
 // 14. Labels
 // -------------------------
 
+.label {
+    a {
+        color: #fff; // allow for links in labels
+    }
+}
+
 .label-campus {
   background-color: @label-campus-bg;
 }
@@ -968,7 +1022,8 @@ fieldset .actions {
       }
     }
 
-    td.active {
+    td.active,
+    td.today {
       background-color: @datepicker-highlight-bg;
       color: @datepicker-highlight-color;
     }
@@ -1876,7 +1931,13 @@ ul.list-group-panel, .panel-collapse {
     background-color: @wizard-bg;
     padding: 8px 0;
     .clearfix();
-    margin-bottom: 12px;
+    margin: -15px;
+    margin-bottom: 24px;
+    margin-top: -16px;
+
+    @media only screen and (max-width : 480px){
+        display: none;
+	}
 }
 
 .wizard-item-icon {
@@ -1896,14 +1957,18 @@ ul.list-group-panel, .panel-collapse {
 }
 
 .wizard-item {
-    min-width: 200px;
+    min-width: 100px;
     text-align: center;
     float: left;
     position: relative;
     z-index: 1;
 
+    @media @md {
+        min-width: 175px;
+    }
+
     &:before {
-        border-top: 4px solid lighten(@wizard-item-bar-color, 10%);
+        border-top: 4px solid @wizard-item-bar-color;
         content:"";
         margin: 0 auto; /* this centers the line to the full width specified */
         position: absolute; /* positioning must be absolute here, and relative positioning must be applied to the parent */
@@ -1917,7 +1982,7 @@ ul.list-group-panel, .panel-collapse {
     &.active {
         
         &:before {
-            border-top: 4px solid @wizard-item-bar-color;
+            border-top: 4px solid @wizard-item-bar-complete-color;
         }
         
         .wizard-item-icon {
@@ -1932,7 +1997,7 @@ ul.list-group-panel, .panel-collapse {
     &.complete {
         
         &:before {
-            border-top: 4px solid @wizard-item-bar-color;
+            border-top: 4px solid @wizard-item-bar-complete-color;
         }
         
         .wizard-item-icon {
@@ -1945,13 +2010,22 @@ ul.list-group-panel, .panel-collapse {
     }
 
     &:first-child:before {
-        left: 110px;
+        left: 55px;
+
+        @media @md {
+            left: 100px;
+        }
     }
 
     &:last-child:before {
-        right: 110px;
+        right: 55px;
+
+        @media @md {
+            right: 100px;
+        }
     }
 }
+
 
 // 34. Checkbox
 // -------------------------
@@ -1994,5 +2068,19 @@ ul.list-group-panel, .panel-collapse {
         &:before {
             content: @fa-var-star;
         }
+    }
+}
+
+// 36. Range Editors
+// -------------------------
+.number-range-editor {
+    .form-control-group .form-control {
+        margin-bottom: 6px;
+    }
+}
+
+.date-range-picker {
+    .input-group {
+        margin-bottom: 6px;
     }
 }

@@ -979,7 +979,7 @@ namespace RockWeb.Blocks.Event
                 return false;
             }
 
-            if ( registration == null || registration.RegistrationInstance == null || registration.RegistrationInstance.Account == null )
+            if ( registration == null || registration.RegistrationInstance == null || !registration.RegistrationInstance.AccountId.HasValue || registration.RegistrationInstance.Account == null )
             {
                 errorMessage = "There was a problem with the account configuration for this registration.";
                 return false;
@@ -1022,15 +1022,11 @@ namespace RockWeb.Blocks.Event
                 transaction.TransactionTypeValueId = txnType.Id;
                 History.EvaluateChange( txnChanges, "Type", string.Empty, txnType.Value );
 
-                transaction.CurrencyTypeValueId = paymentInfo.CurrencyTypeValue.Id;
-                History.EvaluateChange( txnChanges, "Currency Type", string.Empty, paymentInfo.CurrencyTypeValue.Value );
-
-                transaction.CreditCardTypeValueId = paymentInfo.CreditCardTypeValue != null ? paymentInfo.CreditCardTypeValue.Id : (int?)null;
-                if ( transaction.CreditCardTypeValueId.HasValue )
+                if ( transaction.FinancialPaymentDetail == null )
                 {
-                    var ccType = DefinedValueCache.Read( transaction.CreditCardTypeValueId.Value );
-                    History.EvaluateChange( txnChanges, "Credit Card Type", string.Empty, ccType.Value );
+                    transaction.FinancialPaymentDetail = new FinancialPaymentDetail();
                 }
+                transaction.FinancialPaymentDetail.SetFromPaymentInfo( paymentInfo, gateway, rockContext, txnChanges );
 
                 Guid sourceGuid = Guid.Empty;
                 if ( Guid.TryParse( GetAttributeValue( "Source" ), out sourceGuid ) )
@@ -1047,7 +1043,7 @@ namespace RockWeb.Blocks.Event
 
                 var transactionDetail = new FinancialTransactionDetail();
                 transactionDetail.Amount = amount;
-                transactionDetail.AccountId = registration.RegistrationInstance.AccountId;
+                transactionDetail.AccountId = registration.RegistrationInstance.AccountId.Value;
                 transactionDetail.EntityTypeId = EntityTypeCache.Read( typeof( Rock.Model.Registration ) ).Id;
                 transactionDetail.EntityId = registration.Id;
                 transaction.TransactionDetails.Add( transactionDetail );

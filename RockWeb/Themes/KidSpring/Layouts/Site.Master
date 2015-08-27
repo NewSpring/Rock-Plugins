@@ -1,4 +1,5 @@
 ﻿<%@ Master Language="C#" AutoEventWireup="true" Inherits="Rock.Web.UI.RockMasterPage" %>
+
 <%@ Import Namespace="System.Web.Optimization" %>
 <!DOCTYPE html>
 
@@ -28,7 +29,7 @@
     protected override void OnInit( EventArgs e )
     {
         base.OnInit( e );
-        
+
         siteUrl.Text = String.Format( Request.Url.Authority );
 
     }
@@ -41,19 +42,19 @@
     <title></title>
 
     <script type="text/javascript">var _sf_startpt = (new Date()).getTime()</script>
-    
-    <script src="<%# ResolveRockUrl("~/Scripts/modernizr.js", true) %>" ></script>
+
+    <script src="<%# ResolveRockUrl("~/Scripts/modernizr.js", true) %>"></script>
     <script src="<%# ResolveRockUrl("~/Scripts/jquery-1.10.2.min.js", true) %>"></script>
 
     <!-- Set the viewport width to device width for mobile -->
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
     <asp:ContentPlaceHolder ID="css" runat="server" />
 
-	<!-- Included CSS Files -->
-    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/checkin-theme.min.css", true) %>"/>
+    <!-- Included CSS Files -->
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/checkin-theme.css", true) %>" />
 
-    <script src="<%# ResolveRockUrl("~/Scripts/fastclick.js", true) %>" ></script>
+    <script src="<%# ResolveRockUrl("~/Scripts/fastclick.js", true) %>"></script>
 
     <asp:ContentPlaceHolder ID="head" runat="server"></asp:ContentPlaceHolder>
 
@@ -63,13 +64,11 @@
     <link rel="apple-touch-icon-precomposed" sizes="114x114" href="<%# ResolveRockUrl("~/Assets/Icons/touch-icon-iphone-retina.png", true) %>">
     <link rel="apple-touch-icon-precomposed" sizes="72x72" href="<%# ResolveRockUrl("~/Assets/Icons/touch-icon-ipad.png", true) %>">
     <link rel="apple-touch-icon-precomposed" href="<%# ResolveRockUrl("~/Assets/Icons/touch-icon-iphone.png", true) %>">
-
 </head>
 <body>
     <form id="form1" runat="server">
-            
+
         <asp:ContentPlaceHolder ID="main" runat="server"></asp:ContentPlaceHolder>
-            
     </form>
 
     <script>
