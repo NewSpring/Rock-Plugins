@@ -721,6 +721,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
 
             var person = new Person()
             {
+                Guid = giveParameters.PersonGuid.HasValue ? giveParameters.PersonGuid.Value : Guid.NewGuid(),
                 FirstName = giveParameters.FirstName,
                 LastName = giveParameters.LastName,
                 IsEmailActive = true,
@@ -748,6 +749,16 @@ namespace cc.newspring.Apollos.Rest.Controllers
                 GroupLocationTypeValueId = DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME ) ).Id,
                 LocationId = locationId
             } );
+
+            if ( giveParameters.UserId.HasValue )
+            {
+                var user = new UserLoginService( rockContext ).Get(giveParameters.UserId.Value);
+
+                if ( !user.PersonId.HasValue )
+                {
+                    user.PersonId = person.Id;
+                }
+            }
 
             rockContext.SaveChanges();
             return person;
