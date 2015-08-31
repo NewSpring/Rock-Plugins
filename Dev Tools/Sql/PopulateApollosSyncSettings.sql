@@ -27,6 +27,14 @@ CREATE TABLE #actionToUrl (
 
 -- Check-in Area, GroupType, Inherited Type
 INSERT #actionToUrl VALUES
+	('GroupMember Delete Action', 'groupMembers'),
+	('GroupMember Save Action', 'groupMembers'),
+	('GroupType Delete Action', 'groupTypes'),
+	('GroupType Save Action', 'groupTypes'),
+	('Group Delete Action', 'groups'),
+	('Group Save Action', 'groups'),
+	('Campus Delete Action', 'campuses'),
+	('Campus Save Action', 'campuses'),
 	('UserLogin Delete Action', 'users'),
 	('UserLogin Save Action', 'users'),
 	('Person Delete Action', 'people'),
