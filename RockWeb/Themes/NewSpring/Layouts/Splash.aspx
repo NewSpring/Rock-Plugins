@@ -12,8 +12,8 @@
     protected override void OnInit( EventArgs e )
     {
         base.OnInit( e );
-
-        lLogoSvg.Text = System.IO.File.ReadAllText( HttpContext.Current.Request.MapPath("~/Assets/Images/rock-logo-sm.svg") );
+        
+        lLogoSvg.Text = System.IO.File.ReadAllText( HttpContext.Current.Request.MapPath("~/Themes/NewSpring/Assets/Images/ns_logo.svg") );
     }    
     
 </script>

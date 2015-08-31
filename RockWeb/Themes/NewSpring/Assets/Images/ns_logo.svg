@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="99px" height="99px" viewBox="0 0 99 99" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+    <!-- Generator: Sketch 3.3.3 (12081) - http://www.bohemiancoding.com/sketch -->
+    <title>ns_logo</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage">
+        <g id="ns_logo" sketch:type="MSLayerGroup">
+            <path d="M49.1754098,98.3655738 C15.8032787,98.3655738 0.00163934426,76.342623 0.00163934426,49.1786885 C0.00163934426,22.0180328 22.0180328,0.00163934426 49.1754098,0.00163934426 C76.3393443,0.00163934426 98.3622951,16.3852459 98.3622951,49.1786885 L98.3622951,98.3655738 L49.1754098,98.3655738" id="Fill-1" fill="#6BAC43" sketch:type="MSShapeGroup"></path>
+            <path d="M28.5786885,28.8836066 L58.1590164,28.8836066 C63.3540984,28.8836066 67.4901639,30.5278689 70.5770492,33.695082 C73.657377,36.7836066 74.6245902,39.7688525 74.6245902,45.7393443 L74.6245902,73.4606557 L59.2163934,73.4606557 L59.2163934,51.4098361 C59.2163934,46.9852459 59.1147541,46.1278689 58.242623,44.4836066 C57.295082,42.4606557 54.7852459,41.1098361 52.0885246,41.1098361 C46.9819672,41.1098361 44.0016393,44.3868852 44.0016393,50.0688525 L44.0016393,73.4606557 L28.5967213,73.4606557 L28.5967213,29.8491803 L28.5786885,28.8836066" id="Fill-2" fill="#FFFFFF" sketch:type="MSShapeGroup"></path>
+        </g>
+    </g>
+</svg>
