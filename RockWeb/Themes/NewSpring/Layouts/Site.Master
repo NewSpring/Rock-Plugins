@@ -129,24 +129,6 @@
             </div>
         </div>
 
-        <!-- <div class="audiojs" classname="audiojs" id="audiojs_wrapper0">
-            <audio src="//s3.amazonaws.com/ns.downloads/perrynoble/podcast/2015/Leadership.podcast.2015.8.mp3" preload="none"></audio>          
-            <div class="play-pause">             
-                <p class="play"></p>             
-                <p class="pause"></p>             
-                <p class="loading"></p>             
-                <p class="error"></p>           
-            </div>           
-            <div class="scrubber">             
-                <div class="progress"></div>             
-                <div class="loaded"></div>           
-            </div>           
-            <div class="time">             
-                <em class="played">00:00</em>/<strong class="duration">00:00</strong>           
-            </div>           
-            <div class="error-message"></div>
-        </div> -->
-
         <%-- controls for scriptmanager and update panel --%>
         <asp:ScriptManager ID="sManager" runat="server" />
         <asp:UpdateProgress ID="updateProgress" runat="server" DisplayAfter="800">
@@ -209,11 +191,6 @@
         // Sidebar trigger for mobile
         $('.nav-trigger').on('click', function(){
             $('body').toggleClass('navbar-side-open');
-        });
-
-        // Initialize Audio JS
-        audiojs.events.ready(function() {
-            var as = audiojs.createAll();
         });
 
     });
