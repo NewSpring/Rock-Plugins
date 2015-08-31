@@ -27,7 +27,21 @@ namespace cc.newspring.Apollos.Utilities
 
         public string Serialize( object obj )
         {
-            var json = Newtonsoft.Json.JsonConvert.SerializeObject( obj );
+            var json = string.Empty;
+            var group = obj as Rock.Model.Group;
+
+            if ( group != null )
+            {
+                var temp = group.GroupType;
+                group.GroupType = null;
+                json = Newtonsoft.Json.JsonConvert.SerializeObject( group );
+                group.GroupType = temp;
+            }
+            else
+            {
+                json = Newtonsoft.Json.JsonConvert.SerializeObject( obj );
+            }
+                        
             return json;
         }
     }
