@@ -1,5 +1,5 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="BatchDetail.ascx.cs" Inherits="RockWeb.Blocks.Finance.BatchDetail" %>
-<%--<%@ Reference Control="~/Blocks/Finance/TransactionList.ascx" %>--%>
+<%@ Reference Control="~/Blocks/Finance/TransactionList.ascx" %>
 
 <asp:UpdatePanel ID="upnlContent" runat="server">
     <ContentTemplate>
@@ -59,7 +59,7 @@
                                 <Rock:Grid ID="gAccounts" runat="server" AllowPaging="false" DisplayType="Light" RowItemText="Account" AllowSorting="false">
                                     <Columns>
                                         <Rock:RockBoundField DataField="Name" HeaderText="Account Totals" />
-                                        <Rock:RockBoundField DataField="Amount" DataFormatString="{0:C2}" ItemStyle-HorizontalAlign="Right" />
+                                        <Rock:CurrencyField DataField="Amount" ItemStyle-HorizontalAlign="Right" />
                                     </Columns>
                                 </Rock:Grid>
                             </div>
@@ -67,7 +67,7 @@
                                 <Rock:Grid ID="gCurrencyTypes" runat="server" AllowPaging="false" DisplayType="Light" RowItemText="CurrencyType" AllowSorting="false">
                                     <Columns>
                                         <Rock:RockBoundField DataField="Name" HeaderText="Currency Totals" />
-                                        <Rock:RockBoundField DataField="Amount" DataFormatString="{0:C2}" ItemStyle-HorizontalAlign="Right" />
+                                        <Rock:CurrencyField DataField="Amount" ItemStyle-HorizontalAlign="Right" />
                                     </Columns>
                                 </Rock:Grid>
                             </div>
