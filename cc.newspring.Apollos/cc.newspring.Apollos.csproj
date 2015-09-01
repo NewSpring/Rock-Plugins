@@ -82,6 +82,7 @@
     <Compile Include="Migrations\002_AliasWorkflowsAndTriggers.cs" />
     <Compile Include="Migrations\001_SetupWorkflowsAndTriggers.cs" />
     <Compile Include="Migrations\ApollosMigration.cs" />
+    <Compile Include="Models\PaymentParameters.cs" />
     <Compile Include="Models\GiveParameters.cs" />
     <Compile Include="Models\ApollosUserLogin.cs" />
     <Compile Include="Models\ScheduleParameters.cs" />

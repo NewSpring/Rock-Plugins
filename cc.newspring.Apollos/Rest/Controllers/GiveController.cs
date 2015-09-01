@@ -18,6 +18,86 @@ namespace cc.newspring.Apollos.Rest.Controllers
         private static string gatewayName = "cc.newspring.CyberSource.Gateway";
 
         /// <summary>
+        /// Saves a payment account through CyberSource with the specified parameters.
+        /// </summary>
+        /// <param name="giveParameters">The give parameters.</param>
+        /// <returns></returns>
+        [Authenticate, Secured]
+        [HttpPost]
+        [System.Web.Http.Route( "api/SavePaymentAccount" )]
+        public HttpResponseMessage SavePaymentAccount( [FromBody]PaymentParameters paymentParameters )
+        {
+            var rockContext = new RockContext();
+            try
+            {
+                rockContext.WrapTransaction( () =>
+                {
+                    var person = GetExistingPerson( paymentParameters.PersonId, rockContext );
+
+                    if ( person == null )
+                    {
+                        GenerateResponse( HttpStatusCode.BadRequest, "An existing person is required to save a payment" );
+                    }
+
+                    var gatewayComponent = GatewayContainer.GetComponent( gatewayName );
+
+                    if ( gatewayComponent == null )
+                    {
+                        GenerateResponse( HttpStatusCode.InternalServerError, "There was a problem creating the gateway component" );
+                    }
+
+                    var financialGateway = new FinancialGatewayService( rockContext ).Queryable().FirstOrDefault( g => g.EntityTypeId == gatewayComponent.EntityType.Id );
+
+                    if ( financialGateway == null )
+                    {
+                        GenerateResponse( HttpStatusCode.InternalServerError, "There was a problem creating the financial gateway" );
+                    }
+
+                    var locationId = CreateLocation( paymentParameters, rockContext );
+                    var paymentDetail = CreatePaymentDetail( paymentParameters, person, locationId, rockContext );
+                    var savedAccount = CreateSavedAccount( paymentParameters, paymentDetail, financialGateway, person, rockContext );
+                    var paymentInfo = GetPaymentInfo( paymentParameters, person, rockContext, 0, paymentDetail );
+                           
+                    string errorMessage;
+                    var transaction = gatewayComponent.Authorize( financialGateway, paymentInfo, out errorMessage );
+
+                    if ( transaction == null || !string.IsNullOrWhiteSpace( errorMessage ) )
+                    {
+                        GenerateResponse( HttpStatusCode.InternalServerError, errorMessage ?? "The gateway had a problem and/or did not create a transaction as expected" );
+                    }
+
+                    transaction.FinancialPaymentDetail = null;
+                    transaction.SourceTypeValueId = DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.FINANCIAL_SOURCE_TYPE_WEBSITE ) ).Id;
+                    transaction.TransactionDateTime = RockDateTime.Now;
+                    transaction.AuthorizedPersonAliasId = person.PrimaryAliasId;
+                    transaction.AuthorizedPersonAlias = person.PrimaryAlias;
+                    transaction.FinancialGatewayId = financialGateway.Id;
+                    transaction.TransactionTypeValueId = DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.TRANSACTION_TYPE_CONTRIBUTION ) ).Id;
+                    transaction.FinancialPaymentDetailId = paymentDetail.Id;
+                    savedAccount.TransactionCode = transaction.TransactionCode;
+
+                    new FinancialTransactionService( rockContext ).Add( transaction );
+                    rockContext.SaveChanges();
+
+                    savedAccount.ReferenceNumber = gatewayComponent.GetReferenceNumber( transaction, out errorMessage );
+                    rockContext.SaveChanges();
+                } );
+            }
+            catch ( HttpResponseException exception )
+            {
+                return exception.Response;
+            }
+            catch ( Exception exception )
+            {
+                var response = new HttpResponseMessage( HttpStatusCode.InternalServerError );
+                response.Content = new StringContent( exception.Message );
+                return response;
+            }
+
+            return new HttpResponseMessage( HttpStatusCode.NoContent );     
+        }
+
+        /// <summary>
         /// Schedules the giving.
         /// </summary>
         /// <returns></returns>
@@ -93,7 +173,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
             {
                 rockContext.WrapTransaction( () =>
                 {
-                    var person = GetExistingPerson( scheduleParameters, rockContext );
+                    var person = GetExistingPerson( scheduleParameters.PersonId, rockContext );
 
                     if ( person == null )
                     {
@@ -224,7 +304,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
                     }
 
                     var totalAmount = CalculateTotalAmount( giveParameters, rockContext );
-                    var person = GetExistingPerson( giveParameters, rockContext );
+                    var person = GetExistingPerson( giveParameters.PersonId, rockContext );
 
                     if ( person == null )
                     {
@@ -346,14 +426,14 @@ namespace cc.newspring.Apollos.Rest.Controllers
             return string.Concat( mask, shown );
         }
 
-        private Person GetExistingPerson( GiveParameters giveParameters, RockContext rockContext )
+        private Person GetExistingPerson( int? personId, RockContext rockContext )
         {
-            if ( !giveParameters.PersonId.HasValue )
+            if ( !personId.HasValue )
             {
                 return null;
             }
 
-            var person = new PersonService( rockContext ).Get( giveParameters.PersonId.Value );
+            var person = new PersonService( rockContext ).Get( personId.Value );
 
             if ( person == null )
             {
@@ -394,19 +474,19 @@ namespace cc.newspring.Apollos.Rest.Controllers
             return savedAccount;
         }
 
-        private FinancialPersonSavedAccount CreateSavedAccount( GiveParameters giveParameters, FinancialPaymentDetail paymentDetail, FinancialGateway financialGateway, Person person, RockContext rockContext) {
+        private FinancialPersonSavedAccount CreateSavedAccount( PaymentParameters parameters, FinancialPaymentDetail paymentDetail, FinancialGateway financialGateway, Person person, RockContext rockContext) {
             var lastFour = paymentDetail.AccountNumberMasked.Substring(paymentDetail.AccountNumberMasked.Length - 4);
             var name = string.Empty;
 
-            if ( giveParameters.AccountType.ToLower() != "credit" )
+            if ( parameters.AccountType.ToLower() != "credit" )
             {
-                if ( string.IsNullOrWhiteSpace( giveParameters.RoutingNumber ) )
+                if ( string.IsNullOrWhiteSpace( parameters.RoutingNumber ) )
                 {
                     GenerateResponse( HttpStatusCode.BadRequest, "RoutingNumber is required for ACH transactions" );
                     return null;
                 }
 
-                if ( string.IsNullOrWhiteSpace( giveParameters.AccountNumber ) )
+                if ( string.IsNullOrWhiteSpace( parameters.AccountNumber ) )
                 {
                     GenerateResponse( HttpStatusCode.BadRequest, "AccountNumber is required" );
                     return null;
@@ -414,7 +494,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
 
                 name = "Bank card ***" + lastFour;
                 var bankAccountService = new FinancialPersonBankAccountService( rockContext );
-                var accountNumberSecured = FinancialPersonBankAccount.EncodeAccountNumber( giveParameters.RoutingNumber, giveParameters.AccountNumber );
+                var accountNumberSecured = FinancialPersonBankAccount.EncodeAccountNumber( parameters.RoutingNumber, parameters.AccountNumber );
                 var bankAccount = bankAccountService.Queryable().Where( a =>
                     a.AccountNumberSecured == accountNumberSecured &&
                     a.PersonAliasId == person.PrimaryAliasId.Value ).FirstOrDefault();
@@ -445,29 +525,29 @@ namespace cc.newspring.Apollos.Rest.Controllers
             return savedAccount;
         }
 
-        private int CreateLocation( GiveParameters giveParameters, RockContext rockContext )
+        private int CreateLocation( PaymentParameters parameters, RockContext rockContext )
         {
-            if ( string.IsNullOrWhiteSpace( giveParameters.Street1 ) ||
-                string.IsNullOrWhiteSpace( giveParameters.City ) ||
-                string.IsNullOrWhiteSpace( giveParameters.State ) ||
-                string.IsNullOrWhiteSpace( giveParameters.PostalCode ) )
+            if ( string.IsNullOrWhiteSpace( parameters.Street1 ) ||
+                string.IsNullOrWhiteSpace( parameters.City ) ||
+                string.IsNullOrWhiteSpace( parameters.State ) ||
+                string.IsNullOrWhiteSpace( parameters.PostalCode ) )
             {
                 GenerateResponse( HttpStatusCode.BadRequest, "Street1, City, State, and PostalCode are required" );
             }
 
-            if ( giveParameters.State == null || giveParameters.State.Length != 2 )
+            if ( parameters.State == null || parameters.State.Length != 2 )
             {
                 GenerateResponse( HttpStatusCode.BadRequest, "State must be a 2 letter string" );
             }
 
             var location = new Location
             {
-                Street1 = giveParameters.Street1,
-                Street2 = giveParameters.Street2,
-                City = giveParameters.City,
-                State = giveParameters.State,
-                PostalCode = giveParameters.PostalCode,
-                Country = giveParameters.Country ?? "USA"
+                Street1 = parameters.Street1,
+                Street2 = parameters.Street2,
+                City = parameters.City,
+                State = parameters.State,
+                PostalCode = parameters.PostalCode,
+                Country = parameters.Country ?? "USA"
             };
 
             new LocationService( rockContext ).Add( location );
@@ -475,21 +555,21 @@ namespace cc.newspring.Apollos.Rest.Controllers
             return location.Id;
         }
 
-        private FinancialPaymentDetail CreatePaymentDetail( GiveParameters giveParameters, Person person, int billingLocationId, RockContext rockContext )
+        private FinancialPaymentDetail CreatePaymentDetail( PaymentParameters parameters, Person person, int billingLocationId, RockContext rockContext )
         {
-            if ( string.IsNullOrWhiteSpace(giveParameters.AccountNumber ))
+            if ( string.IsNullOrWhiteSpace( parameters.AccountNumber ) )
             {
                 GenerateResponse( HttpStatusCode.BadRequest, "AccountNumber is required" );
                 return null;
             }
 
-            if ( string.IsNullOrWhiteSpace( giveParameters.AccountType ) )
+            if ( string.IsNullOrWhiteSpace( parameters.AccountType ) )
             {
                 GenerateResponse( HttpStatusCode.BadRequest, "AccountType is required" );
                 return null;
             }
 
-            var accountType = giveParameters.AccountType.ToLower();
+            var accountType = parameters.AccountType.ToLower();
             var allowedTypes = new String[] { "checking", "savings", "credit" };
 
             if (!allowedTypes.Contains(accountType) )
@@ -498,8 +578,8 @@ namespace cc.newspring.Apollos.Rest.Controllers
                 return null;
             }
 
-            var maskedAccountNumber = Mask( giveParameters.AccountNumber );
-            var nameOnCard = (giveParameters.FirstName ?? person.FirstName) + " " + (giveParameters.LastName ?? person.LastName);
+            var maskedAccountNumber = Mask( parameters.AccountNumber );
+            var nameOnCard = ( parameters.FirstName ?? person.FirstName ) + " " + ( parameters.LastName ?? person.LastName );
             
             var paymentDetail = new FinancialPaymentDetail
             {
@@ -508,10 +588,10 @@ namespace cc.newspring.Apollos.Rest.Controllers
                 BillingLocationId = billingLocationId
             };
 
-            if ( giveParameters.AccountType.ToLower() == "credit" )
+            if ( parameters.AccountType.ToLower() == "credit" )
             {
-                paymentDetail.ExpirationMonthEncrypted = Rock.Security.Encryption.EncryptString( giveParameters.ExpirationMonth.ToString() );
-                paymentDetail.ExpirationYearEncrypted = Rock.Security.Encryption.EncryptString( giveParameters.ExpirationYear.ToString() );
+                paymentDetail.ExpirationMonthEncrypted = Rock.Security.Encryption.EncryptString( parameters.ExpirationMonth.ToString() );
+                paymentDetail.ExpirationYearEncrypted = Rock.Security.Encryption.EncryptString( parameters.ExpirationYear.ToString() );
             }
 
             new FinancialPaymentDetailService( rockContext ).Add( paymentDetail );
@@ -556,13 +636,13 @@ namespace cc.newspring.Apollos.Rest.Controllers
             };
         }
 
-        private PaymentInfo GetPaymentInfo( GiveParameters giveParameters, Person person, RockContext rockContext, decimal totalAmount, FinancialPaymentDetail paymentDetail )
+        private PaymentInfo GetPaymentInfo( PaymentParameters parameters, Person person, RockContext rockContext, decimal totalAmount, FinancialPaymentDetail paymentDetail )
         {
             PaymentInfo paymentInfo = null;
 
-            if ( giveParameters.AccountType.ToLower() == "credit" )
+            if ( parameters.AccountType.ToLower() == "credit" )
             {
-                if ( giveParameters.ExpirationMonth < 1 || giveParameters.ExpirationMonth > 12 )
+                if ( parameters.ExpirationMonth < 1 || parameters.ExpirationMonth > 12 )
                 {
                     GenerateResponse( HttpStatusCode.BadRequest, "ExpirationMonth is required and must be between 1 and 12 for credit transactions" );
                 }
@@ -570,40 +650,40 @@ namespace cc.newspring.Apollos.Rest.Controllers
                 var currentDate = DateTime.Now;
                 var maxYear = currentDate.Year + 30;
 
-                if ( giveParameters.ExpirationYear < currentDate.Year || giveParameters.ExpirationYear > maxYear )
+                if ( parameters.ExpirationYear < currentDate.Year || parameters.ExpirationYear > maxYear )
                 {
                     GenerateResponse( HttpStatusCode.BadRequest, string.Format( "ExpirationYear is required and must be between {0} and {1} for credit transactions", currentDate.Year, maxYear ) );
                 }
 
-                if ( giveParameters.ExpirationYear <= currentDate.Year && giveParameters.ExpirationMonth < currentDate.Month )
+                if ( parameters.ExpirationYear <= currentDate.Year && parameters.ExpirationMonth < currentDate.Month )
                 {
                     GenerateResponse( HttpStatusCode.BadRequest, "The ExpirationMonth and ExpirationYear combination must not have already elapsed for credit transactions" );
                 }
 
-                if ( string.IsNullOrWhiteSpace( giveParameters.Street1 ) ||
-                    string.IsNullOrWhiteSpace( giveParameters.City ) ||
-                    string.IsNullOrWhiteSpace( giveParameters.State ) ||
-                    string.IsNullOrWhiteSpace( giveParameters.PostalCode ) )
+                if ( string.IsNullOrWhiteSpace( parameters.Street1 ) ||
+                    string.IsNullOrWhiteSpace( parameters.City ) ||
+                    string.IsNullOrWhiteSpace( parameters.State ) ||
+                    string.IsNullOrWhiteSpace( parameters.PostalCode ) )
                 {
                     GenerateResponse( HttpStatusCode.BadRequest, "Street1, City, State, and PostalCode are required for credit transactions" );
                 }
 
                 paymentInfo = new CreditCardPaymentInfo()
                 {
-                    Number = giveParameters.AccountNumber,
-                    Code = giveParameters.CCV ?? string.Empty,
-                    ExpirationDate = new DateTime( giveParameters.ExpirationYear, giveParameters.ExpirationMonth, 1 ),
-                    BillingStreet1 = giveParameters.Street1 ?? string.Empty,
-                    BillingStreet2 = giveParameters.Street2 ?? string.Empty,
-                    BillingCity = giveParameters.City ?? string.Empty,
-                    BillingState = giveParameters.State ?? string.Empty,
-                    BillingPostalCode = giveParameters.PostalCode ?? string.Empty,
-                    BillingCountry = giveParameters.Country ?? "USA"
+                    Number = parameters.AccountNumber,
+                    Code = parameters.CCV ?? string.Empty,
+                    ExpirationDate = new DateTime( parameters.ExpirationYear, parameters.ExpirationMonth, 1 ),
+                    BillingStreet1 = parameters.Street1 ?? string.Empty,
+                    BillingStreet2 = parameters.Street2 ?? string.Empty,
+                    BillingCity = parameters.City ?? string.Empty,
+                    BillingState = parameters.State ?? string.Empty,
+                    BillingPostalCode = parameters.PostalCode ?? string.Empty,
+                    BillingCountry = parameters.Country ?? "USA"
                 };                
             }
             else
             {
-                if ( string.IsNullOrWhiteSpace( giveParameters.RoutingNumber ) )
+                if ( string.IsNullOrWhiteSpace( parameters.RoutingNumber ) )
                 {
                     GenerateResponse( HttpStatusCode.BadRequest, "RoutingNumber is required for ACH transactions" );
                     return null;
@@ -611,23 +691,23 @@ namespace cc.newspring.Apollos.Rest.Controllers
 
                 paymentInfo = new ACHPaymentInfo()
                 {
-                    BankRoutingNumber = giveParameters.RoutingNumber,
-                    BankAccountNumber = giveParameters.AccountNumber,
-                    AccountType = giveParameters.AccountType.ToLower() == "checking" ? BankAccountType.Checking : BankAccountType.Savings
+                    BankRoutingNumber = parameters.RoutingNumber,
+                    BankAccountNumber = parameters.AccountNumber,
+                    AccountType = parameters.AccountType.ToLower() == "checking" ? BankAccountType.Checking : BankAccountType.Savings
                 };
             }
             
             paymentInfo.Amount = totalAmount;
-            paymentInfo.FirstName = giveParameters.FirstName ?? person.FirstName;
-            paymentInfo.LastName = giveParameters.LastName ?? person.LastName;
-            paymentInfo.Email = giveParameters.Email ?? person.Email;
-            paymentInfo.Phone = giveParameters.PhoneNumber ?? string.Empty;
-            paymentInfo.Street1 = giveParameters.Street1 ?? string.Empty;
-            paymentInfo.Street2 = giveParameters.Street2 ?? string.Empty;
-            paymentInfo.City = giveParameters.City ?? string.Empty;
-            paymentInfo.State = giveParameters.State ?? string.Empty;
-            paymentInfo.PostalCode = giveParameters.PostalCode ?? string.Empty;
-            paymentInfo.Country = giveParameters.Country ?? "USA";
+            paymentInfo.FirstName = parameters.FirstName ?? person.FirstName;
+            paymentInfo.LastName = parameters.LastName ?? person.LastName;
+            paymentInfo.Email = parameters.Email ?? person.Email;
+            paymentInfo.Phone = parameters.PhoneNumber ?? string.Empty;
+            paymentInfo.Street1 = parameters.Street1 ?? string.Empty;
+            paymentInfo.Street2 = parameters.Street2 ?? string.Empty;
+            paymentInfo.City = parameters.City ?? string.Empty;
+            paymentInfo.State = parameters.State ?? string.Empty;
+            paymentInfo.PostalCode = parameters.PostalCode ?? string.Empty;
+            paymentInfo.Country = parameters.Country ?? "USA";
 
             if ( paymentInfo.CreditCardTypeValue != null )
             {
