@@ -1,0 +1,137 @@
+{% comment %} 
+    {% include '/Themes/NewSpring/Assets/Lava/StaffVideoList.lava' %}
+{% endcomment %}
+
+<script src="//player.ooyala.com/v3/ZmJmNTVlNDk1NjcwYTVkMzAzODkyMjg0"></script>
+
+{% for item in Items %}
+
+<div class="list-entry">
+    <div class="row">
+        <div class="col-lg-8 col-md-8 col-sm-8">
+            <h3>{{ item.Title }}</h3>
+
+            <h4>{{ item.StartDateTime | Date:'MMMM d, yyyy' }}</h4>
+            <p>{{ item.Content }}</p>
+
+            <!-- <audio src="{{ item.AudioURL }}" preload="auto" /> -->
+
+            <p>{% if item.VideoID != '' %}<button type="button" class="btn btn-primary videoCreate" data-video-id="{{ item.VideoID }}" data-video-name="{{ item.Title | ToCssClass}}" data-toggle="modal" data-target=".{{ item.Title | ToCssClass}}-video" data-videoId="{{ item.VideoID }}">Play Video</button>{% endif %}
+                {% if item.AudioURL != '' %}<a href="#" class="btn btn-primary" data-toggle="player" data-file="{{ item.AudioURL }}" data-id="{{ item.Title | ToCssClass}}">Play Audio</a>{% endif %} <a href="{{ LinkedPages.DetailPage }}?Item={{ item.Id }}" class="btn btn-default">View Entry</a></p>
+
+            {% if item.VideoID != '' %}
+                <div class="modal fade {{ item.Title | ToCssClass}}-video videoModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" data-video-id="{{ item.VideoID }}">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div id="{{ item.Title | ToCssClass}}"></div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if item.AudioURL != '' %}
+                <div class="modal fade {{ item.Title | ToCssClass}}-audio audioModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            {{ item.AudioURL }}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+{% endfor %}
+
+<div class="clearfix constrained">
+
+    {% assign nextPageString = Pagination.NextPage | ToString %}
+    {% assign prevPageString = Pagination.PreviousPage | ToString %}
+
+    {% if {{Pagination.PreviousPage == -1 }} %}
+    <!--<div class="btn btn-default pull-left">
+        <i class="fa fa-chevron-left"></i> Prev
+      </div>-->
+    {% else %}
+    <a class="btn btn-primary pull-left" href="{{Pagination.UrlTemplate | Replace:'PageNum', prevPageString}}">
+        <i class="fa fa-chevron-left"></i> Prev
+    </a>
+    {% endif %}
+
+    {% if {{Pagination.NextPage == -1 }} %}
+    <!--<div class="btn btn-default pull-right">
+        Next <i class="fa fa-chevron-right"></i> 
+      </div>-->
+    {% else %}
+    <a class="btn btn-primary pull-right" href="{{Pagination.UrlTemplate | Replace:'PageNum', nextPageString}}">
+        Next <i class="fa fa-chevron-right"></i>
+    </a>
+    {% endif %}
+
+</div>
+
+<script>
+    $(document).ready(function() {
+
+        var player = null;
+
+        // Create Video Modal
+        $(document).on('click', '.videoCreate', function(){
+            name = $(this).attr("data-video-name");
+            id = $(this).attr("data-video-id");
+
+            // Kill and Remove Audio Player/Objects
+            audiojs.instances = {};
+            $('.audiojs').remove();
+
+            // Create Ooyala Player
+            player = OO.Player.create(name, id);
+        });
+
+        $(document).on("click", ".modal-scrollable:not('.modal-scrollable .modal-content')", function(){
+            // Destory Ooyala player when user clicks to close modal
+            id = $(this).find('.videoModal').attr("data-video-id");
+            player.destroy(id);
+        });
+
+        // Audio player creation
+        $("a[data-toggle='player']").on('click', function(){
+            var id = $(this).attr('data-id');
+            var file = $(this).attr('data-file');
+
+            // Remove all previous instances
+            audiojs.instances = {};
+            // Remove any existing players
+            $('body').find('.audiojs').remove();
+
+            // Add HTML5 audio element for audiojs to hook to
+            $('body').append('<audio id="' + id + '" src="' + file + '" preload="none"></audio>');
+
+            // Create audiojs instance
+            audiojs.createAll();
+
+            // Start the player
+            $("#" + id + ' + .play-pause .play').click();
+
+            return false;
+        });
+
+        $('body').on('click', '.audiojs .close', function(){
+            // Remove the player element
+            $(this).parent().remove();
+
+            // Destroy all audiojs instances
+            audiojs.instances = {};
+            
+            return false;
+        });
+    });
+</script>
