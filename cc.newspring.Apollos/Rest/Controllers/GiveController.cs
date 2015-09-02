@@ -71,14 +71,11 @@ namespace cc.newspring.Apollos.Rest.Controllers
                     transaction.TransactionDateTime = RockDateTime.Now;
                     transaction.AuthorizedPersonAliasId = person.PrimaryAliasId;
                     transaction.AuthorizedPersonAlias = person.PrimaryAlias;
+                    transaction.FinancialGateway = financialGateway;
                     transaction.FinancialGatewayId = financialGateway.Id;
                     transaction.TransactionTypeValueId = DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.TRANSACTION_TYPE_CONTRIBUTION ) ).Id;
                     transaction.FinancialPaymentDetailId = paymentDetail.Id;
                     savedAccount.TransactionCode = transaction.TransactionCode;
-
-                    new FinancialTransactionService( rockContext ).Add( transaction );
-                    rockContext.SaveChanges();
-
                     savedAccount.ReferenceNumber = gatewayComponent.GetReferenceNumber( transaction, out errorMessage );
                     rockContext.SaveChanges();
                 } );
