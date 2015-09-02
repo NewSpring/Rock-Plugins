@@ -164,15 +164,33 @@ namespace RockWeb.Plugins.cc_newspring.Blocks.Metrics
                 {
                     var churchMetricValue = newMetric.MetricValues;
 
-                    if ( dateRange != null )
+                    if ( dateRange.Start.HasValue && dateRange.End.HasValue )
                     {
                         if ( campus != null && campusContext.HasValue )
                         {
-                            currentMetricValue.Value = string.Format( "{0:n0}", newMetric.MetricValues
+
+                            var currentweekMetricValue = newMetric.MetricValues
                                 .Where( a => a.MetricValueDateTime >= dateRange.Start && a.MetricValueDateTime <= dateRange.End && a.EntityId.ToString() == campus.Id.ToString() )
                                 .Select( a => a.YValue )
-                                .Sum()
-                                );
+                                .Sum();
+                            
+                            currentMetricValue.Value = string.Format( "{0:n0}", currentweekMetricValue );
+
+                            // Compare currentMetricValue to the same date range 7 days previous
+
+                            var previousweekMetricValue = newMetric.MetricValues
+                                .Where( a => a.MetricValueDateTime >= dateRange.Start.Value.AddDays( -7 ) && a.MetricValueDateTime <= dateRange.End.Value.AddDays( -7 ) && a.EntityId.ToString() == campus.Id.ToString() )
+                                .Select( a => a.YValue )
+                                .Sum();
+
+                            if ( currentweekMetricValue > previousweekMetricValue )
+                            {
+                                metricClass.Value = "fa-caret-up brand-success";
+                            }
+                            else if ( currentweekMetricValue < previousweekMetricValue )
+                            {
+                                metricClass.Value = "fa-caret-down brand-danger";
+                            }
 
                             if ( MetricCompareLastYear == "Yes" )
                             {
@@ -185,11 +203,28 @@ namespace RockWeb.Plugins.cc_newspring.Blocks.Metrics
                         }
                         else
                         {
-                            currentMetricValue.Value = string.Format( "{0:n0}", newMetric.MetricValues
+                            var currentweekMetricValue = newMetric.MetricValues
                                 .Where( a => a.MetricValueDateTime >= dateRange.Start && a.MetricValueDateTime <= dateRange.End )
                                 .Select( a => a.YValue )
-                                .Sum()
-                                );
+                                .Sum();
+
+                            currentMetricValue.Value = string.Format( "{0:n0}", currentweekMetricValue );
+
+                            // Compare currentMetricValue to the same date range 7 days previous
+
+                            var previousweekMetricValue = newMetric.MetricValues
+                                .Where( a => a.MetricValueDateTime >= dateRange.Start.Value.AddDays( -7 ) && a.MetricValueDateTime <= dateRange.End.Value.AddDays( -7 ) )
+                                .Select( a => a.YValue )
+                                .Sum();
+
+                            if ( currentweekMetricValue > previousweekMetricValue )
+                            {
+                                metricClass.Value = "fa-caret-up brand-success";
+                            }
+                            else if ( currentweekMetricValue < previousweekMetricValue )
+                            {
+                                metricClass.Value = "fa-caret-down brand-danger";
+                            }
 
                             if ( MetricCompareLastYear == "Yes" )
                             {
@@ -204,11 +239,23 @@ namespace RockWeb.Plugins.cc_newspring.Blocks.Metrics
                     }
                     else if ( metricCustomDates == "One Year Ago" )
                     {
-                        currentMetricValue.Value = string.Format( "{0:n0}", newMetric.MetricValues
-                            .Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) == calendar.GetWeekOfYear( DateTime.Now.AddYears(-1).Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) )
+                        if ( campus != null && campusContext.HasValue )
+                        {
+
+                            currentMetricValue.Value = string.Format( "{0:n0}", newMetric.MetricValues
+                                .Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) == calendar.GetWeekOfYear( DateTime.Now.AddYears( -1 ).Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) && a.MetricValueDateTime.Value.Year.ToString() == DateTime.Now.AddYears(-1).ToString() && a.EntityId.ToString() == campus.Id.ToString() )
+                                .Select( a => a.YValue )
+                                .Sum()
+                            );
+                        }
+                        else
+                        {
+                            currentMetricValue.Value = string.Format( "{0:n0}", newMetric.MetricValues
+                            .Where( a => calendar.GetWeekOfYear( a.MetricValueDateTime.Value.Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) == calendar.GetWeekOfYear( DateTime.Now.AddYears( -1 ).Date, CalendarWeekRule.FirstDay, DayOfWeek.Sunday ) && a.MetricValueDateTime.Value.Year.ToString() == DateTime.Now.AddYears( -1 ).ToString() )
                             .Select( a => a.YValue )
                             .Sum()
                             );
+                        }
                     }
 
                     // Still Need to add the trending arrows back in
@@ -234,7 +281,7 @@ namespace RockWeb.Plugins.cc_newspring.Blocks.Metrics
                     var metricPreviousYear = new List<MetricJson>();
 
                     // Search for data if a source is selected
-                    if ( dateRange != null )
+                    if ( dateRange.Start.HasValue && dateRange.End.HasValue )
                     {
 
                         if ( campus != null && campusContext.HasValue )
@@ -359,7 +406,7 @@ namespace RockWeb.Plugins.cc_newspring.Blocks.Metrics
                         var previousWeekMetric = new decimal?();
 
                         // Search DB Based on Current Week of Year
-                        if ( dateRange != null )
+                        if ( dateRange.Start.HasValue && dateRange.End.HasValue )
                         {
                             if ( campus != null && campusContext.HasValue )
                             {
@@ -369,11 +416,13 @@ namespace RockWeb.Plugins.cc_newspring.Blocks.Metrics
                                     .FirstOrDefault()
                                     );
                             }
-
-                            currentWeekMetric = metricItem.MetricValues
-                                .Where( a => a.MetricValueDateTime >= dateRange.Start && a.MetricValueDateTime <= dateRange.End )
-                                .Select( a => a.YValue )
-                                .FirstOrDefault();
+                            else
+                            {
+                                currentWeekMetric = metricItem.MetricValues
+                                    .Where( a => a.MetricValueDateTime >= dateRange.Start && a.MetricValueDateTime <= dateRange.End )
+                                    .Select( a => a.YValue )
+                                    .FirstOrDefault();
+                            }
 
                         } else {
 
