@@ -882,16 +882,16 @@ dl:not(.dl-horizontal) dd {
   border-color: #6aa3d5;
 }
 .panel-dashboard > .panel-heading {
-  color: #142f46;
-  background-color: #92bce0;
-  border-color: #3071a9;
+  color: #333333;
+  background-color: #eeeeee;
+  border-color: #a2a2a2;
 }
 .panel-dashboard > .panel-heading + .panel-collapse > .panel-body {
   border-top-color: #6aa3d5;
 }
 .panel-dashboard > .panel-heading .badge {
-  color: #92bce0;
-  background-color: #142f46;
+  color: #eeeeee;
+  background-color: #333333;
 }
 .panel-dashboard > .panel-footer + .panel-collapse > .panel-body {
   border-bottom-color: #6aa3d5;
@@ -963,11 +963,11 @@ td.wrap-contents {
   display: none;
 }
 .grid-filter {
-  background-color: #92bce0;
+  background-color: #eeeeee;
   border-radius: 4px;
   padding: 6px 12px;
   border-bottom: 1px solid #dddddd;
-  color: #142f46;
+  color: #333333;
 }
 .grid-filter header {
   border-radius: 4px 4px 0 0;
@@ -984,7 +984,7 @@ td.wrap-contents {
   font-weight: 300;
 }
 .grid-filter header i {
-  color: #2a6496;
+  color: #666666;
 }
 .grid-filter header fieldset {
   margin-bottom: 0;
@@ -998,9 +998,9 @@ td.wrap-contents {
   margin-bottom: 12px;
 }
 .grid-filter .picker .picker-label {
-  background-color: #92bce0;
-  color: #142f46;
-  border-color: #6aa3d5;
+  background-color: #eeeeee;
+  color: #333333;
+  border-color: #d5d5d5;
 }
 .grid-filter-entry legend + .control-group {
   margin-top: 0;
@@ -1038,20 +1038,20 @@ td.wrap-contents {
   border-color: #999999;
 }
 .grid-paging {
-  background-color: #92bce0;
-  color: #142f46;
+  background-color: #eeeeee;
+  color: #333333;
 }
 .grid-paging .pagination {
   margin-top: 0;
   margin-bottom: 0;
 }
 .grid-paging .pagination li > a {
-  background-color: #7eb0db;
+  background-color: #e2e2e2;
   color: #333333;
-  border-color: #357ebd;
+  border-color: #afafaf;
 }
 .grid-paging .pagination li.active > a {
-  background-color: #a6c8e6;
+  background-color: #fbfbfb;
 }
 .grid-paging .grid-pager {
   float: right;
@@ -1070,13 +1070,13 @@ td.grid-col-actions {
 }
 .grid-actions {
   text-align: right;
-  background-color: #92bce0;
+  background-color: #eeeeee;
 }
 .grid-actions .btn {
   margin-left: 8px;
-  background-color: #7eb0db;
+  background-color: #e2e2e2;
   color: #333333;
-  border-color: #428bca;
+  border-color: #bbbbbb;
 }
 .table-light {
   background-color: transparent;
@@ -1354,9 +1354,6 @@ tr.row-highlight td {
 .filter-toggle > span {
   float: left;
 }
-.filter-toggle .panel-title {
-  margin-top: 4px;
-}
 .filter-toggle .btn-toggle {
   margin: 0 6px;
 }
@@ -1400,16 +1397,16 @@ tr.row-highlight td {
   border-top-color: #5697d0;
 }
 .panel-note > .panel-heading {
-  color: #142f46;
-  background-color: #92bce0;
-  border-color: #3071a9;
+  color: #333333;
+  background-color: #eeeeee;
+  border-color: #a2a2a2;
 }
 .panel-note > .panel-heading + .panel-collapse > .panel-body {
   border-top-color: #6aa3d5;
 }
 .panel-note > .panel-heading .badge {
-  color: #92bce0;
-  background-color: #142f46;
+  color: #eeeeee;
+  background-color: #333333;
 }
 .panel-note > .panel-footer + .panel-collapse > .panel-body {
   border-bottom-color: #6aa3d5;
@@ -1555,16 +1552,16 @@ tr.row-highlight td {
   border-color: #6aa3d5;
 }
 .panel-noteentry > .panel-heading {
-  color: #142f46;
-  background-color: #92bce0;
-  border-color: #3071a9;
+  color: #333333;
+  background-color: #eeeeee;
+  border-color: #a2a2a2;
 }
 .panel-noteentry > .panel-heading + .panel-collapse > .panel-body {
   border-top-color: #6aa3d5;
 }
 .panel-noteentry > .panel-heading .badge {
-  color: #92bce0;
-  background-color: #142f46;
+  color: #eeeeee;
+  background-color: #333333;
 }
 .panel-noteentry > .panel-footer + .panel-collapse > .panel-body {
   border-bottom-color: #6aa3d5;
@@ -1704,16 +1701,16 @@ tr.row-highlight td {
   margin-bottom: 30px;
 }
 .panel-group .panel-workflowitem > .panel-heading {
-  color: #142f46;
-  background-color: #92bce0;
-  border-color: #3071a9;
+  color: #333333;
+  background-color: #eeeeee;
+  border-color: #a2a2a2;
 }
 .panel-group .panel-workflowitem > .panel-heading + .panel-collapse > .panel-body {
   border-top-color: #6aa3d5;
 }
 .panel-group .panel-workflowitem > .panel-heading .badge {
-  color: #92bce0;
-  background-color: #142f46;
+  color: #eeeeee;
+  background-color: #333333;
 }
 .panel-group .panel-workflowitem > .panel-footer + .panel-collapse > .panel-body {
   border-bottom-color: #6aa3d5;
@@ -1755,13 +1752,12 @@ tr.row-highlight td {
     1. Group Viewer - styles for the group viewer block.
 
 */
-.group-location-map {
-  float: right;
+.group-location-map img {
+  width: 100%;
+  margin-bottom: 24px;
 }
-@media (max-width: 992px) {
-  .group-location-map {
-    float: left;
-  }
+.description {
+  margin-bottom: 24px;
 }
 section.group-type-attribute-panel label {
   padding-left: 46px;
@@ -2397,8 +2393,8 @@ span.field-name {
   font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
   padding: 2px 4px;
   font-size: 90%;
-  color: #515151;
-  background-color: #d9e1e8;
+  color: #142f46;
+  background-color: #92bce0;
   white-space: nowrap;
   border-radius: 4px;
 }
@@ -2406,8 +2402,8 @@ span.field-value {
   font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
   padding: 2px 4px;
   font-size: 90%;
-  color: #515151;
-  background-color: #d9e1e8;
+  color: #142f46;
+  background-color: #92bce0;
   white-space: nowrap;
   border-radius: 4px;
 }
@@ -2830,7 +2826,7 @@ iframe.email-body {
   Used to manage styles related to reusable components / widgets.
 
   1. Pickers - used to pick complex data types
-  2. Banner - used as the primary heading for a page or large section
+  2. Number Increment
   3. Tree - used for tree control
   4. Person List - used to show a list of people
   5. Rollover - Used to hide/show items in the UI has the mouse rolls-over a container.
@@ -2864,6 +2860,7 @@ iframe.email-body {
   33. Wizard
   34. Checkbox
   35. Follow button
+  36. Range Editors
 
   xx. Misc
 */
@@ -3007,38 +3004,52 @@ iframe.email-body {
   margin-top: inherit;
   margin-right: 0;
 }
-/*.banner
-{
-  color: @banner-text-color;
-  background-color: @banner-bg;
-  border-radius: @banner-border-radius;
-  border: @banner-border-size solid @banner-border-color;
-  font-weight: @banner-font-weight;
-  font-size: @banner-font-size;
-  padding: @banner-padding;
-  margin: 0 0 @spacing-md-px;
-  .clearfix;
-
-  h1 {
-    float: left;
-    margin: 0;
-    font-weight: @banner-font-weight;
-
-    .first-word {
-      font-weight: @banner-firstword-weight;
-    }
-
-    i {
-      margin-right: @spacing-md-px;
-    }
-  }
-
-  .label {
-    float: right;
-    margin-top: @spacing-md-px;
-    margin-left: @spacing-md-px;
-  }
-}*/
+.numberincrement {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+}
+.numberincrement .numberincrement-up,
+.numberincrement .numberincrement-down {
+  background-color: #f0f0f0;
+  padding: 6px 12px;
+  border: 1px solid #cccccc;
+  color: #555555;
+  cursor: pointer;
+}
+.numberincrement .numberincrement-up.disabled,
+.numberincrement .numberincrement-down.disabled {
+  color: #888888;
+  cursor: default;
+}
+.numberincrement .numberincrement-down {
+  border-radius: 4px 0 0 4px;
+}
+.numberincrement .numberincrement-up {
+  border-radius: 0 4px 4px 0;
+}
+.numberincrement .numberincrement-value {
+  padding: 6px 18px;
+  border-color: #cccccc;
+  border-width: 1px 0;
+  border-style: solid;
+}
+.numberincrement.input-sm .numberincrement-up,
+.numberincrement.input-sm .numberincrement-down {
+  padding: 5px 8px;
+}
+.numberincrement.input-sm .numberincrement-value {
+  padding: 5px 12px;
+}
+.numberincrement.input-lg .numberincrement-up,
+.numberincrement.input-lg .numberincrement-down {
+  padding: 12px 20px;
+}
+.numberincrement.input-lg .numberincrement-value {
+  padding: 12px 28px;
+}
 ul.rocktree,
 ul.rocktree ul {
   list-style-type: none;
@@ -3533,6 +3544,9 @@ fieldset .actions {
 .code-editor {
   position: relative;
 }
+.label a {
+  color: #fff;
+}
 .label-campus {
   background-color: #83758f;
 }
@@ -3566,7 +3580,8 @@ fieldset .actions {
 .datepicker table thead th.next {
   text-align: right;
 }
-.datepicker table td.active {
+.datepicker table td.active,
+.datepicker table td.today {
   background-color: #222222;
   color: #d5d5d5;
 }
@@ -3835,9 +3850,9 @@ fieldset .actions {
 .imageupload-group .upload-progress {
   position: absolute;
   z-index: 2;
-  left: 50%;
+  left: 35px;
   margin-left: -18px;
-  top: 50%;
+  top: 8px;
   margin-top: -37px;
   opacity: 0.3;
 }
@@ -3949,8 +3964,8 @@ fieldset .actions {
 .fileupload-group .upload-progress {
   position: absolute;
   z-index: 2;
-  left: 115%;
-  top: -20%;
+  left: 35px;
+  top: 8px;
   opacity: 0.3;
 }
 .updateprogress-status {
@@ -4425,6 +4440,12 @@ ul.list-group-panel .list-group-item:first-child,
 }
 .panel-follow-status.following:before {
   content: "\f005";
+}
+.number-range-editor .form-control-group .form-control {
+  margin-bottom: 6px;
+}
+.date-range-picker .input-group {
+  margin-bottom: 6px;
 }
 /*
     Used to manage styles for specific blocks.
@@ -5251,7 +5272,7 @@ a.help {
 }
 .panel .panel-heading i.fa-chevron-up,
 .panel .panel-heading i.fa-chevron-down {
-  color: #142f46;
+  color: #333333;
 }
 .panel .panel-heading .panel-title small {
   opacity: .5;
@@ -5279,16 +5300,16 @@ a.help {
   border-color: #6aa3d5;
 }
 .panel-widget > .panel-heading {
-  color: #142f46;
-  background-color: #92bce0;
-  border-color: #3071a9;
+  color: #333333;
+  background-color: #eeeeee;
+  border-color: #a2a2a2;
 }
 .panel-widget > .panel-heading + .panel-collapse > .panel-body {
   border-top-color: #6aa3d5;
 }
 .panel-widget > .panel-heading .badge {
-  color: #92bce0;
-  background-color: #142f46;
+  color: #eeeeee;
+  background-color: #333333;
 }
 .panel-widget > .panel-footer + .panel-collapse > .panel-body {
   border-bottom-color: #6aa3d5;
@@ -5306,23 +5327,23 @@ a.help {
   margin-left: 4px;
 }
 .panel-widget .panel-heading small {
-  color: #2a6496;
+  color: #666666;
 }
 .panel-persondetails {
   border-color: #6aa3d5;
   border-top-color: #5697d0;
 }
 .panel-persondetails > .panel-heading {
-  color: #142f46;
-  background-color: #92bce0;
-  border-color: #3071a9;
+  color: #333333;
+  background-color: #eeeeee;
+  border-color: #a2a2a2;
 }
 .panel-persondetails > .panel-heading + .panel-collapse > .panel-body {
   border-top-color: #6aa3d5;
 }
 .panel-persondetails > .panel-heading .badge {
-  color: #92bce0;
-  background-color: #142f46;
+  color: #eeeeee;
+  background-color: #333333;
 }
 .panel-persondetails > .panel-footer + .panel-collapse > .panel-body {
   border-bottom-color: #6aa3d5;
@@ -5365,16 +5386,16 @@ a.help {
   border-top-color: #5697d0;
 }
 .panel-block > .panel-heading {
-  color: #142f46;
-  background-color: #92bce0;
-  border-color: #3071a9;
+  color: #333333;
+  background-color: #eeeeee;
+  border-color: #a2a2a2;
 }
 .panel-block > .panel-heading + .panel-collapse > .panel-body {
   border-top-color: #6aa3d5;
 }
 .panel-block > .panel-heading .badge {
-  color: #92bce0;
-  background-color: #142f46;
+  color: #eeeeee;
+  background-color: #333333;
 }
 .panel-block > .panel-footer + .panel-collapse > .panel-body {
   border-bottom-color: #6aa3d5;
@@ -5428,11 +5449,11 @@ a.help {
   }
 }
 .panel-analytics .filter-options {
-  background-color: #92bce0;
+  background-color: #eeeeee;
 }
 .panel-analytics .analysis-types {
   padding: 15px 0;
-  background-color: #92bce0;
+  background-color: #eeeeee;
   margin-bottom: 15px;
 }
 .btn.aspNetDisabled {
@@ -5578,6 +5599,11 @@ fieldset[disabled] .btn-authenication.active {
 .btn-authenication.google:before {
   font-family: 'FontAwesome';
   content: "\f1a0";
+  margin-right: 12px;
+}
+.btn-authenication.twitter:before {
+  font-family: 'FontAwesome';
+  content: "\f099";
   margin-right: 12px;
 }
 .btn-minimal {

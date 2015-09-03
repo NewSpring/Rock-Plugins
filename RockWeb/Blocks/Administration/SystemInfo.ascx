@@ -31,7 +31,7 @@
 
 </script>
 
-<ul class="nav nav-pills" >
+<ul class="nav nav-pills margin-b-md" >
     <li class='active'><a pill="version-info" class="show-pill" href="#">Version Info</a></li>
     <li><a pill="diagnostics-tab" class="show-pill" href="#">Diagnostics</a></li>
 </ul>
@@ -80,6 +80,11 @@
         <p>
             <strong>Executing Location:</strong><br />
              <asp:Literal ID="lExecLocation" runat="server"></asp:Literal>
+        </p>
+
+        <p>
+            <strong>Last Migration(s):</strong><br />
+             <asp:Literal ID="lLastMigrations" runat="server"></asp:Literal>
         </p>
 
         <h4>Cache</h4>

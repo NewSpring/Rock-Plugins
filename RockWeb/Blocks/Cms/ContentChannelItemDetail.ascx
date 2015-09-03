@@ -17,7 +17,8 @@
                 </h1>
                 <div class="panel-labels">
                     <Rock:HighlightLabel ID="hlContentChannel" runat="server" LabelType="Type" />
-                    <Rock:HighlightLabel ID="hlStatus" runat="server"  />
+                    <Rock:HighlightLabel ID="hlStatus" runat="server" />
+                    <asp:PlaceHolder ID="phOccurrences" runat="server" />
                 </div>
             </div>
 
@@ -40,7 +41,7 @@
                                     <asp:HiddenField ID="hfStatus" runat="server" />
                                     <asp:Panel ID="pnlStatus" runat="server" CssClass="toggle-container">
                                         <div class="btn-group btn-toggle">
-                                            <a class="btn btn-xs <%=PendingCss%>" data-status="1" data-active-css="btn-default">Pending</a>
+                                            <a class="btn btn-xs <%=PendingCss%>" data-status="1" data-active-css="btn-warning">Pending</a>
                                             <a class="btn btn-xs <%=ApprovedCss%>" data-status="2" data-active-css="btn-success">Approved</a>
                                             <a class="btn btn-xs <%=DeniedCss%>" data-status="3" data-active-css="btn-danger">Denied</a>
                                         </div>
@@ -60,22 +61,19 @@
 
                     <div class="row">
                         <div class="col-md-6">
+                            <Rock:DatePicker ID="dpStart" runat="server" Label="Start" Required="true" Visible="false" />
                             <Rock:DateTimePicker ID="dtpStart" runat="server" Label="Start" Required="true" />
-                            <Rock:DateTimePicker ID="dtpExpire" runat="server" Label="Expire" />
-                            <Rock:NumberBox ID="nbPriority" runat="server" Label="Priority" />
-                            <asp:PlaceHolder ID="phAttributes" runat="server" EnableViewState="false" />
                         </div>
                         <div class="col-md-6">
-                            <Rock:RockControlWrapper ID="rcwOccurrences" runat="server" Label="Calendar Item Event Occurrences">
-                                <ul class="list-unstyled">
-                                    <asp:PlaceHolder ID="phOccurrences" runat="server" />
-                                </ul>
-                            </Rock:RockControlWrapper>
+                            <Rock:DatePicker ID="dpExpire" runat="server" Label="Expire" Required="true" Visible="false" />
+                            <Rock:DateTimePicker ID="dtpExpire" runat="server" Label="Expire" />
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6">
+                            <Rock:NumberBox ID="nbPriority" runat="server" Label="Priority" />
+                            <asp:PlaceHolder ID="phAttributes" runat="server" EnableViewState="false" />
                         </div>
                         <div class="col-md-6">
                         </div>

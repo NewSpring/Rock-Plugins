@@ -25,6 +25,7 @@ using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Financial;
+using Rock.Security;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI;
@@ -819,15 +820,13 @@ namespace RockWeb.Blocks.Finance
                                 if ( authorizedPersonAlias != null )
                                 {
                                     var savedAccount = new FinancialPersonSavedAccount();
-                                    savedAccount.FinancialPaymentDetail = new FinancialPaymentDetail();
                                     savedAccount.PersonAliasId = authorizedPersonAlias.Id;
                                     savedAccount.ReferenceNumber = referenceNumber;
                                     savedAccount.Name = txtSaveAccount.Text;
-                                    savedAccount.FinancialPaymentDetail.AccountNumberMasked = paymentInfo.MaskedNumber;
                                     savedAccount.TransactionCode = TransactionCode;
                                     savedAccount.FinancialGatewayId = financialGateway.Id;
-                                    savedAccount.FinancialPaymentDetail.CurrencyTypeValueId = currencyTypeValueId;
-                                    savedAccount.FinancialPaymentDetail.CreditCardTypeValueId = CreditCardTypeValueId;
+                                    savedAccount.FinancialPaymentDetail = new FinancialPaymentDetail();
+                                    savedAccount.FinancialPaymentDetail.SetFromPaymentInfo( paymentInfo, gateway, rockContext );
 
                                     var savedAccountService = new FinancialPersonSavedAccountService( rockContext );
                                     savedAccountService.Add( savedAccount );
@@ -895,8 +894,8 @@ namespace RockWeb.Blocks.Finance
             foreach ( var account in new FinancialAccountService( rockContext ).Queryable()
                 .Where( f =>
                     f.IsActive &&
-                    f.PublicName != null &&
-                    f.PublicName.Trim() != string.Empty &&
+                    f.IsPublic.HasValue &&
+                    f.IsPublic.Value &&
                     ( f.StartDate == null || f.StartDate <= RockDateTime.Today ) &&
                     ( f.EndDate == null || f.EndDate >= RockDateTime.Today ) )
                 .OrderBy( f => f.Order ) )
@@ -928,7 +927,7 @@ namespace RockWeb.Blocks.Finance
         /// </summary>
         private void BindAccounts()
         {
-            rptAccountList.DataSource = SelectedAccounts.OrderBy( a => a.Order ).ToList();
+            rptAccountList.DataSource = SelectedAccounts.ToList();
             rptAccountList.DataBind();
 
             btnAddAccount.Visible = AvailableAccounts.Any();
@@ -1499,15 +1498,15 @@ namespace RockWeb.Blocks.Finance
                     var scheduledTransaction = gateway.AddScheduledPayment( financialGateway, schedule, paymentInfo, out errorMessage );
                     if ( scheduledTransaction != null )
                     {
+                        scheduledTransaction.TransactionFrequencyValueId = schedule.TransactionFrequencyValue.Id;
+                        scheduledTransaction.AuthorizedPersonAliasId = person.PrimaryAliasId.Value;
+                        scheduledTransaction.FinancialGatewayId = financialGateway.Id;
+
                         if ( scheduledTransaction.FinancialPaymentDetail == null )
                         {
                             scheduledTransaction.FinancialPaymentDetail = new FinancialPaymentDetail();
                         }
-                        scheduledTransaction.TransactionFrequencyValueId = schedule.TransactionFrequencyValue.Id;
-                        scheduledTransaction.AuthorizedPersonAliasId = person.PrimaryAliasId.Value;
-                        scheduledTransaction.FinancialGatewayId = financialGateway.Id;
-                        scheduledTransaction.FinancialPaymentDetail.CurrencyTypeValueId = paymentInfo.CurrencyTypeValue.Id;
-                        scheduledTransaction.FinancialPaymentDetail.CreditCardTypeValueId = CreditCardTypeValueId;
+                        scheduledTransaction.FinancialPaymentDetail.SetFromPaymentInfo( paymentInfo, gateway, rockContext );
 
                         var changeSummary = new StringBuilder();
                         changeSummary.AppendFormat( "{0} starting {1}", schedule.TransactionFrequencyValue.Value, schedule.StartDate.ToShortDateString() );
@@ -1526,7 +1525,7 @@ namespace RockWeb.Blocks.Finance
                             transactionDetail.Amount = account.Amount;
                             transactionDetail.AccountId = account.Id;
                             scheduledTransaction.ScheduledTransactionDetails.Add( transactionDetail );
-                            changeSummary.AppendFormat( "{0}: {1:C2}", account.Name, account.Amount );
+                            changeSummary.AppendFormat( "{0}: {1}", account.Name, account.Amount.FormatAsCurrency() );
                             changeSummary.AppendLine();
                         }
 
@@ -1561,11 +1560,6 @@ namespace RockWeb.Blocks.Finance
                     var transaction = gateway.Charge( financialGateway, paymentInfo, out errorMessage );
                     if ( transaction != null )
                     {
-                        if ( transaction.FinancialPaymentDetail == null )
-                        {
-                            transaction.FinancialPaymentDetail = new FinancialPaymentDetail();
-                        }
-
                         var txnChanges = new List<string>();
                         txnChanges.Add( "Created Transaction" );
 
@@ -1584,25 +1578,11 @@ namespace RockWeb.Blocks.Finance
                         transaction.TransactionTypeValueId = txnType.Id;
                         History.EvaluateChange( txnChanges, "Type", string.Empty, txnType.Value );
 
-                        transaction.FinancialPaymentDetail.AccountNumberMasked = paymentInfo.MaskedNumber;
-                        
-                        transaction.FinancialPaymentDetail.CurrencyTypeValueId = paymentInfo.CurrencyTypeValue.Id;
-                        History.EvaluateChange( txnChanges, "Currency Type", string.Empty, paymentInfo.CurrencyTypeValue.Value );
-
-                        transaction.FinancialPaymentDetail.CreditCardTypeValueId = CreditCardTypeValueId;
-                        if ( CreditCardTypeValueId.HasValue )
+                        if ( transaction.FinancialPaymentDetail == null )
                         {
-                            var ccType = DefinedValueCache.Read( CreditCardTypeValueId.Value );
-                            History.EvaluateChange( txnChanges, "Credit Card Type", string.Empty, ccType.Value );
+                            transaction.FinancialPaymentDetail = new FinancialPaymentDetail();
                         }
-
-                        if ( paymentInfo is CreditCardPaymentInfo )
-                        {
-                            var ccPaymentInfo = (CreditCardPaymentInfo)paymentInfo;
-                            transaction.FinancialPaymentDetail.NameOnCardEncrypted = Rock.Security.Encryption.EncryptString( ccPaymentInfo.NameOnCard );
-                            transaction.FinancialPaymentDetail.ExpirationMonthEncrypted = Rock.Security.Encryption.EncryptString( ccPaymentInfo.ExpirationDate.Month.ToString() );
-                            transaction.FinancialPaymentDetail.ExpirationYearEncrypted = Rock.Security.Encryption.EncryptString( ccPaymentInfo.ExpirationDate.Year.ToString() );
-                        }
+                        transaction.FinancialPaymentDetail.SetFromPaymentInfo( paymentInfo, gateway, rockContext, txnChanges );
 
                         Guid sourceGuid = Guid.Empty;
                         if ( Guid.TryParse( GetAttributeValue( "Source" ), out sourceGuid ) )
@@ -1621,7 +1601,7 @@ namespace RockWeb.Blocks.Finance
                             transactionDetail.Amount = account.Amount;
                             transactionDetail.AccountId = account.Id;
                             transaction.TransactionDetails.Add( transactionDetail );
-                            History.EvaluateChange( txnChanges, account.Name, 0.0M.ToString( "C2" ), transactionDetail.Amount.ToString( "C2" ) );
+                            History.EvaluateChange( txnChanges, account.Name, 0.0M.FormatAsCurrency(), transactionDetail.Amount.FormatAsCurrency() );
                         }
 
                         var batchService = new FinancialBatchService( rockContext );
@@ -1646,7 +1626,7 @@ namespace RockWeb.Blocks.Finance
                         }
 
                         decimal newControlAmount = batch.ControlAmount + transaction.TotalAmount;
-                        History.EvaluateChange( batchChanges, "Control Amount", batch.ControlAmount.ToString( "C2" ), newControlAmount.ToString( "C2" ) );
+                        History.EvaluateChange( batchChanges, "Control Amount", batch.ControlAmount.FormatAsCurrency(), newControlAmount.FormatAsCurrency() );
                         batch.ControlAmount = newControlAmount;
 
                         transaction.BatchId = batch.Id;
@@ -1807,7 +1787,7 @@ namespace RockWeb.Blocks.Finance
                     $(this).parents('div.input-group').removeClass('has-error');
                 }}
             }});
-            $('.total-amount').html('$ ' + totalAmt.toFixed(2));
+            $('.total-amount').html('{3}' + totalAmt.toFixed(2));
             return false;
         }});
 
@@ -1876,7 +1856,14 @@ namespace RockWeb.Blocks.Finance
     }});
 
 ";
-            string script = string.Format( scriptFormat, divCCPaymentInfo.ClientID, hfPaymentTab.ClientID, oneTimeFrequencyId );
+            string script = string.Format( 
+                scriptFormat,
+                divCCPaymentInfo.ClientID, // {0} 
+                hfPaymentTab.ClientID, // {1}
+                oneTimeFrequencyId,// {2}
+                GlobalAttributesCache.Value( "CurrencySymbol" ) // {3)
+            ); 
+
             ScriptManager.RegisterStartupScript( upPayment, this.GetType(), "giving-profile", script, true );
         }
 
@@ -1906,7 +1893,7 @@ namespace RockWeb.Blocks.Finance
             {
                 get
                 {
-                    return Amount > 0 ? Amount.ToString( "C2" ) : string.Empty;
+                    return Amount > 0 ? Amount.FormatAsCurrency() : string.Empty;
                 }
             }
 

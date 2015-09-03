@@ -166,9 +166,18 @@ namespace RockWeb.Blocks.Cms
                 contentItem.Content = contentItem.ContentChannel.ContentControlType == ContentControlType.HtmlEditor ?
                     htmlContent.Text : ceContent.Text;
                 contentItem.Priority = nbPriority.Text.AsInteger();
-                contentItem.StartDateTime = dtpStart.SelectedDateTime ?? RockDateTime.Now;
-                contentItem.ExpireDateTime = ( contentItem.ContentChannelType.DateRangeType == ContentChannelDateType.DateRange ) ?
-                    dtpExpire.SelectedDateTime : null;
+                if ( contentItem.ContentChannelType.IncludeTime )
+                {
+                    contentItem.StartDateTime = dtpStart.SelectedDateTime ?? RockDateTime.Now;
+                    contentItem.ExpireDateTime = ( contentItem.ContentChannelType.DateRangeType == ContentChannelDateType.DateRange ) ?
+                        dtpExpire.SelectedDateTime : null;
+                }
+                else
+                {
+                    contentItem.StartDateTime = dpStart.SelectedDate ?? RockDateTime.Today;
+                    contentItem.ExpireDateTime = ( contentItem.ContentChannelType.DateRangeType == ContentChannelDateType.DateRange ) ?
+                        dpExpire.SelectedDate : null;
+                }
 
                 int newStatusID = hfStatus.Value.AsIntegerOrNull() ?? contentItem.Status.ConvertToInt();
                 int oldStatusId = contentItem.Status.ConvertToInt();
@@ -350,28 +359,25 @@ namespace RockWeb.Blocks.Cms
                 hlStatus.Text = contentItem.Status.ConvertToString();
 
                 hlStatus.LabelType = LabelType.Default;
-                if ( contentItem.Status == ContentChannelItemStatus.Approved )
+                switch( contentItem.Status )
                 {
-                    hlStatus.LabelType = LabelType.Success;
-                } 
-                else if ( contentItem.Status == ContentChannelItemStatus.Denied )
-                {
-                    hlStatus.LabelType = LabelType.Danger;
+                    case ContentChannelItemStatus.Approved: hlStatus.LabelType = LabelType.Success; break;
+                    case ContentChannelItemStatus.Denied: hlStatus.LabelType = LabelType.Danger; break;
+                    case ContentChannelItemStatus.PendingApproval: hlStatus.LabelType = LabelType.Warning; break;
+                    default: hlStatus.LabelType = LabelType.Default; break;
                 }
-                if ( contentItem.Status != ContentChannelItemStatus.PendingApproval )
+
+                var statusDetail = new System.Text.StringBuilder();
+                if ( contentItem.ApprovedByPersonAlias != null && contentItem.ApprovedByPersonAlias.Person != null )
                 {
-                    var statusDetail = new System.Text.StringBuilder();
-                    if ( contentItem.ApprovedByPersonAlias != null && contentItem.ApprovedByPersonAlias.Person != null )
-                    {
-                        statusDetail.AppendFormat( "by {0} ", contentItem.ApprovedByPersonAlias.Person.FullName );
-                    }
-                    if ( contentItem.ApprovedDateTime.HasValue )
-                    {
-                        statusDetail.AppendFormat( "on {0} at {1}", contentItem.ApprovedDateTime.Value.ToShortDateString(),
-                            contentItem.ApprovedDateTime.Value.ToShortTimeString() );
-                    }
-                    hlStatus.ToolTip = statusDetail.ToString();
+                    statusDetail.AppendFormat( "by {0} ", contentItem.ApprovedByPersonAlias.Person.FullName );
                 }
+                if ( contentItem.ApprovedDateTime.HasValue )
+                {
+                    statusDetail.AppendFormat( "on {0} at {1}", contentItem.ApprovedDateTime.Value.ToShortDateString(),
+                        contentItem.ApprovedDateTime.Value.ToShortTimeString() );
+                }
+                hlStatus.ToolTip = statusDetail.ToString();
 
                 tbTitle.Text = contentItem.Title;
 
@@ -406,10 +412,29 @@ namespace RockWeb.Blocks.Cms
                     ceContent.MergeFields.Add( "RockVersion" );
                 }
 
-                dtpStart.SelectedDateTime = contentItem.StartDateTime;
-                dtpStart.Label = contentItem.ContentChannelType.DateRangeType == ContentChannelDateType.DateRange ? "Start" : "Active";
-                dtpExpire.SelectedDateTime = contentItem.ExpireDateTime;
-                dtpExpire.Visible = contentItem.ContentChannelType.DateRangeType == ContentChannelDateType.DateRange;
+                if ( contentItem.ContentChannelType.IncludeTime )
+                {
+                    dpStart.Visible = false;
+                    dpExpire.Visible = false;
+                    dtpStart.Visible = true;
+                    dtpExpire.Visible = contentItem.ContentChannelType.DateRangeType == ContentChannelDateType.DateRange;
+
+                    dtpStart.SelectedDateTime = contentItem.StartDateTime;
+                    dtpStart.Label = contentItem.ContentChannelType.DateRangeType == ContentChannelDateType.DateRange ? "Start" : "Active";
+                    dtpExpire.SelectedDateTime = contentItem.ExpireDateTime;
+                }
+                else
+                {
+                    dpStart.Visible = true;
+                    dpExpire.Visible = contentItem.ContentChannelType.DateRangeType == ContentChannelDateType.DateRange;
+                    dtpStart.Visible = false;
+                    dtpExpire.Visible = false;
+
+                    dpStart.SelectedDate = contentItem.StartDateTime.Date;
+                    dpStart.Label = contentItem.ContentChannelType.DateRangeType == ContentChannelDateType.DateRange ? "Start" : "Active";
+                    dpExpire.SelectedDate = contentItem.ExpireDateTime.HasValue ? contentItem.ExpireDateTime.Value.Date : (DateTime?)null;
+                }
+
                 nbPriority.Text = contentItem.Priority.ToString();
                 nbPriority.Visible = !contentItem.ContentChannelType.DisablePriority;
 
@@ -417,20 +442,19 @@ namespace RockWeb.Blocks.Cms
                 phAttributes.Controls.Clear();
                 Rock.Attribute.Helper.AddEditControls( contentItem, phAttributes, true, BlockValidationGroup );
 
-                var occurrenceLinks = new List<string>();
-                foreach( var occurrence in contentItem.EventItemOccurrences
+                phOccurrences.Controls.Clear();
+                foreach ( var occurrence in contentItem.EventItemOccurrences
                     .Where( o => o.EventItemOccurrence != null )
                     .Select( o => o.EventItemOccurrence ) )
                 {
-
-                    var qryParams = new Dictionary<string, string> { { "EventItemOccurrenceId", occurrence.Id.ToString() }};
+                    var qryParams = new Dictionary<string, string> { { "EventItemOccurrenceId", occurrence.Id.ToString() } };
                     string url = LinkedPageUrl( "EventOccurrencePage", qryParams );
-                    occurrenceLinks.Add( string.Format( "<li><a href='{0}'>{1}</a> {2}</li>", url, occurrence.ToString(),
-                        occurrence.Schedule != null ? occurrence.Schedule.FriendlyScheduleText : string.Empty ) );
+                    var hlOccurrence = new HighlightLabel();
+                    hlOccurrence.LabelType = LabelType.Info;
+                    hlOccurrence.ID = string.Format( "hlOccurrence_{0}", occurrence.Id );
+                    hlOccurrence.Text = string.Format( "<a href='{0}'>{1}</a>", url, occurrence.ToString() );
+                    phOccurrences.Controls.Add( hlOccurrence );
                 }
-                phOccurrences.Controls.Clear();
-                phOccurrences.Controls.Add( new LiteralControl( occurrenceLinks.AsDelimited( Environment.NewLine ) ) );
-                rcwOccurrences.Visible = occurrenceLinks.Any();
             }
             else
             {

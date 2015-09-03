@@ -257,7 +257,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
             // rebind List View
             lvFamily.DataSource = CurrentCheckInState.CheckIn.Families
                 .OrderByDescending( f => f.Group.CampusId == KioskCampusId )
-                .ThenBy( f => f.Caption ).ToList();
+                .ThenBy( f => f.Caption ).Take( 50 ).ToList();
             lvFamily.DataBind();
             pnlFamily.Update();
         }
@@ -713,6 +713,9 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
         private void ProcessFamily( CheckInFamily selectedFamily = null )
         {
             selectedFamily = selectedFamily ?? CurrentCheckInState.CheckIn.Families.FirstOrDefault( f => f.Selected );
+            var familyList = CurrentCheckInState.CheckIn.Families
+                .OrderByDescending( f => f.Group.CampusId == KioskCampusId )
+                .ThenBy( f => f.Caption ).Take( 50 ).ToList();
 
             // Order families by campus then by caption
             if ( CurrentCheckInState.CheckIn.Families.Count > 1 )
@@ -727,12 +730,10 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
             }
             else
             {
-                CurrentCheckInState.CheckIn.Families.FirstOrDefault().Selected = true;
+                familyList.FirstOrDefault().Selected = true;
             }
 
-            lvFamily.DataSource = CurrentCheckInState.CheckIn.Families
-                .OrderByDescending( f => f.Group.CampusId == KioskCampusId )
-                .ThenBy( f => f.Caption ).ToList();
+            lvFamily.DataSource = familyList;
             lvFamily.DataBind();
             pnlFamily.Update();
         }
@@ -897,36 +898,35 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                 peopleQry = peopleQry.Where( p => p.Gender == gender );
             }
 
-            // Get the list of people with attributes so we can filter by grade and ability level
-            var resultSet = peopleQry.ToList();
-            resultSet.ForEach( p => p.LoadAttributes() );
-
-            var resultQry = resultSet.AsQueryable();
-
             // Set a filter if an ability/grade was selected
             var optionGroup = ddlPersonAbilityGrade.SelectedItem.Attributes["optiongroup"];
             if ( !string.IsNullOrEmpty( optionGroup ) )
             {
                 if ( optionGroup.Equals( "Ability" ) )
                 {
-                    resultQry = resultQry.Where( p => p.AttributeValues.ContainsKey( "AbilityLevel" )
-                        && p.AttributeValues["AbilityLevel"].Value == ddlPersonAbilityGrade.SelectedValue );
+                    peopleQry = peopleQry.WhereAttributeValue( rockContext, "AbilityLevel", ddlPersonAbilityGrade.SelectedValue );
                 }
                 else if ( optionGroup.Equals( "Grade" ) )
                 {
                     var grade = ddlPersonAbilityGrade.SelectedValueAsId();
-                    resultQry = resultQry.Where( p => p.GradeOffset == (int?)grade );
+                    peopleQry = peopleQry.WhereGradeOffsetRange( grade, grade, false );
                 }
             }
 
+            // Set a filter if special needs was checked
             if ( cbPersonSpecialNeeds.Checked )
             {
-                resultQry = resultQry.Where( p => p.AttributeValues.ContainsKey( "IsSpecialNeeds" )
-                    && p.AttributeValues["IsSpecialNeeds"].Value == "True" ).AsQueryable();
+                peopleQry = peopleQry.WhereAttributeValue( rockContext, "IsSpecialNeeds", "True" );
             }
 
+            // call list here to get virtual properties not supported in LINQ
+            var peopleList = peopleQry.ToList();
+
+            // load attributes to display additional person info
+            peopleList.ForEach( p => p.LoadAttributes( rockContext ) );
+
             // Load person grid
-            rGridPersonResults.DataSource = resultQry.Select( p => new
+            rGridPersonResults.DataSource = peopleList.Select( p => new
                 {
                     p.Id,
                     p.FirstName,
@@ -941,9 +941,7 @@ namespace RockWeb.Plugins.cc_newspring.AttendedCheckin
                             .Equals( p.AttributeValues["AbilityLevel"].Value, StringComparison.OrdinalIgnoreCase ) )
                             .Select( dv => dv.Value ).FirstOrDefault(),
                     IsSpecialNeeds = p.AttributeValues.Keys.Contains( "IsSpecialNeeds" )
-                         ? p.AttributeValues["IsSpecialNeeds"].Value == "True"
-                            ? "Yes"
-                            : string.Empty
+                         ? p.AttributeValues["IsSpecialNeeds"].Value == "True" ? "Yes" : string.Empty
                          : string.Empty
                 } ).OrderByDescending( p => p.BirthDate ).ToList();
 

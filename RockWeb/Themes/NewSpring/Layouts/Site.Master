@@ -64,11 +64,11 @@
     <asp:ContentPlaceHolder ID="head" runat="server"></asp:ContentPlaceHolder>
 
     <!-- Icons -->
-    <link rel="shortcut icon" href="<%# ResolveRockUrl("~/Assets/Icons/favicon.ico", true) %>">
-    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="<%# ResolveRockUrl("~/Assets/Icons/touch-icon-ipad-retina.png", true) %>">
-    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="<%# ResolveRockUrl("~/Assets/Icons/touch-icon-iphone-retina.png", true) %>">
-    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="<%# ResolveRockUrl("~/Assets/Icons/touch-icon-ipad.png", true) %>">
-    <link rel="apple-touch-icon-precomposed" href="<%# ResolveRockUrl("~/Assets/Icons/touch-icon-iphone.png", true) %>">
+    <link rel="shortcut icon" href="<%# ResolveRockUrl("~/Themes/NewSpring/Assets/Icons/favicon.ico", true) %>">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="<%# ResolveRockUrl("~/Themes/NewSpring/Assets/Icons/apple.touch.large.png", true) %>">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="<%# ResolveRockUrl("~/Themes/NewSpring/Assets/Icons/apple.touch.medium.png", true) %>">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="<%# ResolveRockUrl("~/Themes/NewSpring/Assets/Icons/apple.touch.small.png", true) %>">
+    <link rel="apple-touch-icon-precomposed" href="<%# ResolveRockUrl("~/Themes/NewSpring/Assets/Icons/apple.touch.small.png", true) %>">
 </head>
 <body>
 
@@ -150,31 +150,49 @@
 </html>
 
 <script>
-    // Enable sidbar sub menus
-    $("body").on("click", ".navbar-side li", function (event) {
-        if ($(this).hasClass('open')) {
-            $(this).removeClass('open')
-        } else {
+    $(document).ready(function(){
+
+        // Enable sidbar sub menus
+        $("body").on("click", ".navbar-side li", function (event) {
+            if ($(this).hasClass('open')) {
+                $(this).removeClass('open')
+            } else {
+                $('.navbar-side li').removeClass('open');
+                $(this).addClass('open');
+            }
+        });
+
+        // Close sidebar if click outside of nav occurs
+        $("body").on("click", "#page-content", function (event) {
             $('.navbar-side li').removeClass('open');
-            $(this).addClass('open');
-        }
-    });
-
-    $("body").on("click", "#page-content", function (event) {
-        $('.navbar-side li').removeClass('open');
-        $('body').removeClass('navbar-side-open');
-    });
-
-    $('.navbar-side > li').on('click', function(){
-        if ($(this).hasClass('open')) {
             $('body').removeClass('navbar-side-open');
-        } else {
-            $('body').addClass('navbar-side-open');
-        }
-    });
+        });
 
-    $('.nav-trigger').on('click', function(){
-        $('body').toggleClass('navbar-side-open');
+        // Toggle sidebar and submenu if sidebar tile is clicked
+        $('.navbar-side > li').on('click', function(){
+            if ($(this).hasClass('open')) {
+                $('body').removeClass('navbar-side-open');
+            } else {
+                $('body').addClass('navbar-side-open');
+            }
+        });
+
+        // Close sidebar and submenu if link is clicked within a submenu
+        $('.navbar-side > li a').on('click', function(){
+            var href = $(this).attr('href');
+            if($(this).parents('li').hasClass('open')) {
+                $('body').removeClass('navbar-side-open');
+                $(this).parents('li.open').removeClass('open');
+                setTimeout(function() {window.location = href}, 100);
+                return false;
+            };
+        });
+
+        // Sidebar trigger for mobile
+        $('.nav-trigger').on('click', function(){
+            $('body').toggleClass('navbar-side-open');
+        });
+
     });
 
     // Chartbeat Analytics
@@ -201,3 +219,5 @@
 <script src="<%# ResolveRockUrl("~/Scripts/modernizr.js" ) %>"></script>
 
 <script src="../../../Plugins/cc_newspring/Blocks/Dashboards/chart.js"></script>
+
+<script src="../../../Plugins/cc_newspring/audio.min.js"></script>

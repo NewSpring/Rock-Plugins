@@ -30,5 +30,12 @@
 
         <!-- End Content Area -->
 
+        <script>
+            $(document).ready(function () {
+                $('.block-configuration').css('display', 'none');
+                $('.zone-configuration').css('display', 'none');
+            });
+        </script>
+
 </asp:Content>
 
