@@ -75,6 +75,8 @@
 @accent-bold-color: @neg-color;
 @accent-bold-text-color: @btn-primary-color;
 
+@base-spacing-unit: 30px;
+
 // Fonts
 // -------------------------
 
@@ -167,4 +169,39 @@ body:after {
 .btn-primary.active {
     background-color: @accent-color;
     border-color: @accent-color;
+}
+
+.row--fullscreen {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: @base-spacing-unit*2;
+  
+  &:before {
+    float: none;
+    content: '';
+    display: inline-block;
+    height: 100%;
+    vertical-align: middle;
+    margin-right: -0.25em;
+  }
+  
+  &:after {
+    display: none;
+  }
+  
+  .align--middle {
+    // vertical-align: middle;
+    // display: table-cell;
+    float:none;
+    display:inline-block;
+    vertical-align:middle;
+    margin-right:-4px;
+  }
+}
+
+.push--bottom {
+  margin-bottom: @base-spacing-unit;
 }

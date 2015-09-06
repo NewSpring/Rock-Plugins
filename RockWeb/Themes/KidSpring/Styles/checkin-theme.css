@@ -1,4 +1,4 @@
-﻿/*
+/*
      
      Rock Park Check-in Theme
      Crafted by: Spark Development Network
@@ -12,8 +12,8 @@
  * -------------------------- */
 @font-face {
   font-family: 'FontAwesome';
-  src: url('../../../../Assets/Fonts/FontAwesome/fontawesome-webfont.eot?v=4.4.0');
-  src: url('../../../../Assets/Fonts/FontAwesome/fontawesome-webfont.eot?#iefix&v=4.4.0') format('embedded-opentype'), url('../../../../Assets/Fonts/FontAwesome/fontawesome-webfont.woff2?v=4.4.0') format('woff2'), url('../../../../Assets/Fonts/FontAwesome/fontawesome-webfont.woff?v=4.4.0') format('woff'), url('../../../../Assets/Fonts/FontAwesome/fontawesome-webfont.ttf?v=4.4.0') format('truetype'), url('../../../../Assets/Fonts/FontAwesome/fontawesome-webfont.svg?v=4.4.0#fontawesomeregular') format('svg');
+  src: url('../../../Assets/Fonts/FontAwesome/fontawesome-webfont.eot?v=4.4.0');
+  src: url('../../../Assets/Fonts/FontAwesome/fontawesome-webfont.eot?#iefix&v=4.4.0') format('embedded-opentype'), url('../../../Assets/Fonts/FontAwesome/fontawesome-webfont.woff2?v=4.4.0') format('woff2'), url('../../../Assets/Fonts/FontAwesome/fontawesome-webfont.woff?v=4.4.0') format('woff'), url('../../../Assets/Fonts/FontAwesome/fontawesome-webfont.ttf?v=4.4.0') format('truetype'), url('../../../Assets/Fonts/FontAwesome/fontawesome-webfont.svg?v=4.4.0#fontawesomeregular') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -2283,8 +2283,8 @@ th {
 }
 @font-face {
   font-family: 'Glyphicons Halflings';
-  src: url('../../../Styles/fonts/glyphicons-halflings-regular.eot');
-  src: url('../../../Styles/fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('../../../Styles/fonts/glyphicons-halflings-regular.woff') format('woff'), url('../../../Styles/fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('../../../Styles/fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular') format('svg');
+  src: url('../fonts/glyphicons-halflings-regular.eot');
+  src: url('../fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('../fonts/glyphicons-halflings-regular.woff') format('woff'), url('../fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('../fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular') format('svg');
 }
 .glyphicon {
   position: relative;
@@ -8952,7 +8952,6 @@ Copyright (c) 2012 Dan Eden*/
 }
 .modal-backdrop,
 .modal-backdrop.fade.in {
-  opacity: 0.5;
   filter: alpha(opacity=70);
   background: #000000;
 }
@@ -9415,4 +9414,32 @@ body:after {
 .btn-primary.active {
   background-color: #6bac43;
   border-color: #6bac43;
+}
+.row--fullscreen {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 60px;
+}
+.row--fullscreen:before {
+  float: none;
+  content: '';
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+  margin-right: -0.25em;
+}
+.row--fullscreen:after {
+  display: none;
+}
+.row--fullscreen .align--middle {
+  float: none;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: -4px;
+}
+.push--bottom {
+  margin-bottom: 30px;
 }
