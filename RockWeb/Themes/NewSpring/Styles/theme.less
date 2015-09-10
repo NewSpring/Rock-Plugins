@@ -852,6 +852,7 @@ table {
 
     .container {
         max-width: 1400px;
+        margin: 0 auto;
     }
 
     .table {
@@ -1368,6 +1369,55 @@ body#splash {
     color: @light-primary;
     z-index: 1001;
     opacity: 1;
+}
+
+// 404 Page
+
+@base-spacing-unit: 20px;
+
+.shell {
+  padding: @base-spacing-unit *4 @base-spacing-unit *4 @base-spacing-unit *3;
+}
+
+.push--top {
+  margin-top: @base-spacing-unit;
+}
+
+// Full Screen Stuff
+
+.row--fullscreen {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: @base-spacing-unit*2;
+  
+  &:before {
+    float: none;
+    content: '';
+    display: inline-block;
+    height: 100%;
+    vertical-align: middle;
+    margin-right: -0.25em;
+  }
+  
+  &:after {
+    display: none;
+  }
+  
+  .align--middle {
+    // vertical-align: middle;
+    // display: table-cell;
+    float:none;
+    display:inline-block;
+    vertical-align:middle;
+    margin-right:-4px;
+  }
+}
+
+.push--bottom {
+  margin-bottom: @base-spacing-unit;
 }
 
 /*#endregion */

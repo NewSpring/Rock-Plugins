@@ -13,27 +13,27 @@ gulp.task('browser-sync', function() {
 
 gulp.task('less', function () {
   	return gulp.src([
-  		'./Themes/KidSpring/**/*.less',
-  		'!./Themes/KidSpring/**/_*.less'
+  		'./Themes/NewSpring/**/*.less',
+  		'!./Themes/NewSpring/**/_*.less'
   	])
     .pipe(less())
-    .pipe(gulp.dest('./Themes/KidSpring'))
+    .pipe(gulp.dest('./Themes/NewSpring'))
     .pipe(browserSync.stream());
 });
 
 gulp.task('sass', function(){
 	gulp.src([
-		'./Themes/KidSpring/**/*.scss',
-  		'!./Themes/KidSpring/**/_*.scss'
+		'./Themes/NewSpring/**/*.scss',
+  		'!./Themes/NewSpring/**/_*.scss'
 	])
 	.pipe(sass())
-	.pipe(gulp.dest('./Themes/KidSpring'))
+	.pipe(gulp.dest('./Themes/NewSpring'))
 	.pipe(browserSync.stream());
 });
 
 gulp.task('watch', function(){
-	gulp.watch('Themes/KidSpring/**/*.scss', ['sass']);
-	gulp.watch('Themes/KidSpring/**/*.less', ['less']);
+	gulp.watch('Themes/NewSpring/**/*.scss', ['sass']);
+	gulp.watch('Themes/NewSpring/**/*.less', ['less']);
 });
 
 gulp.task('build', ['less','sass']);
