@@ -32,6 +32,7 @@ namespace cc.newspring.Apollos.Utilities
 
             if ( group != null )
             {
+                // Groups have a circular reference. Something like this is problematic for the serializer because it is infinite: group.GroupType.Groups[n] == group
                 var temp = group.GroupType;
                 group.GroupType = null;
                 json = Newtonsoft.Json.JsonConvert.SerializeObject( group );
