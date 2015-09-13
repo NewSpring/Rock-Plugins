@@ -27,7 +27,22 @@ namespace cc.newspring.Apollos.Utilities
 
         public string Serialize( object obj )
         {
-            var json = Newtonsoft.Json.JsonConvert.SerializeObject( obj );
+            var json = string.Empty;
+            var group = obj as Rock.Model.Group;
+
+            if ( group != null )
+            {
+                // Groups have a circular reference. Something like this is problematic for the serializer because it is infinite: group.GroupType.Groups[n] == group
+                var temp = group.GroupType;
+                group.GroupType = null;
+                json = Newtonsoft.Json.JsonConvert.SerializeObject( group );
+                group.GroupType = temp;
+            }
+            else
+            {
+                json = Newtonsoft.Json.JsonConvert.SerializeObject( obj );
+            }
+                        
             return json;
         }
     }

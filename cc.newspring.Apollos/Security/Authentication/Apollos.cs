@@ -1,43 +1,48 @@
-﻿// <copyright>
-// Copyright 2013 by the Spark Development Network
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
-//
+﻿/* Apollos Authentication provider developed using BCrypt.Net:
+     * http://bcrypt.codeplex.com/
+     * Copyright (c) 2006, 2010, Damien Miller <djm@mindrot.org>, Ryan Emerle
+     *
+     * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+     * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the
+     * documentation and/or other materials provided with the distribution.
+     * Neither the name of BCrypt.Net nor the names of its contributors may be used to endorse or promote products derived from this software without
+     * specific prior written permission.
+     *
+     * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+     * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+     * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+     * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+     * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+     * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+     */
+
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-using System.Configuration;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Web;
-using Rock.Data;
+using RestSharp;
+using Rock;
+using Rock.Attribute;
 using Rock.Model;
+using Rock.Security;
 
-namespace Rock.Security.Authentication
+namespace cc.newspring.Apollos.Security.Authentication
 {
-    /// <summary>
-    /// Authenticates a username/password using the Rock database
-    /// </summary>
-    [Description( "Database Authentication Provider" )]
+    [Description( "Apollos Authentication Provider" )]
     [Export( typeof( AuthenticationComponent ) )]
-    [ExportMetadata( "ComponentName", "Database" )]
-    public class Database : AuthenticationComponent
+    [ExportMetadata( "ComponentName", "Apollos" )]
+    [IntegerField( "Work Factor", "Iteration count to generate salts in BCrypt", false, 10 )]
+    [BooleanField( "Allow Change Password", "Set to true to allow user to change their password from the Rock system", true, "Server" )]
+    public class Apollos : AuthenticationComponent
     {
-        private static byte[] _encryptionKey;
-        private static List<byte[]> _oldEncryptionKeys;
+        /// <summary>
+        /// Initializes the <see cref="Database" /> class.
+        /// </summary>
+        static Apollos()
+        {
+        }
 
         /// <summary>
         /// Gets the type of the service.
@@ -63,93 +68,14 @@ namespace Rock.Security.Authentication
         }
 
         /// <summary>
-        /// Initializes the <see cref="Database" /> class.
-        /// </summary>
-        /// <exception cref="System.Configuration.ConfigurationErrorsException">Authentication requires a 'PasswordKey' app setting</exception>
-        static Database()
-        {
-            var passwordKey = ConfigurationManager.AppSettings["PasswordKey"];
-            if ( String.IsNullOrWhiteSpace( passwordKey ) )
-            {
-                throw new ConfigurationErrorsException( "Authentication requires a 'PasswordKey' app setting" );
-            }
-
-            _encryptionKey = Encryption.HexToByte( passwordKey );
-
-            // Check for any old encryption keys
-            _oldEncryptionKeys = new List<byte[]>();
-            int i = 0;
-            passwordKey = ConfigurationManager.AppSettings["OldPasswordKey" + ( i > 0 ? i.ToString() : "" )];
-            while ( !string.IsNullOrWhiteSpace( passwordKey ) )
-            {
-                _oldEncryptionKeys.Add( Encryption.HexToByte( passwordKey ) );
-                i++;
-                passwordKey = ConfigurationManager.AppSettings["OldPasswordKey" + ( i > 0 ? i.ToString() : "" )];
-            }
-        }
-
-        /// <summary>
-        /// Authenticates the specified user name.
+        /// Authenticates the specified user name and password
         /// </summary>
         /// <param name="user">The user.</param>
         /// <param name="password">The password.</param>
         /// <returns></returns>
-        public override Boolean Authenticate( UserLogin user, string password )
+        public override bool Authenticate( UserLogin user, string password )
         {
-            bool authenticated = false;
-
-            try
-            {
-                authenticated = EncodePassword( user, password ) == user.Password;
-                if ( authenticated || !_oldEncryptionKeys.Any() )
-                {
-                    return authenticated;
-                }
-            }
-            catch { }
-
-            foreach ( var encryptionKey in _oldEncryptionKeys )
-            {
-                try
-                {
-                    if ( EncodePassword( user, password, encryptionKey ) == user.Password )
-                    {
-                        return true;
-                    }
-                }
-                catch { }
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Encodes the password.
-        /// </summary>
-        /// <param name="user">The user.</param>
-        /// <param name="password"></param>
-        /// <returns></returns>
-        public override String EncodePassword( UserLogin user, string password )
-        {
-            return EncodePassword( user, password, _encryptionKey );
-        }
-
-        /// <summary>
-        /// Encodes the password.
-        /// </summary>
-        /// <param name="user">The user.</param>
-        /// <param name="password">The password.</param>
-        /// <param name="encryptionKey">The encryption key.</param>
-        /// <returns></returns>
-        private string EncodePassword( UserLogin user, string password, byte[] encryptionKey )
-        {
-            HMACSHA1 hash = new HMACSHA1();
-            hash.Key = encryptionKey;
-
-            HMACSHA1 uniqueHash = new HMACSHA1();
-            uniqueHash.Key = Encryption.HexToByte( user.Guid.ToString().Replace( "-", "" ) );
-
-            return Convert.ToBase64String( uniqueHash.ComputeHash( hash.ComputeHash( Encoding.Unicode.GetBytes( password ) ) ) );
+            return EncodePassword( user, password ) == user.Password;
         }
 
         /// <summary>
@@ -160,9 +86,29 @@ namespace Rock.Security.Authentication
         /// <param name="returnUrl">The return URL.</param>
         /// <returns></returns>
         /// <exception cref="System.NotImplementedException"></exception>
-        public override bool Authenticate( HttpRequest request, out string userName, out string returnUrl )
+        public override bool Authenticate( System.Web.HttpRequest request, out string userName, out string returnUrl )
         {
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Encodes the password.
+        /// </summary>
+        /// <param name="user">The user.</param>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        public override string EncodePassword( UserLogin user, string password )
+        {
+            var workFactor = GetAttributeValue( "WorkFactor" ).AsType<int>();
+            var hashedPassword = SHA256( password );
+            var salt = user.Password;
+            if ( string.IsNullOrEmpty( salt ) || !salt.StartsWith( "$2a$" ) )
+            {
+                salt = BCrypt.Net.BCrypt.GenerateSalt( workFactor );
+            }
+
+            var hash = BCrypt.Net.BCrypt.HashPassword( hashedPassword, salt );
+            return hash;
         }
 
         /// <summary>
@@ -171,7 +117,7 @@ namespace Rock.Security.Authentication
         /// <param name="request">The request.</param>
         /// <returns></returns>
         /// <exception cref="System.NotImplementedException"></exception>
-        public override Uri GenerateLoginUrl( HttpRequest request )
+        public override Uri GenerateLoginUrl( System.Web.HttpRequest request )
         {
             throw new NotImplementedException();
         }
@@ -183,7 +129,7 @@ namespace Rock.Security.Authentication
         /// <param name="request">The request.</param>
         /// <returns></returns>
         /// <exception cref="System.NotImplementedException"></exception>
-        public override bool IsReturningFromAuthentication( HttpRequest request )
+        public override bool IsReturningFromAuthentication( System.Web.HttpRequest request )
         {
             throw new NotImplementedException();
         }
@@ -208,7 +154,7 @@ namespace Rock.Security.Authentication
         {
             get
             {
-                return true;
+                return GetAttributeValue( "AllowChangePassword" ).AsType<Boolean>();
             }
         }
 
@@ -219,14 +165,12 @@ namespace Rock.Security.Authentication
         /// <param name="oldPassword">The old password.</param>
         /// <param name="newPassword">The new password.</param>
         /// <param name="warningMessage">The warning message.</param>
-        /// <returns>
-        /// A <see cref="System.Boolean" /> value that indicates if the password change was successful. <c>true</c> if successful; otherwise <c>false</c>.
-        /// </returns>
-        /// <exception cref="System.Exception">Cannot change password on external service type</exception>
+        /// <returns></returns>
         public override bool ChangePassword( UserLogin user, string oldPassword, string newPassword, out string warningMessage )
         {
             warningMessage = null;
             AuthenticationComponent authenticationComponent = AuthenticationContainer.GetComponent( user.EntityType.Name );
+
             if ( authenticationComponent == null || !authenticationComponent.IsActive )
             {
                 throw new Exception( string.Format( "'{0}' service does not exist, or is not active", user.EntityType.FriendlyName ) );
@@ -249,33 +193,22 @@ namespace Rock.Security.Authentication
         }
 
         /// <summary>
-        /// Generates the username.
+        /// SHA256s the specified password.
         /// </summary>
-        /// <param name="firstName">The first name.</param>
-        /// <param name="lastName">The last name.</param>
-        /// <param name="tryCount">The try count.</param>
+        /// <param name="password">The password.</param>
         /// <returns></returns>
-        public static string GenerateUsername( string firstName, string lastName, int tryCount = 0 )
+        private static string SHA256( string password )
         {
-            // create username
-            string username = ( firstName.Substring( 0, 1 ) + lastName ).ToLower();
+            SHA256Managed crypt = new SHA256Managed();
+            string hash = String.Empty;
+            byte[] crypto = crypt.ComputeHash( Encoding.UTF8.GetBytes( password ), 0, Encoding.UTF8.GetByteCount( password ) );
 
-            if ( tryCount != 0 )
+            foreach ( byte bit in crypto )
             {
-                username = username + tryCount.ToString();
+                hash += bit.ToString( "x2" );
             }
 
-            // check if username exists
-            UserLoginService userService = new UserLoginService( new RockContext() );
-            var loginExists = userService.Queryable().Where( l => l.UserName == username ).Any();
-            if ( !loginExists )
-            {
-                return username;
-            }
-            else
-            {
-                return GenerateUsername( firstName, lastName, tryCount + 1 );
-            }
+            return hash;
         }
     }
 }

@@ -15,6 +15,50 @@ DECLARE @tokenValue AS NVARCHAR(MAX) = 'PUT TOKEN VALUE HERE';
 
 -- ========================================================================= --
 
+IF object_id('tempdb..#actionToUrl') IS NOT NULL
+BEGIN
+	DROP TABLE #actionToUrl
+END
+
+CREATE TABLE #actionToUrl (
+	actionName NVARCHAR(255),
+	url NVARCHAR(255)
+);
+
+-- Check-in Area, GroupType, Inherited Type
+INSERT #actionToUrl VALUES
+	('FinancialPaymentDetail Delete Action', 'paymentDetails'),
+	('FinancialPaymentDetail Save Action', 'paymentDetails'),
+	('Location Delete Action', 'locations'),
+	('Location Save Action', 'locations'),
+	('GroupLocation Delete Action', 'groupLocations'),
+	('GroupLocation Save Action', 'groupLocations'),
+	('FinancialPersonSavedAccount Delete Action', 'savedAccounts'),
+	('FinancialPersonSavedAccount Save Action', 'savedAccounts'),
+	('GroupMember Delete Action', 'groupMembers'),
+	('GroupMember Save Action', 'groupMembers'),
+	('GroupType Delete Action', 'groupTypes'),
+	('GroupType Save Action', 'groupTypes'),
+	('Group Delete Action', 'groups'),
+	('Group Save Action', 'groups'),
+	('Campus Delete Action', 'campuses'),
+	('Campus Save Action', 'campuses'),
+	('UserLogin Delete Action', 'users'),
+	('UserLogin Save Action', 'users'),
+	('Person Delete Action', 'people'),
+	('Person Save Action', 'people'),
+	('FinancialTransaction Delete Action', 'transactions'),
+	('FinancialTransaction Save Action', 'transactions'),
+	('FinancialTransactionDetail Delete Action', 'transactionDetails'),
+	('FinancialTransactionDetail Save Action', 'transactionDetails'),
+	('FinancialAccount Delete Action', 'accounts'),
+	('FinancialAccount Save Action', 'accounts'),
+	('FinancialScheduledTransaction Delete Action', 'scheduledTransactions'),
+	('FinancialScheduledTransaction Save Action', 'scheduledTransactions'),
+	('FinancialScheduledTransactionDetail Delete Action', 'scheduledTransactionDetails'),
+	('FinancialScheduledTransactionDetail Save Action', 'scheduledTransactionDetails'),
+	('PersonAlias Save Action', 'aliases'),
+	('PersonAlias Delete Action', 'aliases');
 
 DECLARE @syncEntityName AS NVARCHAR(MAX) = 'cc.newspring.Apollos.Workflow.Action.APISync';
 DECLARE @syncEntityId AS INT;
@@ -32,7 +76,12 @@ WHERE Name = @categoryName;
 
 -- Update sync URL
 UPDATE AttributeValue
-SET Value = @syncUrl
+SET Value = (
+	SELECT CONCAT(@syncUrl, atu.url, '/')
+	FROM WorkflowActionType wat
+	JOIN #actionToUrl atu ON atu.actionName = wat.Name
+	WHERE EntityId = wat.Id
+)
 WHERE 
 	EntityId IN (
 		SELECT Id FROM WorkflowActionType WHERE ActivityTypeId IN (
