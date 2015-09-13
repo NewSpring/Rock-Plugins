@@ -35,6 +35,7 @@ namespace cc.newspring.Apollos.Workflow.Action
 
                     if ( modifier.Guid == restUserGuid )
                     {
+                        // If the modifier is Apollos, don't send the data to Apollos (bounceback sync)
                         return true;
                     }
                 }
