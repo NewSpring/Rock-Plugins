@@ -394,6 +394,12 @@ namespace cc.newspring.Apollos.Rest.Controllers
             return new HttpResponseMessage( HttpStatusCode.NoContent ); 
         }
 
+        /// <summary>
+        /// Generates the response.
+        /// </summary>
+        /// <param name="code">The code.</param>
+        /// <param name="message">The message.</param>
+        /// <exception cref="System.Web.Http.HttpResponseException"></exception>
         private void GenerateResponse( HttpStatusCode code, string message = null )
         {
             var response = new HttpResponseMessage( code );
@@ -406,6 +412,13 @@ namespace cc.newspring.Apollos.Rest.Controllers
             throw new HttpResponseException(response);
         }
 
+        /// <summary>
+        /// Masks the specified unmasked.
+        /// </summary>
+        /// <param name="unmasked">The unmasked.</param>
+        /// <param name="charsToShow">The chars to show.</param>
+        /// <param name="maskChar">The mask character.</param>
+        /// <returns></returns>
         private string Mask( string unmasked, int charsToShow = 4, char maskChar = '*' )
         {
             var lengthOfUnmasked = unmasked.Length;
@@ -423,6 +436,12 @@ namespace cc.newspring.Apollos.Rest.Controllers
             return string.Concat( mask, shown );
         }
 
+        /// <summary>
+        /// Gets the existing person.
+        /// </summary>
+        /// <param name="personId">The person identifier.</param>
+        /// <param name="rockContext">The rock context.</param>
+        /// <returns></returns>
         private Person GetExistingPerson( int? personId, RockContext rockContext )
         {
             if ( !personId.HasValue )
@@ -441,6 +460,13 @@ namespace cc.newspring.Apollos.Rest.Controllers
             return person;
         }
 
+        /// <summary>
+        /// Gets the existing saved account.
+        /// </summary>
+        /// <param name="giveParameters">The give parameters.</param>
+        /// <param name="person">The person.</param>
+        /// <param name="rockContext">The rock context.</param>
+        /// <returns></returns>
         private FinancialPersonSavedAccount GetExistingSavedAccount( GiveParameters giveParameters, Person person, RockContext rockContext )
         {
             if ( !giveParameters.SourceAccountId.HasValue )
@@ -471,6 +497,15 @@ namespace cc.newspring.Apollos.Rest.Controllers
             return savedAccount;
         }
 
+        /// <summary>
+        /// Creates the saved account.
+        /// </summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <param name="paymentDetail">The payment detail.</param>
+        /// <param name="financialGateway">The financial gateway.</param>
+        /// <param name="person">The person.</param>
+        /// <param name="rockContext">The rock context.</param>
+        /// <returns></returns>
         private FinancialPersonSavedAccount CreateSavedAccount( PaymentParameters parameters, FinancialPaymentDetail paymentDetail, FinancialGateway financialGateway, Person person, RockContext rockContext) {
             var lastFour = paymentDetail.AccountNumberMasked.Substring(paymentDetail.AccountNumberMasked.Length - 4);
             var name = string.Empty;
@@ -522,6 +557,12 @@ namespace cc.newspring.Apollos.Rest.Controllers
             return savedAccount;
         }
 
+        /// <summary>
+        /// Creates the location.
+        /// </summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <param name="rockContext">The rock context.</param>
+        /// <returns></returns>
         private int CreateLocation( PaymentParameters parameters, RockContext rockContext )
         {
             if ( string.IsNullOrWhiteSpace( parameters.Street1 ) ||
@@ -552,6 +593,14 @@ namespace cc.newspring.Apollos.Rest.Controllers
             return location.Id;
         }
 
+        /// <summary>
+        /// Creates the payment detail.
+        /// </summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <param name="person">The person.</param>
+        /// <param name="billingLocationId">The billing location identifier.</param>
+        /// <param name="rockContext">The rock context.</param>
+        /// <returns></returns>
         private FinancialPaymentDetail CreatePaymentDetail( PaymentParameters parameters, Person person, int billingLocationId, RockContext rockContext )
         {
             if ( string.IsNullOrWhiteSpace( parameters.AccountNumber ) )
@@ -596,6 +645,12 @@ namespace cc.newspring.Apollos.Rest.Controllers
             return paymentDetail;
         }
 
+        /// <summary>
+        /// Gets the payment schedule.
+        /// </summary>
+        /// <param name="scheduleParameters">The schedule parameters.</param>
+        /// <param name="person">The person.</param>
+        /// <returns></returns>
         private PaymentSchedule GetPaymentSchedule( ScheduleParameters scheduleParameters, Person person )
         {
             if ( !scheduleParameters.StartDate.HasValue )
@@ -633,6 +688,15 @@ namespace cc.newspring.Apollos.Rest.Controllers
             };
         }
 
+        /// <summary>
+        /// Gets the payment information.
+        /// </summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <param name="person">The person.</param>
+        /// <param name="rockContext">The rock context.</param>
+        /// <param name="totalAmount">The total amount.</param>
+        /// <param name="paymentDetail">The payment detail.</param>
+        /// <returns></returns>
         private PaymentInfo GetPaymentInfo( PaymentParameters parameters, Person person, RockContext rockContext, decimal totalAmount, FinancialPaymentDetail paymentDetail )
         {
             PaymentInfo paymentInfo = null;
@@ -719,6 +783,15 @@ namespace cc.newspring.Apollos.Rest.Controllers
             return paymentInfo;
         }
 
+        /// <summary>
+        /// Updates the payment information for saved account.
+        /// </summary>
+        /// <param name="giveParameters">The give parameters.</param>
+        /// <param name="paymentInfo">The payment information.</param>
+        /// <param name="person">The person.</param>
+        /// <param name="rockContext">The rock context.</param>
+        /// <param name="billingLocationId">The billing location identifier.</param>
+        /// <param name="totalAmount">The total amount.</param>
         private void UpdatePaymentInfoForSavedAccount( GiveParameters giveParameters, PaymentInfo paymentInfo, Person person, RockContext rockContext, int billingLocationId, decimal totalAmount )
         {
             var billingLocation = new LocationService( rockContext ).Get(billingLocationId);
@@ -736,6 +809,12 @@ namespace cc.newspring.Apollos.Rest.Controllers
             paymentInfo.Amount = totalAmount;
         }
 
+        /// <summary>
+        /// Calculates the total amount.
+        /// </summary>
+        /// <param name="giveParameters">The give parameters.</param>
+        /// <param name="rockContext">The rock context.</param>
+        /// <returns></returns>
         private decimal? CalculateTotalAmount( GiveParameters giveParameters, RockContext rockContext )
         {
             var totalAmount = 0m;
@@ -776,6 +855,13 @@ namespace cc.newspring.Apollos.Rest.Controllers
             return totalAmount;
         }
 
+        /// <summary>
+        /// Creates the person.
+        /// </summary>
+        /// <param name="giveParameters">The give parameters.</param>
+        /// <param name="locationId">The location identifier.</param>
+        /// <param name="rockContext">The rock context.</param>
+        /// <returns></returns>
         private Person CreatePerson( GiveParameters giveParameters, int locationId, RockContext rockContext )
         {
             if ( string.IsNullOrWhiteSpace( giveParameters.Email ) )
