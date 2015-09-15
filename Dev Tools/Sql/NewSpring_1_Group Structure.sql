@@ -139,8 +139,8 @@ create table #topAreas (
 -- Check-in Area, GroupType, Inherited Type
 insert #topAreas
 values
-('Creativity & Technology', 'Creativity & Tech Attendee', 15),
-('Creativity & Technology', 'Creativity & Tech Volunteer', 15),
+('Creativity & Tech', 'Creativity & Tech Attendee', 15),
+('Creativity & Tech', 'Creativity & Tech Volunteer', 15),
 ('Central Events', 'Event Attendee', 15),
 ('Central Events', 'Event Volunteer', 15),
 ('Fuse', 'Fuse Attendee', 17),
