@@ -10,7 +10,7 @@
    ====================================================== */
 -- Make sure you're using the right Rock database:
 
-USE clean
+USE Rock
 
 /* ====================================================== */
 
@@ -2206,7 +2206,7 @@ values
 declare @scopeIndex int, @numItems int
 declare @GroupTypeName nvarchar(255), @GroupName nvarchar(255), @GroupLocation nvarchar(255), @GroupMemberId bigint, @IsBreakoutTag bit,
 	@JobTitle nvarchar(255), @ScheduleName nvarchar(255), @CampusName nvarchar(255), @CampusCode nvarchar(255), @CampusGuid uniqueidentifier,
-	@JobId bigint, @GroupRoleId bigint, @BreakoutGroup nvarchar(255), @CampusAssignmentId bigint, @LocationName nvarchar(255)
+	@JobId bigint, @GroupRoleId bigint, @BreakoutGroup nvarchar(255), @CampusAssignmentId bigint, @LocationName nvarchar(255), @ParentTypeName nvarchar(255)
 
 select @scopeIndex = min(ID) from #rlcMap
 select @numItems = count(1) + @scopeIndex from #rlcMap
@@ -2214,7 +2214,7 @@ select @numItems = count(1) + @scopeIndex from #rlcMap
 while @scopeIndex <= @numItems
 begin
 	
-	select @RLCID = null, @CampusCode = '', @CampusName = '', @GroupTypeName = '', @GroupName = '', @GroupTypeId = null, 
+	select @RLCID = null, @CampusCode = '', @CampusName = '', @GroupTypeName = '', @GroupName = '', @GroupTypeId = null, @ParentTypeName = null,
 		@GroupId = null, @CampusId = null, @CampusGuid = null, @LocationId = null, @CampusAssignmentId = null, @LocationName = null
 
 	select @RLCID = RLC_ID, @CampusCode = Code, @GroupTypeName = GroupType, @GroupName = GroupName, @LocationName = LocationName
@@ -2231,6 +2231,13 @@ begin
 	select @GroupTypeId = ID 
 	from [GroupType]
 	where name = @GroupTypeName
+
+	select @ParentTypeName = gt.Name
+	from [GroupTypeAssociation] gta
+	inner join [GroupType] gt
+	on gta.GroupTypeId = gt.id
+	and gta.GroupTypeId <> @GroupTypeId
+	and gta.ChildGroupTypeId = @GroupTypeId
 
 	select @GroupId = ID
 	from [Group]
@@ -2254,7 +2261,7 @@ begin
 	)
 	select @LocationId = Id from locationChildren
 	where Name = @LocationName
-	and ParentName = @GroupTypeName
+	and ParentName = @ParentTypeName
 	
 	if @GroupId is not null and @LocationId is not null
 	begin
@@ -2548,6 +2555,14 @@ where grouptype + groupname not in
 	on g.grouptypeid = gt.id
 )
 order by code, grouptype
+
+select code, groupname, count(1) 
+from #rlcmap
+group by code, groupname
+having count(1) > 1
+order by count(1) desc
+
+
 
 declare @msg nvarchar(500)
 select @msg = '' + ltrim(str(@GroupMemberId, 25, 0)) + ', ' + @GroupTypeName + ', ' + @GroupName
