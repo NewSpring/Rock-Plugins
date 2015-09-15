@@ -51,11 +51,21 @@ and grouptypeid in (
 )
 
 -- delete attendance
-delete a
-from attendance a
-where a.groupid in (
-	select id from #groups
+truncate table attendance
+
+-- run this in a loop for large attendance tables
+/*===============================================
+
+delete from attendance 
+where id in (
+	select top 500000 id
+	from attendance a
+	where a.groupid in (
+		select id from #groups
+	)
 )
+
+=================================================*/
 
 -- delete group members
 delete gm 
