@@ -107,4 +107,13 @@ where id in (
 	select id from #grouptypes
 )
 
+delete from location
+where id in (
+	select locationId from campus
+	where id > 1
+)
+
+delete from campus
+where id > 1
+
 use master
