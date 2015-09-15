@@ -1370,7 +1370,7 @@ values
 (1080425, 'GVL', 'Preschool Attendee','24-29 mo.',  'Lil'' Spring'),
 (800624, 'GVL', 'Preschool Attendee', '30-31 mo.', 'Pop''s Garage'),
 (1200645, 'GVL', 'Preschool Attendee','34-35 mo.',  'Spring Fresh'),
-(1259860, 'GVL', 'Preschool Attendee','36-37 mo.',  'SpringTown Police'),
+(1259860, 'GVL', 'Preschool Attendee','36-37 mo.',  'SpringTown Toys'),
 (800625, 'GVL', 'Preschool Attendee', '38-39 mo.', 'SpringTown Toys'),
 (800626, 'GVL', 'Preschool Attendee', '48-49 mo.', 'Treehouse'),
 (817143, 'GVL', 'Preschool Volunteer', 'Base Camp Jr. Volunteer', NULL),
