@@ -108,6 +108,12 @@ where id in (
 )
 
 delete from location
+where ParentLocationId in (
+	select locationId from campus
+	where id > 1
+)
+
+delete from location
 where id in (
 	select locationId from campus
 	where id > 1
