@@ -65,8 +65,11 @@ values
 (@IsSystem, 'Web', 'WEB', NEWID(), @False)
 
 -- create top-level campus locations
-insert Location (Name, IsActive, LocationTypeValueId, [Guid])
-select name, @True, @CampusLocationTypeId, NEWID() from Campus
+IF NOT EXISTS ( SELECT l.Id from Campus c inner join Location l on c.Name = l.Name and l.LocationTypeValueId = @CampusLocationTypeId )
+begin
+	insert Location (Name, IsActive, LocationTypeValueId, [Guid])
+	select name, @True, @CampusLocationTypeId, NEWID() from Campus
+end
 
 -- match campus to locations
 update c
