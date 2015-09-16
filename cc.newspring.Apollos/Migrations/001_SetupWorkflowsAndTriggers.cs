@@ -84,7 +84,13 @@ namespace cc.newspring.Apollos.Migrations
         /// </summary>
         public override void Up()
         {
-            Sql( string.Format( @"
+            var rockContext = new Rock.Data.RockContext();
+            var existingRestPerson = new PersonService( rockContext ).Get( new Guid( restPersonGuid ) );
+            var existingRestUser = new UserLoginService( rockContext ).Get( new Guid( restUserGuid ) );
+
+            if ( existingRestPerson == null )
+            {
+                Sql( string.Format( @"
                 INSERT INTO [dbo].[Person] (
                     [IsSystem]
                    ,[RecordTypeValueId]
@@ -104,7 +110,22 @@ namespace cc.newspring.Apollos.Migrations
                    ,'{0}'
                    ,0)", restPersonGuid ) );
 
-            Sql( string.Format( @"
+                Sql( string.Format( @"
+                INSERT INTO [dbo].[PersonAlias] (
+                    [PersonId]
+                   ,[AliasPersonId]
+                   ,[AliasPersonGuid]
+                   ,[Guid]
+                ) VALUES (
+                    (SELECT [Id] FROM [dbo].[Person] WHERE [Guid] = '{0}')
+                   ,(SELECT [Id] FROM [dbo].[Person] WHERE [Guid] = '{0}')
+                   ,'{0}'
+                   ,'{1}')", restPersonGuid, restPersonAliasGuid ) );
+            }
+
+            if ( existingRestUser == null )
+            {
+                Sql( string.Format( @"
                 INSERT INTO [dbo].[UserLogin] (
                     [UserName]
                    ,[IsConfirmed]
@@ -119,18 +140,7 @@ namespace cc.newspring.Apollos.Migrations
                    ,(SELECT [Id] FROM [dbo].[Person] WHERE [Guid] = '{0}')
                    ,'{1}'
                    ,27)", restPersonGuid, restUserGuid ) );
-
-            Sql( string.Format( @"
-                INSERT INTO [dbo].[PersonAlias] (
-                    [PersonId]
-                   ,[AliasPersonId]
-                   ,[AliasPersonGuid]
-                   ,[Guid]
-                ) VALUES (
-                    (SELECT [Id] FROM [dbo].[Person] WHERE [Guid] = '{0}')
-                   ,(SELECT [Id] FROM [dbo].[Person] WHERE [Guid] = '{0}')
-                   ,'{0}'
-                   ,'{1}')", restPersonGuid, restPersonAliasGuid ) );
+            }
 
             RockMigrationHelper.UpdateEntityType( "cc.newspring.Apollos.Workflow.Action.APISync", apiSyncGuid, false, true );
             RockMigrationHelper.UpdateEntityType( "cc.newspring.Apollos.Security.Authentication.Apollos", apollosAuthGuid, false, true );
