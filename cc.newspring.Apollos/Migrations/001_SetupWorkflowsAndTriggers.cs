@@ -257,6 +257,13 @@ namespace cc.newspring.Apollos.Migrations
             RockMigrationHelper.DeleteCategory( categoryGuid );
 
             DeleteAttributesByEntity( apiSyncGuid );
+            RockMigrationHelper.DeleteAttribute(activeAttributeGuid);
+            RockMigrationHelper.DeleteAttribute(actionAttributeGuid);
+            RockMigrationHelper.DeleteAttribute(syncUrlAttributeGuid);
+            RockMigrationHelper.DeleteAttribute(tokenNameAttributeGuid);
+            RockMigrationHelper.DeleteAttribute(tokenValueAttributeGuid);
+            RockMigrationHelper.DeleteAttribute(restUserAttributeGuid);
+            RockMigrationHelper.DeleteAttribute(orderAttributeGuid);
 
             RockMigrationHelper.DeleteEntityType( apiSyncGuid );
 
