@@ -100,6 +100,7 @@ namespace cc.newspring.Apollos.Migrations
                    ,[Gender]
                    ,[Guid]
                    ,[EmailPreference]
+                   ,[IsEmailActive]
                 ) VALUES (
                     0
                    ,241
@@ -108,6 +109,7 @@ namespace cc.newspring.Apollos.Migrations
                    ,'Apollos'
                    ,0
                    ,'{0}'
+                   ,0
                    ,0)", restPersonGuid ) );
 
                 Sql( string.Format( @"
