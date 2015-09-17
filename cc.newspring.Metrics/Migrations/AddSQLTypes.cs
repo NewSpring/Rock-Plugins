@@ -20,10 +20,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using Rock;
 using Rock.Data;
 using Rock.Plugin;
 
+
+/// <summary>
+/// Adds the queries needed for the Ministry Metric block
+/// </summary>
 namespace cc.newspring.Metrics.Migrations
 {
     [MigrationNumber( 1, "1.3.4" )]
@@ -159,7 +164,7 @@ namespace cc.newspring.Metrics.Migrations
                 – Within the last week
                 AND StartDateTime >= @LastSunday
                 AND StartDateTime < @Today" );
-        
+
         }
 
         /// <summary>
