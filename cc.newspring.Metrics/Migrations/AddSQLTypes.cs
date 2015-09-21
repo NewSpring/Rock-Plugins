@@ -33,7 +33,14 @@ namespace cc.newspring.Metrics.Migrations
     [MigrationNumber( 1, "1.3.4" )]
     public class AddSQLTypes : Migration
     {
+        // Defined guid variables
         protected string MinistryMetricGuid = "A5F29054-EC70-4BA3-B181-E2A62D11A929";
+
+        protected string SQLAttributeGuid = "5EEB8E34-B0B9-43C0-9124-984728D36C98";
+
+        protected string EditorFieldTypeGuid = "1D0D3794-C210-48A8-8C68-3FBEC08A6BA5";
+
+        protected string CurrentDefinedValueGuid = string.Empty;
 
         /// <summary>
         /// The commands to run to migrate plugin to the specific version
@@ -41,10 +48,12 @@ namespace cc.newspring.Metrics.Migrations
         public override void Up()
         {
             RockMigrationHelper.AddDefinedType( "Metric", "Ministry Metrics", "", MinistryMetricGuid, @"" );
-            RockMigrationHelper.AddDefinedTypeAttribute( "A5F29054-EC70-4BA3-B181-E2A62D11A929", "1D0D3794-C210-48A8-8C68-3FBEC08A6BA5", "SQL Statement", "SQLStatement", "", 1007, "", "5EEB8E34-B0B9-43C0-9124-984728D36C98" );
+            RockMigrationHelper.AddDefinedTypeAttribute( MinistryMetricGuid, EditorFieldTypeGuid, "SQL Statement", "SQLStatement", "", 1007, "", SQLAttributeGuid );
 
-            RockMigrationHelper.AddDefinedValue( "A5F29054-EC70-4BA3-B181-E2A62D11A929", "KidSpring Sunday", "", "1ECE28F7-63BE-4495-A4AB-6EC98A10D48E", false );
-            RockMigrationHelper.AddDefinedValueAttributeValue( "1ECE28F7-63BE-4495-A4AB-6EC98A10D48E", "5EEB8E34-B0B9-43C0-9124-984728D36C98", @"
+            // KidSpring Sunday Attendance
+            CurrentDefinedValueGuid = "1ECE28F7-63BE-4495-A4AB-6EC98A10D48E";
+            RockMigrationHelper.AddDefinedValue( MinistryMetricGuid, "KidSpring Sunday Attendance", "", CurrentDefinedValueGuid, false );
+            RockMigrationHelper.AddDefinedValueAttributeValue( CurrentDefinedValueGuid, SQLAttributeGuid, @"
                 DECLARE @Today datetime = GETDATE()
                 DECLARE @LastSunday datetime = DATEADD(
 	                DAY, -((DATEPART(DW, @Today) + 6) % 7), @Today
@@ -59,24 +68,28 @@ namespace cc.newspring.Metrics.Migrations
 	                INNER JOIN (
 		                SELECT ID FROM [Group]
 		                WHERE
-			                -- KidSpring grouptypes
+			                –- Filter by Grouptype
 			                GroupTypeId >= 720
 			                AND GroupTypeId <= 725
 	                ) GroupIds
+                    –- Filter by Group
 	                ON GroupId = GroupIds.Id
-		                -- Greenwood campus
-		                AND CampusId = 8
+		                –- Filter by Campus
+		                AND CampusId = {{campusId}}
                 ) CampusAttendance
 	                ON Attendance.Id = CampusAttendance.Id
                 WHERE DidAttend = 1
-	                -- Sunday attendance only
+	                -- Filter by Sundays only
 	                AND DATEPART(DW, StartDateTime) = 1
-	                -- Within the last week
+	                -- Filter by Date Range
 	                AND StartDateTime >= @LastSunday
-	                AND StartDateTime < @Today" );
+	                AND StartDateTime < @Today
+            " );
 
-            RockMigrationHelper.AddDefinedValue( "A5F29054-EC70-4BA3-B181-E2A62D11A929", "Total unique weekly volunteers for KidSpring", "", "265BEEC8-1F4D-4543-AB82-B61E1EA96D19", false );
-            RockMigrationHelper.AddDefinedValueAttributeValue( "265BEEC8-1F4D-4543-AB82-B61E1EA96D19", "5EEB8E34-B0B9-43C0-9124-984728D36C98", @"
+            // Total unique weekly volunteers for KidSpring
+            CurrentDefinedValueGuid = "265BEEC8-1F4D-4543-AB82-B61E1EA96D19";
+            RockMigrationHelper.AddDefinedValue( MinistryMetricGuid, "Total unique weekly volunteers for KidSpring", "", CurrentDefinedValueGuid, false );
+            RockMigrationHelper.AddDefinedValueAttributeValue( CurrentDefinedValueGuid, SQLAttributeGuid, @"
                 DECLARE @Today datetime = GETDATE()
                 DECLARE @LastSunday datetime = DATEADD(
 	                DAY, -((DATEPART(DW, @Today) + 6) % 7), @Today
@@ -98,16 +111,19 @@ namespace cc.newspring.Metrics.Migrations
                     –- Filter by Group
 	                ON GroupId = GroupIds.Id
 		                –- Filter by Campus
-		                AND CampusId = 8
+		                AND CampusId = {{campusId}}
                 ) CampusAttendance
 	                ON Attendance.Id = CampusAttendance.Id
                 WHERE DidAttend = 1
 	                –- Filter by Date Range
 	                AND StartDateTime >= @LastSunday
-	                AND StartDateTime < @Today" );
+	                AND StartDateTime < @Today
+            " );
 
-            RockMigrationHelper.AddDefinedValue( "A5F29054-EC70-4BA3-B181-E2A62D11A929", "Total numbers for Fuse", "", "4BFBEEC7-48FE-4FE6-9DB8-7302628DC6A4", false );
-            RockMigrationHelper.AddDefinedValueAttributeValue( "4BFBEEC7-48FE-4FE6-9DB8-7302628DC6A4", "5EEB8E34-B0B9-43C0-9124-984728D36C98", @"
+            // Total Fuse Weekly Attendance
+            CurrentDefinedValueGuid = "4BFBEEC7-48FE-4FE6-9DB8-7302628DC6A4";
+            RockMigrationHelper.AddDefinedValue( MinistryMetricGuid, "Total weekly attendance for Fuse", "", CurrentDefinedValueGuid, false );
+            RockMigrationHelper.AddDefinedValueAttributeValue( CurrentDefinedValueGuid, SQLAttributeGuid, @"
                 DECLARE @Today datetime = GETDATE()
 
                 SELECT COUNT(DISTINCT PersonAliasId)
@@ -125,16 +141,19 @@ namespace cc.newspring.Metrics.Migrations
                     –- Filter by Group
 	                ON GroupId = GroupIds.Id
 		                –- Filter by Campus
-		                AND CampusId = 3
+		                AND CampusId = {{campusId}}
                 ) CampusAttendance
 	                ON Attendance.Id = CampusAttendance.Id
                 WHERE DidAttend = 1
 	                –- Filter by Date Range
 	                AND StartDateTime > DATEADD(day, -7, @Today)
-	                AND StartDateTime < @Today" );
+	                AND StartDateTime < @Today
+            " );
 
-            RockMigrationHelper.AddDefinedValue( "A5F29054-EC70-4BA3-B181-E2A62D11A929", "Total unique Sunday volunteers for KidSpring", "", "C565CC8A-DB9D-4B1F-BD06-2930EE9DD79E", false );
-            RockMigrationHelper.AddDefinedValueAttributeValue( "C565CC8A-DB9D-4B1F-BD06-2930EE9DD79E", "5EEB8E34-B0B9-43C0-9124-984728D36C98", @"
+            // Total unique Sunday volunteers for KidSpring
+            CurrentDefinedValueGuid = "C565CC8A-DB9D-4B1F-BD06-2930EE9DD79E";
+            RockMigrationHelper.AddDefinedValue( MinistryMetricGuid, "Total unique Sunday volunteers for KidSpring", "", CurrentDefinedValueGuid, false );
+            RockMigrationHelper.AddDefinedValueAttributeValue( CurrentDefinedValueGuid, SQLAttributeGuid, @"
                 DECLARE @Today datetime = GETDATE()
                 DECLARE @LastSunday datetime = DATEADD(
                     DAY, -((DATEPART(DW, @Today) + 6) % 7), @Today
@@ -155,7 +174,7 @@ namespace cc.newspring.Metrics.Migrations
                     -- Filter by Group
                     ON GroupId = GroupIds.Id
                     -- Filter by Campus
-                    AND CampusId = 8
+                    AND CampusId = {{campusId}}
                 ) CampusAttendance
                     ON Attendance.Id = CampusAttendance.Id
                 WHERE DidAttend = 1
@@ -163,7 +182,32 @@ namespace cc.newspring.Metrics.Migrations
                     AND DATEPART(DW, StartDateTime) = 1
                     –- Filter by Date Range
                     AND StartDateTime >= @LastSunday
-                    AND StartDateTime < @Today" );
+                    AND StartDateTime < @Today
+            " );
+
+            // Unique Volunteers Attended
+            CurrentDefinedValueGuid = "1562B10F-6624-474D-B347-ADDB25ED39E3";
+            RockMigrationHelper.AddDefinedValue( MinistryMetricGuid, "Unique Volunteers Attended", "", CurrentDefinedValueGuid, false );
+            RockMigrationHelper.AddDefinedValueAttributeValue( CurrentDefinedValueGuid, SQLAttributeGuid, @"
+                DECLARE @Today datetime = GETDATE()
+
+                SELECT COUNT(DISTINCT PersonAliasId)
+                FROM Attendance
+                INNER JOIN
+                (
+	                SELECT Attendance.Id
+	                FROM Attendance
+	                -- Filter By Group
+	                WHERE GroupId = 206016
+	                -- Filter by Campus
+	                AND CampusId = {{campusId}}
+                ) CampusAttendance
+	                ON Attendance.Id = CampusAttendance.Id
+                WHERE DidAttend = 1
+	                -- Filter by Date Range
+	                AND StartDateTime > DATEADD(week, -6, @Today)
+	                AND StartDateTime < @Today
+            " );
         }
 
         /// <summary>
@@ -177,7 +221,7 @@ namespace cc.newspring.Metrics.Migrations
             ///
             /// ****************************************************************************
             RockMigrationHelper.DeleteDefinedType( MinistryMetricGuid ); // Ministry Metrics
-            RockMigrationHelper.DeleteAttribute( "5EEB8E34-B0B9-43C0-9124-984728D36C98" ); // SQL Statement Attribute
+            RockMigrationHelper.DeleteAttribute( SQLAttributeGuid ); // SQL Statement Attribute
         }
     }
 }
