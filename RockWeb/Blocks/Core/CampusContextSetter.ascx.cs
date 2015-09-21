@@ -15,6 +15,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Web;
@@ -61,8 +62,25 @@ namespace RockWeb.Blocks.Core
         /// </summary>
         private void LoadDropDowns()
         {
-            var campusEntityType = EntityTypeCache.Read( "Rock.Model.Campus" );
-            var defaultCampus = RockPage.GetCurrentContext( campusEntityType ) as Campus;
+            var campusContextQuery = Request.QueryString["campusId"];
+
+            var defaultCampus = new Rock.Model.Campus();
+
+            if ( campusContextQuery != null )
+            {
+                var campus = new CampusService( new RockContext() ).Get( campusContextQuery.ToString().AsInteger() );
+                defaultCampus = campus as Campus;
+            }
+            else
+            {
+                // var campusEntityType = EntityTypeCache.Read( "Rock.Model.Campus" );
+                // defaultCampus = RockPage.GetCurrentContext( campusEntityType ) as Campus;
+                var campus = new CampusService( new RockContext() ).Get( 1 );
+                defaultCampus = campus as Campus;
+            }
+
+            // var defaultCampus = RockPage.GetCurrentContext( campusEntityType ) as Campus;
+
             lCurrentSelection.Text = defaultCampus != null ? defaultCampus.ToString() : "Select Campus";
 
             rptCampuses.DataSource = CampusCache.All()
@@ -86,7 +104,17 @@ namespace RockWeb.Blocks.Core
             var campus = new CampusService( new RockContext() ).Get( e.CommandArgument.ToString().AsInteger() );
             if ( campus != null )
             {
+                var campusId = campus.Location.CampusId.ToString();
+
+                var nameValues = HttpUtility.ParseQueryString( Request.QueryString.ToString() );
+                nameValues.Set( "campusId", campusId );
+                string url = Request.Url.AbsolutePath;
+                string updatedQueryString = "?" + nameValues.ToString();
+
                 RockPage.SetContextCookie( campus, pageScope, true );
+                
+                Response.Redirect( url + updatedQueryString );
+                
             }
         }
 
