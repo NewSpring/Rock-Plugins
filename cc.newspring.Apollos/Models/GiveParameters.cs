@@ -7,8 +7,6 @@ namespace cc.newspring.Apollos
     {
         public AmountDetail[] AmountDetails { get; set; }
 
-        public int? CampusId { get; set; }
-
         public int? SourceAccountId { get; set; }
     }
 

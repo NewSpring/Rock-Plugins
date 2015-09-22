@@ -87,6 +87,7 @@
     <Compile Include="Models\PaymentParameters.cs" />
     <Compile Include="Models\GiveParameters.cs" />
     <Compile Include="Models\ApollosUserLogin.cs" />
+    <Compile Include="Models\PersonParameters.cs" />
     <Compile Include="Models\ScheduleParameters.cs" />
     <Compile Include="Rest\Controllers\ApollosUserLoginsController.cs" />
     <Compile Include="Rest\Controllers\GiveController.cs" />
