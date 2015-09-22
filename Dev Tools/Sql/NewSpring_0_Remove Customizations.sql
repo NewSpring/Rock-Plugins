@@ -9,7 +9,7 @@ USE Rock
 /* ====================================================== */
 
 -- Enable production mode for performance
---SET NOCOUNT ON
+SET NOCOUNT ON
 
 declare @True bit = 1
 declare @False bit = 0
@@ -30,6 +30,8 @@ from grouptype
 where issystem = @False
 and name not like 'Check in%'
 and name not like 'Small Group%'
+and name not like 'Serving Team%'
+and name not like 'General Group%'
 
 if object_id('tempdb..#groups') is not null
 begin
@@ -49,11 +51,21 @@ and grouptypeid in (
 )
 
 -- delete attendance
-delete a
-from attendance a
-where a.groupid in (
-	select id from #groups
+truncate table attendance
+
+-- run this in a loop for large attendance tables
+/*===============================================
+
+delete from attendance 
+where id in (
+	select top 500000 id
+	from attendance a
+	where a.groupid in (
+		select id from #groups
+	)
 )
+
+=================================================*/
 
 -- delete group members
 delete gm 
@@ -94,5 +106,20 @@ delete grouptype
 where id in (
 	select id from #grouptypes
 )
+
+delete from location
+where ParentLocationId in (
+	select locationId from campus
+	where id > 1
+)
+
+delete from location
+where id in (
+	select locationId from campus
+	where id > 1
+)
+
+delete from campus
+where id > 1
 
 use master

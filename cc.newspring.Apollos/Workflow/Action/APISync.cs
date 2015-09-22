@@ -23,20 +23,34 @@ namespace cc.newspring.Apollos.Workflow.Action
         public override bool Execute( Rock.Data.RockContext rockContext, WorkflowAction action, object entity, out List<string> errorMessages )
         {
             errorMessages = new List<string>();
+            var castedModel = entity as IModel;
 
-            var model = (IModel)entity;
-            var restUserGuid = GetAttributeValue( action, "RestUser" ).AsType<Guid?>();
-
-            if ( model.ModifiedByPersonAliasId.HasValue )
+            if ( castedModel != null )
             {
-                var modifier = new PersonAliasService( new RockContext() ).Get( model.ModifiedByPersonAliasId.Value );
+                var restUserGuid = GetAttributeValue( action, "RestUser" ).AsType<Guid?>();
 
-                if ( modifier.Guid == restUserGuid )
+                if ( castedModel.ModifiedByPersonAliasId.HasValue )
                 {
-                    return true;
+                    var modifier = new PersonAliasService( new RockContext() ).Get( castedModel.ModifiedByPersonAliasId.Value );
+
+                    if ( modifier.Guid == restUserGuid )
+                    {
+                        // If the modifier is Apollos, don't send the data to Apollos (bounceback sync)
+                        return true;
+                    }
+                }
+                else if ( castedModel.CreatedByPersonAliasId.HasValue )
+                {
+                    var modifier = new PersonAliasService( new RockContext() ).Get( castedModel.CreatedByPersonAliasId.Value );
+
+                    if ( modifier.Guid == restUserGuid )
+                    {
+                        return true;
+                    }
                 }
             }
 
+            var castedEntity = entity as IEntity;
             var isSave = GetAttributeValue( action, "Action" ) == "Save";
             var url = GetAttributeValue( action, "SyncURL" );
             var tokenName = GetAttributeValue( action, "TokenName" );
@@ -57,7 +71,7 @@ namespace cc.newspring.Apollos.Workflow.Action
             request.RequestFormat = DataFormat.Json;
             request.AddHeader( tokenName, tokenValue );
 
-            var fullUrl = string.Format( "{0}{1}{2}", url, lastSlash, model.Id );
+            var fullUrl = string.Format( "{0}{1}{2}", url, lastSlash, castedEntity.Id );
             var client = new RestClient( fullUrl );
 
             if ( isSave )

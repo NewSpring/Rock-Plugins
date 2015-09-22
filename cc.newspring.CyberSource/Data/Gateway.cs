@@ -106,6 +106,70 @@ namespace cc.newspring.CyberSource
         }
 
         /// <summary>
+        /// Authorizes/tokenizes the specified payment info.
+        /// </summary>
+        /// <param name="paymentInfo">The payment info.</param>
+        /// <param name="errorMessage">The error message.</param>
+        /// <returns></returns>
+        public override FinancialTransaction Authorize( FinancialGateway financialGateway, PaymentInfo paymentInfo, out string errorMessage )
+        {
+            errorMessage = string.Empty;
+            RequestMessage request = GetPaymentInfo( financialGateway, paymentInfo );
+
+            if ( request == null )
+            {
+                errorMessage = "Payment type not implemented";
+                return null;
+            }
+
+            if ( request.recurringSubscriptionInfo == null )
+            {
+                request.recurringSubscriptionInfo = new RecurringSubscriptionInfo();
+            }
+
+            request.recurringSubscriptionInfo.frequency = "ON-DEMAND";
+            request.recurringSubscriptionInfo.amount = paymentInfo.Amount.ToString();
+            request.paySubscriptionCreateService = new PaySubscriptionCreateService();
+            request.paySubscriptionCreateService.run = "true";
+            request.purchaseTotals = GetTotals( paymentInfo );
+            request.billTo = GetBillTo( paymentInfo );
+            request.item = GetItems( paymentInfo );
+
+            request.subscription = new Subscription();
+            if ( !paymentInfo.CurrencyTypeValue.Guid.Equals( new Guid( Rock.SystemGuid.DefinedValue.CURRENCY_TYPE_CREDIT_CARD ) ) )
+            {
+                request.subscription.paymentMethod = "check";
+            }
+
+            if ( paymentInfo is ReferencePaymentInfo )
+            {
+                request.paySubscriptionCreateService.paymentRequestID = ( (ReferencePaymentInfo)paymentInfo ).TransactionCode;
+            }
+
+            ReplyMessage reply = SubmitTransaction( financialGateway, request );
+            if ( reply != null )
+            {
+                if ( reply.reasonCode.Equals( "100" ) ) // SUCCESS
+                {
+                    var transactionGuid = new Guid( reply.merchantReferenceCode );
+                    var transaction = new FinancialTransaction { Guid = transactionGuid };
+                    transaction.TransactionCode = reply.requestID;
+                    return transaction;
+                }
+                else
+                {
+                    errorMessage = string.Format( "Your order was not approved.{0}", ProcessError( reply ) );
+                }
+            }
+            else
+            {
+                errorMessage = "Invalid response from the financial gateway.";
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Charges the specified payment info.
         /// </summary>
         /// <param name="paymentInfo">The payment info.</param>
@@ -315,11 +379,12 @@ namespace cc.newspring.CyberSource
         {
             errorMessage = string.Empty;
             var financialGateway = transaction.FinancialGateway;
-            RequestMessage request = GetMerchantInfo( transaction.FinancialGateway );
+            RequestMessage request = GetMerchantInfo( transaction.FinancialGateway, false );
             request.recurringSubscriptionInfo = new RecurringSubscriptionInfo();
             request.recurringSubscriptionInfo.subscriptionID = transaction.TransactionCode;
-            request.paySubscriptionDeleteService = new PaySubscriptionDeleteService();
-            request.paySubscriptionDeleteService.run = "true";
+            request.paySubscriptionUpdateService = new PaySubscriptionUpdateService();
+            request.recurringSubscriptionInfo.status = "cancel";
+            request.paySubscriptionUpdateService.run = "true";
 
             ReplyMessage reply = SubmitTransaction( financialGateway, request );
             if ( reply != null )
@@ -632,7 +697,7 @@ namespace cc.newspring.CyberSource
         /// Gets the merchant information.
         /// </summary>
         /// <returns></returns>
-        private RequestMessage GetMerchantInfo( FinancialGateway financialGateway )
+        private RequestMessage GetMerchantInfo( FinancialGateway financialGateway, bool includeEnvironment = true )
         {
             if ( financialGateway.Attributes == null )
             {
@@ -642,15 +707,18 @@ namespace cc.newspring.CyberSource
             RequestMessage request = new RequestMessage();
             request.merchantID = GetAttributeValue( financialGateway, "MerchantID" );
             request.merchantReferenceCode = Guid.NewGuid().ToString();
-            request.clientLibraryVersion = Environment.Version.ToString();
 
-            request.clientApplication = VersionInfo.GetRockProductVersionFullName();
-            request.clientApplicationVersion = VersionInfo.GetRockProductVersionNumber();
-            request.clientApplicationUser = GetAttributeValue( financialGateway, "OrganizationName" );
-            request.clientEnvironment =
-                Environment.OSVersion.Platform +
-                Environment.OSVersion.Version.ToString() + "-CLR" +
-                Environment.Version.ToString();
+            if ( includeEnvironment )
+            {
+                request.clientLibraryVersion = Environment.Version.ToString();
+                request.clientApplication = VersionInfo.GetRockProductVersionFullName();
+                request.clientApplicationVersion = VersionInfo.GetRockProductVersionNumber();
+                request.clientApplicationUser = GetAttributeValue( financialGateway, "OrganizationName" );
+                request.clientEnvironment =
+                    Environment.OSVersion.Platform +
+                    Environment.OSVersion.Version.ToString() + "-CLR" +
+                    Environment.Version.ToString();
+            }
 
             return request;
         }

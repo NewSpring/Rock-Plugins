@@ -458,7 +458,7 @@ $(document).ready(function() {
             mergeFields.Add( "Items", currentPageContent );
             mergeFields.Add( "Campuses", CampusCache.All() );
             mergeFields.Add( "CurrentPerson", CurrentPerson );
-            mergeFields.Add( "ContextObjects", contextObjects );
+            mergeFields.Add( "Context", contextObjects );
 
             globalAttributeFields.ToList().ForEach( d => mergeFields.Add( d.Key, d.Value ) );
             mergeFields.Add( "RockVersion", Rock.VersionInfo.VersionInfo.GetRockProductVersionNumber() );
@@ -958,6 +958,20 @@ $(document).ready(function() {
 
                     HttpContext.Current.Items.Remove( string.Format( "EntityHelper:GetEntityFields:{0}", entityType.FullName ) );
                     var entityFields = Rock.Reporting.EntityHelper.GetEntityFields( entityType );
+                    foreach( var entityField in entityFields
+                        .Where( f => 
+                            f.FieldKind == Rock.Reporting.FieldKind.Attribute &&
+                            f.AttributeGuid.HasValue )
+                        .ToList() )
+                    {
+                        var attribute = AttributeCache.Read( entityField.AttributeGuid.Value );
+                        if ( attribute != null && 
+                            attribute.EntityTypeQualifierColumn == "ContentChannelTypeId" && 
+                            attribute.EntityTypeQualifierValue.AsInteger() != channel.ContentChannelTypeId )
+                        {
+                            entityFields.Remove( entityField );
+                        }
+                    }
 
                     if ( entityFields != null )
                     {
@@ -981,7 +995,10 @@ $(document).ready(function() {
                                 a.Value.EntityTypeQualifierValue != "" )
                             .Select( a => a.Value ) )
                         {
-                            Rock.Reporting.EntityHelper.AddEntityFieldForAttribute( entityFields, attribute );
+                            if ( !entityFields.Any( f => f.AttributeGuid.Equals( attribute.Guid ) ) )
+                            {
+                                Rock.Reporting.EntityHelper.AddEntityFieldForAttribute( entityFields, attribute );
+                            }
                         }
 
                         // Re-sort fields

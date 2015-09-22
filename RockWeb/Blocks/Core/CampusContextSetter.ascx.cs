@@ -21,7 +21,6 @@ using System.Linq;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -38,7 +37,10 @@ namespace RockWeb.Blocks.Core
     [Category( "Core" )]
     [Description( "Block that can be used to set the default campus context for the site." )]
 
-    [CustomRadioListField("Context Scope", "The scope of context to set", "Site,Page", true, "Site")]
+    [CustomRadioListField("Context Scope", "The scope of context to set", "Site,Page", true, "Site", order: 0)]
+    [TextField( "Current Item Template", "Lava template for the current item. The only merge field is {{ CampusName }}.", true, "{{ CampusName }}", order: 1)]
+    [TextField( "Dropdown Item Template", "Lava template for items in the dropdown. The only merge field is {{ CampusName }}.", true, "{{ CampusName }}", order: 1 )]
+    [TextField( "No Campus Text", "The text to show when there is no campus in the context.", true, "Select Campus", order: 2)]
     public partial class CampusContextSetter : RockBlock
     {
         #region Base Control Methods
@@ -62,30 +64,35 @@ namespace RockWeb.Blocks.Core
         /// </summary>
         private void LoadDropDowns()
         {
-            var campusContextQuery = Request.QueryString["campusId"];
+            Dictionary<string, object> mergeObjects = new Dictionary<string, object>();
+            
+            var campusEntityType = EntityTypeCache.Read( "Rock.Model.Campus" );
+            var defaultCampus = RockPage.GetCurrentContext( campusEntityType ) as Campus;
 
-            var defaultCampus = new Rock.Model.Campus();
-
-            if ( campusContextQuery != null )
+            if ( defaultCampus != null )
             {
-                var campus = new CampusService( new RockContext() ).Get( campusContextQuery.ToString().AsInteger() );
-                defaultCampus = campus as Campus;
+                mergeObjects.Add( "CampusName", defaultCampus.Name );
+                lCurrentSelection.Text = GetAttributeValue( "CurrentItemTemplate" ).ResolveMergeFields( mergeObjects );
             }
             else
             {
-                // var campusEntityType = EntityTypeCache.Read( "Rock.Model.Campus" );
-                // defaultCampus = RockPage.GetCurrentContext( campusEntityType ) as Campus;
-                var campus = new CampusService( new RockContext() ).Get( 1 );
-                defaultCampus = campus as Campus;
+                lCurrentSelection.Text = GetAttributeValue( "NoCampusText" );
             }
 
-            // var defaultCampus = RockPage.GetCurrentContext( campusEntityType ) as Campus;
-
-            lCurrentSelection.Text = defaultCampus != null ? defaultCampus.ToString() : "Select Campus";
-
-            rptCampuses.DataSource = CampusCache.All()
-                .Select( a => new { a.Name, a.Id } )
+            var campuses = CampusCache.All()
+                .Select( a => new CampusItem { Name = a.Name, Id = a.Id } )
                 .ToList();
+
+            var formattedCampuses = new Dictionary<int, string>();
+            // run lava on each campus
+            foreach ( var campus in campuses )
+            {
+                mergeObjects.Clear();
+                mergeObjects.Add( "CampusName", campus.Name );
+                campus.Name = GetAttributeValue( "DropdownItemTemplate" ).ResolveMergeFields( mergeObjects );
+            }
+
+            rptCampuses.DataSource = campuses;
             rptCampuses.DataBind();
         }
 
@@ -104,20 +111,31 @@ namespace RockWeb.Blocks.Core
             var campus = new CampusService( new RockContext() ).Get( e.CommandArgument.ToString().AsInteger() );
             if ( campus != null )
             {
-                var campusId = campus.Location.CampusId.ToString();
-
-                var nameValues = HttpUtility.ParseQueryString( Request.QueryString.ToString() );
-                nameValues.Set( "campusId", campusId );
-                string url = Request.Url.AbsolutePath;
-                string updatedQueryString = "?" + nameValues.ToString();
-
                 RockPage.SetContextCookie( campus, pageScope, true );
-                
-                Response.Redirect( url + updatedQueryString );
-                
             }
         }
 
         #endregion
+
+        /// <summary>
+        /// Campus Item
+        /// </summary>
+        public class CampusItem {
+            /// <summary>
+            /// Gets or sets the name.
+            /// </summary>
+            /// <value>
+            /// The name.
+            /// </value>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// Gets or sets the identifier.
+            /// </summary>
+            /// <value>
+            /// The identifier.
+            /// </value>
+            public int Id { get; set; }
+        }
     }
 }
