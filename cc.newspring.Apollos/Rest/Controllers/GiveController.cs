@@ -76,6 +76,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
                     transaction.TransactionTypeValueId = DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.TRANSACTION_TYPE_CONTRIBUTION ) ).Id;
                     transaction.FinancialPaymentDetailId = paymentDetail.Id;
                     savedAccount.TransactionCode = transaction.TransactionCode;
+                    SaveLocationToFamilyIfNone(person, locationId, rockContext);
                     savedAccount.ReferenceNumber = gatewayComponent.GetReferenceNumber( transaction, out errorMessage );
                     rockContext.SaveChanges();
                 } );
@@ -95,8 +96,9 @@ namespace cc.newspring.Apollos.Rest.Controllers
         }
 
         /// <summary>
-        /// Schedules the giving.
+        /// Creates the person and family.
         /// </summary>
+        /// <param name="personParameters">The person parameters.</param>
         /// <returns></returns>
         [Authenticate, Secured]
         [HttpPost]
@@ -247,6 +249,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
                         UpdatePaymentInfoForSavedAccount(scheduleParameters, paymentInfo, person, rockContext, paymentDetail.BillingLocationId.Value, totalAmount.Value);
                     }
 
+                    SaveLocationToFamilyIfNone( person, locationId.Value, rockContext );
                     string errorMessage;
                     var schedule = gatewayComponent.AddScheduledPayment( financialGateway, paymentSchedule, paymentInfo, out errorMessage );
 
@@ -281,7 +284,6 @@ namespace cc.newspring.Apollos.Rest.Controllers
 
                     new FinancialScheduledTransactionService( rockContext ).Add( schedule );
                     rockContext.SaveChanges();
-
                 } );
             }
             catch ( HttpResponseException exception )
@@ -375,6 +377,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
                         UpdatePaymentInfoForSavedAccount( giveParameters, paymentInfo, person, rockContext, locationId.Value, totalAmount.Value );
                     }
 
+                    SaveLocationToFamilyIfNone( person, locationId.Value, rockContext );
                     string errorMessage;
                     var transaction = gatewayComponent.Charge( financialGateway, paymentInfo, out errorMessage );
 
@@ -625,6 +628,32 @@ namespace cc.newspring.Apollos.Rest.Controllers
             new LocationService( rockContext ).Add( location );
             rockContext.SaveChanges();
             return location.Id;
+        }
+
+        /// <summary>
+        /// Saves the location to family if none.
+        /// </summary>
+        /// <param name="person">The person.</param>
+        /// <param name="billingLocationId">The billing location identifier.</param>
+        /// <param name="rockContext">The rock context.</param>
+        private void SaveLocationToFamilyIfNone( Person person, int billingLocationId, RockContext rockContext )
+        {
+            var family = person.GetFamilies(rockContext).FirstOrDefault();
+
+            if (family == null) {
+                return;
+            }
+
+            if ( family.GroupLocations.Any() )
+            {
+                return;
+            }
+
+            family.GroupLocations.Add( new GroupLocation()
+            {
+                GroupLocationTypeValueId = DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME ) ).Id,
+                LocationId = billingLocationId
+            } );
         }
 
         /// <summary>
