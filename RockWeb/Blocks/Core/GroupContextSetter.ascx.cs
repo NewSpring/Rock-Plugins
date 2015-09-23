@@ -46,8 +46,6 @@ namespace RockWeb.Blocks.Core
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
-
-            // SetGroupContext();
         
             // this event gets fired after block settings are updated. it's nice to repaint the screen if these settings would alter it
             this.BlockUpdated += Block_BlockUpdated;
@@ -72,46 +70,17 @@ namespace RockWeb.Blocks.Core
 
         private void SetGroupContext()
         {
-            var groupContextQuery = Request.QueryString["groupTypeId"];
+            var groupContextQuery = Request.QueryString["groupId"];
 
             if ( groupContextQuery != null )
             {
-                var things = RockPage.Cache.Get( "Rock.Model.Group" );
-
-                var stuff = RockPage.Cache.Remove( "Rock.Model.Group" );
-
-                var entityTypeCache = EntityTypeCache.Read( "Rock.Model.Group" ).Id.ToString();
-                EntityTypeCache.FlushCache(entityTypeCache);
-
-                
 
                 bool pageScope = GetAttributeValue( "ContextScope" ) == "Page";
                 var group = new GroupService( new RockContext() ).Get( groupContextQuery.ToString().AsInteger() );
                 if ( group != null )
                 {
-
-                    // Clear the current cache id
-                    FlushCacheItem( "Rock.Model.Group" );
-                    EntityTypeCache.FlushCache( "Rock.Model.Group" );
-                    RockMemoryCache.Clear();
-
-                    var groupEntityType = EntityTypeCache.Read( "Rock.Model.Group" );
-
-                    EntityTypeCache.FlushCache( groupEntityType.ToString() );
-                    var nulledCache = RockPage.GetCurrentContext( groupEntityType ) as Group;
-
-                    // Set a new cache for Rock.Model.Group
-                    EntityTypeCache.SetCache( "Rock.Model.Group", group, new CacheItemPolicy() );
-
-                    // Set a new context cookie
                     RockPage.SetContextCookie( group, pageScope, false );
-                    
-                    var defaultGroup = RockPage.GetCurrentContext( groupEntityType ) as Group;
-                    
                 }
-
-                //var groupEntityType = EntityTypeCache.Read( "Rock.Model.Group" );
-                //var defaultGroup = RockPage.GetCurrentContext( groupEntityType ) as Group;
             }
         }
 
@@ -123,6 +92,8 @@ namespace RockWeb.Blocks.Core
             var parts = ( GetAttributeValue( "GroupFilter" ) ?? string.Empty ).Split( '|' );
             Guid? groupTypeGuid = null;
             Guid? rootGroupGuid = null;
+
+           
             if ( parts.Length >= 1 )
             {
                 groupTypeGuid = parts[0].AsGuidOrNull();
@@ -133,8 +104,8 @@ namespace RockWeb.Blocks.Core
             }
 
             var groupEntityType = EntityTypeCache.Read( "Rock.Model.Group" );
+            
             var defaultGroup = RockPage.GetCurrentContext( groupEntityType ) as Group;
-
             var groupService = new GroupService( new RockContext() );
             IQueryable<Group> qryGroups = null;
 
@@ -196,10 +167,9 @@ namespace RockWeb.Blocks.Core
             var group = new GroupService( new RockContext() ).Get( e.CommandArgument.ToString().AsInteger() );
             if ( group != null )
             {
-                var groupTypeId = e.CommandArgument;
 
                 var nameValues = HttpUtility.ParseQueryString( Request.QueryString.ToString() );
-                nameValues.Set( "groupTypeId", groupTypeId.ToString() );
+                nameValues.Set( "groupId", group.Id.ToString() );
                 string url = Request.Url.AbsolutePath;
                 string updatedQueryString = "?" + nameValues.ToString();
 

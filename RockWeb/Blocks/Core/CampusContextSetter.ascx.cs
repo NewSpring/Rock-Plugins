@@ -61,7 +61,7 @@ namespace RockWeb.Blocks.Core
         {
             base.OnLoad( e );
 
-            // SetCampusContext();
+            SetCampusContext();
 
             if ( !Page.IsPostBack )
             {
@@ -71,6 +71,7 @@ namespace RockWeb.Blocks.Core
 
         private void SetCampusContext()
         {
+            
             var campusContextQuery = Request.QueryString["campusId"];
 
             if ( campusContextQuery != null )
