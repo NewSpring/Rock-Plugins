@@ -21,6 +21,7 @@ using System.Linq;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -45,6 +46,13 @@ namespace RockWeb.Blocks.Core
     {
         #region Base Control Methods
 
+        protected override void OnInit( EventArgs e )
+        {
+            base.OnInit( e );
+
+            
+        }
+
         /// <summary>
         /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
         /// </summary>
@@ -53,10 +61,28 @@ namespace RockWeb.Blocks.Core
         {
             base.OnLoad( e );
 
+            // SetCampusContext();
+
             if ( !Page.IsPostBack )
             {
                 LoadDropDowns();
             }
+        }
+
+        private void SetCampusContext()
+        {
+            var campusContextQuery = Request.QueryString["campusId"];
+
+            if ( campusContextQuery != null )
+            {
+                bool pageScope = GetAttributeValue( "ContextScope" ) == "Page";
+                var campus = new CampusService( new RockContext() ).Get( campusContextQuery.ToString().AsInteger() );
+                if ( campus != null )
+                {
+                    RockPage.SetContextCookie( campus, pageScope, false );
+                }
+            }
+            
         }
 
         /// <summary>
@@ -65,7 +91,7 @@ namespace RockWeb.Blocks.Core
         private void LoadDropDowns()
         {
             Dictionary<string, object> mergeObjects = new Dictionary<string, object>();
-            
+
             var campusEntityType = EntityTypeCache.Read( "Rock.Model.Campus" );
             var defaultCampus = RockPage.GetCurrentContext( campusEntityType ) as Campus;
 
@@ -111,7 +137,16 @@ namespace RockWeb.Blocks.Core
             var campus = new CampusService( new RockContext() ).Get( e.CommandArgument.ToString().AsInteger() );
             if ( campus != null )
             {
-                RockPage.SetContextCookie( campus, pageScope, true );
+                var campusId = e.CommandArgument;
+
+                var nameValues = HttpUtility.ParseQueryString( Request.QueryString.ToString() );
+                nameValues.Set( "campusId", campusId.ToString() );
+                string url = Request.Url.AbsolutePath;
+                string updatedQueryString = "?" + nameValues.ToString();
+
+                RockPage.SetContextCookie( campus, pageScope, false );
+                
+                Response.Redirect( url + updatedQueryString );
             }
         }
 
