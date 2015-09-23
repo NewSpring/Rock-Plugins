@@ -750,6 +750,18 @@ begin
 		and pl.Name = @ParentGroupTypeName
 		and l.name = @LocationName
 
+		
+		/* ====================================================== */
+		-- Create Metrics for Volunteer Groups here
+		/* ====================================================== */
+
+
+
+		
+		/* ====================================================== */
+		-- End Create Metrics
+		/* ====================================================== */
+
 	end
 	-- end grouptype not empty
 
