@@ -46,6 +46,11 @@ namespace RockWeb.Blocks.Core
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
+
+            if ( Request.QueryString["groupId"] != null )
+            {
+                SetGroupContext();
+            }
         
             // this event gets fired after block settings are updated. it's nice to repaint the screen if these settings would alter it
             this.BlockUpdated += Block_BlockUpdated;
@@ -59,13 +64,19 @@ namespace RockWeb.Blocks.Core
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
-
-            SetGroupContext();
             
             if ( !Page.IsPostBack )
             {
                 LoadDropDowns();
             }
+        }
+
+        private void SetContextUrlCookie()
+        {
+            HttpCookie cookieUrl = new HttpCookie( "Rock.Group.Context.Url" );
+            cookieUrl["Url"] = Request.Url.ToString();
+            cookieUrl.Expires = DateTime.Now.AddHours( 1 );
+            Response.Cookies.Add( cookieUrl );
         }
 
         private void SetGroupContext()
@@ -79,7 +90,13 @@ namespace RockWeb.Blocks.Core
                 var group = new GroupService( new RockContext() ).Get( groupContextQuery.ToString().AsInteger() );
                 if ( group != null )
                 {
-                    RockPage.SetContextCookie( group, pageScope, false );
+                    HttpCookie cookieUrl = Request.Cookies["Rock.Group.Context.Url"];
+
+                    if ( cookieUrl == null || Request.Url.ToString() != cookieUrl.Value.Replace( "Url=", "" ) )
+                    {
+                        SetContextUrlCookie();
+                        RockPage.SetContextCookie( group, pageScope, true );
+                    }
                 }
             }
         }
