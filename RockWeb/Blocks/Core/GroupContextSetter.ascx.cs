@@ -73,8 +73,8 @@ namespace RockWeb.Blocks.Core
 
         private void SetContextUrlCookie()
         {
-            HttpCookie cookieUrl = new HttpCookie( "Rock.Group.Context.Url" );
-            cookieUrl["Url"] = Request.Url.ToString();
+            HttpCookie cookieUrl = new HttpCookie( "Rock.Group.Context.Query" );
+            cookieUrl["groupId"] = Request.QueryString["groupId"].ToString();
             cookieUrl.Expires = DateTime.Now.AddHours( 1 );
             Response.Cookies.Add( cookieUrl );
         }
@@ -90,9 +90,9 @@ namespace RockWeb.Blocks.Core
                 var group = new GroupService( new RockContext() ).Get( groupContextQuery.ToString().AsInteger() );
                 if ( group != null )
                 {
-                    HttpCookie cookieUrl = Request.Cookies["Rock.Group.Context.Url"];
+                    HttpCookie cookieUrl = Request.Cookies["Rock.Group.Context.Query"];
 
-                    if ( cookieUrl == null || Request.Url.ToString() != cookieUrl.Value.Replace( "Url=", "" ) )
+                    if ( cookieUrl == null || Request.QueryString["groupId"].ToString() != cookieUrl.Value.Replace( "groupId=", "" ) )
                     {
                         SetContextUrlCookie();
                         RockPage.SetContextCookie( group, pageScope, true );

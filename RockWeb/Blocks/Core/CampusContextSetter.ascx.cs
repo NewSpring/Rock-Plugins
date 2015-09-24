@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.Caching;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -50,6 +51,11 @@ namespace RockWeb.Blocks.Core
         {
             base.OnInit( e );
 
+            if ( Request.QueryString["campusId"] != null )
+            {
+                SetCampusContext();
+            }
+
             
         }
 
@@ -61,12 +67,18 @@ namespace RockWeb.Blocks.Core
         {
             base.OnLoad( e );
 
-            SetCampusContext();
-
             if ( !Page.IsPostBack )
             {
                 LoadDropDowns();
             }
+        }
+
+        private void SetContextUrlCookie()
+        {
+            HttpCookie cookieUrl = new HttpCookie( "Rock.Campus.Context.Query" );
+            cookieUrl["campusId"] = Request.QueryString["campusId"].ToString();
+            cookieUrl.Expires = DateTime.Now.AddHours( 1 );
+            Response.Cookies.Add( cookieUrl );
         }
 
         private void SetCampusContext()
@@ -80,7 +92,13 @@ namespace RockWeb.Blocks.Core
                 var campus = new CampusService( new RockContext() ).Get( campusContextQuery.ToString().AsInteger() );
                 if ( campus != null )
                 {
-                    RockPage.SetContextCookie( campus, pageScope, false );
+                    HttpCookie cookieUrl = Request.Cookies["Rock.Campus.Context.Query"];
+
+                    if ( cookieUrl == null || Request.QueryString["campusId"].ToString() != cookieUrl.Value.Replace( "campusId=", "" ) )
+                    {
+                        SetContextUrlCookie();
+                        RockPage.SetContextCookie( campus, pageScope, true );
+                    }
                 }
             }
             
