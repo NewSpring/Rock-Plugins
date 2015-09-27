@@ -76,6 +76,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
                     transaction.TransactionTypeValueId = DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.TRANSACTION_TYPE_CONTRIBUTION ) ).Id;
                     transaction.FinancialPaymentDetailId = paymentDetail.Id;
                     savedAccount.TransactionCode = transaction.TransactionCode;
+                    SaveLocationToFamilyIfNone(person, locationId, rockContext);
                     savedAccount.ReferenceNumber = gatewayComponent.GetReferenceNumber( transaction, out errorMessage );
                     rockContext.SaveChanges();
                 } );
@@ -92,6 +93,41 @@ namespace cc.newspring.Apollos.Rest.Controllers
             }
 
             return new HttpResponseMessage( HttpStatusCode.NoContent );     
+        }
+
+        /// <summary>
+        /// Creates the person and family.
+        /// </summary>
+        /// <param name="personParameters">The person parameters.</param>
+        /// <returns></returns>
+        [Authenticate, Secured]
+        [HttpPost]
+        [System.Web.Http.Route( "api/CreatePersonAndFamily" )]
+        public HttpResponseMessage CreatePersonAndFamily( [FromBody]PersonParameters personParameters )
+        {
+            var rockContext = new RockContext();
+            var response = new HttpResponseMessage( HttpStatusCode.Created );
+
+            try
+            {
+                rockContext.WrapTransaction( () =>
+                {
+                    var person = CreatePerson(personParameters, null, rockContext, false);
+                    response.Content = new StringContent( person.Id.ToString() );
+                } );
+            }
+            catch ( HttpResponseException exception )
+            {
+                return exception.Response;
+            }
+            catch ( Exception exception )
+            {
+                var errorResponse = new HttpResponseMessage( HttpStatusCode.InternalServerError );
+                errorResponse.Content = new StringContent( exception.Message );
+                return errorResponse;
+            }
+
+            return response;
         }
 
         /// <summary>
@@ -213,6 +249,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
                         UpdatePaymentInfoForSavedAccount(scheduleParameters, paymentInfo, person, rockContext, paymentDetail.BillingLocationId.Value, totalAmount.Value);
                     }
 
+                    SaveLocationToFamilyIfNone( person, locationId.Value, rockContext );
                     string errorMessage;
                     var schedule = gatewayComponent.AddScheduledPayment( financialGateway, paymentSchedule, paymentInfo, out errorMessage );
 
@@ -247,7 +284,6 @@ namespace cc.newspring.Apollos.Rest.Controllers
 
                     new FinancialScheduledTransactionService( rockContext ).Add( schedule );
                     rockContext.SaveChanges();
-
                 } );
             }
             catch ( HttpResponseException exception )
@@ -341,6 +377,7 @@ namespace cc.newspring.Apollos.Rest.Controllers
                         UpdatePaymentInfoForSavedAccount( giveParameters, paymentInfo, person, rockContext, locationId.Value, totalAmount.Value );
                     }
 
+                    SaveLocationToFamilyIfNone( person, locationId.Value, rockContext );
                     string errorMessage;
                     var transaction = gatewayComponent.Charge( financialGateway, paymentInfo, out errorMessage );
 
@@ -591,6 +628,32 @@ namespace cc.newspring.Apollos.Rest.Controllers
             new LocationService( rockContext ).Add( location );
             rockContext.SaveChanges();
             return location.Id;
+        }
+
+        /// <summary>
+        /// Saves the location to family if none.
+        /// </summary>
+        /// <param name="person">The person.</param>
+        /// <param name="billingLocationId">The billing location identifier.</param>
+        /// <param name="rockContext">The rock context.</param>
+        private void SaveLocationToFamilyIfNone( Person person, int billingLocationId, RockContext rockContext )
+        {
+            var family = person.GetFamilies(rockContext).FirstOrDefault();
+
+            if (family == null) {
+                return;
+            }
+
+            if ( family.GroupLocations.Any() )
+            {
+                return;
+            }
+
+            family.GroupLocations.Add( new GroupLocation()
+            {
+                GroupLocationTypeValueId = DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME ) ).Id,
+                LocationId = billingLocationId
+            } );
         }
 
         /// <summary>
@@ -862,21 +925,21 @@ namespace cc.newspring.Apollos.Rest.Controllers
         /// <param name="locationId">The location identifier.</param>
         /// <param name="rockContext">The rock context.</param>
         /// <returns></returns>
-        private Person CreatePerson( GiveParameters giveParameters, int locationId, RockContext rockContext )
+        private Person CreatePerson( PersonParameters personParameters, int? locationId, RockContext rockContext, bool requireEmail = true )
         {
-            if ( string.IsNullOrWhiteSpace( giveParameters.Email ) )
+            if ( requireEmail && string.IsNullOrWhiteSpace( personParameters.Email ) )
             {
                 GenerateResponse( HttpStatusCode.BadRequest, "Email is required" );
                 return null;
             }
 
-            if ( !giveParameters.Email.IsValidEmail() )
+            if ( !personParameters.Email.IsValidEmail() )
             {
                 GenerateResponse( HttpStatusCode.BadRequest, "Email must be valid" );
                 return null;
             }
 
-            if ( string.IsNullOrWhiteSpace( giveParameters.FirstName ) || string.IsNullOrWhiteSpace( giveParameters.LastName ) )
+            if ( string.IsNullOrWhiteSpace( personParameters.FirstName ) || string.IsNullOrWhiteSpace( personParameters.LastName ) )
             {
                 GenerateResponse( HttpStatusCode.BadRequest, "FirstName and LastName are required" );
                 return null;
@@ -884,11 +947,11 @@ namespace cc.newspring.Apollos.Rest.Controllers
 
             var person = new Person()
             {
-                Guid = giveParameters.PersonGuid.HasValue ? giveParameters.PersonGuid.Value : Guid.NewGuid(),
-                FirstName = giveParameters.FirstName,
-                LastName = giveParameters.LastName,
+                Guid = personParameters.PersonGuid.HasValue ? personParameters.PersonGuid.Value : Guid.NewGuid(),
+                FirstName = personParameters.FirstName,
+                LastName = personParameters.LastName,
                 IsEmailActive = true,
-                Email = giveParameters.Email,
+                Email = personParameters.Email,
                 EmailPreference = EmailPreference.EmailAllowed,
                 RecordTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id,
                 ConnectionStatusValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_PARTICIPANT ).Id,
@@ -896,26 +959,29 @@ namespace cc.newspring.Apollos.Rest.Controllers
             };
 
             // Create Person/Family
-            var familyGroup = PersonService.SaveNewPerson( person, rockContext, giveParameters.CampusId, false );
+            var familyGroup = PersonService.SaveNewPerson( person, rockContext, personParameters.CampusId, false );
 
-            if ( !string.IsNullOrWhiteSpace( giveParameters.PhoneNumber ) )
+            if ( !string.IsNullOrWhiteSpace( personParameters.PhoneNumber ) )
             {
                 person.PhoneNumbers.Add( new PhoneNumber()
                 {
-                    Number = giveParameters.PhoneNumber,
+                    Number = personParameters.PhoneNumber,
                     NumberTypeValueId = DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME ) ).Id
                 } );
             }
 
-            familyGroup.GroupLocations.Add( new GroupLocation()
+            if ( locationId.HasValue )
             {
-                GroupLocationTypeValueId = DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME ) ).Id,
-                LocationId = locationId
-            } );
+                familyGroup.GroupLocations.Add( new GroupLocation()
+                {
+                    GroupLocationTypeValueId = DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME ) ).Id,
+                    LocationId = locationId.Value
+                } );
+            }
 
-            if ( giveParameters.UserId.HasValue )
+            if ( personParameters.UserId.HasValue )
             {
-                var user = new UserLoginService( rockContext ).Get(giveParameters.UserId.Value);
+                var user = new UserLoginService( rockContext ).Get( personParameters.UserId.Value );
 
                 if ( !user.PersonId.HasValue )
                 {
