@@ -4,7 +4,7 @@
 
 -- Make sure you're using the right Rock database:
 
-USE Rock
+USE test
 
 /* ====================================================== */
 
@@ -25,11 +25,15 @@ DECLARE @CampusEntityTypeId int
 DECLARE @MetricCategoryEntityTypeId int
 DECLARE @CheckInAreaPurposeId int
 DECLARE @CampusLocationTypeId int
+DECLARE @SourceTypeSQLId int
 
 SELECT @BooleanFieldTypeId = [Id] FROM [FieldType] WHERE [Name] = 'Boolean'
 SELECT @GroupEntityTypeId = [Id] FROM [EntityType] WHERE [Name] = 'Rock.Model.Group'
 SELECT @CampusEntityTypeId = [Id] FROM [EntityType] WHERE [Name] = 'Rock.Model.Campus'
 SELECT @MetricCategoryEntityTypeId = [Id] FROM [EntityType] WHERE [Name] = 'Rock.Model.MetricCategory'
+
+/* Source Type: SQL */
+SELECT @SourceTypeSQLId = [Id] FROM [DefinedType] WHERE [Guid] = 'D6F323FF-6EF2-4DA7-A82C-61399AC1D798'
 
 /* Check-in Template Purpose Type */
 SELECT @CheckInAreaPurposeId = 142
@@ -145,9 +149,6 @@ BEGIN
 
 	SET @MetricParentCategoryId = SCOPE_IDENTITY()
 END
-
-
-
 
 /* ====================================================== */
 -- base check-in areas
@@ -580,7 +581,7 @@ BEGIN
 		RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
 
 		/* ====================================================== */
-		-- create the parent IF it doesn't exist
+		-- create the parent if it doesn't exist
 		/* ====================================================== */
 		SELECT @ParentAreaId = [Id] FROM GroupType
 		WHERE name = @ParentAreaName AND IsSystem = @IsSystem
@@ -602,7 +603,7 @@ BEGIN
 			VALUES (@ParentAreaId, @ParentAreaId)
 
 			/* ====================================================== */
-			-- SET default grouptype role
+			-- set default grouptype role
 			/* ====================================================== */
 			INSERT GroupTypeRole (isSystem, GroupTypeId, Name, [Order], IsLeader,
 				[Guid], CanView, CanEdit)
@@ -611,6 +612,12 @@ BEGIN
 			SELECT @DefaultRoleId = SCOPE_IDENTITY()
 
 			UPDATE grouptype SET DefaultGroupRoleId = @DefaultRoleId WHERE id = @ParentAreaId
+
+			/* ====================================================== */
+			-- create metric category for grouptype
+			/* ====================================================== */
+			INSERT [Category] (IsSystem, ParentCategoryId, EntityTypeId, EntityTypeQualifierColumn, EntityTypeQualifierValue, Name, [Guid], [Order])
+			VALUES ( @IsSystem, @MetricParentCategoryId, @MetricCategoryEntityTypeId, '', '', @ParentAreaName, NEWID(), @Order )
 		END
 
 		/* ====================================================== */
@@ -634,7 +641,7 @@ BEGIN
 		VALUES (@AreaId, @AreaId)
 
 		/* ====================================================== */
-		-- SET default grouptype role
+		-- set default grouptype role
 		/* ====================================================== */
 		INSERT GroupTypeRole (isSystem, GroupTypeId, Name, [Order], IsLeader,
 			[Guid], CanView, CanEdit)
@@ -642,7 +649,7 @@ BEGIN
 
 		SELECT @DefaultRoleId = SCOPE_IDENTITY()
 
-		UPDATE grouptype SET DefaultGroupRoleId = @DefaultRoleId WHERE id = @AreaId
+		UPDATE GroupType SET DefaultGroupRoleId = @DefaultRoleId WHERE id = @AreaId
 
 		/* ====================================================== */
 		-- create matching group
@@ -676,7 +683,7 @@ END
 /* ====================================================== */
 -- insert campus groups
 /* ====================================================== */
-DECLARE @GroupTypeName nvarchar(255), @GroupTypeId int, @GroupTypeGroupId int, 
+DECLARE @GroupTypeName nvarchar(255), @GroupTypeId int, @GroupTypeGroupId int, @GroupTypeMetricCategoryId int,
 		@GroupName nvarchar(255), @GroupId int, @LocationName nvarchar(255), @LocationId int,
 		@ParentGroupTypeName nvarchar(255), @ParentGroupTypeId int, @ParentLocationId int, @GroupLocationId int
 
@@ -689,7 +696,8 @@ BEGIN
 	
 	SELECT @GroupTypeName = '', @GroupTypeId = NULL, @GroupTypeGroupId = NULL, @LocationName = '',
 		@GroupName = '', @GroupId = NULL, @LocationName = '', @ParentGroupTypeName = '', 
-		@LocationId = NULL, @ParentGroupTypeId = NULL, @ParentLocationId = NULL, @GroupLocationId = NULL
+		@LocationId = NULL, @ParentGroupTypeId = NULL, @ParentLocationId = NULL, @GroupLocationId = NULL,
+		@GroupTypeMetricCategoryId = NULL
 
 	SELECT @GroupTypeName = groupTypeName, @GroupName = groupName, @LocationName = locationName
 	FROM #campusGroups
@@ -712,7 +720,7 @@ BEGIN
 		RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
 
 		/* ====================================================== */
-		-- create child group IF it doesn't exist
+		-- create child group if it doesn't exist
 		/* ====================================================== */
 		SELECT @GroupId = [Id] FROM [Group]
 		WHERE GroupTypeId = @GroupTypeId
@@ -740,7 +748,7 @@ BEGIN
 		AND gta.GroupTypeId <> @GroupTypeId
 
 		/* ====================================================== */
-		-- create campus level locations IF they don't exist
+		-- create campus level locations if they don't exist
 		/* ====================================================== */
 
 		SELECT @LocationId = l.[Id]
@@ -778,11 +786,48 @@ BEGIN
 		/* ====================================================== */
 		-- Create Metrics for Volunteer Groups here
 		/* ====================================================== */
+		IF @GroupTypeName LIKE '%Volunteer'
+		BEGIN
+
+			SELECT @GroupTypeMetricCategoryId = [Id] FROM Category
+			WHERE ParentCategoryId = @MetricParentCategoryId
+			AND EntityTypeId = @MetricCategoryEntityTypeId
+			AND Name = @ParentGroupTypeName
+
+			IF @GroupTypeMetricCategoryId IS NOT NULL
+			BEGIN
+				DECLARE @MetricServiceRolesId int = null, @MetricServiceRosterId int = null, @MetricTotalRolesId int = null,
+					@MetricTotalRosterId int = null, @GroupTotalUniqueId int = null
+
+				-- Group Service Roles
+				SELECT @MetricServiceRolesId = [Id] FROM Metric
+				WHERE EntityTypeId = @CampusEntityTypeId
+				AND SourceValueTypeId = @SourceTypeSQLId
+				AND Title = @GroupName + ' Service Roles'
 
 
-		/* ====================================================== */
-		-- End Create Metrics
-		/* ====================================================== */
+				-- Group Service Roster
+
+
+				-- Group Total Roles
+
+
+
+				-- Group Total Roster
+
+
+
+				-- Group Total Unique Serving
+
+
+
+			END
+			ELSE BEGIN
+				SELECT @msg = 'Could not find metric category for ' + @ParentGroupTypeName + ' / ' + @GroupName
+				RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
+			END
+		END
+		-- end create metrics	
 
 	END
 	-- end grouptype not empty
