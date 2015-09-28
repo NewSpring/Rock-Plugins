@@ -73,14 +73,14 @@ IF NOT EXISTS ( SELECT l.Id FROM Campus c INNER JOIN Location l ON c.Name = l.Na
 BEGIN
 	INSERT Location (Name, IsActive, LocationTypeValueId, [Guid])
 	SELECT name, @True, @CampusLocationTypeId, NEWID() FROM Campus
-end
+END
 
 -- match campus to locations
 UPDATE c
 SET LocationId = l.Id
 FROM Campus c
-inner join Location l
-on c.Name = l.Name
+INNER JOIN Location l
+ON c.Name = l.Name
 AND l.LocationTypeValueId = @CampusLocationTypeId
 
 
@@ -112,7 +112,7 @@ BEGIN
 	UPDATE [GroupType]
 	SET DefaultGroupRoleId = @SpecialNeedsGroupMemberId
 	WHERE [Id] = @SpecialNeedsGroupTypeId
-end
+END
 
 
 SELECT @SpecialNeedsAttributeId = Id FROM [Attribute] WHERE [Key] = 'IsSpecialNeeds' 
@@ -126,7 +126,7 @@ BEGIN
 	);
 
 	SET @SpecialNeedsAttributeId = SCOPE_IDENTITY()
-end
+END
 
 /* ====================================================== */
 -- base metric category
@@ -144,7 +144,7 @@ BEGIN
 	VALUES ( @IsSystem, NULL, @MetricCategoryEntityTypeId, '', '', @MetricParentName, NEWID(), @Order )
 
 	SET @MetricParentCategoryId = SCOPE_IDENTITY()
-end
+END
 
 
 
@@ -155,7 +155,7 @@ end
 IF object_id('tempdb..#topAreas') IS NOT NULL
 BEGIN
 	drop table #topAreas
-end
+END
 create table #topAreas (
 	ID int IDENTITY(1,1),
 	parentArea nvarchar(255),
@@ -193,7 +193,7 @@ VALUES
 IF object_id('tempdb..#campusGroups') IS NOT NULL
 BEGIN
 	drop table #campusGroups
-end
+END
 create table #campusGroups (
 	ID int IDENTITY(1,1),
 	groupTypeName nvarchar(255),
@@ -457,7 +457,7 @@ VALUES
 IF object_id('tempdb..#centralGroups') IS NOT NULL
 BEGIN
 	drop table #centralGroups
-end
+END
 create table #centralGroups (
 	ID int IDENTITY(1,1),
 	groupTypeName nvarchar(255),
@@ -504,7 +504,7 @@ DECLARE @collegeArea nvarchar(255) = 'NewSpring College',
 IF object_id('tempdb..#collegeGroups') IS NOT NULL
 BEGIN
 	drop table #collegeGroups
-end
+END
 create table #collegeGroups (
 	ID int IDENTITY(1,1),
 	groupTypeName nvarchar(255),
@@ -537,8 +537,8 @@ DELETE FROM location
 WHERE id in (
 	SELECT distinct locationId
 	FROM grouplocation gl
-	inner join [group] g
-	on gl.groupid = g.id
+	INNER JOIN [group] g
+	ON gl.groupid = g.id
 	AND g.GroupTypeId in (14, 18, 19, 20, 21, 22, 24, 26)
 )
 
@@ -611,7 +611,7 @@ BEGIN
 			SELECT @DefaultRoleId = SCOPE_IDENTITY()
 
 			UPDATE grouptype SET DefaultGroupRoleId = @DefaultRoleId WHERE id = @ParentAreaId
-		end
+		END
 
 		/* ====================================================== */
 		-- create the child grouptype
@@ -664,13 +664,13 @@ BEGIN
 			SELECT c.LocationId, @ParentAreaName, 1, NEWID()
 			FROM Campus c
 			WHERE c.IsActive = @True
-		end
+		END
 
-	end
+	END
 	-- end empty area name
 
 	SELECT @scopeIndex = @scopeIndex + 1
-end
+END
 -- end check-in config areas
 
 /* ====================================================== */
@@ -700,8 +700,8 @@ BEGIN
 	/* ====================================================== */
 	SELECT @GroupTypeId = gt.[Id], @GroupTypeGroupId = g.[Id]
 	FROM GroupType gt
-	inner join [Group] g
-	on gt.id = g.GroupTypeId
+	INNER JOIN [Group] g
+	ON gt.id = g.GroupTypeId
 	AND gt.name = @GroupTypeName
 	AND g.name = @GroupTypeName
 	
@@ -727,15 +727,15 @@ BEGIN
 
 			SELECT @GroupId = SCOPE_IDENTITY()
 			SELECT @Order = @Order + 1
-		end
+		END
 
 		/* ====================================================== */
 		-- get parent grouptype name
 		/* ====================================================== */
 		SELECT @ParentGroupTypeName = gt.[Name], @ParentGroupTypeId = gt.[Id]
 		FROM GroupType gt
-		inner join GroupTypeAssociation gta
-		on gt.Id = gta.GroupTypeId
+		INNER JOIN GroupTypeAssociation gta
+		ON gt.Id = gta.GroupTypeId
 		AND gta.ChildGroupTypeId = @GroupTypeId
 		AND gta.GroupTypeId <> @GroupTypeId
 
@@ -745,8 +745,8 @@ BEGIN
 
 		SELECT @LocationId = l.[Id]
 		FROM Location l
-		inner join Location l2
-		on l.ParentLocationId = l2.Id
+		INNER JOIN Location l2
+		ON l.ParentLocationId = l2.Id
 		WHERE l.name = @LocationName 
 		AND l2.name = @ParentGroupTypeName
 
@@ -756,11 +756,11 @@ BEGIN
 			INSERT Location (ParentLocationId, Name, IsActive, [Guid])
 			SELECT l.Id, @LocationName, 1, NEWID()
 			FROM Location l
-			inner join Campus c
-			on c.LocationId = l.ParentLocationId
+			INNER JOIN Campus c
+			ON c.LocationId = l.ParentLocationId
 			AND l.Name = @ParentGroupTypeName
 			WHERE c.IsActive = @True
-		end
+		END
 
 		/* ====================================================== */
 		-- NOTE: either the group or the location was just created,
@@ -769,8 +769,8 @@ BEGIN
 		INSERT GroupLocation (Groupid, LocationId, IsMailingLocation, IsMappedLocation, [Guid])
 		SELECT @GroupId, l.Id, @False, @False, NEWID()
 		FROM Location l
-		inner join Location pl
-		on l.ParentLocationId = pl.Id
+		INNER JOIN Location pl
+		ON l.ParentLocationId = pl.Id
 		AND pl.Name = @ParentGroupTypeName
 		AND l.name = @LocationName
 
@@ -784,11 +784,11 @@ BEGIN
 		-- End Create Metrics
 		/* ====================================================== */
 
-	end
+	END
 	-- end grouptype not empty
 
 	SELECT @campusGroupId = @campusGroupid + 1
-end
+END
 -- end campus groups
 
 /* ====================================================== */
@@ -841,8 +841,8 @@ BEGIN
 		/* ====================================================== */
 		SELECT @GroupTypeId = gt.[Id], @GroupTypeGroupId = g.[Id]
 		FROM GroupType gt
-		inner join [Group] g
-		on gt.id = g.GroupTypeId
+		INNER JOIN [Group] g
+		ON gt.id = g.GroupTypeId
 		AND gt.name = @GroupTypeName
 		AND g.name = @GroupTypeName
 
@@ -863,15 +863,15 @@ BEGIN
 			SELECT @IsSystem, @GroupTypeGroupId, @GroupTypeId, @GroupName, @GroupName + ' Group', 0, 1, @scopeIndex, NEWID()
 
 			SELECT @GroupId = SCOPE_IDENTITY()
-		end
+		END
 
 		/* ====================================================== */
 		-- get parent grouptype name
 		/* ====================================================== */
 		SELECT @ParentGroupTypeName = gt.[Name], @ParentGroupTypeId = gt.[Id]
 		FROM GroupType gt
-		inner join GroupTypeAssociation gta
-		on gt.Id = gta.GroupTypeId
+		INNER JOIN GroupTypeAssociation gta
+		ON gt.Id = gta.GroupTypeId
 		AND gta.ChildGroupTypeId = @GroupTypeId
 		AND gta.GroupTypeId <> @GroupTypeId
 
@@ -888,7 +888,7 @@ BEGIN
 			SELECT @CampusLocationId, @ParentGroupTypeName, @True, NEWID()
 
 			SELECT @ParentLocationId = SCOPE_IDENTITY()
-		end
+		END
 
 		SELECT @LocationId = [Id] FROM Location
 		WHERE Name = @LocationName
@@ -900,7 +900,7 @@ BEGIN
 			SELECT @ParentLocationId, @LocationName, @True, NEWID()
 
 			SELECT @LocationId = SCOPE_IDENTITY()
-		end
+		END
 
 		/* ====================================================== */
 		-- insert group location
@@ -908,11 +908,11 @@ BEGIN
 		INSERT GroupLocation (Groupid, LocationId, IsMailingLocation, IsMappedLocation, [Guid])
 		SELECT @GroupId, @LocationId, @False, @False, NEWID()
 			
-	end
+	END
 	-- end name not empty	
 
 	SET @scopeIndex = @scopeIndex + 1
-end
+END
 -- end central
 
 /* ====================================================== */
@@ -987,7 +987,7 @@ BEGIN
 	SELECT @IsSystem, NULL, @AreaId, @CollegeName, @CollegeName, @False, @True, 0, NEWID(), @True
 
 	SELECT @AreaGroupId = SCOPE_IDENTITY()
-end
+END
 
 /* ====================================================== */
 -- create top-level college location
@@ -1031,10 +1031,10 @@ BEGIN
 
 		INSERT GroupLocation (Groupid, LocationId, IsMailingLocation, IsMappedLocation, [Guid])
 		SELECT @GroupId, @LocationId, @False, @False, NEWID()
-	end	
+	END	
 
 	SET @scopeIndex = @scopeIndex + 1
-end
+END
 -- end college		
 
 use master
