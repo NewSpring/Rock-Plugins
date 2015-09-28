@@ -2429,7 +2429,7 @@ begin
 				-- Create schedule attribute
 				if @ScheduleName is not null and @ScheduleName <> ''
 				begin
-					declare @currentSchedule nvarchar(250) = null, @newSchedule nvarchar(250) = null
+					declare @currentSchedule nvarchar(255) = null, @newSchedule nvarchar(255) = null
 					select @newSchedule = dvGuid from #schedules where scheduleF1 = @ScheduleName
 
 					if @newSchedule is not null
@@ -2444,7 +2444,7 @@ begin
 						else 
 						begin
 							update AttributeValue
-							set Value = convert(nvarchar(50), @newSchedule) + ',' + convert(nvarchar(50), @currentSchedule)
+							set Value = convert(nvarchar(255), @newSchedule) + ',' + convert(nvarchar(255), @currentSchedule)
 							from AttributeValue where AttributeId = @ScheduleAttributeId and EntityId = @GroupMemberId
 						end
 					end
@@ -2469,14 +2469,14 @@ begin
 						else 
 						begin
 							update AttributeValue
-							set Value = convert(nvarchar(50), @BreakoutGroup) + ',' + convert(nvarchar(50), @currentTag)
+							set Value = convert(nvarchar(255), @BreakoutGroup) + ',' + convert(nvarchar(255), @currentTag)
 							from AttributeValue where AttributeId = @BreakoutGroupAttributeId and EntityId = @PersonId
 						end
 					end
 					-- this is a volunteer breakout, assign them a team connector
 					else 
 					begin
-						declare @currentConnector nvarchar(250) = null, @newConnector nvarchar(250) = null
+						declare @currentConnector nvarchar(255) = null, @newConnector nvarchar(255) = null
 						select @newConnector = [Guid] from DefinedValue where DefinedTypeId = @TeamConnectorTypeId 
 							and Value = @BreakoutGroup
 
@@ -2492,7 +2492,7 @@ begin
 							else 
 							begin
 								update AttributeValue
-								set Value = convert(nvarchar(50), @newConnector) + ',' + convert(nvarchar(50), @currentConnector)
+								set Value = convert(nvarchar(255), @newConnector) + ',' + convert(nvarchar(255), @currentConnector)
 								from AttributeValue where AttributeId = @TeamConnectorAttributeId and EntityId = @GroupMemberId
 							end
 						end
