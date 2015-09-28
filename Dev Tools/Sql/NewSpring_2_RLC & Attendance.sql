@@ -146,7 +146,9 @@ select distinct Staffing_Schedule_Name, case
 		then '4:00 PM'
 	when Staffing_Schedule_Name = '6:00' 
 		then '6:00 PM'
-	when Staffing_Schedule_Name = 'Base Schedule' 
+	when Staffing_Schedule_Name = 'Base Schedule'
+		then null
+	when Staffing_Schedule_Name like 'Every Other%'
 		then null
 	else Staffing_Schedule_Name
 	end as 'schedule'
