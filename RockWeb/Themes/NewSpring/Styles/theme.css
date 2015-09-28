@@ -6660,6 +6660,7 @@ table tr td {
 }
 #content-wrapper .container {
   max-width: 1400px;
+  margin: 0 auto;
 }
 #content-wrapper .table thead th,
 #content-wrapper .table thead a {
@@ -7014,6 +7015,40 @@ body#splash.error #content #logo {
   color: #ffffff;
   z-index: 1001;
   opacity: 1;
+}
+.shell {
+  padding: 80px 80px 60px;
+}
+.push--top {
+  margin-top: 20px;
+}
+.row--fullscreen {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 40px;
+}
+.row--fullscreen:before {
+  float: none;
+  content: '';
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+  margin-right: -0.25em;
+}
+.row--fullscreen:after {
+  display: none;
+}
+.row--fullscreen .align--middle {
+  float: none;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: -4px;
+}
+.push--bottom {
+  margin-bottom: 20px;
 }
 /*#endregion */
 /*#endregion */

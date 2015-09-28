@@ -26,7 +26,7 @@ using Rock.Data;
 using Rock.Model;
 using RockFramework = Rock;
 
-namespace RockWeb.Themes.NewSpring.Layouts
+namespace RockWeb.Themes.KidSpring.Layouts
 {
     public partial class Error : System.Web.UI.Page
     {
@@ -58,12 +58,6 @@ namespace RockWeb.Themes.NewSpring.Layouts
                     }
                     catch { }
                 }
-
-                if ( showDetails )
-                {
-                    lErrorInfo.Text = "<h3>Exception Log:</h3>";
-                    ProcessException( ex, " " );
-                }
             }
         }
 
@@ -74,12 +68,15 @@ namespace RockWeb.Themes.NewSpring.Layouts
         /// <param name="exLevel">The ex level.</param>
         private void ProcessException( Exception ex, string exLevel )
         {
+            lErrorInfo.Text += "<div class=\"collapse\" id=\"collapseExample\">";
+            lErrorInfo.Text += "<div class=\"well\">";
             lErrorInfo.Text += "<div class=\"alert alert-danger\">";
             lErrorInfo.Text += "<h4>" + exLevel + ex.GetType().Name + " in " + ex.Source + "</h3>";
             lErrorInfo.Text += "<p><strong>Message</strong><br>" + ex.Message + "</p>";
             lErrorInfo.Text += "<p><strong>Stack Trace</strong><br><pre>" + ex.StackTrace + "</pre></p>";
             lErrorInfo.Text += "</div>";
-
+            lErrorInfo.Text += "</div>";
+            lErrorInfo.Text += "</div>";
             // check for inner exception
             if ( ex.InnerException != null )
             {

@@ -85,6 +85,13 @@ and gl.groupid in (
 	select id from #groups
 )
 
+-- delete group attributes
+delete from [attribute]
+where entitytypeid = 90
+and EntityTypeQualifierValue in (
+	select id from #grouptypes
+)
+
 -- delete groups
 delete from [group]
 where parentgroupid in  (

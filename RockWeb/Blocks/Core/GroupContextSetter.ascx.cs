@@ -15,6 +15,7 @@
 // </copyright>
 //
 using System;
+using System.Runtime.Caching;
 using System.ComponentModel;
 using System.Linq;
 using System.Web;
@@ -46,6 +47,11 @@ namespace RockWeb.Blocks.Core
         {
             base.OnInit( e );
 
+            if ( Request.QueryString["groupId"] != null )
+            {
+                SetGroupContext();
+            }
+        
             // this event gets fired after block settings are updated. it's nice to repaint the screen if these settings would alter it
             this.BlockUpdated += Block_BlockUpdated;
             this.AddConfigurationUpdateTrigger( upnlContent );
@@ -58,10 +64,40 @@ namespace RockWeb.Blocks.Core
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
-
+            
             if ( !Page.IsPostBack )
             {
                 LoadDropDowns();
+            }
+        }
+
+        private void SetContextUrlCookie()
+        {
+            HttpCookie cookieUrl = new HttpCookie( "Rock.Group.Context.Query" );
+            cookieUrl["groupId"] = Request.QueryString["groupId"].ToString();
+            cookieUrl.Expires = DateTime.Now.AddHours( 1 );
+            Response.Cookies.Add( cookieUrl );
+        }
+
+        private void SetGroupContext()
+        {
+            var groupContextQuery = Request.QueryString["groupId"];
+
+            if ( groupContextQuery != null )
+            {
+
+                bool pageScope = GetAttributeValue( "ContextScope" ) == "Page";
+                var group = new GroupService( new RockContext() ).Get( groupContextQuery.ToString().AsInteger() );
+                if ( group != null )
+                {
+                    HttpCookie cookieUrl = Request.Cookies["Rock.Group.Context.Query"];
+
+                    if ( cookieUrl == null || Request.QueryString["groupId"].ToString() != cookieUrl.Value.Replace( "groupId=", "" ) )
+                    {
+                        SetContextUrlCookie();
+                        RockPage.SetContextCookie( group, pageScope, true );
+                    }
+                }
             }
         }
 
@@ -73,6 +109,8 @@ namespace RockWeb.Blocks.Core
             var parts = ( GetAttributeValue( "GroupFilter" ) ?? string.Empty ).Split( '|' );
             Guid? groupTypeGuid = null;
             Guid? rootGroupGuid = null;
+
+           
             if ( parts.Length >= 1 )
             {
                 groupTypeGuid = parts[0].AsGuidOrNull();
@@ -83,8 +121,8 @@ namespace RockWeb.Blocks.Core
             }
 
             var groupEntityType = EntityTypeCache.Read( "Rock.Model.Group" );
+            
             var defaultGroup = RockPage.GetCurrentContext( groupEntityType ) as Group;
-
             var groupService = new GroupService( new RockContext() );
             IQueryable<Group> qryGroups = null;
 
@@ -146,7 +184,15 @@ namespace RockWeb.Blocks.Core
             var group = new GroupService( new RockContext() ).Get( e.CommandArgument.ToString().AsInteger() );
             if ( group != null )
             {
-                RockPage.SetContextCookie( group, pageScope, true );
+
+                var nameValues = HttpUtility.ParseQueryString( Request.QueryString.ToString() );
+                nameValues.Set( "groupId", group.Id.ToString() );
+                string url = Request.Url.AbsolutePath;
+                string updatedQueryString = "?" + nameValues.ToString();
+
+                RockPage.SetContextCookie( group, pageScope, false );
+
+                Response.Redirect( url + updatedQueryString );
             }
         }
 

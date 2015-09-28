@@ -18,9 +18,11 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.Caching;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -45,6 +47,18 @@ namespace RockWeb.Blocks.Core
     {
         #region Base Control Methods
 
+        protected override void OnInit( EventArgs e )
+        {
+            base.OnInit( e );
+
+            if ( Request.QueryString["campusId"] != null )
+            {
+                SetCampusContext();
+            }
+
+            
+        }
+
         /// <summary>
         /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
         /// </summary>
@@ -59,13 +73,44 @@ namespace RockWeb.Blocks.Core
             }
         }
 
+        private void SetContextUrlCookie()
+        {
+            HttpCookie cookieUrl = new HttpCookie( "Rock.Campus.Context.Query" );
+            cookieUrl["campusId"] = Request.QueryString["campusId"].ToString();
+            cookieUrl.Expires = DateTime.Now.AddHours( 1 );
+            Response.Cookies.Add( cookieUrl );
+        }
+
+        private void SetCampusContext()
+        {
+            
+            var campusContextQuery = Request.QueryString["campusId"];
+
+            if ( campusContextQuery != null )
+            {
+                bool pageScope = GetAttributeValue( "ContextScope" ) == "Page";
+                var campus = new CampusService( new RockContext() ).Get( campusContextQuery.ToString().AsInteger() );
+                if ( campus != null )
+                {
+                    HttpCookie cookieUrl = Request.Cookies["Rock.Campus.Context.Query"];
+
+                    if ( cookieUrl == null || Request.QueryString["campusId"].ToString() != cookieUrl.Value.Replace( "campusId=", "" ) )
+                    {
+                        SetContextUrlCookie();
+                        RockPage.SetContextCookie( campus, pageScope, true );
+                    }
+                }
+            }
+            
+        }
+
         /// <summary>
         /// Loads the drop downs.
         /// </summary>
         private void LoadDropDowns()
         {
             Dictionary<string, object> mergeObjects = new Dictionary<string, object>();
-            
+
             var campusEntityType = EntityTypeCache.Read( "Rock.Model.Campus" );
             var defaultCampus = RockPage.GetCurrentContext( campusEntityType ) as Campus;
 
@@ -111,7 +156,16 @@ namespace RockWeb.Blocks.Core
             var campus = new CampusService( new RockContext() ).Get( e.CommandArgument.ToString().AsInteger() );
             if ( campus != null )
             {
-                RockPage.SetContextCookie( campus, pageScope, true );
+                var campusId = e.CommandArgument;
+
+                var nameValues = HttpUtility.ParseQueryString( Request.QueryString.ToString() );
+                nameValues.Set( "campusId", campusId.ToString() );
+                string url = Request.Url.AbsolutePath;
+                string updatedQueryString = "?" + nameValues.ToString();
+
+                RockPage.SetContextCookie( campus, pageScope, false );
+                
+                Response.Redirect( url + updatedQueryString );
             }
         }
 
