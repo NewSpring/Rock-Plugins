@@ -22,6 +22,7 @@ DECLARE @Order int = 0
 DECLARE @BooleanFieldTypeId int
 DECLARE @GroupEntityTypeId int
 DECLARE @CampusEntityTypeId int
+DECLARE @ScheduleEntityTypeId int
 DECLARE @MetricCategoryEntityTypeId int
 DECLARE @CheckInAreaPurposeId int
 DECLARE @CampusLocationTypeId int
@@ -30,6 +31,7 @@ DECLARE @SourceTypeSQLId int
 SELECT @BooleanFieldTypeId = [Id] FROM [FieldType] WHERE [Name] = 'Boolean'
 SELECT @GroupEntityTypeId = [Id] FROM [EntityType] WHERE [Name] = 'Rock.Model.Group'
 SELECT @CampusEntityTypeId = [Id] FROM [EntityType] WHERE [Name] = 'Rock.Model.Campus'
+SELECT @ScheduleEntityTypeId = [Id] FROM [EntityType] WHERE [Name] = 'Rock.Model.Schedule'
 SELECT @MetricCategoryEntityTypeId = [Id] FROM [EntityType] WHERE [Name] = 'Rock.Model.MetricCategory'
 
 /* Source Type: SQL */
@@ -133,11 +135,15 @@ BEGIN
 END
 
 /* ====================================================== */
--- base metric category
+-- metric category and schedules
 /* ====================================================== */
-DECLARE @MetricParentCategoryId int
-DECLARE @MetricParentName VARCHAR(255) = 'Volunteer Metrics'
+DECLARE @MetricParentCategoryId int, @MetricScheduleCategoryId int, 
+	@MetricScheduleId int, @MetricParentName varchar(255), 
+	@MetricScheduleCategory varchar(255), @MetriciCalSchedule nvarchar(max)
 
+SELECT @MetricParentName = 'Volunteer Groups', @MetricScheduleCategory = 'Metrics'
+
+-- create parent category
 SELECT @MetricParentCategoryId = [Id] FROM [Category]
 WHERE EntityTypeId = @MetricCategoryEntityTypeId
 AND Name = @MetricParentName
@@ -148,6 +154,48 @@ BEGIN
 	VALUES ( @IsSystem, NULL, @MetricCategoryEntityTypeId, '', '', @MetricParentName, NEWID(), @Order )
 
 	SET @MetricParentCategoryId = SCOPE_IDENTITY()
+END
+
+SELECT @MetricScheduleCategoryId = [Id] FROM [Category]
+WHERE EntityTypeId = @ScheduleEntityTypeId
+AND Name = @MetricScheduleCategory
+
+-- create schedule category
+IF @MetricScheduleCategoryId IS NULL
+BEGIN
+	INSERT [Category] (IsSystem, ParentCategoryId, EntityTypeId, EntityTypeQualifierColumn, EntityTypeQualifierValue, Name, [Guid], [Order])
+	VALUES ( @IsSystem, NULL, @ScheduleEntityTypeId, '', '', @MetricScheduleCategory, NEWID(), @Order )
+
+	SET @MetricScheduleCategoryId = SCOPE_IDENTITY()
+END
+
+-- create the metric schedule
+SELECT @MetricScheduleId = [Id] FROM Schedule
+WHERE CategoryId = @MetricScheduleCategoryId
+AND Name = @MetricParentName
+
+IF @MetricScheduleId IS NULL
+BEGIN
+
+	SELECT @MetriciCalSchedule = N'
+		BEGIN:VCALENDAR
+		VERSION:2.0
+		PRODID:-//ddaysoftware.com//NONSGML DDay.iCal 1.0//EN
+		BEGIN:VEVENT
+		DTEND:20150928T020001
+		DTSTAMP:20150928T201239Z
+		DTSTART:20150928T020000
+		RRULE:FREQ=WEEKLY;BYDAY=MO
+		SEQUENCE:0
+		UID:4bb6f790-4761-447d-bff8-22c2ca3bef05
+		END:VEVENT
+		END:VCALENDAR'
+	
+	INSERT [Schedule] (Name, [Description], iCalendarContent, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
+	SELECT 'Metric Schedule', 'The job schedule to run group metrics', @MetriciCalSchedule, GETDATE(), GETDATE(), @MetricScheduleCategoryId, NEWID()
+
+	SELECT @MetricScheduleId = SCOPE_IDENTITY()
+
 END
 
 /* ====================================================== */
@@ -689,10 +737,7 @@ DECLARE @MetricServiceRolesId int = null, @MetricServiceRosterId int = null, @Me
 	@MetricTotalRosterId int = null, @MetricUniqueServingId int = null, @MetricServiceRolesSQL nvarchar(max), 
 	@MetricServiceRosterSQL nvarchar(max), @MetricTotalRolesSQL nvarchar(max), @MetricTotalRosterSQL nvarchar(max),
 	@MetricUniqueServingSQL nvarchar(max), @ServiceRolesTitle varchar(255), @ServiceRosterTitle varchar(255), 
-	@TotalRolesTitle varchar(255), @TotalRosterTitle varchar(255), @UniqueServingTitle varchar(255), @MetricScheduleId int
-
--- create the metric schedule
-
+	@TotalRolesTitle varchar(255), @TotalRosterTitle varchar(255), @UniqueServingTitle varchar(255)
 
 -- metric title names used for the group
 SELECT @ServiceRolesTitle = 'Service Roles', @ServiceRosterTitle = 'Service Roster', @TotalRolesTitle = 'Total Roles',
@@ -700,6 +745,14 @@ SELECT @ServiceRolesTitle = 'Service Roles', @ServiceRosterTitle = 'Service Rost
 
 -- sql statements used for every group metric
 
+-- Service Roles
+SELECT @MetricServiceRolesSQL = N'
+
+
+
+'
+
+-- Service Roster
 SELECT @MetricServiceRosterSQL = N'
 	/* ====================================================================== */
 	-- Returns GroupMember, Campus, and Service numbers from the previous day
@@ -752,6 +805,14 @@ SELECT @MetricServiceRosterSQL = N'
 	ORDER BY Campus.Id, Schedule.Value
 '
 
+-- Total Roles
+SELECT @MetricTotalRolesSQL = N'
+
+
+
+'
+
+-- Total Roster
 SELECT @MetricTotalRosterSQL = N'
 	/* ====================================================================== */
 	-- Returns total GroupMember numbers by Campus from the previous day
@@ -778,6 +839,13 @@ SELECT @MetricTotalRosterSQL = N'
 		AND GM.GroupMemberStatus = 1
 	GROUP BY Campus.Id
 	ORDER BY Campus.Id
+'
+
+-- Total Unique Serving
+SELECT @MetricUniqueServingSQL = N'
+
+
+
 '
 
 
