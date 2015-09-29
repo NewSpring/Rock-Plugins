@@ -618,6 +618,7 @@ BEGIN
 			/* ====================================================== */
 			INSERT [Category] (IsSystem, ParentCategoryId, EntityTypeId, EntityTypeQualifierColumn, EntityTypeQualifierValue, Name, [Guid], [Order])
 			VALUES ( @IsSystem, @MetricParentCategoryId, @MetricCategoryEntityTypeId, '', '', @ParentAreaName, NEWID(), @Order )
+
 		END
 
 		/* ====================================================== */
@@ -681,11 +682,111 @@ END
 -- end check-in config areas
 
 /* ====================================================== */
+-- set up metrics for the group
+/* ====================================================== */
+
+DECLARE @MetricServiceRolesId int = null, @MetricServiceRosterId int = null, @MetricTotalRolesId int = null,
+	@MetricTotalRosterId int = null, @MetricUniqueServingId int = null, @MetricServiceRolesSQL nvarchar(max), 
+	@MetricServiceRosterSQL nvarchar(max), @MetricTotalRolesSQL nvarchar(max), @MetricTotalRosterSQL nvarchar(max),
+	@MetricUniqueServingSQL nvarchar(max), @ServiceRolesTitle varchar(255), @ServiceRosterTitle varchar(255), 
+	@TotalRolesTitle varchar(255), @TotalRosterTitle varchar(255), @UniqueServingTitle varchar(255), @MetricScheduleId int
+
+-- create the metric schedule
+
+
+-- metric title names used for the group
+SELECT @ServiceRolesTitle = 'Service Roles', @ServiceRosterTitle = 'Service Roster', @TotalRolesTitle = 'Total Roles',
+	@TotalRosterTitle = 'Total Roster', @UniqueServingTitle = 'Unique Serving'
+
+-- sql statements used for every group metric
+
+SELECT @MetricServiceRosterSQL = N'
+	/* ====================================================================== */
+	-- Returns GroupMember, Campus, and Service numbers from the previous day
+	-- When no schedule exists, returns a timestamp of 00:00:00
+	/* ====================================================================== */
+	SELECT COUNT(1) AS Value, Campus.Id AS EntityId, 
+		DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0) + LEFT(ISNULL(Schedule.Value, ''00:00''), 5) AS ScheduleDate
+	FROM GroupMember GM
+	INNER JOIN [Group] G
+		ON GM.GroupId = G.Id
+	-- Filter by Campus
+	LEFT JOIN (
+		SELECT AV.EntityId AS MemberId, C.Id
+		FROM [Attribute] CA
+		INNER JOIN AttributeValue AV
+			ON AV.AttributeId = CA.Id
+			AND CA.[Key] = ''Campus''
+			AND CA.EntityTypeQualifierColumn = ''GroupTypeId''
+			AND CA.EntityTypeQualifierValue = {{GroupTypeId}}
+		LEFT JOIN Campus C
+			ON AV.Value = C.[Guid]
+	) Campus
+		ON GM.Id = Campus.MemberId
+	-- Filter by Schedule
+	LEFT JOIN (
+		SELECT AV.EntityId, DV.Value
+		FROM DefinedValue DV
+		LEFT JOIN (
+			SELECT EntityId, r.value(''.'', ''VARCHAR(255)'') AS Schedule
+			FROM (
+				-- Denormalize the comma-delimited GUID string
+				SELECT Value, EntityId, CAST(''<n>'' + REPLACE(Value, '','', ''</n><n>'') + ''</n>'' AS XML) AS Schedules
+				FROM [Attribute] SA
+				INNER JOIN AttributeValue AV
+					ON AV.AttributeId = SA.Id
+					AND SA.[Key] = ''Schedule''
+					AND SA.EntityTypeQualifierColumn = ''GroupTypeId''
+					AND SA.EntityTypeQualifierValue = {{GroupTypeId}}
+			) AS nodes 
+			-- Parse the xml as a table (for joining)
+			CROSS APPLY Schedules.nodes(''n'') AS parse(r)		
+		) AV 
+		ON AV.Schedule = DV.[Guid]
+		WHERE EntityId IS NOT NULL
+	) Schedule
+		ON GM.Id = Schedule.EntityId
+	WHERE GM.GroupId = {{GroupId}}
+		AND GM.GroupMemberStatus = 1
+	GROUP BY Campus.Id, Schedule.Value
+	ORDER BY Campus.Id, Schedule.Value
+'
+
+SELECT @MetricTotalRosterSQL = N'
+	/* ====================================================================== */
+	-- Returns total GroupMember numbers by Campus from the previous day
+	-- Returns a timestamp of 00:00:00 since this is by total and not service
+	/* ====================================================================== */
+	SELECT COUNT(1) AS Value, Campus.Id AS EntityId, DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0) + ''00:00'' AS ScheduleDate
+	FROM GroupMember GM
+	INNER JOIN [Group] G
+		ON GM.GroupId = G.Id
+	-- Filter by Campus
+	LEFT JOIN (
+		SELECT AV.EntityId AS MemberId, C.Id
+		FROM [Attribute] CA
+		INNER JOIN AttributeValue AV
+			ON AV.AttributeId = CA.Id
+			AND CA.[Key] = ''Campus''
+			AND CA.EntityTypeQualifierColumn = ''GroupTypeId''
+			AND CA.EntityTypeQualifierValue = {{GroupTypeId}}
+		LEFT JOIN Campus C
+			ON AV.Value = C.[Guid]
+	) Campus
+		ON GM.Id = Campus.MemberId	
+	WHERE GM.GroupId = {{GroupId}}
+		AND GM.GroupMemberStatus = 1
+	GROUP BY Campus.Id
+	ORDER BY Campus.Id
+'
+
+
+/* ====================================================== */
 -- insert campus groups
 /* ====================================================== */
-DECLARE @GroupTypeName nvarchar(255), @GroupTypeId int, @GroupTypeGroupId int, @GroupTypeMetricCategoryId int,
-		@GroupName nvarchar(255), @GroupId int, @LocationName nvarchar(255), @LocationId int,
-		@ParentGroupTypeName nvarchar(255), @ParentGroupTypeId int, @ParentLocationId int, @GroupLocationId int
+DECLARE @GroupTypeName nvarchar(255), @GroupTypeId int, @GroupTypeGroupId int, @MetricGroupTypeCategoryId int,
+	@GroupName nvarchar(255), @GroupId int, @LocationName nvarchar(255), @LocationId int,
+	@ParentGroupTypeName nvarchar(255), @ParentGroupTypeId int, @ParentLocationId int, @GroupLocationId int
 
 DECLARE @campusGroupId int, @numCampusGroups int
 SELECT @campusGroupId = min(Id) FROM #campusGroups
@@ -697,7 +798,7 @@ BEGIN
 	SELECT @GroupTypeName = '', @GroupTypeId = NULL, @GroupTypeGroupId = NULL, @LocationName = '',
 		@GroupName = '', @GroupId = NULL, @LocationName = '', @ParentGroupTypeName = '', 
 		@LocationId = NULL, @ParentGroupTypeId = NULL, @ParentLocationId = NULL, @GroupLocationId = NULL,
-		@GroupTypeMetricCategoryId = NULL
+		@MetricGroupTypeCategoryId = NULL
 
 	SELECT @GroupTypeName = groupTypeName, @GroupName = groupName, @LocationName = locationName
 	FROM #campusGroups
@@ -789,37 +890,135 @@ BEGIN
 		IF @GroupTypeName LIKE '%Volunteer'
 		BEGIN
 
-			SELECT @GroupTypeMetricCategoryId = [Id] FROM Category
+			SELECT @MetricGroupTypeCategoryId = [Id] FROM Category
 			WHERE ParentCategoryId = @MetricParentCategoryId
-			AND EntityTypeId = @MetricCategoryEntityTypeId
-			AND Name = @ParentGroupTypeName
+				AND EntityTypeId = @MetricCategoryEntityTypeId
+				AND Name = @ParentGroupTypeName
 
-			IF @GroupTypeMetricCategoryId IS NOT NULL
+			IF @MetricGroupTypeCategoryId IS NOT NULL
 			BEGIN
-				DECLARE @MetricServiceRolesId int = null, @MetricServiceRosterId int = null, @MetricTotalRolesId int = null,
-					@MetricTotalRosterId int = null, @GroupTotalUniqueId int = null
+				-- reset metric lookup variables
+				SELECT @MetricServiceRolesId = NULL, @MetricServiceRosterId = NULL, @MetricTotalRolesId = NULL,
+					@MetricTotalRosterId = NULL, @MetricUniqueServingId = NULL
 
-				-- Group Service Roles
+				-- update the metric queries with the current GroupTypeId and GroupId
+				SELECT @MetricServiceRolesSQL = REPLACE(REPLACE(@MetricTotalRolesSQL, '{{GroupTypeId}}', @GroupTypeId), '{{GroupId}}', @GroupId )
+				SELECT @MetricServiceRosterSQL = REPLACE(REPLACE(@MetricTotalRolesSQL, '{{GroupTypeId}}', @GroupTypeId), '{{GroupId}}', @GroupId )
+				SELECT @MetricTotalRolesSQL = REPLACE(REPLACE(@MetricTotalRolesSQL, '{{GroupTypeId}}', @GroupTypeId), '{{GroupId}}', @GroupId )
+				SELECT @MetricTotalRosterSQL = REPLACE(REPLACE(@MetricTotalRosterSQL, '{{GroupTypeId}}', @GroupTypeId), '{{GroupId}}', @GroupId )
+				SELECT @MetricUniqueServingSQL = REPLACE(REPLACE(@MetricUniqueServingSQL, '{{GroupTypeId}}', @GroupTypeId), '{{GroupId}}', @GroupId )
+
+				/* ============================ */
+				-- {Group} Service Roles
+				/* ============================ */
 				SELECT @MetricServiceRolesId = [Id] FROM Metric
 				WHERE EntityTypeId = @CampusEntityTypeId
-				AND SourceValueTypeId = @SourceTypeSQLId
-				AND Title = @GroupName + ' Service Roles'
+					AND SourceValueTypeId = @SourceTypeSQLId
+					AND Title = @GroupName + ' ' + @ServiceRolesTitle
 
+				-- create if it doesn't exist
+				IF @MetricServiceRolesId IS NULL
+				BEGIN
+					INSERT [Metric] (IsSystem, Title, [Description], IsCumulative, SourceValueTypeId, SourceSql, XAxisLabel, YAxisLabel, ScheduleId, EntityTypeId, [Guid])
+					VALUES ( 0, @GroupName + ' ' + @ServiceRolesTitle, 'Metric to track ' + @GroupName + ' roles by campus and service', @False, 
+						@SourceTypeSQLId, @MetricServiceRolesSQL, '', '', @MetricScheduleId, @CampusEntityTypeId, NEWID() )
 
-				-- Group Service Roster
+					SELECT @MetricServiceRolesId = SCOPE_IDENTITY()
 
+					INSERT [MetricCategory] (MetricId, CategoryId, [Order], [Guid])
+					VALUES ( @MetricServiceRolesId, @MetricGroupTypeCategoryId, @Order, NEWID() )
+				END
 
-				-- Group Total Roles
+				/* ============================ */
+				-- {Group} Service Roster
+				/* ============================ */
+				SELECT @MetricServiceRosterId = [Id] FROM Metric
+				WHERE EntityTypeId = @CampusEntityTypeId
+					AND SourceValueTypeId = @SourceTypeSQLId
+					AND Title = @GroupName + ' ' + @ServiceRosterTitle
 
+				-- create if it doesn't exist
+				IF @MetricServiceRosterId IS NULL
+				BEGIN
+					INSERT [Metric] (IsSystem, Title, [Description], IsCumulative, SourceValueTypeId, SourceSql, XAxisLabel, YAxisLabel, ScheduleId, EntityTypeId, [Guid])
+					VALUES ( 0, @GroupName + ' ' + @ServiceRosterTitle, 'Metric to track ' + @GroupName + ' roster by campus and service', @False, 
+						@SourceTypeSQLId, @MetricServiceRosterSQL, '', '', @MetricScheduleId, @CampusEntityTypeId, NEWID() )
 
+					SELECT @MetricServiceRosterId = SCOPE_IDENTITY()
 
-				-- Group Total Roster
+					INSERT [MetricCategory] (MetricId, CategoryId, [Order], [Guid])
+					VALUES ( @MetricServiceRosterId, @MetricGroupTypeCategoryId, @Order, NEWID() )
+				END
 
+				/* ============================ */
+				-- {Group} Total Roles
+				/* ============================ */
+				SELECT @MetricTotalRolesId = [Id] FROM Metric
+				WHERE EntityTypeId = @CampusEntityTypeId
+					AND SourceValueTypeId = @SourceTypeSQLId
+					AND Title = @GroupName + ' ' + @TotalRolesTitle
 
+				-- create if it doesn't exist
+				IF @MetricTotalRolesId IS NULL
+				BEGIN
+					INSERT [Metric] (IsSystem, Title, [Description], IsCumulative, SourceValueTypeId, SourceSql, XAxisLabel, YAxisLabel, ScheduleId, EntityTypeId, [Guid])
+					VALUES ( 0, @GroupName + ' ' + @TotalRolesTitle, 'Metric to track ' + @GroupName + ' total roles filled by campus', @False, 
+						@SourceTypeSQLId, @MetricTotalRolesSQL, '', '', @MetricScheduleId, @CampusEntityTypeId, NEWID() )
 
-				-- Group Total Unique Serving
+					SELECT @MetricTotalRolesId = SCOPE_IDENTITY()
 
+					INSERT [MetricCategory] (MetricId, CategoryId, [Order], [Guid])
+					VALUES ( @MetricTotalRolesId, @MetricGroupTypeCategoryId, @Order, NEWID() )
+				END
 
+				/* ============================ */
+				-- {Group} Total Roster
+				/* ============================ */
+				SELECT @MetricTotalRosterId = [Id] FROM Metric
+				WHERE EntityTypeId = @CampusEntityTypeId
+					AND SourceValueTypeId = @SourceTypeSQLId
+					AND Title = @GroupName + ' ' + @TotalRosterTitle
+
+				-- create if it doesn't exist
+				IF @MetricTotalRosterId IS NULL
+				BEGIN
+					INSERT [Metric] (IsSystem, Title, [Description], IsCumulative, SourceValueTypeId, SourceSql, XAxisLabel, YAxisLabel, ScheduleId, EntityTypeId, [Guid])
+					VALUES ( 0, @GroupName + ' ' + @TotalRosterTitle, 'Metric to track ' + @GroupName + ' total roster by campus', @False, 
+						@SourceTypeSQLId, @MetricTotalRosterSQL, '', '', @MetricScheduleId, @CampusEntityTypeId, NEWID() )
+
+					SELECT @MetricTotalRosterId = SCOPE_IDENTITY()
+
+					INSERT [MetricCategory] (MetricId, CategoryId, [Order], [Guid])
+					VALUES ( @MetricTotalRosterId, @MetricGroupTypeCategoryId, @Order, NEWID() )
+				END
+
+				/* ============================ */
+				-- {Group} Unique Serving
+				/* ============================ */
+				SELECT @MetricUniqueServingId = [Id] FROM Metric
+				WHERE EntityTypeId = @CampusEntityTypeId
+					AND SourceValueTypeId = @SourceTypeSQLId
+					AND Title = @GroupName + ' ' + @UniqueServingTitle
+
+				-- create if it doesn't exist
+				IF @MetricUniqueServingId IS NULL
+				BEGIN
+					INSERT [Metric] (IsSystem, Title, [Description], IsCumulative, SourceValueTypeId, SourceSql, XAxisLabel, YAxisLabel, ScheduleId, EntityTypeId, [Guid])
+					VALUES ( 0, @GroupName + ' ' + @UniqueServingTitle, 'Metric to track ' + @GroupName + ' total unique volunteers by campus', @False, 
+						@SourceTypeSQLId, @MetricUniqueServingSQL, '', '', @MetricScheduleId, @CampusEntityTypeId, NEWID() )
+
+					SELECT @MetricUniqueServingId = SCOPE_IDENTITY()
+
+					INSERT [MetricCategory] (MetricId, CategoryId, [Order], [Guid])
+					VALUES ( @MetricUniqueServingId, @MetricGroupTypeCategoryId, @Order, NEWID() )
+				END
+
+				-- reset queries to parameterized state
+				SELECT @MetricServiceRolesSQL = REPLACE(REPLACE(@MetricTotalRolesSQL, @GroupTypeId, '{{GroupTypeId}}'), @GroupId, '{{GroupId}}' )
+				SELECT @MetricServiceRosterSQL = REPLACE(REPLACE(@MetricTotalRolesSQL, @GroupTypeId, '{{GroupTypeId}}'), @GroupId, '{{GroupId}}' )
+				SELECT @MetricTotalRolesSQL = REPLACE(REPLACE(@MetricTotalRolesSQL, @GroupTypeId, '{{GroupTypeId}}'), @GroupId, '{{GroupId}}' )
+				SELECT @MetricTotalRosterSQL = REPLACE(REPLACE(@MetricTotalRosterSQL, @GroupTypeId, '{{GroupTypeId}}'), @GroupId, '{{GroupId}}' )
+				SELECT @MetricUniqueServingSQL = REPLACE(REPLACE(@MetricUniqueServingSQL, @GroupTypeId, '{{GroupTypeId}}'), @GroupId, '{{GroupId}}' )
 
 			END
 			ELSE BEGIN
