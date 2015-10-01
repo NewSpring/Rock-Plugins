@@ -15,18 +15,22 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 using System.Runtime.Caching;
 using System.ComponentModel;
 using System.Linq;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
+using Rock.Web;
 using Rock.Web.Cache;
 using Rock.Web.UI;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Blocks.Core
 {
@@ -113,36 +117,37 @@ namespace RockWeb.Blocks.Core
 
                 bool pageScope = GetAttributeValue( "ContextScope" ) == "Page";
                 var group = new GroupService( new RockContext() ).Get( groupContextQuery.ToString().AsInteger() );
+
+                HttpCookie cookieUrl = Request.Cookies["Rock.Group.Context.Query"];
+
                 if ( group != null )
                 {
-                    HttpCookie cookieUrl = Request.Cookies["Rock.Group.Context.Query"];
-
                     if ( cookieUrl == null || Request.QueryString["groupId"].ToString() != cookieUrl.Value.Replace( "groupId=", "" ) )
                     {
                         SetContextUrlCookie();
                         RockPage.SetContextCookie( group, pageScope, true );
                     }
-                    else
+                }
+                else
+                {
+                    if ( cookieUrl == null || Request.QueryString["groupId"].ToString() != cookieUrl.Value.Replace( "groupId=", "" ) )
                     {
-                        if ( cookieUrl == null || Request.QueryString["groupId"].ToString() != cookieUrl.Value.Replace( "groupId=", "" ) )
+                        SetContextUrlCookie();
+
+                        // Check for a page specific Rock Context Cookie
+                        if ( Request.Cookies["Rock_Context:" + RockPage.PageId.ToString()].HasKeys )
                         {
-                            SetContextUrlCookie();
-
-                            // Check for a page specific Rock Context Cookie
-                            if ( Request.Cookies["Rock_Context:" + RockPage.PageId.ToString()].HasKeys )
-                            {
-                                ClearRockContext( "Rock_Context:" + RockPage.PageId.ToString() );
-                            }
-
-                            // Check for a site specific Rock Context Cookie
-                            if ( Request.Cookies["Rock_Context"].HasKeys )
-                            {
-                                ClearRockContext( "Rock_Context" );
-                            }
-
-                            // Refresh the page once we modify the cookies
-                            Response.Redirect( Request.Url.ToString() );
+                            ClearRockContext( "Rock_Context:" + RockPage.PageId.ToString() );
                         }
+
+                        // Check for a site specific Rock Context Cookie
+                        if ( Request.Cookies["Rock_Context"].HasKeys )
+                        {
+                            ClearRockContext( "Rock_Context" );
+                        }
+
+                        // Refresh the page once we modify the cookies
+                        Response.Redirect( Request.Url.ToString() );
                     }
                 }
             }
@@ -198,8 +203,17 @@ namespace RockWeb.Blocks.Core
                 nbSelectGroupTypeWarning.Visible = false;
                 rptGroups.Visible = true;
 
-                lCurrentSelection.Text = defaultGroup != null ? defaultGroup.ToString() : "Select Group";
-                var groups = qryGroups.OrderBy( a => a.Order ).ThenBy( a => a.Name ).ToList().Select( a => new { a.Name, a.Id } ).ToList();
+                lCurrentSelection.Text = defaultGroup != null ? defaultGroup.ToString() : GetAttributeValue( "NoGroupText" );
+
+                List<GroupItem> groups = new List<GroupItem>();
+                groups.Add( new GroupItem { Name = GetAttributeValue( "NoGroupText" ), Id = Rock.Constants.All.ListItem.Value.AsInteger() } );
+                
+                var groupsList = qryGroups.OrderBy( a => a.Order ).ThenBy( a => a.Name ).ToList().Select( a => new { a.Name, a.Id } ).ToList();
+
+                foreach ( var groupItem in groupsList )
+                {
+                    groups.Add( new GroupItem { Name = groupItem.Name, Id = groupItem.Id } );
+                }
 
                 rptGroups.DataSource = groups;
                 rptGroups.DataBind();
@@ -231,7 +245,7 @@ namespace RockWeb.Blocks.Core
             var group = new GroupService( new RockContext() ).Get( e.CommandArgument.ToString().AsInteger() );
 
             var nameValues = HttpUtility.ParseQueryString( Request.QueryString.ToString() );
-            nameValues.Set( "groupId", group.Id.ToString() );
+            nameValues.Set( "groupId", e.CommandArgument.ToString() );
             string url = Request.Url.AbsolutePath;
             string updatedQueryString = "?" + nameValues.ToString();
 
@@ -245,5 +259,27 @@ namespace RockWeb.Blocks.Core
         }
 
         #endregion
+
+        /// <summary>
+        /// Schedule Item
+        /// </summary>
+        public class GroupItem
+        {
+            /// <summary>
+            /// Gets or sets the name.
+            /// </summary>
+            /// <value>
+            /// The name.
+            /// </value>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// Gets or sets the identifier.
+            /// </summary>
+            /// <value>
+            /// The identifier.
+            /// </value>
+            public int Id { get; set; }
+        }
     }
 }
