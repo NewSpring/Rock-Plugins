@@ -42,7 +42,7 @@ namespace RockWeb.Blocks.Core
     [CustomRadioListField("Context Scope", "The scope of context to set", "Site,Page", true, "Site", order: 0)]
     [TextField( "Current Item Template", "Lava template for the current item. The only merge field is {{ CampusName }}.", true, "{{ CampusName }}", order: 1)]
     [TextField( "Dropdown Item Template", "Lava template for items in the dropdown. The only merge field is {{ CampusName }}.", true, "{{ CampusName }}", order: 1 )]
-    [TextField( "No Campus Text", "The text to show when there is no campus in the context.", true, "Select Campus", order: 2)]
+    [TextField( "No Campus Text", "The text to show when there is no campus in the context.", true, "All Campuses", order: 2)]
     public partial class CampusContextSetter : RockBlock
     {
         #region Base Control Methods
