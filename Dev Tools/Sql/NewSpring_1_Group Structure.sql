@@ -739,13 +739,13 @@ DECLARE @MetricServiceRolesId int = null, @MetricServiceRosterId int = null, @Me
 	@TotalRolesTitle varchar(255), @TotalRosterTitle varchar(255), @UniqueServingTitle varchar(255)
 
 -- metric title names used for the group
-SELECT @ServiceRolesTitle = 'Service Roles', @ServiceRosterTitle = 'Service Roster', @TotalRolesTitle = 'Total Roles',
+SELECT @ServiceRolesTitle = 'Service Attendance', @ServiceRosterTitle = 'Service Roster', @TotalRolesTitle = 'Total Attendance',
 	@TotalRosterTitle = 'Total Roster', @UniqueServingTitle = 'Unique Serving'
 
 -- Service Roles Query
 SELECT @MetricServiceRolesSQL = N'
 	/* ====================================================================== */
-	-- Returns positions served by Campus and Service from the previous day
+	-- Returns roles filled served by Campus and Service from the previous day
 	-- Returns a timestamp of 00:00:00 when no schedule exists
 	/* ====================================================================== */
 	SELECT COUNT(1) AS Value, Attendance.CampusId AS EntityId
@@ -826,7 +826,7 @@ SELECT @MetricServiceRosterSQL = N'
 -- Total Roles Query
 SELECT @MetricTotalRolesSQL = N'
 	/* ====================================================================== */
-	-- Returns total positions served by Campus from the previous day
+	-- Returns total roles filled served by Campus from the previous day
 	-- Returns a timestamp of 00:00:00 since this is by total and not service
 	/* ====================================================================== */
 	SELECT COUNT(1) AS Value, Attendance.CampusId AS EntityId
