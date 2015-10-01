@@ -80,6 +80,30 @@ namespace RockWeb.Blocks.Core
             Response.Cookies.Add( cookieUrl );
         }
 
+        private void ClearRockContext( string cookieName )
+        {
+            var cookieKeys = Request.Cookies[cookieName].Value.Split( '&' ).ToArray();
+
+            HttpCookie newRockCookie = new HttpCookie( cookieName );
+
+            foreach ( var cookieKey in cookieKeys )
+            {
+
+                if ( !cookieKey.ToString().StartsWith( "Rock.Model.Group" ) )
+                {
+                    var cookieValue = cookieKey.Split( '=' );
+
+                    var cookieId = cookieValue[0].ToString();
+                    var cookieHash = cookieValue[1].ToString();
+
+                    newRockCookie[cookieId] = cookieHash;
+                }
+            }
+
+            newRockCookie.Expires = DateTime.Now.AddHours( 1 );
+            Response.Cookies.Add( newRockCookie );
+        }
+
         private void SetGroupContext()
         {
             var groupContextQuery = Request.QueryString["groupId"];
