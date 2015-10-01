@@ -177,19 +177,18 @@ AND Name = @MetricParentName
 IF @MetricScheduleId IS NULL
 BEGIN
 
-	SELECT @MetriciCalSchedule = N'
-		BEGIN:VCALENDAR
-		VERSION:2.0
-		PRODID:-//ddaysoftware.com//NONSGML DDay.iCal 1.0//EN
-		BEGIN:VEVENT
-		DTEND:20150928T020001
-		DTSTAMP:20150928T201239Z
-		DTSTART:20150928T020000
-		RRULE:FREQ=WEEKLY;BYDAY=MO
-		SEQUENCE:0
-		UID:4bb6f790-4761-447d-bff8-22c2ca3bef05
-		END:VEVENT
-		END:VCALENDAR'
+	SELECT @MetriciCalSchedule = N'BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//ddaysoftware.com//NONSGML DDay.iCal 1.0//EN
+BEGIN:VEVENT
+DTEND:20150928T020001
+DTSTAMP:20150928T201239Z
+DTSTART:20150928T020000
+RRULE:FREQ=WEEKLY;BYDAY=MO
+SEQUENCE:0
+UID:4bb6f790-4761-447d-bff8-22c2ca3bef05
+END:VEVENT
+END:VCALENDAR'
 	
 	INSERT [Schedule] (Name, [Description], iCalendarContent, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
 	SELECT 'Metric Schedule', 'The job schedule to run group metrics', @MetriciCalSchedule, GETDATE(), GETDATE(), @MetricScheduleCategoryId, NEWID()
