@@ -229,18 +229,19 @@ namespace RockWeb.Blocks.Core
         {
             bool pageScope = GetAttributeValue( "ContextScope" ) == "Page";
             var group = new GroupService( new RockContext() ).Get( e.CommandArgument.ToString().AsInteger() );
+
+            var nameValues = HttpUtility.ParseQueryString( Request.QueryString.ToString() );
+            nameValues.Set( "groupId", group.Id.ToString() );
+            string url = Request.Url.AbsolutePath;
+            string updatedQueryString = "?" + nameValues.ToString();
+
+            // Only update the Context Cookie if the Group is valid
             if ( group != null )
             {
-
-                var nameValues = HttpUtility.ParseQueryString( Request.QueryString.ToString() );
-                nameValues.Set( "groupId", group.Id.ToString() );
-                string url = Request.Url.AbsolutePath;
-                string updatedQueryString = "?" + nameValues.ToString();
-
                 RockPage.SetContextCookie( group, pageScope, false );
-
-                Response.Redirect( url + updatedQueryString );
             }
+
+            Response.Redirect( url + updatedQueryString );
         }
 
         #endregion
