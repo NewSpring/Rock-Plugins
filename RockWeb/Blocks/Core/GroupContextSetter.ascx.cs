@@ -39,6 +39,7 @@ namespace RockWeb.Blocks.Core
 
     [GroupTypeGroupField( "Group Filter", "Select group type and root group to filter groups by root group. Leave root group blank to filter by group type.", "Root Group" )]
     [CustomRadioListField( "Context Scope", "The scope of context to set", "Site,Page", true, "Site" )]
+    [TextField( "No Group Text", "The text to show when there is no group in the context.", true, "All Groups", order: 3 )]
     public partial class GroupContextSetter : RockBlock
     {
         #region Base Control Methods
