@@ -1016,8 +1016,8 @@ BEGIN
 					@MetricTotalRosterId = NULL, @MetricUniqueServingId = NULL
 
 				-- update the metric queries with the current GroupTypeId and GroupId
-				SELECT @MetricServiceRolesSQL = REPLACE(REPLACE(@MetricTotalRolesSQL, '{{GroupTypeId}}', @GroupTypeId), '{{GroupId}}', @GroupId )
-				SELECT @MetricServiceRosterSQL = REPLACE(REPLACE(@MetricTotalRolesSQL, '{{GroupTypeId}}', @GroupTypeId), '{{GroupId}}', @GroupId )
+				SELECT @MetricServiceRolesSQL = REPLACE(REPLACE(@MetricServiceRolesSQL, '{{GroupTypeId}}', @GroupTypeId), '{{GroupId}}', @GroupId )
+				SELECT @MetricServiceRosterSQL = REPLACE(REPLACE(@MetricServiceRosterSQL, '{{GroupTypeId}}', @GroupTypeId), '{{GroupId}}', @GroupId )
 				SELECT @MetricTotalRolesSQL = REPLACE(REPLACE(@MetricTotalRolesSQL, '{{GroupTypeId}}', @GroupTypeId), '{{GroupId}}', @GroupId )
 				SELECT @MetricTotalRosterSQL = REPLACE(REPLACE(@MetricTotalRosterSQL, '{{GroupTypeId}}', @GroupTypeId), '{{GroupId}}', @GroupId )
 				SELECT @MetricUniqueServingSQL = REPLACE(REPLACE(@MetricUniqueServingSQL, '{{GroupTypeId}}', @GroupTypeId), '{{GroupId}}', @GroupId )
@@ -1128,8 +1128,8 @@ BEGIN
 				END
 
 				-- reset queries to parameterized state
-				SELECT @MetricServiceRolesSQL = REPLACE(REPLACE(@MetricTotalRolesSQL, @GroupTypeId, '{{GroupTypeId}}'), @GroupId, '{{GroupId}}' )
-				SELECT @MetricServiceRosterSQL = REPLACE(REPLACE(@MetricTotalRolesSQL, @GroupTypeId, '{{GroupTypeId}}'), @GroupId, '{{GroupId}}' )
+				SELECT @MetricServiceRolesSQL = REPLACE(REPLACE(@MetricServiceRolesSQL, @GroupTypeId, '{{GroupTypeId}}'), @GroupId, '{{GroupId}}' )
+				SELECT @MetricServiceRosterSQL = REPLACE(REPLACE(@MetricServiceRosterSQL, @GroupTypeId, '{{GroupTypeId}}'), @GroupId, '{{GroupId}}' )
 				SELECT @MetricTotalRolesSQL = REPLACE(REPLACE(@MetricTotalRolesSQL, @GroupTypeId, '{{GroupTypeId}}'), @GroupId, '{{GroupId}}' )
 				SELECT @MetricTotalRosterSQL = REPLACE(REPLACE(@MetricTotalRosterSQL, @GroupTypeId, '{{GroupTypeId}}'), @GroupId, '{{GroupId}}' )
 				SELECT @MetricUniqueServingSQL = REPLACE(REPLACE(@MetricUniqueServingSQL, @GroupTypeId, '{{GroupTypeId}}'), @GroupId, '{{GroupId}}' )
