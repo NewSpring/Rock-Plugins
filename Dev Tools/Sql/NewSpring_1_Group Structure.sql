@@ -4,7 +4,7 @@
 
 -- Make sure you're using the right Rock database:
 
-USE test
+USE Rock
 
 /* ====================================================== */
 
@@ -743,20 +743,39 @@ DECLARE @MetricServiceRolesId int = null, @MetricServiceRosterId int = null, @Me
 SELECT @ServiceRolesTitle = 'Service Roles', @ServiceRosterTitle = 'Service Roster', @TotalRolesTitle = 'Total Roles',
 	@TotalRosterTitle = 'Total Roster', @UniqueServingTitle = 'Unique Serving'
 
--- sql statements used for every group metric
-
--- Service Roles
+-- Service Roles Query
 SELECT @MetricServiceRolesSQL = N'
-
-
-
+	/* ====================================================================== */
+	-- Returns positions served by Campus and Service from the previous day
+	-- Returns a timestamp of 00:00:00 when no schedule exists
+	/* ====================================================================== */
+	SELECT COUNT(1) AS Value, Attendance.CampusId AS EntityId
+		, DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0) + LEFT(ISNULL(Schedule.Value, ''00:00''), 5) AS ScheduleDate
+	FROM PersonAlias PA 
+	INNER JOIN (
+		SELECT PersonAliasId, CampusId, ScheduleId
+		FROM [Attendance] 
+		WHERE DidAttend = 1
+			AND GroupId = {{GroupId}}
+			AND StartDateTime >= DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0)
+			AND StartDateTime < CONVERT(DATE, GETDATE())
+	) Attendance
+	ON PA.Id = Attendance.PersonAliasId	
+	INNER JOIN (
+		-- iCal DTStart: constant 22 characters, only interested in Service Time
+		SELECT Id, SUBSTRING(iCalendarContent, PATINDEX(''%DTSTART%'', iCalendarContent) +17, 4) AS Value
+		FROM Schedule
+		WHERE EffectiveStartDate < GETDATE()
+	) Schedule
+	ON Schedule.Id = Attendance.ScheduleId
+	GROUP BY Attendance.CampusId, Schedule.Value
 '
 
--- Service Roster
+-- Service Roster Query
 SELECT @MetricServiceRosterSQL = N'
 	/* ====================================================================== */
-	-- Returns GroupMember, Campus, and Service numbers from the previous day
-	-- When no schedule exists, returns a timestamp of 00:00:00
+	-- Returns roster numbers by Campus and Service from the previous day
+	-- Returns a timestamp of 00:00:00 when no schedule exists
 	/* ====================================================================== */
 	SELECT COUNT(1) AS Value, Campus.Id AS EntityId, 
 		DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0) + LEFT(ISNULL(Schedule.Value, ''00:00''), 5) AS ScheduleDate
@@ -805,17 +824,31 @@ SELECT @MetricServiceRosterSQL = N'
 	ORDER BY Campus.Id, Schedule.Value
 '
 
--- Total Roles
+-- Total Roles Query
 SELECT @MetricTotalRolesSQL = N'
-
-
-
+	/* ====================================================================== */
+	-- Returns total positions served by Campus from the previous day
+	-- Returns a timestamp of 00:00:00 since this is by total and not service
+	/* ====================================================================== */
+	SELECT COUNT(1) AS Value, Attendance.CampusId AS EntityId
+		, DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0) + ''00:00'' AS ScheduleDate
+	FROM PersonAlias PA 
+	INNER JOIN (
+		SELECT PersonAliasId, CampusId, ScheduleId
+		FROM [Attendance] 
+		WHERE DidAttend = 1
+			AND GroupId = {{GroupId}}
+			AND StartDateTime >= DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0)
+			AND StartDateTime < CONVERT(DATE, GETDATE())
+	) Attendance
+	ON PA.Id = Attendance.PersonAliasId	
+	GROUP BY Attendance.CampusId
 '
 
--- Total Roster
+-- Total Roster Query
 SELECT @MetricTotalRosterSQL = N'
 	/* ====================================================================== */
-	-- Returns total GroupMember numbers by Campus from the previous day
+	-- Returns total roster numbers by Campus from the previous day
 	-- Returns a timestamp of 00:00:00 since this is by total and not service
 	/* ====================================================================== */
 	SELECT COUNT(1) AS Value, Campus.Id AS EntityId, DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0) + ''00:00'' AS ScheduleDate
@@ -841,11 +874,25 @@ SELECT @MetricTotalRosterSQL = N'
 	ORDER BY Campus.Id
 '
 
--- Total Unique Serving
+-- Total Unique Serving Query
 SELECT @MetricUniqueServingSQL = N'
-
-
-
+	/* ====================================================================== */
+	-- Returns total unique serving by Campus from the previous day
+	-- Returns a timestamp of 00:00:00 since this is by total and not service
+	/* ====================================================================== */
+	SELECT COUNT(1) AS Value, Attendance.CampusId AS EntityId, DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0) + ''00:00'' AS ScheduleDate
+	FROM PersonAlias PA 
+	INNER JOIN (
+		SELECT PersonAliasId, CampusId
+		FROM [Attendance]	
+		WHERE DidAttend = 1
+			AND GroupId = {{GroupId}}
+			AND StartDateTime >= DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0)
+			AND StartDateTime < CONVERT(DATE, GETDATE())
+	) Attendance
+		ON PA.Id = Attendance.PersonAliasId	
+	GROUP BY Attendance.CampusId
+	ORDER BY Attendance.CampusId
 '
 
 
