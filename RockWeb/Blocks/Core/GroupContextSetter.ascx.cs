@@ -122,6 +122,28 @@ namespace RockWeb.Blocks.Core
                         SetContextUrlCookie();
                         RockPage.SetContextCookie( group, pageScope, true );
                     }
+                    else
+                    {
+                        if ( cookieUrl == null || Request.QueryString["groupId"].ToString() != cookieUrl.Value.Replace( "groupId=", "" ) )
+                        {
+                            SetContextUrlCookie();
+
+                            // Check for a page specific Rock Context Cookie
+                            if ( Request.Cookies["Rock_Context:" + RockPage.PageId.ToString()].HasKeys )
+                            {
+                                ClearRockContext( "Rock_Context:" + RockPage.PageId.ToString() );
+                            }
+
+                            // Check for a site specific Rock Context Cookie
+                            if ( Request.Cookies["Rock_Context"].HasKeys )
+                            {
+                                ClearRockContext( "Rock_Context" );
+                            }
+
+                            // Refresh the page once we modify the cookies
+                            Response.Redirect( Request.Url.ToString() );
+                        }
+                    }
                 }
             }
         }
