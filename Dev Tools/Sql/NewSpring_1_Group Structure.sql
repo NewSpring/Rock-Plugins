@@ -305,7 +305,7 @@ VALUES
 ('Creativity & Tech Attendee', 'Choir', 'Choir'), 
 ('Creativity & Tech Attendee', 'Special Event Attendee', 'Special Event Attendee'), 
 ('Creativity & Tech Volunteer', 'Band', 'Band'), 
-('Creativity & Tech Volunteer', 'BAND Green Room', 'BAND Green Room'), 
+('Creativity & Tech Volunteer', 'Band Green Room', 'Band Green Room'), 
 ('Creativity & Tech Volunteer', 'IT Team', 'IT Team'), 
 ('Creativity & Tech Volunteer', 'Load In/Load Out', 'Load In/Load Out'), 
 ('Creativity & Tech Volunteer', 'New Serve Team', 'New Serve Team'), 
