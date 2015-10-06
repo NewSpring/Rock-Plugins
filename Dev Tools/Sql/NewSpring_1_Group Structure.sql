@@ -4,7 +4,7 @@
 
 -- Make sure you're using the right Rock database:
 
-USE Rock
+--USE Rock
 
 /* ====================================================== */
 
@@ -244,8 +244,8 @@ UID:' + CONVERT(VARCHAR(36), NEWID()) + '
 END:VEVENT
 END:VCALENDAR'
 	
-	INSERT [Schedule] (Name, Description, iCalendarContent, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
-	SELECT @ServiceName, '', @ServiceiCalSchedule, GETDATE(), GETDATE(), @ServiceParentCategoryId, NEWID()
+	INSERT [Schedule] (Name, Description, iCalendarContent, CategoryId, [Guid])
+	SELECT @ServiceName, '', @ServiceiCalSchedule, @ServiceParentCategoryId, NEWID()
 END
 
 -- Sunday 11:15
@@ -271,8 +271,8 @@ UID:' + CONVERT(VARCHAR(36), NEWID()) + '
 END:VEVENT
 END:VCALENDAR'
 	
-	INSERT [Schedule] (Name, Description, iCalendarContent, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
-	SELECT @ServiceName, '', @ServiceiCalSchedule, GETDATE(), GETDATE(), @ServiceParentCategoryId, NEWID()
+	INSERT [Schedule] (Name, Description, iCalendarContent, CategoryId, [Guid])
+	SELECT @ServiceName, '', @ServiceiCalSchedule, @ServiceParentCategoryId, NEWID()
 END
 
 -- Sunday 4pm
@@ -298,8 +298,8 @@ UID:' + CONVERT(VARCHAR(36), NEWID()) + '
 END:VEVENT
 END:VCALENDAR'
 	
-	INSERT [Schedule] (Name, Description, iCalendarContent, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
-	SELECT @ServiceName, '', @ServiceiCalSchedule, GETDATE(), GETDATE(), @ServiceParentCategoryId, NEWID()
+	INSERT [Schedule] (Name, Description, iCalendarContent, CategoryId, [Guid])
+	SELECT @ServiceName, '', @ServiceiCalSchedule, @ServiceParentCategoryId, NEWID()
 END
 
 -- Sunday 6pm
@@ -325,8 +325,8 @@ UID:' + CONVERT(VARCHAR(36), NEWID()) + '
 END:VEVENT
 END:VCALENDAR'
 	
-	INSERT [Schedule] (Name, Description, iCalendarContent, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
-	SELECT @ServiceName, '', @ServiceiCalSchedule, GETDATE(), GETDATE(), @ServiceParentCategoryId, NEWID()
+	INSERT [Schedule] (Name, Description, iCalendarContent, CategoryId, [Guid])
+	SELECT @ServiceName, '', @ServiceiCalSchedule, @ServiceParentCategoryId, NEWID()
 END
 
 -- Fuse Service
@@ -352,13 +352,14 @@ UID:' + CONVERT(VARCHAR(36), NEWID()) + '
 END:VEVENT
 END:VCALENDAR'
 	
-	INSERT [Schedule] (Name, Description, iCalendarContent, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
-	SELECT @ServiceName, '', @ServiceiCalSchedule, GETDATE(), GETDATE(), @ServiceParentCategoryId, NEWID()
+	INSERT [Schedule] (Name, Description, iCalendarContent, CategoryId, [Guid])
+	SELECT @ServiceName, '', @ServiceiCalSchedule, @ServiceParentCategoryId, NEWID()
 END
 
 /* ====================================================== */
 -- create the weekday service schedules
 /* ====================================================== */
+SELECT @ServiceParentCategoryId = NULL
 SELECT @WeekdayParentName = 'Weekdays'
 
 -- create parent category
@@ -371,7 +372,7 @@ BEGIN
 	INSERT [Category] (IsSystem, ParentCategoryId, EntityTypeId, EntityTypeQualifierColumn, EntityTypeQualifierValue, Name, [Guid], [Order])
 	VALUES ( @IsSystem, NULL, @ScheduleEntityTypeId, '', '', @WeekdayParentName, NEWID(), @Order )
 
-	SET @ServiceParentCategoryId = SCOPE_IDENTITY()
+	SELECT @ServiceParentCategoryId = SCOPE_IDENTITY()
 END
 
 -- table variable to hold the weekdays
@@ -382,10 +383,25 @@ VALUES ( 'Monday' ), ('Tuesday'), ('Wednesday'), ('Thursday'), ('Friday'), ('Sat
 
 IF NOT EXISTS (SELECT [Id] FROM Schedule WHERE Name IN (SELECT EachDay FROM @Weekdays ) )
 BEGIN
+	
+	SELECT @ServiceiCalSchedule = N'BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//ddaysoftware.com//NONSGML DDay.iCal 1.0//EN
+BEGIN:VEVENT
+DTEND:20130501T100000
+DTSTAMP:20130501T00000Z
+DTSTART:20130501T060000
+RRULE:FREQ=WEEKLY;BYDAY={{Day}}
+SEQUENCE:0
+UID: {{UID}}
+END:VEVENT
+END:VCALENDAR'
 
-	-- ignore iCal content for now
-	INSERT [Schedule] (Name, Description, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
-	SELECT EachDay, '', GETDATE(), GETDATE(), @ServiceParentCategoryId, NEWID()
+	-- insert schedule content
+	INSERT [Schedule] (Name, Description, CategoryId, [Guid], iCalendarContent)
+	SELECT EachDay, '', @ServiceParentCategoryId, NEWID(), REPLACE(
+		REPLACE(@ServiceiCalSchedule, '{{Day}}', LEFT(UPPER(EachDay), 2) )
+		, '{{UID}}', NEWID())
 	FROM @Weekdays
 
 END
