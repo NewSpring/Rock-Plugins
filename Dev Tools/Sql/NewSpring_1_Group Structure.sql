@@ -4,7 +4,7 @@
 
 -- Make sure you're using the right Rock database:
 
-USE test
+USE Rock
 
 /* ====================================================== */
 
@@ -244,8 +244,8 @@ UID:' + CONVERT(VARCHAR(36), NEWID()) + '
 END:VEVENT
 END:VCALENDAR'
 	
-	INSERT [Schedule] (Name, iCalendarContent, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
-	SELECT @ServiceName, @ServiceiCalSchedule, GETDATE(), GETDATE(), @ServiceParentCategoryId, NEWID()
+	INSERT [Schedule] (Name, Description, iCalendarContent, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
+	SELECT @ServiceName, '', @ServiceiCalSchedule, GETDATE(), GETDATE(), @ServiceParentCategoryId, NEWID()
 END
 
 -- Sunday 11:15
@@ -271,8 +271,8 @@ UID:' + CONVERT(VARCHAR(36), NEWID()) + '
 END:VEVENT
 END:VCALENDAR'
 	
-	INSERT [Schedule] (Name, iCalendarContent, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
-	SELECT @ServiceName, @ServiceiCalSchedule, GETDATE(), GETDATE(), @ServiceParentCategoryId, NEWID()
+	INSERT [Schedule] (Name, Description, iCalendarContent, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
+	SELECT @ServiceName, '', @ServiceiCalSchedule, GETDATE(), GETDATE(), @ServiceParentCategoryId, NEWID()
 END
 
 -- Sunday 4pm
@@ -298,8 +298,8 @@ UID:' + CONVERT(VARCHAR(36), NEWID()) + '
 END:VEVENT
 END:VCALENDAR'
 	
-	INSERT [Schedule] (Name, iCalendarContent, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
-	SELECT @ServiceName, @ServiceiCalSchedule, GETDATE(), GETDATE(), @ServiceParentCategoryId, NEWID()
+	INSERT [Schedule] (Name, Description, iCalendarContent, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
+	SELECT @ServiceName, '', @ServiceiCalSchedule, GETDATE(), GETDATE(), @ServiceParentCategoryId, NEWID()
 END
 
 -- Sunday 6pm
@@ -325,8 +325,8 @@ UID:' + CONVERT(VARCHAR(36), NEWID()) + '
 END:VEVENT
 END:VCALENDAR'
 	
-	INSERT [Schedule] (Name, iCalendarContent, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
-	SELECT @ServiceName, @ServiceiCalSchedule, GETDATE(), GETDATE(), @ServiceParentCategoryId, NEWID()
+	INSERT [Schedule] (Name, Description, iCalendarContent, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
+	SELECT @ServiceName, '', @ServiceiCalSchedule, GETDATE(), GETDATE(), @ServiceParentCategoryId, NEWID()
 END
 
 -- Fuse Service
@@ -352,8 +352,8 @@ UID:' + CONVERT(VARCHAR(36), NEWID()) + '
 END:VEVENT
 END:VCALENDAR'
 	
-	INSERT [Schedule] (Name, iCalendarContent, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
-	SELECT @ServiceName, @ServiceiCalSchedule, GETDATE(), GETDATE(), @ServiceParentCategoryId, NEWID()
+	INSERT [Schedule] (Name, Description, iCalendarContent, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
+	SELECT @ServiceName, '', @ServiceiCalSchedule, GETDATE(), GETDATE(), @ServiceParentCategoryId, NEWID()
 END
 
 /* ====================================================== */
@@ -384,8 +384,8 @@ IF NOT EXISTS (SELECT [Id] FROM Schedule WHERE Name IN (SELECT EachDay FROM @Wee
 BEGIN
 
 	-- ignore iCal content for now
-	INSERT [Schedule] (Name, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
-	SELECT EachDay, GETDATE(), GETDATE(), @ServiceParentCategoryId, NEWID()
+	INSERT [Schedule] (Name, Description, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
+	SELECT EachDay, '', GETDATE(), GETDATE(), @ServiceParentCategoryId, NEWID()
 	FROM @Weekdays
 
 END
