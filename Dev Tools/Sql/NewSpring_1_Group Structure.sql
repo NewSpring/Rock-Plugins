@@ -4,7 +4,7 @@
 
 -- Make sure you're using the right Rock database:
 
-USE Rock
+USE test
 
 /* ====================================================== */
 
@@ -186,7 +186,7 @@ DTSTAMP:20150928T201239Z
 DTSTART:20150928T020000
 RRULE:FREQ=WEEKLY;BYDAY=MO
 SEQUENCE:0
-UID:4bb6f790-4761-447d-bff8-22c2ca3bef05
+UID:' + CONVERT(VARCHAR(36), NEWID()) + '
 END:VEVENT
 END:VCALENDAR'
 	
@@ -194,6 +194,199 @@ END:VCALENDAR'
 	SELECT 'Metric Schedule', 'The job schedule to run group metrics', @MetriciCalSchedule, GETDATE(), GETDATE(), @MetricScheduleCategoryId, NEWID()
 
 	SELECT @MetricScheduleId = SCOPE_IDENTITY()
+
+END
+
+/* ====================================================== */
+-- create Sunday service times and the rest of the week
+/* ====================================================== */
+DECLARE @ServiceParentCategoryId int, @ServiceScheduleId int, 
+	@ServiceiCalSchedule nvarchar(max), @SundayParentName varchar(255),
+	@ServiceName varchar(255), @WeekdayParentName varchar(255)
+
+SELECT @SundayParentName = 'Service Times'
+
+-- create parent category
+SELECT @ServiceParentCategoryId = [Id] FROM [Category]
+WHERE EntityTypeId = @ScheduleEntityTypeId
+	AND Name = @SundayParentName
+
+IF @ServiceParentCategoryId IS NULL 
+BEGIN
+	INSERT [Category] (IsSystem, ParentCategoryId, EntityTypeId, EntityTypeQualifierColumn, EntityTypeQualifierValue, Name, [Guid], [Order])
+	VALUES ( @IsSystem, NULL, @ScheduleEntityTypeId, '', '', @SundayParentName, NEWID(), @Order )
+
+	SET @ServiceParentCategoryId = SCOPE_IDENTITY()
+END
+
+/* ====================================================== */
+-- create the main service schedules (Sunday/Wednesday)
+/* ====================================================== */
+SELECT @ServiceName = 'Sunday 09:15'
+
+SELECT @ServiceScheduleId = [Id] FROM Schedule
+WHERE CategoryId = @ServiceParentCategoryId
+AND Name = @ServiceName
+
+IF @ServiceScheduleId IS NULL
+BEGIN
+
+	SELECT @ServiceiCalSchedule = N'BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//ddaysoftware.com//NONSGML DDay.iCal 1.0//EN
+BEGIN:VEVENT
+DTEND:20130501T100000
+DTSTAMP:20130501T00000Z
+DTSTART:20130501T091500
+RRULE:FREQ=WEEKLY;BYDAY=SU
+SEQUENCE:0
+UID:' + CONVERT(VARCHAR(36), NEWID()) + '
+END:VEVENT
+END:VCALENDAR'
+	
+	INSERT [Schedule] (Name, iCalendarContent, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
+	SELECT @ServiceName, @ServiceiCalSchedule, GETDATE(), GETDATE(), @ServiceParentCategoryId, NEWID()
+END
+
+-- Sunday 11:15
+SELECT @ServiceName = 'Sunday 11:15'
+
+SELECT @ServiceScheduleId = [Id] FROM Schedule
+WHERE CategoryId = @ServiceParentCategoryId
+AND Name = @ServiceName
+
+IF @ServiceScheduleId IS NULL
+BEGIN
+
+	SELECT @ServiceiCalSchedule = N'BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//ddaysoftware.com//NONSGML DDay.iCal 1.0//EN
+BEGIN:VEVENT
+DTEND:20130501T100000
+DTSTAMP:20130501T00000Z
+DTSTART:20130501T111500
+RRULE:FREQ=WEEKLY;BYDAY=SU
+SEQUENCE:0
+UID:' + CONVERT(VARCHAR(36), NEWID()) + '
+END:VEVENT
+END:VCALENDAR'
+	
+	INSERT [Schedule] (Name, iCalendarContent, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
+	SELECT @ServiceName, @ServiceiCalSchedule, GETDATE(), GETDATE(), @ServiceParentCategoryId, NEWID()
+END
+
+-- Sunday 4pm
+SELECT @ServiceName = 'Sunday 16:00'
+
+SELECT @ServiceScheduleId = [Id] FROM Schedule
+WHERE CategoryId = @ServiceParentCategoryId
+AND Name = @ServiceName
+
+IF @ServiceScheduleId IS NULL
+BEGIN
+
+	SELECT @ServiceiCalSchedule = N'BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//ddaysoftware.com//NONSGML DDay.iCal 1.0//EN
+BEGIN:VEVENT
+DTEND:20130501T100000
+DTSTAMP:20130501T00000Z
+DTSTART:20130501T160000
+RRULE:FREQ=WEEKLY;BYDAY=SU
+SEQUENCE:0
+UID:' + CONVERT(VARCHAR(36), NEWID()) + '
+END:VEVENT
+END:VCALENDAR'
+	
+	INSERT [Schedule] (Name, iCalendarContent, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
+	SELECT @ServiceName, @ServiceiCalSchedule, GETDATE(), GETDATE(), @ServiceParentCategoryId, NEWID()
+END
+
+-- Sunday 6pm
+SELECT @ServiceName = 'Sunday 18:00'
+
+SELECT @ServiceScheduleId = [Id] FROM Schedule
+WHERE CategoryId = @ServiceParentCategoryId
+AND Name = @ServiceName
+
+IF @ServiceScheduleId IS NULL
+BEGIN
+
+	SELECT @ServiceiCalSchedule = N'BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//ddaysoftware.com//NONSGML DDay.iCal 1.0//EN
+BEGIN:VEVENT
+DTEND:20130501T100000
+DTSTAMP:20130501T00000Z
+DTSTART:20130501T180000
+RRULE:FREQ=WEEKLY;BYDAY=SU
+SEQUENCE:0
+UID:' + CONVERT(VARCHAR(36), NEWID()) + '
+END:VEVENT
+END:VCALENDAR'
+	
+	INSERT [Schedule] (Name, iCalendarContent, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
+	SELECT @ServiceName, @ServiceiCalSchedule, GETDATE(), GETDATE(), @ServiceParentCategoryId, NEWID()
+END
+
+-- Fuse Service
+SELECT @ServiceName = 'Fuse'
+
+SELECT @ServiceScheduleId = [Id] FROM Schedule
+WHERE CategoryId = @ServiceParentCategoryId
+AND Name = @ServiceName
+
+IF @ServiceScheduleId IS NULL
+BEGIN
+
+	SELECT @ServiceiCalSchedule = N'BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//ddaysoftware.com//NONSGML DDay.iCal 1.0//EN
+BEGIN:VEVENT
+DTEND:20130501T100000
+DTSTAMP:20130501T00000Z
+DTSTART:20130501T170000
+RRULE:FREQ=WEEKLY;BYDAY=WE
+SEQUENCE:0
+UID:' + CONVERT(VARCHAR(36), NEWID()) + '
+END:VEVENT
+END:VCALENDAR'
+	
+	INSERT [Schedule] (Name, iCalendarContent, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
+	SELECT @ServiceName, @ServiceiCalSchedule, GETDATE(), GETDATE(), @ServiceParentCategoryId, NEWID()
+END
+
+/* ====================================================== */
+-- create the weekday service schedules
+/* ====================================================== */
+SELECT @WeekdayParentName = 'Weekdays'
+
+-- create parent category
+SELECT @ServiceParentCategoryId = [Id] FROM [Category]
+WHERE EntityTypeId = @ScheduleEntityTypeId
+	AND Name = @WeekdayParentName
+
+IF @ServiceParentCategoryId IS NULL 
+BEGIN
+	INSERT [Category] (IsSystem, ParentCategoryId, EntityTypeId, EntityTypeQualifierColumn, EntityTypeQualifierValue, Name, [Guid], [Order])
+	VALUES ( @IsSystem, NULL, @ScheduleEntityTypeId, '', '', @WeekdayParentName, NEWID(), @Order )
+
+	SET @ServiceParentCategoryId = SCOPE_IDENTITY()
+END
+
+-- table variable to hold the weekdays
+DECLARE @Weekdays TABLE ( EachDay varchar(255 ) )
+
+INSERT @Weekdays ( EachDay )
+VALUES ( 'Monday' ), ('Tuesday'), ('Wednesday'), ('Thursday'), ('Friday'), ('Saturday' )
+
+IF NOT EXISTS (SELECT [Id] FROM Schedule WHERE Name IN (SELECT EachDay FROM @Weekdays ) )
+BEGIN
+
+	-- ignore iCal content for now
+	INSERT [Schedule] (Name, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
+	SELECT EachDay, GETDATE(), GETDATE(), @ServiceParentCategoryId, NEWID()
+	FROM @Weekdays
 
 END
 
@@ -894,7 +1087,6 @@ SELECT @MetricUniqueServingSQL = N'
 	ORDER BY Attendance.CampusId
 '
 
-
 /* ====================================================== */
 -- insert campus groups
 /* ====================================================== */
@@ -1033,9 +1225,9 @@ BEGIN
 				-- create if it doesn't exist
 				IF @MetricServiceRolesId IS NULL
 				BEGIN
-					INSERT [Metric] (IsSystem, Title, [Description], IsCumulative, SourceValueTypeId, SourceSql, XAxisLabel, YAxisLabel, ScheduleId, EntityTypeId, [Guid])
+					INSERT [Metric] (IsSystem, Title, [Description], IsCumulative, SourceValueTypeId, SourceSql, XAxisLabel, YAxisLabel, ScheduleId, EntityTypeId, [Guid], ForeignId)
 					VALUES ( 0, @GroupName + ' ' + @ServiceRolesTitle, 'Metric to track ' + @GroupName + ' roles by campus and service', @False, 
-						@SourceTypeSQLId, @MetricServiceRolesSQL, '', '', @MetricScheduleId, @CampusEntityTypeId, NEWID() )
+						@SourceTypeSQLId, @MetricServiceRolesSQL, '', '', @MetricScheduleId, @CampusEntityTypeId, NEWID(), @GroupId )
 
 					SELECT @MetricServiceRolesId = SCOPE_IDENTITY()
 
@@ -1054,9 +1246,9 @@ BEGIN
 				-- create if it doesn't exist
 				IF @MetricServiceRosterId IS NULL
 				BEGIN
-					INSERT [Metric] (IsSystem, Title, [Description], IsCumulative, SourceValueTypeId, SourceSql, XAxisLabel, YAxisLabel, ScheduleId, EntityTypeId, [Guid])
+					INSERT [Metric] (IsSystem, Title, [Description], IsCumulative, SourceValueTypeId, SourceSql, XAxisLabel, YAxisLabel, ScheduleId, EntityTypeId, [Guid], ForeignId)
 					VALUES ( 0, @GroupName + ' ' + @ServiceRosterTitle, 'Metric to track ' + @GroupName + ' roster by campus and service', @False, 
-						@SourceTypeSQLId, @MetricServiceRosterSQL, '', '', @MetricScheduleId, @CampusEntityTypeId, NEWID() )
+						@SourceTypeSQLId, @MetricServiceRosterSQL, '', '', @MetricScheduleId, @CampusEntityTypeId, NEWID(), @GroupId )
 
 					SELECT @MetricServiceRosterId = SCOPE_IDENTITY()
 
@@ -1075,9 +1267,9 @@ BEGIN
 				-- create if it doesn't exist
 				IF @MetricTotalRolesId IS NULL
 				BEGIN
-					INSERT [Metric] (IsSystem, Title, [Description], IsCumulative, SourceValueTypeId, SourceSql, XAxisLabel, YAxisLabel, ScheduleId, EntityTypeId, [Guid])
+					INSERT [Metric] (IsSystem, Title, [Description], IsCumulative, SourceValueTypeId, SourceSql, XAxisLabel, YAxisLabel, ScheduleId, EntityTypeId, [Guid], ForeignId)
 					VALUES ( 0, @GroupName + ' ' + @TotalRolesTitle, 'Metric to track ' + @GroupName + ' total roles filled by campus', @False, 
-						@SourceTypeSQLId, @MetricTotalRolesSQL, '', '', @MetricScheduleId, @CampusEntityTypeId, NEWID() )
+						@SourceTypeSQLId, @MetricTotalRolesSQL, '', '', @MetricScheduleId, @CampusEntityTypeId, NEWID(), @GroupId )
 
 					SELECT @MetricTotalRolesId = SCOPE_IDENTITY()
 
@@ -1096,9 +1288,9 @@ BEGIN
 				-- create if it doesn't exist
 				IF @MetricTotalRosterId IS NULL
 				BEGIN
-					INSERT [Metric] (IsSystem, Title, [Description], IsCumulative, SourceValueTypeId, SourceSql, XAxisLabel, YAxisLabel, ScheduleId, EntityTypeId, [Guid])
+					INSERT [Metric] (IsSystem, Title, [Description], IsCumulative, SourceValueTypeId, SourceSql, XAxisLabel, YAxisLabel, ScheduleId, EntityTypeId, [Guid], ForeignId)
 					VALUES ( 0, @GroupName + ' ' + @TotalRosterTitle, 'Metric to track ' + @GroupName + ' total roster by campus', @False, 
-						@SourceTypeSQLId, @MetricTotalRosterSQL, '', '', @MetricScheduleId, @CampusEntityTypeId, NEWID() )
+						@SourceTypeSQLId, @MetricTotalRosterSQL, '', '', @MetricScheduleId, @CampusEntityTypeId, NEWID(), @GroupId )
 
 					SELECT @MetricTotalRosterId = SCOPE_IDENTITY()
 
@@ -1117,9 +1309,9 @@ BEGIN
 				-- create if it doesn't exist
 				IF @MetricUniqueServingId IS NULL
 				BEGIN
-					INSERT [Metric] (IsSystem, Title, [Description], IsCumulative, SourceValueTypeId, SourceSql, XAxisLabel, YAxisLabel, ScheduleId, EntityTypeId, [Guid])
+					INSERT [Metric] (IsSystem, Title, [Description], IsCumulative, SourceValueTypeId, SourceSql, XAxisLabel, YAxisLabel, ScheduleId, EntityTypeId, [Guid], ForeignId)
 					VALUES ( 0, @GroupName + ' ' + @UniqueServingTitle, 'Metric to track ' + @GroupName + ' total unique volunteers by campus', @False, 
-						@SourceTypeSQLId, @MetricUniqueServingSQL, '', '', @MetricScheduleId, @CampusEntityTypeId, NEWID() )
+						@SourceTypeSQLId, @MetricUniqueServingSQL, '', '', @MetricScheduleId, @CampusEntityTypeId, NEWID(), @GroupId )
 
 					SELECT @MetricUniqueServingId = SCOPE_IDENTITY()
 
