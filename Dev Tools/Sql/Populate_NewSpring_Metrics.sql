@@ -12,7 +12,8 @@ DECLARE @CampusLocationTypeId int
 DECLARE @SourceTypeSQLId int
 DECLARE @MetricGroupTypeCategoryId int
 DECLARE @MetricServiceRolesId int
-DECLARE @CampusId int
+DECLARE @CampusId int, @GroupId int
+DECLARE @GroupName varchar(255)
 
 SELECT TOP 1 @CampusId = [Id] FROM [Campus]
 SELECT @BooleanFieldTypeId = [Id] FROM [FieldType] WHERE [Name] = 'Boolean'
@@ -26,6 +27,14 @@ DECLARE @MetricParentCategoryId int, @MetricScheduleCategoryId int,
 	@MetricScheduleCategory varchar(255), @MetriciCalSchedule nvarchar(max)
 
 SELECT @MetricParentName = 'Volunteer Groups', @MetricScheduleCategory = 'Metrics'
+
+-- Pick a volunteer group to assign metrics to
+SELECT TOP 1 @GroupId = G.[Id], @GroupName = G.Name
+FROM [Group] G
+INNER JOIN GroupType GT
+	ON G.GroupTypeId = GT.Id
+	AND GT.name = 'Next Steps Volunteer'
+	AND G.ParentGroupId IS NOT NULL
 
 -- create parent category
 SELECT @MetricParentCategoryId = [Id] FROM [Category]
@@ -83,12 +92,12 @@ END
 
 SELECT @MetricGroupTypeCategoryId = [Id] FROM Category
 WHERE ParentCategoryId = @MetricParentCategoryId
-AND Name = 'Guest Services'
+AND Name = 'Next Steps'
 
 IF @MetricGroupTypeCategoryId IS NULL
 BEGIN
 	INSERT [Category] (IsSystem, ParentCategoryId, EntityTypeId, EntityTypeQualifierColumn, EntityTypeQualifierValue, Name, [Guid], [Order])
-	VALUES ( @IsSystem, @MetricParentCategoryId, @MetricCategoryEntityTypeId, '', '', 'Guest Services', NEWID(), @Order )
+	VALUES ( @IsSystem, @MetricParentCategoryId, @MetricCategoryEntityTypeId, '', '', 'Next Steps', NEWID(), @Order )
 
 	SELECT @MetricGroupTypeCategoryId = SCOPE_IDENTITY()
 END
@@ -96,14 +105,14 @@ END
 SELECT @MetricServiceRolesId = [Id] FROM Metric
 WHERE EntityTypeId = @CampusEntityTypeId
 	AND SourceValueTypeId = @SourceTypeSQLId
-	AND Title = 'Auditorium Reset Team'
+	AND Title = @GroupName
 
 -- create if it doesn't exist
 IF @MetricServiceRolesId IS NULL
 BEGIN
-	INSERT [Metric] (IsSystem, Title, [Description], IsCumulative, SourceValueTypeId, SourceSql, XAxisLabel, YAxisLabel, ScheduleId, EntityTypeId, [Guid])
-	VALUES ( 0, 'Auditorium Reset Team', 'Metric to track ' + 'Auditorium Reset Team' + ' roles by campus and service', @False, 
-		@SourceTypeSQLId, 'This is where the SQL would go', '', '', @MetricScheduleId, @CampusEntityTypeId, NEWID() )
+	INSERT [Metric] (IsSystem, Title, [Description], IsCumulative, SourceValueTypeId, SourceSql, XAxisLabel, YAxisLabel, ScheduleId, EntityTypeId, [Guid], ForeignId)
+	VALUES ( 0, @GroupName + ' Service Roles', 'Metric to track ' + @GroupName + ' roles by campus and service', @False, 
+		@SourceTypeSQLId, 'This is where the SQL would go', '', '', @MetricScheduleId, @CampusEntityTypeId, NEWID(), @GroupId  )
 
 	SELECT @MetricServiceRolesId = SCOPE_IDENTITY()
 
