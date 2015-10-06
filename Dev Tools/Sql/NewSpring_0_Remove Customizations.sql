@@ -114,19 +114,31 @@ where id in (
 	select id from #grouptypes
 )
 
-delete from location
-where ParentLocationId in (
-	select locationId from campus
-	where id > 1
-)
+select isnull(lc.id, l.Id) as 'LocationId'
+into #locations
+from campus c
+inner join location l
+	on c.LocationId = l.ParentLocationId
+left join location lc
+	on lc.ParentLocationId = l.Id
 
+-- delete child locations first
 delete from location
 where id in (
-	select locationId from campus
-	where id > 1
+	select LocationId from #locations
 )
+
+insert #locations
+select LocationId from campus
 
 delete from campus
 where id > 1
+
+-- delete campus locations
+delete from location
+where id in (
+	select LocationId from #locations
+)
+
 
 use master
