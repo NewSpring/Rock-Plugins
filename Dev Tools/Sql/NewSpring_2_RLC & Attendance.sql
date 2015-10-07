@@ -2299,7 +2299,8 @@ begin
 			 Tag_Comment, NEWID(), Check_In_Time, @CampusId, p.Id, @False, 
 			 CASE
 				WHEN @GroupTypeName like 'Fuse%' THEN @FuseScheduleId
-				ELSE ISNULL(s2.serviceId, s.serviceId)
+				WHEN s2.serviceId IS NOT NULL THEN s2.serviceId
+				ELSE s.serviceId
 			END as ScheduleId
 		from F1..Attendance a
 		inner join PersonAlias p
@@ -2308,7 +2309,7 @@ begin
 		left join #services s
 			on s.serviceName = DATENAME(DW, a.Start_Date_Time)
 		left join #services s2
-			on s.serviceTime = CONVERT(TIME, a.Start_Date_time)
+			on s2.serviceTime = CONVERT(TIME, a.Start_Date_time)
 
 		select @JobTitle = null, @JobId = null, @PersonId = null, @ScheduleName = null, 
 			@GroupRoleId = null, @GroupMemberId = null, @ScheduleAttributeId = null,

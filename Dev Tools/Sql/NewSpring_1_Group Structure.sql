@@ -141,7 +141,7 @@ DECLARE @MetricParentCategoryId int, @MetricScheduleCategoryId int,
 	@MetricScheduleId int, @MetricParentName varchar(255), 
 	@MetricScheduleCategory varchar(255), @MetriciCalSchedule nvarchar(max)
 
-SELECT @MetricParentName = 'Volunteer Groups', @MetricScheduleCategory = 'Metrics'
+SELECT @MetricParentName = 'Volunteers', @MetricScheduleCategory = 'Metrics'
 
 -- create parent category
 SELECT @MetricParentCategoryId = [Id] FROM [Category]
