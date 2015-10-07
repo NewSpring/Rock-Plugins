@@ -38,15 +38,18 @@ namespace RockWeb.Blocks.Core
     [DisplayName( "Campus Context Setter" )]
     [Category( "Core" )]
     [Description( "Block that can be used to set the default campus context for the site." )]
-
-    [CustomRadioListField("Context Scope", "The scope of context to set", "Site,Page", true, "Site", order: 0)]
-    [TextField( "Current Item Template", "Lava template for the current item. The only merge field is {{ CampusName }}.", true, "{{ CampusName }}", order: 1)]
-    [TextField( "Dropdown Item Template", "Lava template for items in the dropdown. The only merge field is {{ CampusName }}.", true, "{{ CampusName }}", order: 1 )]
-    [TextField( "No Campus Text", "The text to show when there is no campus in the context.", true, "All Campuses", order: 2)]
+    [CustomRadioListField( "Context Scope", "The scope of context to set", "Site,Page", true, "Site", order: 0 )]
+    [TextField( "Current Item Template", "Lava template for the current item. The only merge field is {{ CampusName }}.", true, "{{ CampusName }}", order: 1 )]
+    [TextField( "Dropdown Item Template", "Lava template for items in the dropdown. The only merge field is {{ CampusName }}.", true, "{{ CampusName }}", order: 2 )]
+    [TextField( "No Campus Text", "The text displayed when no campus context is selected.", true, "All Campuses", order: 3 )]
     public partial class CampusContextSetter : RockBlock
     {
         #region Base Control Methods
 
+        /// <summary>
+        /// Raises the <see cref="E:System.Web.UI.Control.Init" /> event.
+        /// </summary>
+        /// <param name="e">An <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
@@ -55,8 +58,6 @@ namespace RockWeb.Blocks.Core
             {
                 SetCampusContext();
             }
-
-            
         }
 
         /// <summary>
@@ -73,6 +74,81 @@ namespace RockWeb.Blocks.Core
             }
         }
 
+        /// <summary>
+        /// Loads the drop downs.
+        /// </summary>
+        private void LoadDropDowns()
+        {
+            Dictionary<string, object> mergeObjects = new Dictionary<string, object>();
+
+            var campusEntityType = EntityTypeCache.Read( "Rock.Model.Campus" );
+            var defaultCampus = RockPage.GetCurrentContext( campusEntityType ) as Campus;
+
+            if ( defaultCampus != null )
+            {
+                mergeObjects.Add( "CampusName", defaultCampus.Name );
+                lCurrentSelection.Text = GetAttributeValue( "CurrentItemTemplate" ).ResolveMergeFields( mergeObjects );
+            }
+            else
+            {
+                lCurrentSelection.Text = GetAttributeValue( "NoCampusText" );
+            }
+
+            var campusList = CampusCache.All()
+                .Select( a => new CampusItem { Name = a.Name, Id = a.Id } )
+                .ToList();
+
+            campusList.Add( new CampusItem
+            {
+                Name = GetAttributeValue( "NoCampusText" ),
+                Id = Rock.Constants.All.ListItem.Value.AsInteger()
+            } );
+
+            var formattedCampuses = new Dictionary<int, string>();
+            // run lava on each campus
+            foreach ( var campus in campusList )
+            {
+                mergeObjects.Clear();
+                mergeObjects.Add( "CampusName", campus.Name );
+                campus.Name = GetAttributeValue( "DropdownItemTemplate" ).ResolveMergeFields( mergeObjects );
+            }
+
+            rptCampuses.DataSource = campusList;
+            rptCampuses.DataBind();
+        }
+
+        #endregion
+
+        #region Events
+
+        /// <summary>
+        /// Handles the ItemCommand event of the rptCampuses control.
+        /// </summary>
+        /// <param name="source">The source of the event.</param>
+        /// <param name="e">The <see cref="RepeaterCommandEventArgs"/> instance containing the event data.</param>
+        protected void rptCampuses_ItemCommand( object source, RepeaterCommandEventArgs e )
+        {
+            var campusId = e.CommandArgument.ToString();
+
+            Request.QueryString.Set( "campus", campusId );
+
+            bool pageScope = GetAttributeValue( "ContextScope" ) == "Page";
+            var campus = new CampusService( new RockContext() ).Get( campusId.AsInteger() );
+            if ( campus != null )
+            {
+                RockPage.SetContextCookie( campus, pageScope, true );
+            }
+
+            //Response.Redirect( string.Format( "{0}?{1}", Request.Url.AbsolutePath, Request.QueryString ) );
+        }
+
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Sets the context URL cookie.
+        /// </summary>
         private void SetContextUrlCookie()
         {
             HttpCookie cookieUrl = new HttpCookie( "Rock.Campus.Context.Query" );
@@ -81,6 +157,10 @@ namespace RockWeb.Blocks.Core
             Response.Cookies.Add( cookieUrl );
         }
 
+        /// <summary>
+        /// Clears the rock context.
+        /// </summary>
+        /// <param name="cookieName">Name of the cookie.</param>
         private void ClearRockContext( string cookieName )
         {
             var cookieKeys = Request.Cookies[cookieName].Value.Split( '&' ).ToArray();
@@ -89,7 +169,6 @@ namespace RockWeb.Blocks.Core
 
             foreach ( var cookieKey in cookieKeys )
             {
-
                 if ( !cookieKey.ToString().StartsWith( "Rock.Model.Campus" ) )
                 {
                     var cookieValue = cookieKey.Split( '=' );
@@ -105,9 +184,11 @@ namespace RockWeb.Blocks.Core
             Response.Cookies.Add( newRockCookie );
         }
 
+        /// <summary>
+        /// Sets the campus context.
+        /// </summary>
         private void SetCampusContext()
         {
-            
             var campusContextQuery = Request.QueryString["campusId"];
 
             HttpCookie cookieUrl = Request.Cookies["Rock.Campus.Context.Query"];
@@ -147,84 +228,6 @@ namespace RockWeb.Blocks.Core
                     }
                 }
             }
-            
-        }
-
-        /// <summary>
-        /// Loads the drop downs.
-        /// </summary>
-        private void LoadDropDowns()
-        {
-            Dictionary<string, object> mergeObjects = new Dictionary<string, object>();
-
-            var campusEntityType = EntityTypeCache.Read( "Rock.Model.Campus" );
-            var defaultCampus = RockPage.GetCurrentContext( campusEntityType ) as Campus;
-
-            if ( defaultCampus != null )
-            {
-                mergeObjects.Add( "CampusName", defaultCampus.Name );
-                lCurrentSelection.Text = GetAttributeValue( "CurrentItemTemplate" ).ResolveMergeFields( mergeObjects );
-            }
-            else
-            {
-                lCurrentSelection.Text = GetAttributeValue( "NoCampusText" );
-            }
-
-            List<CampusItem> campuses = new List<CampusItem>();
-
-            campuses.Add( new CampusItem { Name = GetAttributeValue( "NoCampusText" ), Id = Rock.Constants.All.ListItem.Value.AsInteger() } );
-
-            var campusList = CampusCache.All()
-                .Select( a => new CampusItem { Name = a.Name, Id = a.Id } )
-                .ToList();
-
-            foreach ( var campusItem in campusList )
-            {
-                campuses.Add( new CampusItem { Name = campusItem.Name, Id = campusItem.Id } );
-            }
-
-            var formattedCampuses = new Dictionary<int, string>();
-            // run lava on each campus
-            foreach ( var campus in campuses )
-            {
-                mergeObjects.Clear();
-                mergeObjects.Add( "CampusName", campus.Name );
-                campus.Name = GetAttributeValue( "DropdownItemTemplate" ).ResolveMergeFields( mergeObjects );
-            }
-
-            rptCampuses.DataSource = campuses;
-            rptCampuses.DataBind();
-        }
-
-        #endregion
-
-        #region Methods
-
-        /// <summary>
-        /// Handles the ItemCommand event of the rptCampuses control.
-        /// </summary>
-        /// <param name="source">The source of the event.</param>
-        /// <param name="e">The <see cref="RepeaterCommandEventArgs"/> instance containing the event data.</param>
-        protected void rptCampuses_ItemCommand( object source, RepeaterCommandEventArgs e )
-        {
-            bool pageScope = GetAttributeValue( "ContextScope" ) == "Page";
-            var campus = new CampusService( new RockContext() ).Get( e.CommandArgument.ToString().AsInteger() );
-            
-            var campusId = e.CommandArgument;
-
-            var nameValues = HttpUtility.ParseQueryString( Request.QueryString.ToString() );
-            nameValues.Set( "campusId", campusId.ToString() );
-            string url = Request.Url.AbsolutePath;
-            string updatedQueryString = "?" + nameValues.ToString();
-
-            // Only update the Context Cookie if the Campus is valid
-            if ( campus != null )
-            {
-                RockPage.SetContextCookie( campus, pageScope, false );
-            }
-
-            Response.Redirect( url + updatedQueryString );
-            
         }
 
         #endregion
@@ -232,7 +235,8 @@ namespace RockWeb.Blocks.Core
         /// <summary>
         /// Campus Item
         /// </summary>
-        public class CampusItem {
+        public class CampusItem
+        {
             /// <summary>
             /// Gets or sets the name.
             /// </summary>
