@@ -945,7 +945,8 @@ DECLARE @MetricServiceRolesId int = null, @MetricServiceRosterId int = null, @Me
 	@MetricTotalRosterId int = null, @MetricUniqueServingId int = null, @MetricServiceRolesSQL nvarchar(max), 
 	@MetricServiceRosterSQL nvarchar(max), @MetricTotalRolesSQL nvarchar(max), @MetricTotalRosterSQL nvarchar(max),
 	@MetricUniqueServingSQL nvarchar(max), @ServiceRolesTitle varchar(255), @ServiceRosterTitle varchar(255), 
-	@TotalRolesTitle varchar(255), @TotalRosterTitle varchar(255), @UniqueServingTitle varchar(255)
+	@TotalRolesTitle varchar(255), @TotalRosterTitle varchar(255), @UniqueServingTitle varchar(255),
+	@MetricFirstAttendedId int = null, @MetricFirstAttendedSQL nvarchar(max)
 
 -- metric title names used for the group
 SELECT @ServiceRolesTitle = 'Service Attendance', @ServiceRosterTitle = 'Service Roster', @TotalRolesTitle = 'Total Attendance',
@@ -1029,7 +1030,6 @@ SELECT @MetricServiceRosterSQL = N'
 	WHERE GM.GroupId = {{GroupId}}
 		AND GM.GroupMemberStatus = 1
 	GROUP BY Campus.Id, Schedule.Value
-	ORDER BY Campus.Id, Schedule.Value
 '
 
 -- Total Roles Query
@@ -1050,7 +1050,7 @@ SELECT @MetricTotalRolesSQL = N'
 			AND StartDateTime < CONVERT(DATE, GETDATE())
 	) Attendance
 	ON PA.Id = Attendance.PersonAliasId	
-	GROUP BY Attendance.CampusId
+	GROUP BY CampusId
 '
 
 -- Total Roster Query
@@ -1079,7 +1079,6 @@ SELECT @MetricTotalRosterSQL = N'
 	WHERE GM.GroupId = {{GroupId}}
 		AND GM.GroupMemberStatus = 1
 	GROUP BY Campus.Id
-	ORDER BY Campus.Id
 '
 
 -- Total Unique Serving Query
@@ -1099,9 +1098,33 @@ SELECT @MetricUniqueServingSQL = N'
 			AND StartDateTime < CONVERT(DATE, GETDATE())
 	) Attendance
 		ON PA.Id = Attendance.PersonAliasId	
-	GROUP BY Attendance.CampusId
-	ORDER BY Attendance.CampusId
+	GROUP BY CampusId
 '
+
+-- First Attended Query
+SELECT @MetricFirstAttendedSQL = N'
+	/* ====================================================================== */
+	-- Returns first attendances by Campus from the previous day
+	-- Returns a timestamp of 00:00:00 since this is by total and not service
+	/* ====================================================================== */
+	SELECT COUNT(1) AS Value, Attendance.CampusId AS EntityId
+		, DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0) + ''00:00'' AS ScheduleDate
+	FROM PersonAlias PA 
+	INNER JOIN (
+		SELECT PersonAliasId, CampusId, StartDateTime AS ScheduleDate, ROW_NUMBER() OVER (
+			PARTITION BY PersonAliasId, CampusId ORDER BY StartDateTime
+		) AS RowNumber
+		FROM [Attendance] 
+		WHERE DidAttend = 1
+		AND GroupId = {{GroupId}}
+	) Attendance
+	ON PA.Id = Attendance.PersonAliasId
+	AND ScheduleDate >= DATEADD(dd, DATEDIFF(dd, 1, @GETDATE()), 0)
+	AND ScheduleDate < CONVERT(DATE, @GETDATE())
+	AND RowNumber = 1
+	GROUP BY CampusId
+'
+
 
 /* ====================================================== */
 -- insert campus groups
