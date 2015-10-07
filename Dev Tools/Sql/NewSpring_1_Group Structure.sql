@@ -946,7 +946,8 @@ DECLARE @MetricServiceRolesId int = null, @MetricServiceRosterId int = null, @Me
 	@MetricServiceRosterSQL nvarchar(max), @MetricTotalRolesSQL nvarchar(max), @MetricTotalRosterSQL nvarchar(max),
 	@MetricUniqueServingSQL nvarchar(max), @ServiceRolesTitle varchar(255), @ServiceRosterTitle varchar(255), 
 	@TotalRolesTitle varchar(255), @TotalRosterTitle varchar(255), @UniqueServingTitle varchar(255),
-	@MetricFirstAttendedId int = null, @MetricFirstAttendedSQL nvarchar(max)
+	@MetricFirstAttendedId int = null, @MetricFirstAttendedSQL nvarchar(max), @MetricMiddleSchoolId int,
+	@MetricMiddleSchoolSQL nvarchar(max), @MetricHighSchoolId int, @MetricHighSchoolSQL nvarchar(max)
 
 -- metric title names used for the group
 SELECT @ServiceRolesTitle = 'Service Attendance', @ServiceRosterTitle = 'Service Roster', @TotalRolesTitle = 'Total Attendance',
@@ -1111,12 +1112,14 @@ SELECT @MetricFirstAttendedSQL = N'
 		, DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0) + ''00:00'' AS ScheduleDate
 	FROM PersonAlias PA 
 	INNER JOIN (
-		SELECT PersonAliasId, CampusId, StartDateTime AS ScheduleDate, ROW_NUMBER() OVER (
-			PARTITION BY PersonAliasId, CampusId ORDER BY StartDateTime
+		SELECT PersonAliasId, A.CampusId, StartDateTime AS ScheduleDate, ROW_NUMBER() OVER (
+			PARTITION BY PersonAliasId, A.CampusId ORDER BY StartDateTime
 		) AS RowNumber
-		FROM [Attendance] 
-		WHERE DidAttend = 1
-		AND GroupId = {{GroupId}}
+		FROM [Attendance] A
+		INNER JOIN [Group] G
+			ON A.GroupId = G.Id
+			AND G.GroupTypeId = {{GroupTypeId}}
+		WHERE DidAttend = 1	
 	) Attendance
 	ON PA.Id = Attendance.PersonAliasId
 	AND ScheduleDate >= DATEADD(dd, DATEDIFF(dd, 1, @GETDATE()), 0)
@@ -1125,6 +1128,57 @@ SELECT @MetricFirstAttendedSQL = N'
 	GROUP BY CampusId
 '
 
+-- Fuse MS Total
+SELECT @MetricMiddleSchoolSQL  = N'
+	/* ====================================================================== */
+	-- Returns total MS attended by Campus from the previous day
+	-- Returns a timestamp of 00:00:00 since this is by total and not service
+	/* ====================================================================== */
+	SELECT COUNT(1) AS Value, CampusId AS EntityId, DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0) + ''00:00'' AS ScheduleDate
+	FROM PersonAlias PA 
+	INNER JOIN (
+		SELECT PersonAliasId, A.CampusId
+		FROM [Attendance] A	
+		INNER JOIN [Group] G
+			ON A.GroupId = G.Id
+			AND G.GroupTypeId = {{GroupTypeId}}
+		WHERE DidAttend = 1	
+		AND StartDateTime >= DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0)
+		AND StartDateTime < CONVERT(DATE, GETDATE())
+		AND (
+			CASE WHEN ISNUMERIC(LEFT(G.Name, 1)) = 1
+			THEN LEFT(G.Name, 1) ELSE NULL END
+		) IN ( 6,7,8 ) -- 6th, 7th, 8th grade
+	) Attendance
+		ON PA.Id = Attendance.PersonAliasId	
+	GROUP BY CampusId	
+'
+
+-- Fuse HS Total
+SELECT @MetricHighSchoolSQL = N'
+	/* ====================================================================== */
+	-- Returns total HS attended by Campus from the previous day
+	-- Returns a timestamp of 00:00:00 since this is by total and not service
+	/* ====================================================================== */
+	SELECT COUNT(1) AS Value, CampusId AS EntityId, DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0) + ''00:00'' AS ScheduleDate
+	FROM PersonAlias PA 
+	INNER JOIN (
+		SELECT PersonAliasId, A.CampusId
+		FROM [Attendance] A	
+		INNER JOIN [Group] G
+			ON A.GroupId = G.Id
+			AND G.GroupTypeId = {{GroupTypeId}}
+		WHERE DidAttend = 1	
+		AND StartDateTime >= DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0)
+		AND StartDateTime < CONVERT(DATE, GETDATE())
+		AND (
+			CASE WHEN ISNUMERIC(LEFT(G.Name, 1)) = 1
+			THEN LEFT(G.Name, 1) ELSE NULL END
+		) IN ( 9, 1 ) -- 9th, 10th, 11th, 12th grade
+	) Attendance
+		ON PA.Id = Attendance.PersonAliasId	
+	GROUP BY CampusId	
+'
 
 /* ====================================================== */
 -- insert campus groups
