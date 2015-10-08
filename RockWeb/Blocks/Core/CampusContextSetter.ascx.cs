@@ -54,10 +54,9 @@ namespace RockWeb.Blocks.Core
         {
             base.OnInit( e );
 
-            if ( Request.QueryString["campusId"] != null )
-            {
-                SetCampusContext();
-            }
+            // repaint the screen after block settings are updated
+            this.BlockUpdated += Block_BlockUpdated;
+            this.AddConfigurationUpdateTrigger( upnlContent );
         }
 
         /// <summary>
@@ -68,25 +67,48 @@ namespace RockWeb.Blocks.Core
         {
             base.OnLoad( e );
 
-            if ( !Page.IsPostBack )
-            {
-                LoadDropDowns();
-            }
+            LoadDropdowns();
+            
         }
 
         /// <summary>
-        /// Loads the drop downs.
+        /// Handles the BlockUpdated event of the control.
         /// </summary>
-        private void LoadDropDowns()
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void Block_BlockUpdated( object sender, EventArgs e )
         {
-            Dictionary<string, object> mergeObjects = new Dictionary<string, object>();
+            LoadDropdowns();
+        }
 
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Sets the campus.
+        /// </summary>
+        private void LoadDropdowns()
+        {
             var campusEntityType = EntityTypeCache.Read( "Rock.Model.Campus" );
-            var defaultCampus = RockPage.GetCurrentContext( campusEntityType ) as Campus;
+            var currentCampus = RockPage.GetCurrentContext( campusEntityType ) as Campus;
 
-            if ( defaultCampus != null )
+            var campusContextQuery = Request.QueryString["campusId"];
+            if ( campusContextQuery != null )
             {
-                mergeObjects.Add( "CampusName", defaultCampus.Name );
+                var campusId = campusContextQuery.AsInteger();
+
+                if ( currentCampus == null || currentCampus.Id != campusId )
+                {
+                    currentCampus = SetCampusContext( campusId, false );
+                }
+            }
+
+            var mergeObjects = new Dictionary<string, object>();
+
+            if ( currentCampus != null )
+            {
+                mergeObjects.Add( "CampusName", currentCampus.Name );
                 lCurrentSelection.Text = GetAttributeValue( "CurrentItemTemplate" ).ResolveMergeFields( mergeObjects );
             }
             else
@@ -94,15 +116,16 @@ namespace RockWeb.Blocks.Core
                 lCurrentSelection.Text = GetAttributeValue( "NoCampusText" );
             }
 
-            var campusList = CampusCache.All()
-                .Select( a => new CampusItem { Name = a.Name, Id = a.Id } )
-                .ToList();
-
+            var campusList = new List<CampusItem>();
             campusList.Add( new CampusItem
             {
                 Name = GetAttributeValue( "NoCampusText" ),
                 Id = Rock.Constants.All.ListItem.Value.AsInteger()
             } );
+
+            campusList.AddRange( CampusCache.All()
+                .Select( a => new CampusItem { Name = a.Name, Id = a.Id } )
+            );
 
             var formattedCampuses = new Dictionary<int, string>();
             // run lava on each campus
@@ -115,6 +138,44 @@ namespace RockWeb.Blocks.Core
 
             rptCampuses.DataSource = campusList;
             rptCampuses.DataBind();
+        }
+
+        /// <summary>
+        /// Sets the campus context.
+        /// </summary>
+        /// <param name="campusId">The campus identifier.</param>
+        /// <param name="refreshPage">if set to <c>true</c> [refresh page].</param>
+        /// <returns></returns>
+        protected Campus SetCampusContext( int campusId, bool refreshPage = false )
+        {
+            var queryString = HttpUtility.ParseQueryString( Request.QueryString.ToStringSafe() );
+            queryString.Set( "campusId", campusId.ToString() );
+
+            bool pageScope = GetAttributeValue( "ContextScope" ) == "Page";
+            var campus = new CampusService( new RockContext() ).Get( campusId );
+            if ( campus != null )
+            {
+                // don't refresh here, refresh below with the correct query string
+                RockPage.SetContextCookie( campus, false );
+            }
+            else
+            {
+                string cookieName = RockPage.GetContextCookieName( pageScope );
+
+                var contextCookie = Request.Cookies[cookieName];
+                if ( contextCookie != null )
+                {
+                    contextCookie.Values.Remove( typeof( Campus ).FullName );
+                    Response.Cookies.Add( contextCookie );
+                }
+            }
+
+            if ( refreshPage )
+            {
+                Response.Redirect( string.Format( "{0}?{1}", Request.Url.AbsolutePath, queryString ) );
+            }
+
+            return campus;
         }
 
         #endregion
@@ -130,103 +191,9 @@ namespace RockWeb.Blocks.Core
         {
             var campusId = e.CommandArgument.ToString();
 
-            Request.QueryString.Set( "campus", campusId );
-
-            bool pageScope = GetAttributeValue( "ContextScope" ) == "Page";
-            var campus = new CampusService( new RockContext() ).Get( campusId.AsInteger() );
-            if ( campus != null )
+            if ( campusId != null )
             {
-                RockPage.SetContextCookie( campus, pageScope, true );
-            }
-
-            //Response.Redirect( string.Format( "{0}?{1}", Request.Url.AbsolutePath, Request.QueryString ) );
-        }
-
-        #endregion
-
-        #region Methods
-
-        /// <summary>
-        /// Sets the context URL cookie.
-        /// </summary>
-        private void SetContextUrlCookie()
-        {
-            HttpCookie cookieUrl = new HttpCookie( "Rock.Campus.Context.Query" );
-            cookieUrl["campusId"] = Request.QueryString["campusId"].ToString();
-            cookieUrl.Expires = DateTime.Now.AddHours( 1 );
-            Response.Cookies.Add( cookieUrl );
-        }
-
-        /// <summary>
-        /// Clears the rock context.
-        /// </summary>
-        /// <param name="cookieName">Name of the cookie.</param>
-        private void ClearRockContext( string cookieName )
-        {
-            var cookieKeys = Request.Cookies[cookieName].Value.Split( '&' ).ToArray();
-
-            HttpCookie newRockCookie = new HttpCookie( cookieName );
-
-            foreach ( var cookieKey in cookieKeys )
-            {
-                if ( !cookieKey.ToString().StartsWith( "Rock.Model.Campus" ) )
-                {
-                    var cookieValue = cookieKey.Split( '=' );
-
-                    var cookieId = cookieValue[0].ToString();
-                    var cookieHash = cookieValue[1].ToString();
-
-                    newRockCookie[cookieId] = cookieHash;
-                }
-            }
-
-            newRockCookie.Expires = DateTime.Now.AddHours( 1 );
-            Response.Cookies.Add( newRockCookie );
-        }
-
-        /// <summary>
-        /// Sets the campus context.
-        /// </summary>
-        private void SetCampusContext()
-        {
-            var campusContextQuery = Request.QueryString["campusId"];
-
-            HttpCookie cookieUrl = Request.Cookies["Rock.Campus.Context.Query"];
-
-            if ( campusContextQuery != null )
-            {
-                bool pageScope = GetAttributeValue( "ContextScope" ) == "Page";
-                var campus = new CampusService( new RockContext() ).Get( campusContextQuery.ToString().AsInteger() );
-                if ( campus != null )
-                {
-                    if ( cookieUrl == null || Request.QueryString["campusId"].ToString() != cookieUrl.Value.Replace( "campusId=", "" ) )
-                    {
-                        SetContextUrlCookie();
-                        RockPage.SetContextCookie( campus, pageScope, true );
-                    }
-                }
-                else
-                {
-                    if ( cookieUrl == null || Request.QueryString["campusId"].ToString() != cookieUrl.Value.Replace( "campusId=", "" ) )
-                    {
-                        SetContextUrlCookie();
-
-                        // Check for a page specific Rock Context Cookie
-                        if ( Request.Cookies["Rock_Context:" + RockPage.PageId.ToString()].HasKeys )
-                        {
-                            ClearRockContext( "Rock_Context:" + RockPage.PageId.ToString() );
-                        }
-
-                        // Check for a site specific Rock Context Cookie
-                        if ( Request.Cookies["Rock_Context"].HasKeys )
-                        {
-                            ClearRockContext( "Rock_Context" );
-                        }
-
-                        // Refresh the page once we modify the cookies
-                        Response.Redirect( Request.Url.ToString() );
-                    }
-                }
+                SetCampusContext( campusId.AsInteger(), true );
             }
         }
 
