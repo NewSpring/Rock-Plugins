@@ -68,7 +68,7 @@ namespace RockWeb.Blocks.Core
             base.OnLoad( e );
 
             LoadDropdowns();
-            
+
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace RockWeb.Blocks.Core
         /// <summary>
         /// Sets the campus.
         /// </summary>
-        private void LoadDropdowns()
+        protected void LoadDropdowns()
         {
             var campusEntityType = EntityTypeCache.Read( "Rock.Model.Campus" );
             var currentCampus = RockPage.GetCurrentContext( campusEntityType ) as Campus;
