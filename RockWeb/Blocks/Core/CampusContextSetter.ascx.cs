@@ -68,7 +68,6 @@ namespace RockWeb.Blocks.Core
             base.OnLoad( e );
 
             LoadDropdowns();
-
         }
 
         /// <summary>
@@ -86,7 +85,7 @@ namespace RockWeb.Blocks.Core
         #region Methods
 
         /// <summary>
-        /// Sets the campus.
+        /// Loads the campuses
         /// </summary>
         protected void LoadDropdowns()
         {
