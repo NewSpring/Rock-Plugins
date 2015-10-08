@@ -3,10 +3,8 @@ using Rock.Model;
 
 namespace cc.newspring.Apollos
 {
-    public class PaymentParameters
+    public class PaymentParameters : PersonParameters
     {
-        public string Email { get; set; }
-
         public string AccountType { get; set; }
 
         public string AccountNumber { get; set; }
@@ -21,14 +19,6 @@ namespace cc.newspring.Apollos
 
         public int? PersonId { get; set; }
 
-        public int? UserId { get; set; }
-
-        public Guid? PersonGuid { get; set; }
-
-        public string FirstName { get; set; }
-
-        public string LastName { get; set; }
-
         public string Street1 { get; set; }
 
         public string Street2 { get; set; }
@@ -40,7 +30,5 @@ namespace cc.newspring.Apollos
         public string PostalCode { get; set; }
 
         public string Country { get; set; }
-
-        public string PhoneNumber { get; set; }
     }
 }

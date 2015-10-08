@@ -10,7 +10,7 @@
    ====================================================== */
 -- Make sure you're using the right Rock database:
 
-USE Rock
+--USE Rock
 
 /* ====================================================== */
 
@@ -28,7 +28,7 @@ declare @ScheduleDefinedTypeId decimal, @GroupCategoryId bigint, @ChildCategoryI
 	@NameSearchValueId bigint, @PersonId bigint, @GroupTypeId bigint, @GroupId bigint, @LocationId bigint, 
 	@CampusId bigint, @GroupMemberEntityId bigint, @PersonEntityTypeId bigint, @DefinedValueFieldTypeId bigint, 
 	@ScheduleAttributeId bigint, @BreakoutGroupAttributeId bigint, @TeamConnectorTypeId bigint, 
-	@TeamConnectorAttributeId bigint, @CampusFieldTypeId bigint, @CampusAttributeId bigint
+	@TeamConnectorAttributeId bigint, @CampusFieldTypeId bigint, @CampusAttributeId bigint, @FuseScheduleId int
 
 select @GroupCategoryId = Id from Category where [Guid] = '56B3C72A-6CE7-4CAE-8105-9F16EE772530'
 select @ChildCategoryId = Id from Category where [Guid] = '752DC692-836E-4A3E-B670-4325CD7724BF'
@@ -99,6 +99,27 @@ begin
 end
 
 /* ====================================================== */
+-- Create services lookup
+/* ====================================================== */
+if object_id('tempdb..#services') is not null
+begin
+	drop table #services
+end
+create table #services (
+	serviceId int,
+	serviceName nvarchar(255),
+	serviceTime time
+)
+
+insert into #services
+select Id, Name, STUFF(SUBSTRING(iCalendarContent, PATINDEX('%DTSTART%', iCalendarContent) +17, 4), 3, 0, ':')
+from schedule
+
+select @FuseScheduleId = serviceId 
+from #services
+where serviceName like 'Fuse%'
+
+/* ====================================================== */
 -- Create schedule defined type
 /* ====================================================== */
 if @ScheduleDefinedTypeId is null
@@ -144,9 +165,11 @@ select distinct Staffing_Schedule_Name, case
 	when Staffing_Schedule_Name = '4:00' 
 		or Staffing_Schedule_Name = '4:15' 
 		then '4:00 PM'
-	when Staffing_Schedule_Name = '6:00' 
+	when Staffing_Schedule_Name = '6:00'
 		then '6:00 PM'
-	when Staffing_Schedule_Name = 'Base Schedule' 
+	when Staffing_Schedule_Name = 'Base Schedule'
+		then null
+	when Staffing_Schedule_Name like 'Every Other%'
 		then null
 	else Staffing_Schedule_Name
 	end as 'schedule'
@@ -2265,20 +2288,29 @@ begin
 	
 	if @GroupId is not null and @LocationId is not null
 	begin
-
+		
 		/* ====================================================== */
 		-- Create attendances that match this RLC
 		-- Note: Attendance is tied to Person Alias Id
 		/* ====================================================== */
-		insert [Attendance] (LocationId, ScheduleId, GroupId, SearchTypeValueId, StartDateTime, 
-			DidAttend, Note, [Guid], CreatedDateTime, CampusId, PersonAliasId, RSVP)
-		select @LocationId, NULL, @GroupId, @NameSearchValueId, Start_Date_Time, @True,
-			 Tag_Comment, NEWID(), Check_In_Time, @CampusId, p.Id, @False
+		insert [Attendance] (LocationId, GroupId, SearchTypeValueId, StartDateTime, 
+			DidAttend, Note, [Guid], CreatedDateTime, CampusId, PersonAliasId, RSVP, ScheduleId)
+		select @LocationId, @GroupId, @NameSearchValueId, ISNULL(Check_In_Time, Start_Date_Time), @True,
+			 Tag_Comment, NEWID(), Check_In_Time, @CampusId, p.Id, @False, 
+			 CASE
+				WHEN @GroupTypeName like 'Fuse%' THEN @FuseScheduleId
+				WHEN s2.serviceId IS NOT NULL THEN s2.serviceId
+				ELSE s.serviceId
+			END as ScheduleId
 		from F1..Attendance a
 		inner join PersonAlias p
-		on a.Individual_ID = p.ForeignId
-		and RLC_ID = @RLCID
-		
+			on a.Individual_ID = p.ForeignId
+			and a.RLC_ID = @RLCID
+		left join #services s
+			on s.serviceName = DATENAME(DW, a.Start_Date_Time)
+		left join #services s2
+			on s2.serviceTime = CONVERT(TIME, a.Start_Date_time)
+
 		select @JobTitle = null, @JobId = null, @PersonId = null, @ScheduleName = null, 
 			@GroupRoleId = null, @GroupMemberId = null, @ScheduleAttributeId = null,
 			@CampusAttributeId = null, @TeamConnectorAttributeId = null, @BreakoutGroup = null
@@ -2429,7 +2461,7 @@ begin
 				-- Create schedule attribute
 				if @ScheduleName is not null and @ScheduleName <> ''
 				begin
-					declare @currentSchedule nvarchar(250) = null, @newSchedule nvarchar(250) = null
+					declare @currentSchedule nvarchar(255) = null, @newSchedule nvarchar(255) = null
 					select @newSchedule = dvGuid from #schedules where scheduleF1 = @ScheduleName
 
 					if @newSchedule is not null
@@ -2444,7 +2476,7 @@ begin
 						else 
 						begin
 							update AttributeValue
-							set Value = convert(nvarchar(50), @newSchedule) + ',' + convert(nvarchar(50), @currentSchedule)
+							set Value = convert(nvarchar(255), @newSchedule) + ',' + convert(nvarchar(255), @currentSchedule)
 							from AttributeValue where AttributeId = @ScheduleAttributeId and EntityId = @GroupMemberId
 						end
 					end
@@ -2469,14 +2501,14 @@ begin
 						else 
 						begin
 							update AttributeValue
-							set Value = convert(nvarchar(50), @BreakoutGroup) + ',' + convert(nvarchar(50), @currentTag)
+							set Value = convert(nvarchar(255), @BreakoutGroup) + ',' + convert(nvarchar(255), @currentTag)
 							from AttributeValue where AttributeId = @BreakoutGroupAttributeId and EntityId = @PersonId
 						end
 					end
 					-- this is a volunteer breakout, assign them a team connector
 					else 
 					begin
-						declare @currentConnector nvarchar(250) = null, @newConnector nvarchar(250) = null
+						declare @currentConnector nvarchar(255) = null, @newConnector nvarchar(255) = null
 						select @newConnector = [Guid] from DefinedValue where DefinedTypeId = @TeamConnectorTypeId 
 							and Value = @BreakoutGroup
 
@@ -2492,7 +2524,7 @@ begin
 							else 
 							begin
 								update AttributeValue
-								set Value = convert(nvarchar(50), @newConnector) + ',' + convert(nvarchar(50), @currentConnector)
+								set Value = convert(nvarchar(255), @newConnector) + ',' + convert(nvarchar(255), @currentConnector)
 								from AttributeValue where AttributeId = @TeamConnectorAttributeId and EntityId = @GroupMemberId
 							end
 						end
