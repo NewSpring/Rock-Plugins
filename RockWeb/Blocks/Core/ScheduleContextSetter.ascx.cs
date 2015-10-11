@@ -90,13 +90,24 @@ namespace RockWeb.Plugins.cc_newspring.Blocks.ScheduleContextSetter
         /// </summary>
         private void LoadDropdowns()
         {
-            var mergeObjects = new Dictionary<string, object>();
             var scheduleEntityType = EntityTypeCache.Read( "Rock.Model.Schedule" );
-            var defaultSchedule = RockPage.GetCurrentContext( scheduleEntityType ) as Schedule;
+            var currentSchedule = RockPage.GetCurrentContext( scheduleEntityType ) as Schedule;
 
-            if ( defaultSchedule != null )
+            var scheduleContextQuery = Request.QueryString["scheduleId"];
+            if ( scheduleContextQuery != null )
             {
-                mergeObjects.Add( "ScheduleName", defaultSchedule.Name );
+                var scheduleId = scheduleContextQuery.AsInteger();
+
+                if ( currentSchedule == null || currentSchedule.Id != scheduleId )
+                {
+                    currentSchedule = SetScheduleContext( scheduleId, false );
+                }
+            }
+
+            var mergeObjects = new Dictionary<string, object>();
+            if ( currentSchedule != null )
+            {
+                mergeObjects.Add( "ScheduleName", currentSchedule.Name );
                 lCurrentSelection.Text = GetAttributeValue( "CurrentItemTemplate" ).ResolveMergeFields( mergeObjects );
             }
             else
@@ -144,22 +155,18 @@ namespace RockWeb.Plugins.cc_newspring.Blocks.ScheduleContextSetter
 
             bool pageScope = GetAttributeValue( "ContextScope" ) == "Page";
             var schedule = new ScheduleService( new RockContext() ).Get( scheduleId );
-            if ( schedule != null )
+            if ( schedule == null )
             {
-                // don't refresh here, refresh below with the correct query string
-                RockPage.SetContextCookie( schedule, false );
-            }
-            else
-            {
-                string cookieName = RockPage.GetContextCookieName( pageScope );
-
-                var contextCookie = Request.Cookies[cookieName];
-                if ( contextCookie != null )
+                // clear the current schedule context
+                schedule = new Schedule()
                 {
-                    contextCookie.Values.Remove( typeof( Campus ).FullName );
-                    Response.Cookies.Add( contextCookie );
-                }
+                    Name = GetAttributeValue( "NoScheduleText" ),
+                    Guid = Guid.Empty
+                };
             }
+
+            // set context and refresh below with the correct query string if needed
+            RockPage.SetContextCookie( schedule, pageScope, false );
 
             if ( refreshPage )
             {
