@@ -41,9 +41,9 @@ namespace RockWeb.Blocks.Core
     [Category( "Core" )]
     [Description( "Block that can be used to set the default group context for the site." )]
 
-    [GroupTypeGroupField( "Group Filter", "Select group type and root group to filter groups by root group. Leave root group blank to filter by group type.", "Root Group" )]
-    [CustomRadioListField( "Context Scope", "The scope of context to set", "Site,Page", true, "Site" )]
-    [TextField( "No Group Text", "The text to show when there is no group in the context.", true, "All Groups", order: 3 )]
+    [GroupTypeGroupField( "Group Filter", "Select group type and root group to filter groups by root group. Leave root group blank to filter by group type.", "Root Group", order: 0 )]
+    [CustomRadioListField( "Context Scope", "The scope of context to set", "Site,Page", true, "Site", order: 1 )]
+    [TextField( "No Group Text", "The text to show when there is no group in the context.", true, "All Groups", order: 2 )]
     public partial class GroupContextSetter : RockBlock
     {
         #region Base Control Methods
@@ -52,12 +52,7 @@ namespace RockWeb.Blocks.Core
         {
             base.OnInit( e );
 
-            if ( Request.QueryString["groupId"] != null )
-            {
-                SetGroupContext();
-            }
-        
-            // this event gets fired after block settings are updated. it's nice to repaint the screen if these settings would alter it
+            // repaint the screen after block settings are updated
             this.BlockUpdated += Block_BlockUpdated;
             this.AddConfigurationUpdateTrigger( upnlContent );
         }
