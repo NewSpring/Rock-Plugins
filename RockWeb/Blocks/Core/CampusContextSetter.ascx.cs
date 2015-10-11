@@ -41,7 +41,7 @@ namespace RockWeb.Blocks.Core
     [CustomRadioListField( "Context Scope", "The scope of context to set", "Site,Page", true, "Site", order: 0 )]
     [TextField( "Current Item Template", "Lava template for the current item. The only merge field is {{ CampusName }}.", true, "{{ CampusName }}", order: 1 )]
     [TextField( "Dropdown Item Template", "Lava template for items in the dropdown. The only merge field is {{ CampusName }}.", true, "{{ CampusName }}", order: 2 )]
-    [TextField( "No Campus Text", "The text displayed when no campus context is selected.", true, "All Campuses", order: 3 )]
+    [TextField( "No Campus Text", "The text displayed when no campus context is selected.", true, "Select Campus", order: 3 )]
     public partial class CampusContextSetter : RockBlock
     {
         #region Base Control Methods
@@ -151,21 +151,18 @@ namespace RockWeb.Blocks.Core
 
             bool pageScope = GetAttributeValue( "ContextScope" ) == "Page";
             var campus = new CampusService( new RockContext() ).Get( campusId );
-            if ( campus != null )
+            if ( campus == null )
             {
-                // don't refresh here, refresh below with the correct query string
-                RockPage.SetContextCookie( campus, pageScope, false );
-            }
-            else
-            {
-                var blankCampus = new Campus()
+                // clear the current campus context
+                campus = new Campus()
                 {
-                    Name = Rock.Constants.All.Text,
+                    Name = GetAttributeValue( "NoCampusText" ),
                     Guid = Guid.Empty
                 };
-
-                RockPage.SetContextCookie( blankCampus, pageScope, false );
             }
+
+            // set context and refresh below with the correct query string if needed
+            RockPage.SetContextCookie( campus, pageScope, false );
 
             if ( refreshPage )
             {
