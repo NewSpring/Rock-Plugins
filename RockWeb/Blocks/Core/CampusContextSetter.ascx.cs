@@ -89,7 +89,7 @@ namespace RockWeb.Blocks.Core
         /// </summary>
         protected void LoadDropdowns()
         {
-            var campusEntityType = EntityTypeCache.Read( "Rock.Model.Campus" );
+            var campusEntityType = EntityTypeCache.Read( typeof( Campus ) );
             var currentCampus = RockPage.GetCurrentContext( campusEntityType ) as Campus;
 
             var campusContextQuery = Request.QueryString["campusId"];
@@ -104,7 +104,6 @@ namespace RockWeb.Blocks.Core
             }
 
             var mergeObjects = new Dictionary<string, object>();
-
             if ( currentCampus != null )
             {
                 mergeObjects.Add( "CampusName", currentCampus.Name );
@@ -155,18 +154,17 @@ namespace RockWeb.Blocks.Core
             if ( campus != null )
             {
                 // don't refresh here, refresh below with the correct query string
-                RockPage.SetContextCookie( campus, false );
+                RockPage.SetContextCookie( campus, pageScope, false );
             }
             else
             {
-                string cookieName = RockPage.GetContextCookieName( pageScope );
-
-                var contextCookie = Request.Cookies[cookieName];
-                if ( contextCookie != null )
+                var blankCampus = new Campus()
                 {
-                    contextCookie.Values.Remove( typeof( Campus ).FullName );
-                    Response.Cookies.Add( contextCookie );
-                }
+                    Name = Rock.Constants.All.Text,
+                    Guid = Guid.Empty
+                };
+
+                RockPage.SetContextCookie( blankCampus, pageScope, false );
             }
 
             if ( refreshPage )
