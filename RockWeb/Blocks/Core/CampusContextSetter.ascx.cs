@@ -92,10 +92,10 @@ namespace RockWeb.Blocks.Core
             var campusEntityType = EntityTypeCache.Read( typeof( Campus ) );
             var currentCampus = RockPage.GetCurrentContext( campusEntityType ) as Campus;
 
-            var campusContextQuery = Request.QueryString["campusId"];
-            if ( campusContextQuery != null )
+            var campusIdString = Request.QueryString["campusId"];
+            if ( campusIdString != null )
             {
-                var campusId = campusContextQuery.AsInteger();
+                var campusId = campusIdString.AsInteger();
 
                 if ( currentCampus == null || currentCampus.Id != campusId )
                 {
@@ -118,7 +118,7 @@ namespace RockWeb.Blocks.Core
             campusList.Add( new CampusItem
             {
                 Name = GetAttributeValue( "NoCampusText" ),
-                Id = Rock.Constants.All.ListItem.Value.AsInteger()
+                Id = Rock.Constants.All.Id
             } );
 
             campusList.AddRange( CampusCache.All()

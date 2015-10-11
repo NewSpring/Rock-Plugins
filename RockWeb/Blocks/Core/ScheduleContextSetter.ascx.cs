@@ -46,7 +46,7 @@ namespace RockWeb.Plugins.cc_newspring.Blocks.ScheduleContextSetter
     [SchedulesField( "Schedule Group", "Choose a schedule group to populate the dropdown", order: 1 )]
     [TextField( "Current Item Template", "Lava template for the current item. The only merge field is {{ ScheduleName }}.", true, "{{ ScheduleName }}", order: 2 )]
     [TextField( "Dropdown Item Template", "Lava template for items in the dropdown. The only merge field is {{ ScheduleName }}.", true, "{{ ScheduleName }}", order: 2 )]
-    [TextField( "No Schedule Text", "The text to show when there is no schedule in the context.", true, "All Schedules", order: 3 )]
+    [TextField( "No Schedule Text", "The text to show when there is no schedule in the context.", true, "Select Schedule", order: 3 )]
     public partial class ScheduleContextSetter : Rock.Web.UI.RockBlock
     {
         #region Base Control Methods
@@ -93,10 +93,10 @@ namespace RockWeb.Plugins.cc_newspring.Blocks.ScheduleContextSetter
             var scheduleEntityType = EntityTypeCache.Read( "Rock.Model.Schedule" );
             var currentSchedule = RockPage.GetCurrentContext( scheduleEntityType ) as Schedule;
 
-            var scheduleContextQuery = Request.QueryString["scheduleId"];
-            if ( scheduleContextQuery != null )
+            var scheduleIdString = Request.QueryString["scheduleId"];
+            if ( scheduleIdString != null )
             {
-                var scheduleId = scheduleContextQuery.AsInteger();
+                var scheduleId = scheduleIdString.AsInteger();
 
                 if ( currentSchedule == null || currentSchedule.Id != scheduleId )
                 {
