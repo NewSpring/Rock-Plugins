@@ -90,7 +90,7 @@ namespace RockWeb.Plugins.cc_newspring.Blocks.ScheduleContextSetter
         /// </summary>
         private void LoadDropdowns()
         {
-            var scheduleEntityType = EntityTypeCache.Read( "Rock.Model.Schedule" );
+            var scheduleEntityType = EntityTypeCache.Read( typeof( Schedule ) );
             var currentSchedule = RockPage.GetCurrentContext( scheduleEntityType ) as Schedule;
 
             var scheduleIdString = Request.QueryString["scheduleId"];
@@ -115,8 +115,12 @@ namespace RockWeb.Plugins.cc_newspring.Blocks.ScheduleContextSetter
                 lCurrentSelection.Text = GetAttributeValue( "NoScheduleText" );
             }
 
-            List<ScheduleItem> schedules = new List<ScheduleItem>();
-            schedules.Add( new ScheduleItem { Name = GetAttributeValue( "NoScheduleText" ), Id = Rock.Constants.All.ListItem.Value.AsInteger() } );
+            var schedules = new List<ScheduleItem>();
+            schedules.Add( new ScheduleItem
+            {
+                Name = GetAttributeValue( "NoScheduleText" ),
+                Id = Rock.Constants.All.Id
+            } );
 
             if ( GetAttributeValue( "ScheduleGroup" ) != null )
             {
