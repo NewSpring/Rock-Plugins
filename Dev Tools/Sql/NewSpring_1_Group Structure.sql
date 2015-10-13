@@ -23,7 +23,6 @@ DECLARE @BooleanFieldTypeId int
 DECLARE @GroupEntityTypeId int
 DECLARE @CampusEntityTypeId int
 DECLARE @ScheduleEntityTypeId int
-DECLARE @MetricCategoryEntityTypeId int
 DECLARE @CheckInAreaPurposeId int
 DECLARE @CampusLocationTypeId int
 DECLARE @SourceTypeSQLId int
@@ -32,10 +31,6 @@ SELECT @BooleanFieldTypeId = [Id] FROM [FieldType] WHERE [Name] = 'Boolean'
 SELECT @GroupEntityTypeId = [Id] FROM [EntityType] WHERE [Name] = 'Rock.Model.Group'
 SELECT @CampusEntityTypeId = [Id] FROM [EntityType] WHERE [Name] = 'Rock.Model.Campus'
 SELECT @ScheduleEntityTypeId = [Id] FROM [EntityType] WHERE [Name] = 'Rock.Model.Schedule'
-SELECT @MetricCategoryEntityTypeId = [Id] FROM [EntityType] WHERE [Name] = 'Rock.Model.MetricCategory'
-
-/* Source Type: SQL */
-SELECT @SourceTypeSQLId = [Id] FROM [DefinedType] WHERE [Guid] = 'D6F323FF-6EF2-4DA7-A82C-61399AC1D798'
 
 /* Check-in Template Purpose Type */
 SELECT @CheckInAreaPurposeId = 142
@@ -88,114 +83,6 @@ FROM Campus c
 INNER JOIN Location l
 ON c.Name = l.Name
 AND l.LocationTypeValueId = @CampusLocationTypeId
-
-
-/* ====================================================== */
--- Special Needs Structure
-/* ====================================================== */
-DECLARE @SpecialNeedsAttributeId INT
-DECLARE @SpecialNeedsGroupTypeId INT
-SELECT @SpecialNeedsGroupTypeId = (
-	SELECT [Id] FROM [GroupType]
-	WHERE [Name] = 'Check In By Special Needs'	
-);
-
-IF @SpecialNeedsGroupTypeId IS NULL
-BEGIN
-	INSERT [GroupType] ( [IsSystem], [Name], [Description], [GroupTerm], [GroupMemberTerm], [AllowMultipleLocations], [ShowInGroupList], [ShowInNavigation], [GroupTypePurposeValueId],
-		[TakesAttendance], [AttendanceRule], [AttendancePrintTo], [Order], [InheritedGroupTypeId], [LocationSelectionMode], [AllowedScheduleTypes], [SendAttendanceReminder], [Guid] ) 
-	VALUES ( @IsSystem, 'Check In By Special Needs', 'Indicates IF this group IS for those who have special needs.', 'Group', 'Member', @False, @False, @False, 145,
-		@False, 1, 0, 0, 15, 0, 0, 0, NEWID() );
-	
-	SET @SpecialNeedsGroupTypeId = SCOPE_IDENTITY()
-
-	INSERT [GroupTypeRole] ( [IsSystem], [GroupTypeId], [Name], [Order], [IsLeader], [CanView], [CanEdit], [Guid] )
-	VALUES ( @IsSystem, @SpecialNeedsGroupTypeId, 'Member', 0, @False, @False, @False, NEWID() )
-
-	DECLARE @SpecialNeedsGroupMemberId int
-	SET @SpecialNeedsGroupMemberId = SCOPE_IDENTITY()
-
-	UPDATE [GroupType]
-	SET DefaultGroupRoleId = @SpecialNeedsGroupMemberId
-	WHERE [Id] = @SpecialNeedsGroupTypeId
-END
-
-
-SELECT @SpecialNeedsAttributeId = Id FROM [Attribute] WHERE [Key] = 'IsSpecialNeeds' 
-	AND EntityTypeid = @GroupEntityTypeId
-IF @SpecialNeedsAttributeId IS NULL or @SpecialNeedsAttributeId = ''
-BEGIN
-
-	INSERT [Attribute] ( [IsSystem],[FieldTypeId],[EntityTypeId],[EntityTypeQualifierColumn],[EntityTypeQualifierValue],[Key],[Name],[Description],[Order],[IsGridColumn],[DefaultValue],[IsMultiValue],[IsRequired],[Guid]) 
-	VALUES ( @IsSystem, @BooleanFieldTypeId, @GroupEntityTypeId, 'GroupTypeId', @SpecialNeedsGroupTypeId, 'IsSpecialNeeds', 'Is Special Needs',
-		'Indicates IF this group caters to those who have special needs.', @False, @False, 'True', @False, @False, NEWID()
-	);
-
-	SET @SpecialNeedsAttributeId = SCOPE_IDENTITY()
-END
-
-/* ====================================================== */
--- metric category and schedules
-/* ====================================================== */
-DECLARE @MetricParentCategoryId int, @MetricScheduleCategoryId int, 
-	@MetricScheduleId int, @MetricParentName varchar(255), 
-	@MetricScheduleCategory varchar(255), @MetriciCalSchedule nvarchar(max)
-
-SELECT @MetricParentName = 'Volunteers', @MetricScheduleCategory = 'Metrics'
-
--- create parent category
-SELECT @MetricParentCategoryId = [Id] FROM [Category]
-WHERE EntityTypeId = @MetricCategoryEntityTypeId
-AND Name = @MetricParentName
-
-IF @MetricParentCategoryId IS NULL 
-BEGIN
-	INSERT [Category] (IsSystem, ParentCategoryId, EntityTypeId, EntityTypeQualifierColumn, EntityTypeQualifierValue, Name, [Guid], [Order])
-	VALUES ( @IsSystem, NULL, @MetricCategoryEntityTypeId, '', '', @MetricParentName, NEWID(), @Order )
-
-	SET @MetricParentCategoryId = SCOPE_IDENTITY()
-END
-
-SELECT @MetricScheduleCategoryId = [Id] FROM [Category]
-WHERE EntityTypeId = @ScheduleEntityTypeId
-AND Name = @MetricScheduleCategory
-
--- create schedule category
-IF @MetricScheduleCategoryId IS NULL
-BEGIN
-	INSERT [Category] (IsSystem, ParentCategoryId, EntityTypeId, EntityTypeQualifierColumn, EntityTypeQualifierValue, Name, [Guid], [Order])
-	VALUES ( @IsSystem, NULL, @ScheduleEntityTypeId, '', '', @MetricScheduleCategory, NEWID(), @Order )
-
-	SET @MetricScheduleCategoryId = SCOPE_IDENTITY()
-END
-
--- create the metric schedule
-SELECT @MetricScheduleId = [Id] FROM Schedule
-WHERE CategoryId = @MetricScheduleCategoryId
-AND Name = @MetricParentName
-
-IF @MetricScheduleId IS NULL
-BEGIN
-
-	SELECT @MetriciCalSchedule = N'BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//ddaysoftware.com//NONSGML DDay.iCal 1.0//EN
-BEGIN:VEVENT
-DTEND:20150928T020001
-DTSTAMP:20150928T201239Z
-DTSTART:20150928T020000
-RRULE:FREQ=WEEKLY;BYDAY=MO
-SEQUENCE:0
-UID:' + CONVERT(VARCHAR(36), NEWID()) + '
-END:VEVENT
-END:VCALENDAR'
-	
-	INSERT [Schedule] (Name, [Description], iCalendarContent, EffectiveStartDate, EffectiveEndDate, CategoryId, [Guid])
-	SELECT 'Metric Schedule', 'The job schedule to run group metrics', @MetriciCalSchedule, GETDATE(), GETDATE(), @MetricScheduleCategoryId, NEWID()
-
-	SELECT @MetricScheduleId = SCOPE_IDENTITY()
-
-END
 
 /* ====================================================== */
 -- create Sunday service times and the rest of the week
@@ -404,6 +291,50 @@ END:VCALENDAR'
 		, '{{UID}}', NEWID())
 	FROM @Weekdays
 
+END
+
+/* ====================================================== */
+-- Special Needs Structure
+/* ====================================================== */
+DECLARE @SpecialNeedsAttributeId INT
+DECLARE @SpecialNeedsGroupTypeId INT
+SELECT @SpecialNeedsGroupTypeId = (
+	SELECT [Id] FROM [GroupType]
+	WHERE [Name] = 'Check In By Special Needs'	
+);
+
+IF @SpecialNeedsGroupTypeId IS NULL
+BEGIN
+	INSERT [GroupType] ( [IsSystem], [Name], [Description], [GroupTerm], [GroupMemberTerm], [AllowMultipleLocations], [ShowInGroupList], [ShowInNavigation], [GroupTypePurposeValueId],
+		[TakesAttendance], [AttendanceRule], [AttendancePrintTo], [Order], [InheritedGroupTypeId], [LocationSelectionMode], [AllowedScheduleTypes], [SendAttendanceReminder], [Guid] ) 
+	VALUES ( @IsSystem, 'Check In By Special Needs', 'Indicates IF this group IS for those who have special needs.', 'Group', 'Member', @False, @False, @False, 145,
+		@False, 1, 0, 0, 15, 0, 0, 0, NEWID() );
+	
+	SET @SpecialNeedsGroupTypeId = SCOPE_IDENTITY()
+
+	INSERT [GroupTypeRole] ( [IsSystem], [GroupTypeId], [Name], [Order], [IsLeader], [CanView], [CanEdit], [Guid] )
+	VALUES ( @IsSystem, @SpecialNeedsGroupTypeId, 'Member', 0, @False, @False, @False, NEWID() )
+
+	DECLARE @SpecialNeedsGroupMemberId int
+	SET @SpecialNeedsGroupMemberId = SCOPE_IDENTITY()
+
+	UPDATE [GroupType]
+	SET DefaultGroupRoleId = @SpecialNeedsGroupMemberId
+	WHERE [Id] = @SpecialNeedsGroupTypeId
+END
+
+
+SELECT @SpecialNeedsAttributeId = Id FROM [Attribute] WHERE [Key] = 'IsSpecialNeeds' 
+	AND EntityTypeid = @GroupEntityTypeId
+IF @SpecialNeedsAttributeId IS NULL or @SpecialNeedsAttributeId = ''
+BEGIN
+
+	INSERT [Attribute] ( [IsSystem],[FieldTypeId],[EntityTypeId],[EntityTypeQualifierColumn],[EntityTypeQualifierValue],[Key],[Name],[Description],[Order],[IsGridColumn],[DefaultValue],[IsMultiValue],[IsRequired],[Guid]) 
+	VALUES ( @IsSystem, @BooleanFieldTypeId, @GroupEntityTypeId, 'GroupTypeId', @SpecialNeedsGroupTypeId, 'IsSpecialNeeds', 'Is Special Needs',
+		'Indicates IF this group caters to those who have special needs.', @False, @False, 'True', @False, @False, NEWID()
+	);
+
+	SET @SpecialNeedsAttributeId = SCOPE_IDENTITY()
 END
 
 /* ====================================================== */
@@ -845,7 +776,7 @@ BEGIN
 		IF @ParentAreaId IS NULL
 		BEGIN
 			
-			INSERT grouptype (IsSystem, Name, [Description], GroupTerm, GroupMemberTerm, AllowMultipleLocations, 
+			INSERT GroupType (IsSystem, Name, [Description], GroupTerm, GroupMemberTerm, AllowMultipleLocations, 
 				ShowInGroupList, ShowInNavigation, TakesAttendance, AttendanceRule, AttendancePrintTo,
 				[Order], InheritedGroupTypeId, LocationSelectionMode, GroupTypePurposeValueId, [Guid],
 				AllowedScheduleTypes, SendAttendanceReminder)
@@ -867,20 +798,13 @@ BEGIN
 
 			SELECT @DefaultRoleId = SCOPE_IDENTITY()
 
-			UPDATE grouptype SET DefaultGroupRoleId = @DefaultRoleId WHERE id = @ParentAreaId
-
-			/* ====================================================== */
-			-- create metric category for grouptype
-			/* ====================================================== */
-			INSERT [Category] (IsSystem, ParentCategoryId, EntityTypeId, EntityTypeQualifierColumn, EntityTypeQualifierValue, Name, [Guid], [Order])
-			VALUES ( @IsSystem, @MetricParentCategoryId, @MetricCategoryEntityTypeId, '', '', @ParentAreaName, NEWID(), @Order )
-
+			UPDATE GroupType SET DefaultGroupRoleId = @DefaultRoleId WHERE Id = @ParentAreaId
 		END
 
 		/* ====================================================== */
 		-- create the child grouptype
 		/* ====================================================== */
-		INSERT grouptype (IsSystem, Name, [Description], GroupTerm, GroupMemberTerm, AllowMultipleLocations, 
+		INSERT GroupType (IsSystem, Name, [Description], GroupTerm, GroupMemberTerm, AllowMultipleLocations, 
 			ShowInGroupList, ShowInNavigation, TakesAttendance, AttendanceRule, AttendancePrintTo,
 			[Order], InheritedGroupTypeId, LocationSelectionMode, GroupTypePurposeValueId, [Guid],
 			AllowedScheduleTypes, SendAttendanceReminder)
@@ -937,253 +861,11 @@ BEGIN
 END
 -- end check-in config areas
 
-/* ====================================================== */
--- set up metrics for the group
-/* ====================================================== */
-
-DECLARE @MetricServiceRolesId int = null, @MetricServiceRosterId int = null, @MetricTotalRolesId int = null,
-	@MetricTotalRosterId int = null, @MetricUniqueServingId int = null, @MetricServiceRolesSQL nvarchar(max), 
-	@MetricServiceRosterSQL nvarchar(max), @MetricTotalRolesSQL nvarchar(max), @MetricTotalRosterSQL nvarchar(max),
-	@MetricUniqueServingSQL nvarchar(max), @ServiceRolesTitle varchar(255), @ServiceRosterTitle varchar(255), 
-	@TotalRolesTitle varchar(255), @TotalRosterTitle varchar(255), @UniqueServingTitle varchar(255),
-	@MetricFirstAttendedId int = null, @MetricFirstAttendedSQL nvarchar(max), @MetricMiddleSchoolId int,
-	@MetricMiddleSchoolSQL nvarchar(max), @MetricHighSchoolId int, @MetricHighSchoolSQL nvarchar(max)
-
--- metric title names used for the group
-SELECT @ServiceRolesTitle = 'Service Attendance', @ServiceRosterTitle = 'Service Roster', @TotalRolesTitle = 'Total Attendance',
-	@TotalRosterTitle = 'Total Roster', @UniqueServingTitle = 'Unique Serving'
-
--- Service Roles Query
-SELECT @MetricServiceRolesSQL = N'
-	/* ====================================================================== */
-	-- Returns roles filled served by Campus and Service from the previous day
-	-- Returns a timestamp of 00:00:00 when no schedule exists
-	/* ====================================================================== */
-	SELECT COUNT(1) AS Value, Attendance.CampusId AS EntityId
-		, DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0) + LEFT(ISNULL(Schedule.Value, ''00:00''), 5) AS ScheduleDate
-	FROM PersonAlias PA 
-	INNER JOIN (
-		SELECT PersonAliasId, CampusId, ScheduleId
-		FROM [Attendance] 
-		WHERE DidAttend = 1
-			AND GroupId = {{GroupId}}
-			AND StartDateTime >= DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0)
-			AND StartDateTime < CONVERT(DATE, GETDATE())
-	) Attendance
-	ON PA.Id = Attendance.PersonAliasId	
-	INNER JOIN (
-		-- iCal DTStart: constant 22 characters, only interested in Service Time
-		SELECT Id, SUBSTRING(iCalendarContent, PATINDEX(''%DTSTART%'', iCalendarContent) +17, 4) AS Value
-		FROM Schedule
-		WHERE EffectiveStartDate < GETDATE()
-	) Schedule
-	ON Schedule.Id = Attendance.ScheduleId
-	GROUP BY Attendance.CampusId, Schedule.Value
-'
-
--- Service Roster Query
-SELECT @MetricServiceRosterSQL = N'
-	/* ====================================================================== */
-	-- Returns roster numbers by Campus and Service from the previous day
-	-- Returns a timestamp of 00:00:00 when no schedule exists
-	/* ====================================================================== */
-	SELECT COUNT(1) AS Value, Campus.Id AS EntityId, 
-		DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0) + LEFT(ISNULL(Schedule.Value, ''00:00''), 5) AS ScheduleDate
-	FROM GroupMember GM
-	INNER JOIN [Group] G
-		ON GM.GroupId = G.Id
-	-- Filter by Campus
-	LEFT JOIN (
-		SELECT AV.EntityId AS MemberId, C.Id
-		FROM [Attribute] CA
-		INNER JOIN AttributeValue AV
-			ON AV.AttributeId = CA.Id
-			AND CA.[Key] = ''Campus''
-			AND CA.EntityTypeQualifierColumn = ''GroupTypeId''
-			AND CA.EntityTypeQualifierValue = {{GroupTypeId}}
-		LEFT JOIN Campus C
-			ON AV.Value = C.[Guid]
-	) Campus
-		ON GM.Id = Campus.MemberId
-	-- Filter by Schedule
-	LEFT JOIN (
-		SELECT AV.EntityId, DV.Value
-		FROM DefinedValue DV
-		LEFT JOIN (
-			SELECT EntityId, r.value(''.'', ''VARCHAR(255)'') AS Schedule
-			FROM (
-				-- Denormalize the comma-delimited GUID string
-				SELECT Value, EntityId, CAST(''<n>'' + REPLACE(Value, '','', ''</n><n>'') + ''</n>'' AS XML) AS Schedules
-				FROM [Attribute] SA
-				INNER JOIN AttributeValue AV
-					ON AV.AttributeId = SA.Id
-					AND SA.[Key] = ''Schedule''
-					AND SA.EntityTypeQualifierColumn = ''GroupTypeId''
-					AND SA.EntityTypeQualifierValue = {{GroupTypeId}}
-			) AS nodes 
-			-- Parse the xml as a table (for joining)
-			CROSS APPLY Schedules.nodes(''n'') AS parse(r)		
-		) AV 
-		ON AV.Schedule = DV.[Guid]
-		WHERE EntityId IS NOT NULL
-	) Schedule
-		ON GM.Id = Schedule.EntityId
-	WHERE GM.GroupId = {{GroupId}}
-		AND GM.GroupMemberStatus = 1
-	GROUP BY Campus.Id, Schedule.Value
-'
-
--- Total Roles Query
-SELECT @MetricTotalRolesSQL = N'
-	/* ====================================================================== */
-	-- Returns total roles filled served by Campus from the previous day
-	-- Returns a timestamp of 00:00:00 since this is by total and not service
-	/* ====================================================================== */
-	SELECT COUNT(1) AS Value, Attendance.CampusId AS EntityId
-		, DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0) + ''00:00'' AS ScheduleDate
-	FROM PersonAlias PA 
-	INNER JOIN (
-		SELECT PersonAliasId, CampusId, ScheduleId
-		FROM [Attendance] 
-		WHERE DidAttend = 1
-			AND GroupId = {{GroupId}}
-			AND StartDateTime >= DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0)
-			AND StartDateTime < CONVERT(DATE, GETDATE())
-	) Attendance
-	ON PA.Id = Attendance.PersonAliasId	
-	GROUP BY CampusId
-'
-
--- Total Roster Query
-SELECT @MetricTotalRosterSQL = N'
-	/* ====================================================================== */
-	-- Returns total roster numbers by Campus from the previous day
-	-- Returns a timestamp of 00:00:00 since this is by total and not service
-	/* ====================================================================== */
-	SELECT COUNT(1) AS Value, Campus.Id AS EntityId, DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0) + ''00:00'' AS ScheduleDate
-	FROM GroupMember GM
-	INNER JOIN [Group] G
-		ON GM.GroupId = G.Id
-	-- Filter by Campus
-	LEFT JOIN (
-		SELECT AV.EntityId AS MemberId, C.Id
-		FROM [Attribute] CA
-		INNER JOIN AttributeValue AV
-			ON AV.AttributeId = CA.Id
-			AND CA.[Key] = ''Campus''
-			AND CA.EntityTypeQualifierColumn = ''GroupTypeId''
-			AND CA.EntityTypeQualifierValue = {{GroupTypeId}}
-		LEFT JOIN Campus C
-			ON AV.Value = C.[Guid]
-	) Campus
-		ON GM.Id = Campus.MemberId	
-	WHERE GM.GroupId = {{GroupId}}
-		AND GM.GroupMemberStatus = 1
-	GROUP BY Campus.Id
-'
-
--- Total Unique Serving Query
-SELECT @MetricUniqueServingSQL = N'
-	/* ====================================================================== */
-	-- Returns total unique serving by Campus from the previous day
-	-- Returns a timestamp of 00:00:00 since this is by total and not service
-	/* ====================================================================== */
-	SELECT COUNT(1) AS Value, Attendance.CampusId AS EntityId, DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0) + ''00:00'' AS ScheduleDate
-	FROM PersonAlias PA 
-	INNER JOIN (
-		SELECT PersonAliasId, CampusId
-		FROM [Attendance]	
-		WHERE DidAttend = 1
-			AND GroupId = {{GroupId}}
-			AND StartDateTime >= DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0)
-			AND StartDateTime < CONVERT(DATE, GETDATE())
-	) Attendance
-		ON PA.Id = Attendance.PersonAliasId	
-	GROUP BY CampusId
-'
-
--- First Attended Query
-SELECT @MetricFirstAttendedSQL = N'
-	/* ====================================================================== */
-	-- Returns first attendances by Campus from the previous day
-	-- Returns a timestamp of 00:00:00 since this is by total and not service
-	/* ====================================================================== */
-	SELECT COUNT(1) AS Value, Attendance.CampusId AS EntityId
-		, DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0) + ''00:00'' AS ScheduleDate
-	FROM PersonAlias PA 
-	INNER JOIN (
-		SELECT PersonAliasId, A.CampusId, StartDateTime AS ScheduleDate, ROW_NUMBER() OVER (
-			PARTITION BY PersonAliasId, A.CampusId ORDER BY StartDateTime
-		) AS RowNumber
-		FROM [Attendance] A
-		INNER JOIN [Group] G
-			ON A.GroupId = G.Id
-			AND G.GroupTypeId = {{GroupTypeId}}
-		WHERE DidAttend = 1	
-	) Attendance
-	ON PA.Id = Attendance.PersonAliasId
-	AND ScheduleDate >= DATEADD(dd, DATEDIFF(dd, 1, @GETDATE()), 0)
-	AND ScheduleDate < CONVERT(DATE, @GETDATE())
-	AND RowNumber = 1
-	GROUP BY CampusId
-'
-
--- Fuse MS Total
-SELECT @MetricMiddleSchoolSQL  = N'
-	/* ====================================================================== */
-	-- Returns total MS attended by Campus from the previous day
-	-- Returns a timestamp of 00:00:00 since this is by total and not service
-	/* ====================================================================== */
-	SELECT COUNT(1) AS Value, CampusId AS EntityId, DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0) + ''00:00'' AS ScheduleDate
-	FROM PersonAlias PA 
-	INNER JOIN (
-		SELECT PersonAliasId, A.CampusId
-		FROM [Attendance] A	
-		INNER JOIN [Group] G
-			ON A.GroupId = G.Id
-			AND G.GroupTypeId = {{GroupTypeId}}
-		WHERE DidAttend = 1	
-		AND StartDateTime >= DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0)
-		AND StartDateTime < CONVERT(DATE, GETDATE())
-		AND (
-			CASE WHEN ISNUMERIC(LEFT(G.Name, 1)) = 1
-			THEN LEFT(G.Name, 1) ELSE NULL END
-		) IN ( 6,7,8 ) -- 6th, 7th, 8th grade
-	) Attendance
-		ON PA.Id = Attendance.PersonAliasId	
-	GROUP BY CampusId	
-'
-
--- Fuse HS Total
-SELECT @MetricHighSchoolSQL = N'
-	/* ====================================================================== */
-	-- Returns total HS attended by Campus from the previous day
-	-- Returns a timestamp of 00:00:00 since this is by total and not service
-	/* ====================================================================== */
-	SELECT COUNT(1) AS Value, CampusId AS EntityId, DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0) + ''00:00'' AS ScheduleDate
-	FROM PersonAlias PA 
-	INNER JOIN (
-		SELECT PersonAliasId, A.CampusId
-		FROM [Attendance] A	
-		INNER JOIN [Group] G
-			ON A.GroupId = G.Id
-			AND G.GroupTypeId = {{GroupTypeId}}
-		WHERE DidAttend = 1	
-		AND StartDateTime >= DATEADD(dd, DATEDIFF(dd, 1, GETDATE()), 0)
-		AND StartDateTime < CONVERT(DATE, GETDATE())
-		AND (
-			CASE WHEN ISNUMERIC(LEFT(G.Name, 1)) = 1
-			THEN LEFT(G.Name, 1) ELSE NULL END
-		) IN ( 9, 1 ) -- 9th, 10th, 11th, 12th grade
-	) Attendance
-		ON PA.Id = Attendance.PersonAliasId	
-	GROUP BY CampusId	
-'
 
 /* ====================================================== */
 -- insert campus groups
 /* ====================================================== */
-DECLARE @GroupTypeName nvarchar(255), @GroupTypeId int, @GroupTypeGroupId int, @MetricGroupTypeCategoryId int,
+DECLARE @GroupTypeName nvarchar(255), @GroupTypeId int, @GroupTypeGroupId int,
 	@GroupName nvarchar(255), @GroupId int, @LocationName nvarchar(255), @LocationId int,
 	@ParentGroupTypeName nvarchar(255), @ParentGroupTypeId int, @ParentLocationId int, @GroupLocationId int
 
@@ -1196,8 +878,7 @@ BEGIN
 	
 	SELECT @GroupTypeName = '', @GroupTypeId = NULL, @GroupTypeGroupId = NULL, @LocationName = '',
 		@GroupName = '', @GroupId = NULL, @LocationName = '', @ParentGroupTypeName = '', 
-		@LocationId = NULL, @ParentGroupTypeId = NULL, @ParentLocationId = NULL, @GroupLocationId = NULL,
-		@MetricGroupTypeCategoryId = NULL
+		@LocationId = NULL, @ParentGroupTypeId = NULL, @ParentLocationId = NULL, @GroupLocationId = NULL
 
 	SELECT @GroupTypeName = groupTypeName, @GroupName = groupName, @LocationName = locationName
 	FROM #campusGroups
@@ -1281,151 +962,6 @@ BEGIN
 		ON l.ParentLocationId = pl.Id
 		AND pl.Name = @ParentGroupTypeName
 		AND l.name = @LocationName
-
-
-		/* ====================================================== */
-		-- Create Metrics for Volunteer Groups here
-		/* ====================================================== */
-		IF @GroupTypeName LIKE '%Volunteer'
-		BEGIN
-
-			SELECT @MetricGroupTypeCategoryId = [Id] FROM Category
-			WHERE ParentCategoryId = @MetricParentCategoryId
-				AND EntityTypeId = @MetricCategoryEntityTypeId
-				AND Name = @ParentGroupTypeName
-
-			IF @MetricGroupTypeCategoryId IS NOT NULL
-			BEGIN
-				-- reset metric lookup variables
-				SELECT @MetricServiceRolesId = NULL, @MetricServiceRosterId = NULL, @MetricTotalRolesId = NULL,
-					@MetricTotalRosterId = NULL, @MetricUniqueServingId = NULL
-
-				-- update the metric queries with the current GroupTypeId and GroupId
-				SELECT @MetricServiceRolesSQL = REPLACE(REPLACE(@MetricServiceRolesSQL, '{{GroupTypeId}}', @GroupTypeId), '{{GroupId}}', @GroupId )
-				SELECT @MetricServiceRosterSQL = REPLACE(REPLACE(@MetricServiceRosterSQL, '{{GroupTypeId}}', @GroupTypeId), '{{GroupId}}', @GroupId )
-				SELECT @MetricTotalRolesSQL = REPLACE(REPLACE(@MetricTotalRolesSQL, '{{GroupTypeId}}', @GroupTypeId), '{{GroupId}}', @GroupId )
-				SELECT @MetricTotalRosterSQL = REPLACE(REPLACE(@MetricTotalRosterSQL, '{{GroupTypeId}}', @GroupTypeId), '{{GroupId}}', @GroupId )
-				SELECT @MetricUniqueServingSQL = REPLACE(REPLACE(@MetricUniqueServingSQL, '{{GroupTypeId}}', @GroupTypeId), '{{GroupId}}', @GroupId )
-
-				/* ============================ */
-				-- {Group} Service Roles
-				/* ============================ */
-				SELECT @MetricServiceRolesId = [Id] FROM Metric
-				WHERE EntityTypeId = @CampusEntityTypeId
-					AND SourceValueTypeId = @SourceTypeSQLId
-					AND Title = @GroupName + ' ' + @ServiceRolesTitle
-
-				-- create if it doesn't exist
-				IF @MetricServiceRolesId IS NULL
-				BEGIN
-					INSERT [Metric] (IsSystem, Title, [Description], IsCumulative, SourceValueTypeId, SourceSql, XAxisLabel, YAxisLabel, ScheduleId, EntityTypeId, [Guid], ForeignId)
-					VALUES ( 0, @GroupName + ' ' + @ServiceRolesTitle, 'Metric to track ' + @GroupName + ' roles by campus and service', @False, 
-						@SourceTypeSQLId, @MetricServiceRolesSQL, '', '', @MetricScheduleId, @CampusEntityTypeId, NEWID(), @GroupId )
-
-					SELECT @MetricServiceRolesId = SCOPE_IDENTITY()
-
-					INSERT [MetricCategory] (MetricId, CategoryId, [Order], [Guid])
-					VALUES ( @MetricServiceRolesId, @MetricGroupTypeCategoryId, @Order, NEWID() )
-				END
-
-				/* ============================ */
-				-- {Group} Service Roster
-				/* ============================ */
-				SELECT @MetricServiceRosterId = [Id] FROM Metric
-				WHERE EntityTypeId = @CampusEntityTypeId
-					AND SourceValueTypeId = @SourceTypeSQLId
-					AND Title = @GroupName + ' ' + @ServiceRosterTitle
-
-				-- create if it doesn't exist
-				IF @MetricServiceRosterId IS NULL
-				BEGIN
-					INSERT [Metric] (IsSystem, Title, [Description], IsCumulative, SourceValueTypeId, SourceSql, XAxisLabel, YAxisLabel, ScheduleId, EntityTypeId, [Guid], ForeignId)
-					VALUES ( 0, @GroupName + ' ' + @ServiceRosterTitle, 'Metric to track ' + @GroupName + ' roster by campus and service', @False, 
-						@SourceTypeSQLId, @MetricServiceRosterSQL, '', '', @MetricScheduleId, @CampusEntityTypeId, NEWID(), @GroupId )
-
-					SELECT @MetricServiceRosterId = SCOPE_IDENTITY()
-
-					INSERT [MetricCategory] (MetricId, CategoryId, [Order], [Guid])
-					VALUES ( @MetricServiceRosterId, @MetricGroupTypeCategoryId, @Order, NEWID() )
-				END
-
-				/* ============================ */
-				-- {Group} Total Roles
-				/* ============================ */
-				SELECT @MetricTotalRolesId = [Id] FROM Metric
-				WHERE EntityTypeId = @CampusEntityTypeId
-					AND SourceValueTypeId = @SourceTypeSQLId
-					AND Title = @GroupName + ' ' + @TotalRolesTitle
-
-				-- create if it doesn't exist
-				IF @MetricTotalRolesId IS NULL
-				BEGIN
-					INSERT [Metric] (IsSystem, Title, [Description], IsCumulative, SourceValueTypeId, SourceSql, XAxisLabel, YAxisLabel, ScheduleId, EntityTypeId, [Guid], ForeignId)
-					VALUES ( 0, @GroupName + ' ' + @TotalRolesTitle, 'Metric to track ' + @GroupName + ' total roles filled by campus', @False, 
-						@SourceTypeSQLId, @MetricTotalRolesSQL, '', '', @MetricScheduleId, @CampusEntityTypeId, NEWID(), @GroupId )
-
-					SELECT @MetricTotalRolesId = SCOPE_IDENTITY()
-
-					INSERT [MetricCategory] (MetricId, CategoryId, [Order], [Guid])
-					VALUES ( @MetricTotalRolesId, @MetricGroupTypeCategoryId, @Order, NEWID() )
-				END
-
-				/* ============================ */
-				-- {Group} Total Roster
-				/* ============================ */
-				SELECT @MetricTotalRosterId = [Id] FROM Metric
-				WHERE EntityTypeId = @CampusEntityTypeId
-					AND SourceValueTypeId = @SourceTypeSQLId
-					AND Title = @GroupName + ' ' + @TotalRosterTitle
-
-				-- create if it doesn't exist
-				IF @MetricTotalRosterId IS NULL
-				BEGIN
-					INSERT [Metric] (IsSystem, Title, [Description], IsCumulative, SourceValueTypeId, SourceSql, XAxisLabel, YAxisLabel, ScheduleId, EntityTypeId, [Guid], ForeignId)
-					VALUES ( 0, @GroupName + ' ' + @TotalRosterTitle, 'Metric to track ' + @GroupName + ' total roster by campus', @False, 
-						@SourceTypeSQLId, @MetricTotalRosterSQL, '', '', @MetricScheduleId, @CampusEntityTypeId, NEWID(), @GroupId )
-
-					SELECT @MetricTotalRosterId = SCOPE_IDENTITY()
-
-					INSERT [MetricCategory] (MetricId, CategoryId, [Order], [Guid])
-					VALUES ( @MetricTotalRosterId, @MetricGroupTypeCategoryId, @Order, NEWID() )
-				END
-
-				/* ============================ */
-				-- {Group} Unique Serving
-				/* ============================ */
-				SELECT @MetricUniqueServingId = [Id] FROM Metric
-				WHERE EntityTypeId = @CampusEntityTypeId
-					AND SourceValueTypeId = @SourceTypeSQLId
-					AND Title = @GroupName + ' ' + @UniqueServingTitle
-
-				-- create if it doesn't exist
-				IF @MetricUniqueServingId IS NULL
-				BEGIN
-					INSERT [Metric] (IsSystem, Title, [Description], IsCumulative, SourceValueTypeId, SourceSql, XAxisLabel, YAxisLabel, ScheduleId, EntityTypeId, [Guid], ForeignId)
-					VALUES ( 0, @GroupName + ' ' + @UniqueServingTitle, 'Metric to track ' + @GroupName + ' total unique volunteers by campus', @False, 
-						@SourceTypeSQLId, @MetricUniqueServingSQL, '', '', @MetricScheduleId, @CampusEntityTypeId, NEWID(), @GroupId )
-
-					SELECT @MetricUniqueServingId = SCOPE_IDENTITY()
-
-					INSERT [MetricCategory] (MetricId, CategoryId, [Order], [Guid])
-					VALUES ( @MetricUniqueServingId, @MetricGroupTypeCategoryId, @Order, NEWID() )
-				END
-
-				-- reset queries to parameterized state
-				SELECT @MetricServiceRolesSQL = REPLACE(REPLACE(@MetricServiceRolesSQL, @GroupTypeId, '{{GroupTypeId}}'), @GroupId, '{{GroupId}}' )
-				SELECT @MetricServiceRosterSQL = REPLACE(REPLACE(@MetricServiceRosterSQL, @GroupTypeId, '{{GroupTypeId}}'), @GroupId, '{{GroupId}}' )
-				SELECT @MetricTotalRolesSQL = REPLACE(REPLACE(@MetricTotalRolesSQL, @GroupTypeId, '{{GroupTypeId}}'), @GroupId, '{{GroupId}}' )
-				SELECT @MetricTotalRosterSQL = REPLACE(REPLACE(@MetricTotalRosterSQL, @GroupTypeId, '{{GroupTypeId}}'), @GroupId, '{{GroupId}}' )
-				SELECT @MetricUniqueServingSQL = REPLACE(REPLACE(@MetricUniqueServingSQL, @GroupTypeId, '{{GroupTypeId}}'), @GroupId, '{{GroupId}}' )
-
-			END
-			ELSE BEGIN
-				SELECT @msg = 'Could not find metric category for ' + @ParentGroupTypeName + ' / ' + @GroupName
-				RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
-			END
-		END
-		-- end create metrics	
 
 	END
 	-- end grouptype not empty
