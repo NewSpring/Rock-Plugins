@@ -40,6 +40,7 @@ namespace RockWeb.Blocks.Core
     [TextField( "Current Item Template", "Lava template for the current item. The only merge field is {{ CampusName }}.", true, "{{ CampusName }}", order: 1 )]
     [TextField( "Dropdown Item Template", "Lava template for items in the dropdown. The only merge field is {{ CampusName }}.", true, "{{ CampusName }}", order: 2 )]
     [TextField( "No Campus Text", "The text displayed when no campus context is selected.", true, "Select Campus", order: 3 )]
+    [TextField( "Clear Selection Text", "The text displayed when a campus can be unselected. This will not display when the text is empty.", true, "", order: 4 )]
     public partial class CampusContextSetter : RockBlock
     {
         #region Base Control Methods
@@ -101,9 +102,9 @@ namespace RockWeb.Blocks.Core
                 }
             }
 
-            var mergeObjects = new Dictionary<string, object>();
             if ( currentCampus != null )
             {
+                var mergeObjects = new Dictionary<string, object>();
                 mergeObjects.Add( "CampusName", currentCampus.Name );
                 lCurrentSelection.Text = GetAttributeValue( "CurrentItemTemplate" ).ResolveMergeFields( mergeObjects );
             }
@@ -112,24 +113,32 @@ namespace RockWeb.Blocks.Core
                 lCurrentSelection.Text = GetAttributeValue( "NoCampusText" );
             }
 
-            var campusList = new List<CampusItem>();
-            campusList.Add( new CampusItem
-            {
-                Name = GetAttributeValue( "NoCampusText" ),
-                Id = Rock.Constants.All.Id
-            } );
-
-            campusList.AddRange( CampusCache.All()
+            var campusList = CampusCache.All()
                 .Select( a => new CampusItem { Name = a.Name, Id = a.Id } )
-            );
+                .ToList();
 
-            var formattedCampuses = new Dictionary<int, string>();
             // run lava on each campus
-            foreach ( var campus in campusList )
+            string dropdownItemTemplate = GetAttributeValue( "DropdownItemTemplate" );
+            if ( !string.IsNullOrWhiteSpace( dropdownItemTemplate ) )
             {
-                mergeObjects.Clear();
-                mergeObjects.Add( "CampusName", campus.Name );
-                campus.Name = GetAttributeValue( "DropdownItemTemplate" ).ResolveMergeFields( mergeObjects );
+                foreach ( var campus in campusList )
+                {
+                    var mergeObjects = new Dictionary<string, object>();
+                    mergeObjects.Add( "CampusName", campus.Name );
+                    campus.Name = dropdownItemTemplate.ResolveMergeFields( mergeObjects );
+                }
+            }
+
+            // check if the campus can be unselected
+            if ( !string.IsNullOrEmpty( GetAttributeValue( "ClearSelectionText" ) ) )
+            {
+                var blankCampus = new CampusItem
+                {
+                    Name = GetAttributeValue( "ClearSelectionText" ),
+                    Id = Rock.Constants.All.Id
+                };
+
+                campusList.Insert( 0, blankCampus );
             }
 
             rptCampuses.DataSource = campusList;
@@ -144,9 +153,6 @@ namespace RockWeb.Blocks.Core
         /// <returns></returns>
         protected Campus SetCampusContext( int campusId, bool refreshPage = false )
         {
-            var queryString = HttpUtility.ParseQueryString( Request.QueryString.ToStringSafe() );
-            queryString.Set( "campusId", campusId.ToString() );
-
             bool pageScope = GetAttributeValue( "ContextScope" ) == "Page";
             var campus = new CampusService( new RockContext() ).Get( campusId );
             if ( campus == null )
@@ -162,9 +168,21 @@ namespace RockWeb.Blocks.Core
             // set context and refresh below with the correct query string if needed
             RockPage.SetContextCookie( campus, pageScope, false );
 
+            // Only redirect if refreshPage is true, and there already is a query string parameter for campus id
             if ( refreshPage )
             {
-                Response.Redirect( string.Format( "{0}?{1}", Request.Url.AbsolutePath, queryString ) );
+                if ( !string.IsNullOrWhiteSpace( PageParameter( "campusId" ) ) )
+                {
+                    var queryString = HttpUtility.ParseQueryString( Request.QueryString.ToStringSafe() );
+                    queryString.Set( "campusId", campusId.ToString() );
+                    Response.Redirect( string.Format( "{0}?{1}", Request.Url.AbsolutePath, queryString ), false );
+                }
+                else
+                {
+                    Response.Redirect( Request.RawUrl, false );
+                }
+
+                Context.ApplicationInstance.CompleteRequest();
             }
 
             return campus;
