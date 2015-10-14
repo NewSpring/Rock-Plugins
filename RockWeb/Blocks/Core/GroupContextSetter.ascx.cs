@@ -16,16 +16,21 @@
 //
 using System;
 using System.Collections.Generic;
+using System.Runtime.Caching;
 using System.ComponentModel;
 using System.Linq;
 using System.Web;
+using System.Web.UI;
 using System.Web.UI.WebControls;
+
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
+using Rock.Web;
 using Rock.Web.Cache;
 using Rock.Web.UI;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Blocks.Core
 {
@@ -35,10 +40,10 @@ namespace RockWeb.Blocks.Core
     [DisplayName( "Group Context Setter" )]
     [Category( "Core" )]
     [Description( "Block that can be used to set the default group context for the site." )]
-    [GroupTypeGroupField( "Group Filter", "Select group type and root group to filter groups by root group. Leave root group blank to filter by group type.", "Root Group", order: 0 )]
-    [CustomRadioListField( "Context Scope", "The scope of context to set", "Site,Page", true, "Site", order: 1 )]
-    [TextField( "No Group Text", "The text to show when there is no group in the context.", true, "Select Group", order: 2 )]
-    [TextField( "Clear Selection Text", "The text displayed when a group can be unselected. This will not display when the text is empty.", true, "", order: 3 )]
+
+    [GroupTypeGroupField( "Group Filter", "Select group type and root group to filter groups by root group. Leave root group blank to filter by group type.", "Root Group" )]
+    [CustomRadioListField( "Context Scope", "The scope of context to set", "Site,Page", true, "Site" )]
+    [TextField( "No Group Text", "The text to show when there is no group in the context.", true, "All Groups", order: 3 )]
     public partial class GroupContextSetter : RockBlock
     {
         #region Base Control Methods
@@ -47,7 +52,12 @@ namespace RockWeb.Blocks.Core
         {
             base.OnInit( e );
 
-            // repaint the screen after block settings are updated
+            if ( Request.QueryString["groupId"] != null )
+            {
+                SetGroupContext();
+            }
+        
+            // this event gets fired after block settings are updated. it's nice to repaint the screen if these settings would alter it
             this.BlockUpdated += Block_BlockUpdated;
             this.AddConfigurationUpdateTrigger( upnlContent );
         }
@@ -59,47 +69,107 @@ namespace RockWeb.Blocks.Core
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
-
-            LoadDropDowns();
+            
+            if ( !Page.IsPostBack )
+            {
+                LoadDropDowns();
+            }
         }
 
-        /// <summary>
-        /// Handles the BlockUpdated event of the Block control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void Block_BlockUpdated( object sender, EventArgs e )
+        public int GetParentGroupId()
         {
-            LoadDropDowns();
+            var parentGroupId = 0;
+
+            return parentGroupId;
         }
 
-        #endregion
+        private void SetContextUrlCookie()
+        {
+            HttpCookie cookieUrl = new HttpCookie( "Rock.Group.Context.Query" );
+            cookieUrl["groupId"] = Request.QueryString["groupId"].ToString();
+            cookieUrl.Expires = DateTime.Now.AddHours( 1 );
+            Response.Cookies.Add( cookieUrl );
+        }
 
-        #region Methods
+        private void ClearRockContext( string cookieName )
+        {
+            var cookieKeys = Request.Cookies[cookieName].Value.Split( '&' ).ToArray();
+
+            HttpCookie newRockCookie = new HttpCookie( cookieName );
+
+            foreach ( var cookieKey in cookieKeys )
+            {
+
+                if ( !cookieKey.ToString().StartsWith( "Rock.Model.Group" ) )
+                {
+                    var cookieValue = cookieKey.Split( '=' );
+
+                    var cookieId = cookieValue[0].ToString();
+                    var cookieHash = cookieValue[1].ToString();
+
+                    newRockCookie[cookieId] = cookieHash;
+                }
+            }
+
+            newRockCookie.Expires = DateTime.Now.AddHours( 1 );
+            Response.Cookies.Add( newRockCookie );
+        }
+
+        private void SetGroupContext()
+        {
+            var groupContextQuery = Request.QueryString["groupId"];
+
+            if ( groupContextQuery != null )
+            {
+
+                bool pageScope = GetAttributeValue( "ContextScope" ) == "Page";
+                var group = new GroupService( new RockContext() ).Get( groupContextQuery.ToString().AsInteger() );
+
+                HttpCookie cookieUrl = Request.Cookies["Rock.Group.Context.Query"];
+
+                if ( group != null )
+                {
+                    if ( cookieUrl == null || Request.QueryString["groupId"].ToString() != cookieUrl.Value.Replace( "groupId=", "" ) )
+                    {
+                        SetContextUrlCookie();
+                        RockPage.SetContextCookie( group, pageScope, true );
+                    }
+                }
+                else
+                {
+                    if ( cookieUrl == null || Request.QueryString["groupId"].ToString() != cookieUrl.Value.Replace( "groupId=", "" ) )
+                    {
+                        SetContextUrlCookie();
+
+                        // Check for a page specific Rock Context Cookie
+                        if ( Request.Cookies["Rock_Context:" + RockPage.PageId.ToString()].HasKeys )
+                        {
+                            ClearRockContext( "Rock_Context:" + RockPage.PageId.ToString() );
+                        }
+
+                        // Check for a site specific Rock Context Cookie
+                        if ( Request.Cookies["Rock_Context"].HasKeys )
+                        {
+                            ClearRockContext( "Rock_Context" );
+                        }
+
+                        // Refresh the page once we modify the cookies
+                        Response.Redirect( Request.Url.ToString() );
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// Loads the groups.
         /// </summary>
         private void LoadDropDowns()
         {
-            var groupEntityType = EntityTypeCache.Read( typeof( Group ) );
-            var currentGroup = RockPage.GetCurrentContext( groupEntityType ) as Group;
-
-            var groupIdString = Request.QueryString["groupId"];
-            if ( groupIdString != null )
-            {
-                var groupId = groupIdString.AsInteger();
-
-                if ( currentGroup == null || currentGroup.Id != groupId )
-                {
-                    currentGroup = SetGroupContext( groupId, false );
-                }
-            }
-
             var parts = ( GetAttributeValue( "GroupFilter" ) ?? string.Empty ).Split( '|' );
             Guid? groupTypeGuid = null;
             Guid? rootGroupGuid = null;
 
+           
             if ( parts.Length >= 1 )
             {
                 groupTypeGuid = parts[0].AsGuidOrNull();
@@ -109,6 +179,9 @@ namespace RockWeb.Blocks.Core
                 }
             }
 
+            var groupEntityType = EntityTypeCache.Read( "Rock.Model.Group" );
+            
+            var defaultGroup = RockPage.GetCurrentContext( groupEntityType ) as Group;
             var groupService = new GroupService( new RockContext() );
             IQueryable<Group> qryGroups = null;
 
@@ -126,7 +199,6 @@ namespace RockWeb.Blocks.Core
                 qryGroups = groupService.Queryable().Where( a => a.GroupType.Guid == groupTypeGuid.Value );
             }
 
-            // no results
             if ( qryGroups == null )
             {
                 nbSelectGroupTypeWarning.Visible = true;
@@ -138,72 +210,36 @@ namespace RockWeb.Blocks.Core
                 nbSelectGroupTypeWarning.Visible = false;
                 rptGroups.Visible = true;
 
-                lCurrentSelection.Text = currentGroup != null ? currentGroup.ToString() : GetAttributeValue( "NoGroupText" );
+                lCurrentSelection.Text = defaultGroup != null ? defaultGroup.ToString() : GetAttributeValue( "NoGroupText" );
 
-                var groupList = qryGroups.OrderBy( a => a.Order )
-                    .ThenBy( a => a.Name ).ToList()
-                    .Select( a => new GroupItem() { Name = a.Name, Id = a.Id } )
-                    .ToList();
+                List<GroupItem> groups = new List<GroupItem>();
+                groups.Add( new GroupItem { Name = GetAttributeValue( "NoGroupText" ), Id = Rock.Constants.All.ListItem.Value.AsInteger() } );
+                
+                var groupsList = qryGroups.OrderBy( a => a.Order ).ThenBy( a => a.Name ).ToList().Select( a => new { a.Name, a.Id } ).ToList();
 
-                // check if the group can be unselected
-                if ( !string.IsNullOrEmpty( GetAttributeValue( "ClearSelectionText" ) ) )
+                foreach ( var groupItem in groupsList )
                 {
-                    var blankCampus = new GroupItem
-                    {
-                        Name = GetAttributeValue( "ClearSelectionText" ),
-                        Id = Rock.Constants.All.Id
-                    };
-
-                    groupList.Insert( 0, blankCampus );
+                    groups.Add( new GroupItem { Name = groupItem.Name, Id = groupItem.Id } );
                 }
 
-                rptGroups.DataSource = groupList;
+                rptGroups.DataSource = groups;
                 rptGroups.DataBind();
             }
         }
 
         /// <summary>
-        /// Sets the group context.
+        /// Handles the BlockUpdated event of the Block control.
         /// </summary>
-        /// <param name="groupId">The group identifier.</param>
-        /// <param name="refreshPage">if set to <c>true</c> [refresh page].</param>
-        /// <returns></returns>
-        protected Group SetGroupContext( int groupId, bool refreshPage = false )
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void Block_BlockUpdated( object sender, EventArgs e )
         {
-            bool pageScope = GetAttributeValue( "ContextScope" ) == "Page";
-            var group = new GroupService( new RockContext() ).Get( groupId );
-            if ( group == null )
-            {
-                // clear the current campus context
-                group = new Group()
-                {
-                    Name = GetAttributeValue( "NoGroupText" ),
-                    Guid = Guid.Empty
-                };
-            }
-
-            // set context and refresh below with the correct query string if needed
-            RockPage.SetContextCookie( group, pageScope, false );
-
-            if ( refreshPage )
-            {
-                // Only redirect if refreshPage is true, and there already is a query string parameter for group id
-                if ( !string.IsNullOrWhiteSpace( PageParameter( "groupId" ) ) )
-                {
-                    var queryString = HttpUtility.ParseQueryString( Request.QueryString.ToStringSafe() );
-                    queryString.Set( "groupId", groupId.ToString() );
-                    Response.Redirect( string.Format( "{0}?{1}", Request.Url.AbsolutePath, queryString ), false );
-                }
-                else
-                {
-                    Response.Redirect( Request.RawUrl, false );
-                }
-
-                Context.ApplicationInstance.CompleteRequest();
-            }
-
-            return group;
+            LoadDropDowns();
         }
+
+        #endregion
+
+        #region Methods
 
         /// <summary>
         /// Handles the ItemCommand event of the rptGroups control.
@@ -212,12 +248,21 @@ namespace RockWeb.Blocks.Core
         /// <param name="e">The <see cref="RepeaterCommandEventArgs"/> instance containing the event data.</param>
         protected void rptGroups_ItemCommand( object source, RepeaterCommandEventArgs e )
         {
-            var groupId = e.CommandArgument.ToString();
+            bool pageScope = GetAttributeValue( "ContextScope" ) == "Page";
+            var group = new GroupService( new RockContext() ).Get( e.CommandArgument.ToString().AsInteger() );
 
-            if ( groupId != null )
+            var nameValues = HttpUtility.ParseQueryString( Request.QueryString.ToString() );
+            nameValues.Set( "groupId", e.CommandArgument.ToString() );
+            string url = Request.Url.AbsolutePath;
+            string updatedQueryString = "?" + nameValues.ToString();
+
+            // Only update the Context Cookie if the Group is valid
+            if ( group != null )
             {
-                SetGroupContext( groupId.AsInteger(), true );
+                RockPage.SetContextCookie( group, pageScope, false );
             }
+
+            Response.Redirect( url + updatedQueryString );
         }
 
         #endregion
