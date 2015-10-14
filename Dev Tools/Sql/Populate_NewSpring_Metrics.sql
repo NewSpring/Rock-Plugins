@@ -33,7 +33,7 @@ DECLARE @4pm varchar(5) = '16:00'
 DECLARE @6pm varchar(5) = '18:00'
 
 DECLARE @SomeSunday datetime
-DECLARE @LastSunday datetime = DATEADD( 
+DECLARE @LastSunday date = DATEADD( 
 	DAY, -((DATEPART(DW, GETDATE()) + 6) % 7), GETDATE()
 )
 
