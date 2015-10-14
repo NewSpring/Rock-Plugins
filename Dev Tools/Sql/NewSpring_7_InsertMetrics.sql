@@ -715,9 +715,13 @@ BEGIN
 		/* ============================ */
 		-- {Group} Service Roles
 		/* ============================ */
-		SELECT @MetricServiceRolesId = [Id] FROM Metric
+		SELECT @MetricServiceRolesId = M.[Id]
+		FROM Metric M
+		INNER JOIN MetricCategory MC
+		ON M.Id = MC.MetricId
 		WHERE EntityTypeId = @CampusEntityTypeId
 			AND SourceValueTypeId = @MetricSourceSQLId
+			AND MC.CategoryId = @ChildCategoryId
 			AND Title = @GroupName + ' ' + @ServiceRolesTitle
 
 		-- create if it doesn't exist
@@ -736,9 +740,13 @@ BEGIN
 		/* ============================ */
 		-- {Group} Service Roster
 		/* ============================ */
-		SELECT @MetricServiceRosterId = [Id] FROM Metric
+		SELECT @MetricServiceRosterId = M.[Id] 
+		FROM Metric M
+		INNER JOIN MetricCategory MC
+		ON M.Id = MC.MetricId
 		WHERE EntityTypeId = @CampusEntityTypeId
 			AND SourceValueTypeId = @MetricSourceSQLId
+			AND MC.CategoryId = @ChildCategoryId
 			AND Title = @GroupName + ' ' + @ServiceRosterTitle
 
 		-- create if it doesn't exist
@@ -757,9 +765,13 @@ BEGIN
 		/* ============================ */
 		-- {Group} Total Roles
 		/* ============================ */
-		SELECT @MetricTotalRolesId = [Id] FROM Metric
+		SELECT @MetricTotalRolesId = M.[Id] 
+		FROM Metric M
+		INNER JOIN MetricCategory MC
+		ON M.Id = MC.MetricId
 		WHERE EntityTypeId = @CampusEntityTypeId
 			AND SourceValueTypeId = @MetricSourceSQLId
+			AND MC.CategoryId = @ChildCategoryId
 			AND Title = @GroupName + ' ' + @TotalRolesTitle
 
 		-- create if it doesn't exist
@@ -778,9 +790,13 @@ BEGIN
 		/* ============================ */
 		-- {Group} Total Roster
 		/* ============================ */
-		SELECT @MetricTotalRosterId = [Id] FROM Metric
+		SELECT @MetricTotalRosterId = M.[Id] 
+		FROM Metric M
+		INNER JOIN MetricCategory MC
+		ON M.Id = MC.MetricId
 		WHERE EntityTypeId = @CampusEntityTypeId
 			AND SourceValueTypeId = @MetricSourceSQLId
+			AND MC.CategoryId = @ChildCategoryId
 			AND Title = @GroupName + ' ' + @TotalRosterTitle
 
 		-- create if it doesn't exist
@@ -799,9 +815,13 @@ BEGIN
 		/* ============================ */
 		-- {Group} Unique Serving
 		/* ============================ */
-		SELECT @MetricUniqueServingId = [Id] FROM Metric
+		SELECT @MetricUniqueServingId = M.[Id] 
+		FROM Metric M
+		INNER JOIN MetricCategory MC
+		ON M.Id = MC.MetricId
 		WHERE EntityTypeId = @CampusEntityTypeId
 			AND SourceValueTypeId = @MetricSourceSQLId
+			AND MC.CategoryId = @ChildCategoryId
 			AND Title = @GroupName + ' ' + @UniqueServingTitle
 
 		-- create if it doesn't exist
