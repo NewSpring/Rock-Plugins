@@ -657,7 +657,7 @@ WHILE @scopeIndex < @numItems
 BEGIN
 	
 	SELECT @ParentCategoryId = NULL, @GroupId = NULL, @GroupName = '',
-		@GroupTypeId = NULL, @GroupTypeName = ''
+		@GroupTypeId = NULL, @GroupTypeName = '', @ChildCategoryId = NULL
 
 	SELECT @GroupTypeName = groupTypeName, @GroupName = groupName
 	FROM #metricGroups
@@ -680,9 +680,13 @@ BEGIN
 	AND GTA.GroupTypeId <> @GroupTypeId
 
 	-- lookup parent category
-	SELECT @ParentCategoryId = [Id] FROM Category
-	WHERE EntityTypeId = @MetricCategoryEntityTypeId
-	AND Name = @ParentGroupTypeName
+	SELECT @ParentCategoryId = C.[Id] 
+	FROM Category C
+	INNER JOIN Category PC
+	ON C.ParentCategoryId = PC.Id
+	WHERE C.EntityTypeId = @MetricCategoryEntityTypeId
+	AND C.Name = @ParentGroupTypeName
+	AND PC.ParentCategoryId IS NULL
 
 	-- check that the parameters and category exist
 	IF @GroupTypeID IS NOT NULL AND @ParentCategoryId IS NOT NULL
@@ -691,6 +695,13 @@ BEGIN
 		SELECT @msg = 'Creating metrics for ' + @GroupTypeName + ' / ' + @GroupName
 		RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
 
+		-- create a category for the group
+		INSERT [Category] (IsSystem, ParentCategoryId, EntityTypeId, EntityTypeQualifierColumn, EntityTypeQualifierValue, Name, [Guid], [Order])
+		VALUES ( @IsSystem, @ParentCategoryId, @MetricCategoryEntityTypeId, '', '', @GroupName, NEWID(), @Order )
+
+		SET @ChildCategoryId = SCOPE_IDENTITY()
+		
+		-- set up variables for group metrics
 		SELECT @MetricServiceRolesId = NULL, @MetricServiceRosterId = NULL, 
 			@MetricTotalRolesId = NULL, @MetricTotalRosterId = NULL, @MetricUniqueServingId = NULL
 		
@@ -719,7 +730,7 @@ BEGIN
 			SELECT @MetricServiceRolesId = SCOPE_IDENTITY()
 
 			INSERT [MetricCategory] (MetricId, CategoryId, [Order], [Guid])
-			VALUES ( @MetricServiceRolesId, @ParentCategoryId, @Order, NEWID() )
+			VALUES ( @MetricServiceRolesId, @ChildCategoryId, @Order, NEWID() )
 		END
 
 		/* ============================ */
@@ -740,7 +751,7 @@ BEGIN
 			SELECT @MetricServiceRosterId = SCOPE_IDENTITY()
 
 			INSERT [MetricCategory] (MetricId, CategoryId, [Order], [Guid])
-			VALUES ( @MetricServiceRosterId, @ParentCategoryId, @Order, NEWID() )
+			VALUES ( @MetricServiceRosterId, @ChildCategoryId, @Order, NEWID() )
 		END
 
 		/* ============================ */
@@ -761,7 +772,7 @@ BEGIN
 			SELECT @MetricTotalRolesId = SCOPE_IDENTITY()
 
 			INSERT [MetricCategory] (MetricId, CategoryId, [Order], [Guid])
-			VALUES ( @MetricTotalRolesId, @ParentCategoryId, @Order, NEWID() )
+			VALUES ( @MetricTotalRolesId, @ChildCategoryId, @Order, NEWID() )
 		END
 
 		/* ============================ */
@@ -782,7 +793,7 @@ BEGIN
 			SELECT @MetricTotalRosterId = SCOPE_IDENTITY()
 
 			INSERT [MetricCategory] (MetricId, CategoryId, [Order], [Guid])
-			VALUES ( @MetricTotalRosterId, @ParentCategoryId, @Order, NEWID() )
+			VALUES ( @MetricTotalRosterId, @ChildCategoryId, @Order, NEWID() )
 		END
 
 		/* ============================ */
@@ -803,7 +814,7 @@ BEGIN
 			SELECT @MetricUniqueServingId = SCOPE_IDENTITY()
 
 			INSERT [MetricCategory] (MetricId, CategoryId, [Order], [Guid])
-			VALUES ( @MetricUniqueServingId, @ParentCategoryId, @Order, NEWID() )
+			VALUES ( @MetricUniqueServingId, @ChildCategoryId, @Order, NEWID() )
 		END
 
 		-- reset queries to parameterized state
