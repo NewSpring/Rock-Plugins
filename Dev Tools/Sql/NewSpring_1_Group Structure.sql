@@ -1029,7 +1029,7 @@ BEGIN
 		RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
 		
 		/* ====================================================== */
-		-- create central group IF it doesn't exist
+		-- create central group if it doesn't exist
 		/* ====================================================== */		
 		SELECT @GroupId = [Id] FROM [Group]
 		WHERE name = @GroupName
