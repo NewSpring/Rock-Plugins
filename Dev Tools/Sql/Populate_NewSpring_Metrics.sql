@@ -62,12 +62,20 @@ BEGIN
 		SELECT @msg = 'Creating values for ' + @MetricDescription
 		RAISERROR ( @msg, 0, 0 ) WITH NOWAIT
 
-		-- create a random, single, large number for totals or uniques
-		IF @MetricName LIKE '%Total%' OR @MetricName LIKE '%Unique%'
+		-- create a random, single, large number for totals
+		IF @MetricName LIKE '%Total%'
 		BEGIN
 
 			INSERT [MetricValue] (MetricId, MetricValueType, YValue, [Order], MetricValueDateTime, EntityId, [Guid])
 			VALUES (@MetricId, @False, CAST(ABS(RAND() * 1000) AS INT), @Order, @SomeSunday + '00:00', @CampusId, NEWID() )
+
+		END
+		-- create a random, smaller number for uniques
+		ELSE IF @MetricName LIKE '%Unique%'
+		BEGIN
+
+			INSERT [MetricValue] (MetricId, MetricValueType, YValue, [Order], MetricValueDateTime, EntityId, [Guid])
+			VALUES (@MetricId, @False, CAST(ABS(RAND() * 100) AS INT), @Order, @SomeSunday + '00:00', @CampusId, NEWID() )
 
 		END
 		-- create random, smaller numbers for each service time
