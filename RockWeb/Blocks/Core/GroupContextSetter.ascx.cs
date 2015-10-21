@@ -39,6 +39,7 @@ namespace RockWeb.Blocks.Core
     [CustomRadioListField( "Context Scope", "The scope of context to set", "Site,Page", true, "Site", order: 1 )]
     [TextField( "No Group Text", "The text to show when there is no group in the context.", true, "Select Group", order: 2 )]
     [TextField( "Clear Selection Text", "The text displayed when a group can be unselected. This will not display when the text is empty.", true, "", order: 3 )]
+    [BooleanField( "Include Children", "Include all children of the group or grouptype selected", true, "", order: 4 )]
     public partial class GroupContextSetter : RockBlock
     {
         #region Base Control Methods
@@ -84,6 +85,20 @@ namespace RockWeb.Blocks.Core
         {
             var groupEntityType = EntityTypeCache.Read( typeof( Group ) );
             var currentGroup = RockPage.GetCurrentContext( groupEntityType ) as Group;
+            var parts = ( GetAttributeValue( "GroupFilter" ) ?? string.Empty ).Split( '|' );
+            Guid? groupTypeGuid = null;
+            Guid? rootGroupGuid = null;
+
+            if ( parts.Length >= 1 )
+            {
+                groupTypeGuid = parts[0].AsGuidOrNull();
+                if ( parts.Length >= 2 )
+                {
+                    rootGroupGuid = parts[1].AsGuidOrNull();
+                }
+
+                SetGroupTypeContext( groupTypeGuid );
+            }
 
             var groupIdString = Request.QueryString["groupId"];
             if ( groupIdString != null )
@@ -96,20 +111,9 @@ namespace RockWeb.Blocks.Core
                 }
             }
 
-            var parts = ( GetAttributeValue( "GroupFilter" ) ?? string.Empty ).Split( '|' );
-            Guid? groupTypeGuid = null;
-            Guid? rootGroupGuid = null;
-
-            if ( parts.Length >= 1 )
-            {
-                groupTypeGuid = parts[0].AsGuidOrNull();
-                if ( parts.Length >= 2 )
-                {
-                    rootGroupGuid = parts[1].AsGuidOrNull();
-                }
-            }
-
-            var groupService = new GroupService( new RockContext() );
+            var rockContext = new RockContext();
+            var groupService = new GroupService( rockContext );
+            var groupTypeService = new GroupTypeService( rockContext );
             IQueryable<Group> qryGroups = null;
 
             // if rootGroup is set, use that as the filter.  Otherwise, use GroupType as the filter
@@ -123,7 +127,17 @@ namespace RockWeb.Blocks.Core
             }
             else if ( groupTypeGuid.HasValue )
             {
-                qryGroups = groupService.Queryable().Where( a => a.GroupType.Guid == groupTypeGuid.Value );
+                if ( GetAttributeValue( "IncludeChildren" ).AsBoolean() )
+                {
+                    var childGroupTypeGuids = groupTypeService.Queryable().Where( t => t.ParentGroupTypes.Select( p => p.Guid ).Contains( groupTypeGuid.Value ) )
+                        .Select( t => t.Guid ).ToList();
+
+                    qryGroups = groupService.Queryable().Where( a => childGroupTypeGuids.Contains( a.GroupType.Guid ) );
+                }
+                else
+                {
+                    qryGroups = groupService.Queryable().Where( a => a.GroupType.Guid == groupTypeGuid.Value );
+                }
             }
 
             // no results
@@ -203,6 +217,33 @@ namespace RockWeb.Blocks.Core
             }
 
             return group;
+        }
+
+        /// <summary>
+        /// Sets the group type context.
+        /// </summary>
+        /// <param name="groupTypeGuid">The group type unique identifier.</param>
+        /// <returns></returns>
+        protected GroupType SetGroupTypeContext( Guid? groupTypeGuid )
+        {
+            bool pageScope = GetAttributeValue( "ContextScope" ) == "Page";
+            var groupTypeService = new GroupTypeService( new RockContext() );
+
+            // check if a grouptype parameter exists to set
+            var groupType = groupTypeService.Get( (Guid)groupTypeGuid );
+
+            if ( groupType == null )
+            {
+                groupType = new GroupType()
+                {
+                    Name = GetAttributeValue( "NoGroupText" ),
+                    Guid = Guid.Empty
+                };
+            }
+
+            RockPage.SetContextCookie( groupType, pageScope, false );
+
+            return groupType;
         }
 
         /// <summary>
