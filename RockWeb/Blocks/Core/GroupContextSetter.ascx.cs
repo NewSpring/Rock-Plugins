@@ -39,7 +39,9 @@ namespace RockWeb.Blocks.Core
     [CustomRadioListField( "Context Scope", "The scope of context to set", "Site,Page", true, "Site", order: 1 )]
     [TextField( "No Group Text", "The text to show when there is no group in the context.", true, "Select Group", order: 2 )]
     [TextField( "Clear Selection Text", "The text displayed when a group can be unselected. This will not display when the text is empty.", true, "", order: 3 )]
-    [BooleanField( "Include Children", "Include all children of the group or grouptype selected", true, "", order: 4 )]
+    [BooleanField( "Display Query Strings", "Select to always display query strings. Default behavior will only display the query string when it's passed to the page.", false, "", order: 4 )]
+    [BooleanField( "Include Children", "Include all children of the group or grouptype selected", true, "", order: 5 )]
+
     public partial class GroupContextSetter : RockBlock
     {
         #region Base Control Methods
@@ -96,8 +98,6 @@ namespace RockWeb.Blocks.Core
                 {
                     rootGroupGuid = parts[1].AsGuidOrNull();
                 }
-
-                SetGroupTypeContext( groupTypeGuid );
             }
 
             var groupIdString = Request.QueryString["groupId"];
@@ -127,6 +127,8 @@ namespace RockWeb.Blocks.Core
             }
             else if ( groupTypeGuid.HasValue )
             {
+                SetGroupTypeContext( groupTypeGuid );
+
                 if ( GetAttributeValue( "IncludeChildren" ).AsBoolean() )
                 {
                     var childGroupTypeGuids = groupTypeService.Queryable().Where( t => t.ParentGroupTypes.Select( p => p.Guid ).Contains( groupTypeGuid.Value ) )
@@ -201,8 +203,8 @@ namespace RockWeb.Blocks.Core
 
             if ( refreshPage )
             {
-                // Only redirect if refreshPage is true, and there already is a query string parameter for group id
-                if ( !string.IsNullOrWhiteSpace( PageParameter( "groupId" ) ) )
+                // Only redirect if refreshPage is true
+                if ( !string.IsNullOrWhiteSpace( PageParameter( "groupId" ) ) || GetAttributeValue( "DisplayQueryStrings" ).AsBoolean() )
                 {
                     var queryString = HttpUtility.ParseQueryString( Request.QueryString.ToStringSafe() );
                     queryString.Set( "groupId", groupId.ToString() );
